@@ -1,0 +1,91 @@
+/*    
+    Kite2D Game Framework.
+    Copyright (C) 2010-2013  Milad Rasaneh <milad_rasaneh2000@yahoo.com>
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
+#include "src/Kite/graphic/glcall.h"
+
+namespace Kite{
+namespace Internal{
+
+    bool initeGLEW(){
+
+        static bool isInit = false;
+        GLenum err = glewInit();
+        if (isInit == false){
+            if (err != GLEW_OK){
+                KDEBUG_PRINT("glewInit failed.");
+                KDEBUG_BREAK;
+                return false;
+            }
+        }
+        isInit = true;
+        return true;
+    }
+
+    bool checkLastGLErr(){
+
+        // get the last OpenGL error
+        GLenum OGLErrCode = glGetError();
+        bool ret = true;
+
+        while (OGLErrCode != GL_NO_ERROR){
+            ret = false;
+            // decode the error code
+            switch (OGLErrCode){
+            case GL_INVALID_ENUM :{
+                printf("GL_INVALID_ENUM\n");
+                break;
+            }
+
+            case GL_INVALID_VALUE :{
+                printf("GL_INVALID_VALUE\n");
+                break;
+            }
+
+            case GL_INVALID_OPERATION :{
+                printf("GL_INVALID_OPERATION\n");
+                break;
+            }
+
+            case GL_STACK_OVERFLOW :{
+                printf("GL_STACK_OVERFLOW\n");
+                break;
+            }
+
+            case GL_STACK_UNDERFLOW :{
+                printf("GL_STACK_UNDERFLOW\n");
+                break;
+            }
+
+            case GL_OUT_OF_MEMORY :{
+                printf("GL_OUT_OF_MEMORY\n");
+                break;
+            }
+
+            case GL_INVALID_FRAMEBUFFER_OPERATION_EXT :{
+                printf("GL_INVALID_FRAMEBUFFER_OPERATION_EXT\n");
+                break;
+            }
+            default:
+                printf("UNKNOWN_ERROR\n");
+                break;
+            }
+            OGLErrCode = glGetError();
+        }
+        return ret;
+    }
+}
+}

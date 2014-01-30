@@ -76,4 +76,9 @@ void cpuid(unsigned int CPUInfo[4],int InfoType){
         }
         return &cpuInfo;
     }
+
+    U64 getUniqueNumber(){
+        static U16 id = 0;
+        return ++id;
+    }
 }

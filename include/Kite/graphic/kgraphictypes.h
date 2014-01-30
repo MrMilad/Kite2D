@@ -14,9 +14,9 @@ namespace Kite{
     };
 
     enum KVertexBufferTypes{
-        KVERTEX_BUFFER_STATIC = 0,
-        KVERTEX_BUFFER_DYNAMIC,
-        KVERTEX_BUFFER_STREAM
+        KVBUFFER_STATIC = 0,
+        KVBUFFER_DYNAMIC,
+        KVBUFFER_STREAM
     };
 
     enum KMapAccessTypes{
@@ -107,11 +107,23 @@ namespace Kite{
         KFONT_AUTO
     };
 
+    enum KTextureFilterTypes{
+        KTF_NEAREST = 0,
+        KTF_LINEAR
+    };
+
+    enum KTextureWrapTypes{
+        KTW_REPEAT = 0,
+        KTW_MIRRORED_REPEAT,
+        KTW_CLAMP_TO_EDGE,
+        //KTW_CLAMP_TO_BORDER // border not supported (see KTexture::create())
+    };
+
     namespace Internal{
-    enum GLBindGuardTypes{
-        BGUARD_NONE = 0,
-        BGUARD_TEXTURE,
-        BGUARD_BUFFER
+    enum KGLBindGuardTypes{
+        KBGUARD_NONE = 0,
+        KBGUARD_TEXTURE,
+        KBGUARD_BUFFER
     };
 
     enum KRenderMode{
@@ -119,8 +131,6 @@ namespace Kite{
         KRM_VARRAY,
         KRM_UNSET
     };
-
-
     }
 
 }

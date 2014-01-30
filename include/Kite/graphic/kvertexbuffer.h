@@ -10,30 +10,30 @@ namespace Kite{
     class KITE_FUNC_EXPORT KVertexBuffer : KNonCopyable{
     friend class KGL2DRender;
     public:
-        KVertexBuffer(KVertexBufferTypes BufferType, const KVertex *VertexArray, U32 ArrayLenght);
+        KVertexBuffer();
         ~KVertexBuffer();
 
-        inline void setType(KVertexBufferTypes BufferType) {_kbufType = BufferType;}
-        inline void setVertexArray(const KVertex *VertexArray, U32 ArrayLenght){_kvertexPointer = VertexArray;
-                                                                                _karrLen = ArrayLenght;}
+        // create buffer
+        void create(const KVertex *VertexArray, U32 ArrayLenght, KVertexBufferTypes BufferType);
+
+        // update buffer
+        void update(KMapAccessTypes AccessType);
+
+        // bind buffer
+        // (handle autimatic by internal render system)
+        void bind();
+
+        // set update handle for updating buffer
         inline void setUpdateHandle(KCallVBUpdate *UpdateHandle) {_kupdateHnd = UpdateHandle;}
 
         inline KVertexBufferTypes getType() const {return _kbufType;}
         inline U32 getLength() const {return _karrLen;}
         inline U32 getID() const {return _kbufId;}
 
-        // Bind Buffer (generate and fill buffer in first call)
-        void bind();
-
-        // Update Buffer
-        void update(KMapAccessTypes AccessType);
-
     private:
         KVertexBufferTypes _kbufType;
-        const KVertex *_kvertexPointer;
         U32 _karrLen;
         U32 _kbufId;
-        bool _kfilled;
         KCallVBUpdate *_kupdateHnd;
         static U32 _klastBufId;
     };

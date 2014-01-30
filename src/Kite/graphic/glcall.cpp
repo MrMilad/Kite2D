@@ -29,41 +29,49 @@ namespace Internal{
             // decode the error code
             switch (OGLErrCode){
             case GL_INVALID_ENUM :{
-                printf("GL_INVALID_ENUM\n");
+                KDEBUG_PRINT("GL_INVALID_ENUM\n");
+                KDEBUG_BREAK;
                 break;
             }
 
             case GL_INVALID_VALUE :{
-                printf("GL_INVALID_VALUE\n");
+                KDEBUG_PRINT("GL_INVALID_VALUE\n");
+                KDEBUG_BREAK;
                 break;
             }
 
             case GL_INVALID_OPERATION :{
-                printf("GL_INVALID_OPERATION\n");
+                KDEBUG_PRINT("GL_INVALID_OPERATION\n");
+                KDEBUG_BREAK;
                 break;
             }
 
             case GL_STACK_OVERFLOW :{
-                printf("GL_STACK_OVERFLOW\n");
+                KDEBUG_PRINT("GL_STACK_OVERFLOW\n");
+                KDEBUG_BREAK;
                 break;
             }
 
             case GL_STACK_UNDERFLOW :{
-                printf("GL_STACK_UNDERFLOW\n");
+                KDEBUG_PRINT("GL_STACK_UNDERFLOW\n");
+                KDEBUG_BREAK;
                 break;
             }
 
             case GL_OUT_OF_MEMORY :{
-                printf("GL_OUT_OF_MEMORY\n");
+                KDEBUG_PRINT("GL_OUT_OF_MEMORY\n");
+                KDEBUG_BREAK;
                 break;
             }
 
             case GL_INVALID_FRAMEBUFFER_OPERATION_EXT :{
-                printf("GL_INVALID_FRAMEBUFFER_OPERATION_EXT\n");
+                KDEBUG_PRINT("GL_INVALID_FRAMEBUFFER_OPERATION_EXT\n");
+                KDEBUG_BREAK;
                 break;
             }
             default:
-                printf("UNKNOWN_ERROR\n");
+                KDEBUG_PRINT("UNKNOWN_ERROR\n");
+                KDEBUG_BREAK;
                 break;
             }
             OGLErrCode = glGetError();
@@ -71,16 +79,16 @@ namespace Internal{
         return ret;
     }
 
-    GLBindGuard::GLBindGuard(GLBindGuardTypes type, GLint objectID):
+    GLBindGuard::GLBindGuard(KGLBindGuardTypes type, GLint objectID):
         _ktypes(type), _kglobject(objectID)
     {}
 
     GLBindGuard::~GLBindGuard(){
         switch (_ktypes){
-        case BGUARD_TEXTURE:
+        case KBGUARD_TEXTURE:
             DGL_CALL(glBindTexture(GL_TEXTURE_2D, _kglobject));
             break;
-        case BGUARD_BUFFER:
+        case KBGUARD_BUFFER:
             DGL_CALL(glBindBuffer(GL_ARRAY_BUFFER_ARB, _kglobject));
             break;
         default:

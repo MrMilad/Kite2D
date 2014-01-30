@@ -13,10 +13,10 @@ namespace Internal{
 
     class GLBindGuard{
     public:
-        GLBindGuard(GLBindGuardTypes type = BGUARD_NONE, GLint objectID = 0);
+        GLBindGuard(KGLBindGuardTypes type = KBGUARD_NONE, GLint objectID = 0);
         ~GLBindGuard();
     private:
-        GLBindGuardTypes _ktypes; // type of object
+        KGLBindGuardTypes _ktypes; // type of object
         GLuint _kglobject; // current object binding to restore
     };
 }

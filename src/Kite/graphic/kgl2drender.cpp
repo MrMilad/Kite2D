@@ -48,6 +48,7 @@ namespace Kite{
     }
 
     void KGL2DRender::drawBuffer(KVertexBuffer &Buffer, U32 FirstIndex, U32 Size, KGeoPrimitiveTypes Primitive){
+        // set geometric type
         static const GLenum geoTypes[] = {GL_POINTS, GL_LINES,
                                          GL_LINE_STRIP, GL_LINE_LOOP,
                                          GL_TRIANGLES, GL_TRIANGLE_STRIP,
@@ -56,6 +57,8 @@ namespace Kite{
         _kgeoType = Primitive;
         static GLenum type;
         type = geoTypes[_kgeoType];
+
+        // check last render state for avoide extra ogl state-change
         if (_kcatch.render != Internal::KRM_VBO || _kcatch.lastBufId != Buffer.getID()){
             Buffer.bind();
             DGL_CALL(glVertexPointer(2, GL_FLOAT, sizeof(KVertex), KBUFFER_OFFSET(0)));
@@ -65,6 +68,7 @@ namespace Kite{
             _kcatch.lastBufId = Buffer.getID();
         }
 
+        // draw buffer
         DGL_CALL(glDrawArrays(type, FirstIndex, Size));
     }
 

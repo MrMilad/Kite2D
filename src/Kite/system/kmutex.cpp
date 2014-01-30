@@ -2,7 +2,7 @@
 
 #if defined(KITE_PLATFORM_WINDOWS)
 
-    #include "src/Kite/system/win32/kmuteximpl.h"
+    #include "src/Kite/system/win32/mutex.h"
 
 #elif defined(KITE_PLATFORM_LINUX)
 
@@ -15,19 +15,19 @@
 namespace Kite{
 
     KMutex::KMutex(){
-        m_impl = new Internal::KMutexImpl();
+        _kimpl = new Internal::Mutex();
     }
 
     KMutex::~KMutex(){
-        delete m_impl;
+        delete _kimpl;
     }
 
     void KMutex::lock(){
-        m_impl->lock();
+        _kimpl->lock();
     }
 
     void KMutex::unlock(){
-        m_impl->unlock();
+        _kimpl->unlock();
     }
 
 }

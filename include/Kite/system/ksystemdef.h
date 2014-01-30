@@ -155,8 +155,8 @@ namespace Kite{
     typedef unsigned int U32;
 
     // 32 bits integer types
-    typedef signed long I64;
-    typedef unsigned long U64;
+    typedef signed long long I64;
+    typedef unsigned long long U64;
 
     // 32 bits floating types
     typedef float F32;

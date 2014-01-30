@@ -21,6 +21,10 @@ extern "C" { KITE_FUNC_EXPORT KPowerState getPowerState(); }
 // CPU
 extern "C" { KITE_FUNC_EXPORT const KCPUInfo *getCPUInfo(); }
 
+// unique identifier generator (1 to 18,446,744,073,709,551,615)
+// not thread-safe
+extern "C" { KITE_FUNC_EXPORT U64 getUniqueNumber(); }
+
 }
 
 #endif // KSYSTEMUTIL_H

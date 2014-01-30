@@ -4,17 +4,15 @@
 namespace Kite{
 
     U32 KVertexBuffer::_klastBufId = 0;
-    KVertexBuffer::KVertexBuffer(KVertexBufferTypes BufferType, const KVertex *VertexArray, U32 ArrayLenght):
-        _kbufType(BufferType),
-        _kvertexPointer(VertexArray),
-        _karrLen(ArrayLenght),
+    KVertexBuffer::KVertexBuffer():
+        _kbufType(KVBUFFER_STATIC),
+        _karrLen(0),
         _kbufId(0),
-        _kfilled(false),
         _kupdateHnd(0)
     {}
 
     KVertexBuffer::~KVertexBuffer(){
-        if (_kbufId != 0){
+        if (_kbufId > 0){
             DGL_CALL(glDeleteBuffers(1, &_kbufId));
             if (_klastBufId == _kbufId){
                 _klastBufId = 0;
@@ -22,39 +20,56 @@ namespace Kite{
         }
     }
 
-    void KVertexBuffer::bind(){
-        // generate buffer (generate in first call)
-        if (_kbufId == 0)
+    void KVertexBuffer::create(const KVertex *VertexArray, U32 ArrayLenght, KVertexBufferTypes BufferType){
+        // generate buffer
+        if (_kbufId <= 0)
             DGL_CALL(glGenBuffers(1, &_kbufId));
 
-        // bind buffer
-        DGL_CALL(glBindBuffer(GL_ARRAY_BUFFER_ARB, _kbufId));
+        // check array pointer and size of array
+        if (VertexArray != 0 && ArrayLenght > 0){
 
-        // fill buffer with vertex data.
-        if (!_kfilled){
-            // before filling buffer we check our data
-            if (_kvertexPointer != 0 && _karrLen > 0){
-                int dataHint[] = {GL_STATIC_DRAW, GL_DYNAMIC_DRAW, GL_STREAM_DRAW};
-                DGL_CALL(glBufferData(GL_ARRAY_BUFFER_ARB, sizeof(KVertex)*_karrLen,
-                                      (const void *) &_kvertexPointer[0].x, dataHint[_kbufType]));
-                _kfilled = true;
-            }
+            // save currently binded buffer then bind our buffer temporary
+            Internal::GLBindGuard bindGuard(Internal::KBGUARD_BUFFER, _klastBufId);
+            DGL_CALL(glBindBuffer(GL_ARRAY_BUFFER_ARB, _kbufId));
+
+            // fill buffer with vertex data
+            int dataHint[] = {GL_STATIC_DRAW, GL_DYNAMIC_DRAW, GL_STREAM_DRAW};
+            DGL_CALL(glBufferData(GL_ARRAY_BUFFER_ARB, sizeof(KVertex)*ArrayLenght,
+                                  (const void *) &VertexArray[0].x, dataHint[BufferType]));
+
+            _kbufType = BufferType;
+            _karrLen = ArrayLenght;
         }
-        _klastBufId = _kbufId;
     }
 
     void KVertexBuffer::update(KMapAccessTypes AccessType){
-        if (_kupdateHnd){
+        // check update handle and buffer
+        if (_kupdateHnd && _kbufId > 0){
+
+            // save currently binded buffer then bind our buffer temporary
+            Internal::GLBindGuard bindGuard(Internal::KBGUARD_BUFFER, _klastBufId);
+            DGL_CALL(glBindBuffer(GL_ARRAY_BUFFER_ARB, _kbufId));
+
+            // map buffer
             int accType[] = {GL_READ_ONLY_ARB, GL_WRITE_ONLY_ARB, GL_READ_WRITE_ARB};
-            Internal::GLBindGuard bindGuard;
-            if (_klastBufId != 0)// save currently binded buffer
-                bindGuard = Internal::GLBindGuard(Internal::BGUARD_BUFFER, _klastBufId);
-            bind();
             void *dataPtr = DGL_CALL(glMapBuffer(GL_ARRAY_BUFFER_ARB, accType[AccessType]));
+
+            // call update handle
             (*_kupdateHnd)((KVertex *)dataPtr, _karrLen);
+
+            // unmap buffer
             DGL_CALL(glUnmapBuffer(GL_ARRAY_BUFFER_ARB));
+
         }else{
-            KDEBUG_PRINT("update handle not set yet.");
+            KDEBUG_PRINT("buffer is not created or update handle not set yet.");
+        }
+    }
+
+    void KVertexBuffer::bind(){
+        // bind buffer
+        if (_kbufId != 0){
+            DGL_CALL(glBindBuffer(GL_ARRAY_BUFFER_ARB, _kbufId));
+            _klastBufId = _kbufId;
         }
     }
 

@@ -24,6 +24,7 @@ namespace Kite{
                         U32 FirstIndex, U32 Size,
                         KGeoPrimitiveTypes Primitive);
 
+        void setTextureEnv(KTextureEnvMode Mode);
         void setClearColor(const KColor &Color);
         void setPointsOption(const KPointOption &Option);
         inline void setCamera(const KCamera &Camera) {_kcurrentCam = &Camera;}

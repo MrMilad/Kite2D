@@ -7,35 +7,44 @@ namespace Kite{
     };
 
     enum KBlendMode{
-        KBLEND_ALPHA,    // Pixel = Source * Source.a + Dest * (1 - Source.a)
-        KBLEND_ADD,      // Pixel = Source + Dest
-        KBLEND_MULTIPLY, // Pixel = Source * Dest
-        KBLEND_NONE      // Pixel = Source
+        KB_ALPHA,    // Pixel = Source * Source.a + Dest * (1 - Source.a)
+        KB_ADD,      // Pixel = Source + Dest
+        KB_MULTIPLY, // Pixel = Source * Dest
+        KB_NONE      // Pixel = Source
+    };
+
+    enum KTextureEnvMode{
+        KTE_ADD = 0,
+        KTE_MODULATE,
+        KTE_DECAL,
+        KTE_BLEND,
+        KTE_REPLACE,
+        KTE_COMBINE
     };
 
     enum KVertexBufferTypes{
-        KVBUFFER_STATIC = 0,
-        KVBUFFER_DYNAMIC,
-        KVBUFFER_STREAM
+        KVB_STATIC = 0,
+        KVB_DYNAMIC,
+        KVB_STREAM
     };
 
     enum KMapAccessTypes{
-        KMAP_ACCESS_READ = 0,
-        KMAP_ACCESS_WRITE,
-        KMAP_ACCESS_RW
+        KMA_READ = 0,
+        KMA_WRITE,
+        KMA_RW
     };
 
     enum KGeoPrimitiveTypes{
-        KGL_POINTS = 0,
-        KGL_LINES,
-        KGL_LINE_STRIP,
-        KGL_LINE_LOOP,
-        KGL_TRIANGLES,
-        KGL_TRIANGLE_STRIP,
-        KGL_TRIANGLE_FAN,
-        KGL_QUADS,
-        KGL_QUAD_STRIP,
-        KGL_POLYGON
+        KGP_POINTS = 0,
+        KGP_LINES,
+        KGP_LINE_STRIP,
+        KGP_LINE_LOOP,
+        KGP_TRIANGLES,
+        KGP_TRIANGLE_STRIP,
+        KGP_TRIANGLE_FAN,
+        KGP_QUADS,
+        KGP_QUAD_STRIP,
+        KGP_POLYGON
     };
 
     enum KPointDrawTypes{
@@ -45,66 +54,66 @@ namespace Kite{
 
     /* Colors */
     enum KColors{
-        KCOLORS_BLACK = 0x000000,           KCOLORS_WHITE = 0xFFFFFF,
-        KCOLORS_RED = 0xff0000,             KCOLORS_YELLOW = 0xffff00,
-        KCOLORS_BLUE = 0x0000ff,            KCOLORS_GREEN = 0x00ff00,
-        KCOLORS_CRIMSON = 0xDC143C,         KCOLORS_PINK = 0xFFC0CB,
-        KCOLORS_PALEVIOLETRED = 0xDB7093,   KCOLORS_LIMEGREEN = 0x32CD32,
-        KCOLORS_LAVENDERBLUSH = 0xFFF0F5,   KCOLORS_HOTPINK = 0xFF69B4,
-        KCOLORS_RASPBERRY = 0x872657,       KCOLORS_COBALTGREEN = 0x3D9140,
-        KCOLORS_DEEPPINK = 0xFF1493,        KCOLORS_MAROON = 0xFF34B3,
-        KCOLORS_VIOLET = 0xEE82EE,          KCOLORS_MEDIUMSEAGREEN = 0x3CB371,
-        KCOLORS_DARKVIOLET = 0x9400D3,      KCOLORS_ORCHID = 0xDA70D6,
-        KCOLORS_THISTLE = 0xD8BFD8,         KCOLORS_CYAN = 0x00FFFF,
-        KCOLORS_PLUM = 0xDDA0DD,            KCOLORS_MAGENTA  = 0xFF00FF,
-        KCOLORS_BLUEVIOLET = 0x8A2BE2,      KCOLORS_POWDERBLUE = 0xB0E0E6,
-        KCOLORS_PURPLE = 0x800080,          KCOLORS_GHOSTWHITE = 0xF8F8FF,
-        KCOLORS_INDIGO = 0x4B0082,          KCOLORS_DODGERBLUE = 0x1E90FF,
-        KCOLORS_LAVENDER = 0xE6E6FA,        KCOLORS_NAVY = 0x000080,
-        KCOLORS_MIDNIGHTBLUE = 0x191970,    KCOLORS_CORNFLOWERBLUE = 0x6495ED,
-        KCOLORS_COBALT = 0x3D59AB,          KCOLORS_ROYALBLUE = 0x4169E1,
-        KCOLORS_LIGHTSTEELBLUE = 0xB0C4DE,  KCOLORS_SLATEGRAY = 0x708090,
-        KCOLORS_SKYBLUE = 0x87CEEB,         KCOLORS_PEACOCK = 0x33A1C9,
-        KCOLORS_CADETBLUE = 0x5F9EA0,       KCOLORS_AZURE = 0xF0FFFF,
-        KCOLORS_COLDGREY = 0x808A87,        KCOLORS_SPRINGGREEN = 0x00FF7F,
-        KCOLORS_EMERALDGREEN = 0x00C957,    KCOLORS_MINT = 0xBDFCC9,
-        KCOLORS_DARKSEAGREEN = 0x8FBC8F,    KCOLORS_PALEGREEN = 0x98FB98,
-        KCOLORS_FORESTGREEN = 0x228B22,     KCOLORS_LAWNGREEN = 0x7CFC00,
-        KCOLORS_GREENYELLOW = 0xADFF2F,     KCOLORS_MELON = 0xE3A869,
-        KCOLORS_OLIVEDRAB = 0x6B8E23,       KCOLORS_IVORY = 0xFFFFF0,
-        KCOLORS_BEIGE = 0xF5F5DC,           KCOLORS_ORANGE = 0xFF8000,
-        KCOLORS_OLIVE = 0x808000,           KCOLORS_DARKKHAKI = 0xBDB76B,
-        KCOLORS_KHAKI = 0xF0E68C,           KCOLORS_SIENNA = 0xA0522D,
-        KCOLORS_PALEGOLDENROD = 0xEEE8AA,   KCOLORS_BANANA = 0xE3CF57,
-        KCOLORS_GOLD = 0xFFD700,            KCOLORS_SNOW = 0xFFFAFA,
-        KCOLORS_CADMIUMYELLOW = 0xFF9912,   KCOLORS_BRICK = 0x9C661F,
-        KDCOLORS_ARKORANGE = 0xFF8C00,      KCOLORS_CARROT = 0xED9121,
-        KCOLORS_FLESH = 0xFF7D40,           KCOLORS_CADMIUMORANGE = 0xFF6103,
-        KCOLORS_CORAL = 0x8B5742,           KCOLORS_SALMON = 0xFA8072,
-        KCOLORS_BROWN = 0xA52A2A,           KCOLORS_FIREBRICK = 0xB22222,
-        KCOLORS_GRAY = 0x808080
+        KC_BLACK = 0x000000,           KC_WHITE = 0xFFFFFF,
+        KC_RED = 0xff0000,             KC_YELLOW = 0xffff00,
+        KC_BLUE = 0x0000ff,            KC_GREEN = 0x00ff00,
+        KC_CRIMSON = 0xDC143C,         KC_PINK = 0xFFC0CB,
+        KC_PALEVIOLETRED = 0xDB7093,   KC_LIMEGREEN = 0x32CD32,
+        KC_LAVENDERBLUSH = 0xFFF0F5,   KC_HOTPINK = 0xFF69B4,
+        KC_RASPBERRY = 0x872657,       KC_COBALTGREEN = 0x3D9140,
+        KC_DEEPPINK = 0xFF1493,        KC_MAROON = 0xFF34B3,
+        KC_VIOLET = 0xEE82EE,          KC_MEDIUMSEAGREEN = 0x3CB371,
+        KC_DARKVIOLET = 0x9400D3,      KC_ORCHID = 0xDA70D6,
+        KC_THISTLE = 0xD8BFD8,         KC_CYAN = 0x00FFFF,
+        KC_PLUM = 0xDDA0DD,            KC_MAGENTA  = 0xFF00FF,
+        KC_BLUEVIOLET = 0x8A2BE2,      KC_POWDERBLUE = 0xB0E0E6,
+        KC_PURPLE = 0x800080,          KC_GHOSTWHITE = 0xF8F8FF,
+        KC_INDIGO = 0x4B0082,          KC_DODGERBLUE = 0x1E90FF,
+        KC_LAVENDER = 0xE6E6FA,        KC_NAVY = 0x000080,
+        KC_MIDNIGHTBLUE = 0x191970,    KC_CORNFLOWERBLUE = 0x6495ED,
+        KC_COBALT = 0x3D59AB,          KC_ROYALBLUE = 0x4169E1,
+        KC_LIGHTSTEELBLUE = 0xB0C4DE,  KC_SLATEGRAY = 0x708090,
+        KC_SKYBLUE = 0x87CEEB,         KC_PEACOCK = 0x33A1C9,
+        KC_CADETBLUE = 0x5F9EA0,       KC_AZURE = 0xF0FFFF,
+        KC_COLDGREY = 0x808A87,        KC_SPRINGGREEN = 0x00FF7F,
+        KC_EMERALDGREEN = 0x00C957,    KC_MINT = 0xBDFCC9,
+        KC_DARKSEAGREEN = 0x8FBC8F,    KC_PALEGREEN = 0x98FB98,
+        KC_FORESTGREEN = 0x228B22,     KC_LAWNGREEN = 0x7CFC00,
+        KC_GREENYELLOW = 0xADFF2F,     KC_MELON = 0xE3A869,
+        KC_OLIVEDRAB = 0x6B8E23,       KC_IVORY = 0xFFFFF0,
+        KC_BEIGE = 0xF5F5DC,           KC_ORANGE = 0xFF8000,
+        KC_OLIVE = 0x808000,           KC_DARKKHAKI = 0xBDB76B,
+        KC_KHAKI = 0xF0E68C,           KC_SIENNA = 0xA0522D,
+        KC_PALEGOLDENROD = 0xEEE8AA,   KC_BANANA = 0xE3CF57,
+        KC_GOLD = 0xFFD700,            KC_SNOW = 0xFFFAFA,
+        KC_CADMIUMYELLOW = 0xFF9912,   KC_BRICK = 0x9C661F,
+        KC_ARKORANGE = 0xFF8C00,       KC_CARROT = 0xED9121,
+        KC_FLESH = 0xFF7D40,           KC_CADMIUMORANGE = 0xFF6103,
+        KC_CORAL = 0x8B5742,           KC_SALMON = 0xFA8072,
+        KC_BROWN = 0xA52A2A,           KC_FIREBRICK = 0xB22222,
+        KC_GRAY = 0x808080
     };
 
     enum KColorComponent{
-        KC_R = 0,
-        KC_G = 1,
-        KC_B = 2,
-        KC_A = 3
+        KCC_R = 0,
+        KCC_G = 1,
+        KCC_B = 2,
+        KCC_A = 3
     };
 
     enum KRectComponent{
-        KR_X = 0,
-        KR_Y = 1,
-        KR_W = 2,
-        KR_H = 3
+        KRC_X = 0,
+        KRC_Y = 1,
+        KRC_W = 2,
+        KRC_H = 3
     };
 
 
     enum KFontCharSetTypes{
-        KFONT_ANSI,
-        KFONT_ARABIC,
-        KFONT_HEBREW,
-        KFONT_AUTO
+        KFC_ANSI,
+        KFC_ARABIC,
+        KFC_HEBREW,
+        KFC_AUTO
     };
 
     enum KTextureFilterTypes{
@@ -121,9 +130,9 @@ namespace Kite{
 
     namespace Internal{
     enum KGLBindGuardTypes{
-        KBGUARD_NONE = 0,
-        KBGUARD_TEXTURE,
-        KBGUARD_BUFFER
+        KBG_NONE = 0,
+        KBG_TEXTURE,
+        KBG_BUFFER
     };
 
     enum KRenderMode{

@@ -5,7 +5,7 @@ namespace Kite{
 
     U32 KVertexBuffer::_klastBufId = 0;
     KVertexBuffer::KVertexBuffer():
-        _kbufType(KVBUFFER_STATIC),
+        _kbufType(KVB_STATIC),
         _karrLen(0),
         _kbufId(0),
         _kupdateHnd(0)
@@ -29,7 +29,7 @@ namespace Kite{
         if (VertexArray != 0 && ArrayLenght > 0){
 
             // save currently binded buffer then bind our buffer temporary
-            Internal::GLBindGuard bindGuard(Internal::KBGUARD_BUFFER, _klastBufId);
+            Internal::GLBindGuard bindGuard(Internal::KBG_BUFFER, _klastBufId);
             DGL_CALL(glBindBuffer(GL_ARRAY_BUFFER_ARB, _kbufId));
 
             // fill buffer with vertex data
@@ -47,7 +47,7 @@ namespace Kite{
         if (_kupdateHnd && _kbufId > 0){
 
             // save currently binded buffer then bind our buffer temporary
-            Internal::GLBindGuard bindGuard(Internal::KBGUARD_BUFFER, _klastBufId);
+            Internal::GLBindGuard bindGuard(Internal::KBG_BUFFER, _klastBufId);
             DGL_CALL(glBindBuffer(GL_ARRAY_BUFFER_ARB, _kbufId));
 
             // map buffer

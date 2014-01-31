@@ -186,23 +186,23 @@ namespace Internal{
             _klastActiveWin = 0;
         }
         _kisOpen = false;
-        unregisterCallback(KCALL_WIN_ALL);
+        unregisterCallback(KWC_ALL);
     }
 
     bool Window::registerCallback(void *Callback, KWindowCallbackTypes CallbackType){
         KDEBUG_ASSERT_T(Callback)
 
         switch(CallbackType){
-        case KCALL_WIN_SIZECHANGE:
+        case KWC_SIZECHANGE:
             _kcallWinSizeChange = (KCallWinSizeChange *)Callback;
             break;
-        case KCALL_WIN_POSCHANGE:
+        case KWC_POSCHANGE:
             _kcallWinPosChange = (KCallWinPositionChange *)Callback;
             break;
-        case KCALL_WIN_FOCUSCHANGE:
+        case KWC_FOCUSCHANGE:
             _kcallWinFocusChange = (KCallWinFocusChange *)Callback;
             break;
-        case KCALL_WIN_CLOSE:
+        case KWC_CLOSE:
             _kcallWinClose = (KCallWinClose *)Callback;
             break;
         default:
@@ -214,19 +214,19 @@ namespace Internal{
 
     void Window::unregisterCallback(KWindowCallbackTypes CallbackType){
         switch(CallbackType){
-        case KCALL_WIN_SIZECHANGE:
+        case KWC_SIZECHANGE:
             _kcallWinSizeChange = 0;
             break;
-        case KCALL_WIN_POSCHANGE:
+        case KWC_POSCHANGE:
             _kcallWinPosChange = 0;
             break;
-        case KCALL_WIN_FOCUSCHANGE:
+        case KWC_FOCUSCHANGE:
             _kcallWinFocusChange = 0;
             break;
-        case KCALL_WIN_CLOSE:
+        case KWC_CLOSE:
             _kcallWinClose = 0;
             break;
-        case KCALL_WIN_ALL:
+        case KWC_ALL:
             _kcallWinSizeChange = 0;
             _kcallWinPosChange = 0;
             _kcallWinFocusChange = 0;

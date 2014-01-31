@@ -21,29 +21,29 @@ namespace Kite{
         }
         switch(m_pState.ACLineStatus){
         case 0: // AC Offline
-            m_ret.powerType = KPOWER_ACOFF;
+            m_ret.powerType = KPS_ACOFF;
             if (m_pState.BatteryFlag < 8){
-                m_ret.batteryTypes = KBATTERY_USING;
+                m_ret.batteryTypes = KBS_USING;
                 m_ret.batteryLife = m_pState.BatteryLifePercent;
             }else if (m_pState.BatteryFlag == 8){
-                m_ret.batteryTypes = KBATTERY_CHARGING;
+                m_ret.batteryTypes = KBS_CHARGING;
                 m_ret.batteryLife = 100;
             }else if (m_pState.BatteryFlag == 128){
-                m_ret.batteryTypes = KBATTERY_NOBATTERY;
+                m_ret.batteryTypes = KBS_NOBATTERY;
                 m_ret.batteryLife = 0;
             }else{
-                m_ret.batteryTypes = KBATTERY_UNKNOWN;
+                m_ret.batteryTypes = KBS_UNKNOWN;
                 m_ret.batteryLife = 0;
             }
             break;
         case 1: // AC Online
-            m_ret.powerType = KPOWER_ACON;
-            m_ret.batteryTypes = KBATTERY_NOBATTERY;
+            m_ret.powerType = KPS_ACON;
+            m_ret.batteryTypes = KBS_NOBATTERY;
             m_ret.batteryLife = 0;
             break;
         default: // Unknown
-            m_ret.powerType = KPOWER_UNKNOWN;
-            m_ret.batteryTypes = KBATTERY_UNKNOWN;
+            m_ret.powerType = KPS_UNKNOWN;
+            m_ret.batteryTypes = KBS_UNKNOWN;
             m_ret.batteryLife = 0;
             break;
         }

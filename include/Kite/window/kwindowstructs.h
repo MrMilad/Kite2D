@@ -22,7 +22,7 @@ namespace Kite{
                      bool ShowCursor = true, bool Fullscreen = false,
                      bool Topmost = false, bool Resizable = false,
                      bool VSync = false,
-                     KColorDepthTypes ColorDepth = KCOLOR_DEPTH_32):
+                     KColorDepthTypes ColorDepth = KCD_32):
             title(Title),
             oglMajor(OGLMajorVer), oglMinor(OGLMinorVer),
             width(Width), height(Height),
@@ -40,8 +40,8 @@ namespace Kite{
         KAspectRatioTypes aspectRatio;
 
         KEnumDisplay(const U32 Width = 0, const U32 Height = 0,
-                      const KColorDepthTypes ColorDepth = KCOLOR_DEPTH_OUT,
-                      const KAspectRatioTypes AspectRatio = KASPRAT_UNKNOWN):
+                      const KColorDepthTypes ColorDepth = KCD_OUT,
+                      const KAspectRatioTypes AspectRatio = KAR_UNKNOWN):
             width(Width), height(Height),
             colorDepth(ColorDepth),
             aspectRatio(AspectRatio)

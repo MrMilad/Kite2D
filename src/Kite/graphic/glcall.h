@@ -13,7 +13,7 @@ namespace Internal{
 
     class GLBindGuard{
     public:
-        GLBindGuard(KGLBindGuardTypes type = KBGUARD_NONE, GLint objectID = 0);
+        GLBindGuard(KGLBindGuardTypes type = KBG_NONE, GLint objectID = 0);
         ~GLBindGuard();
     private:
         KGLBindGuardTypes _ktypes; // type of object

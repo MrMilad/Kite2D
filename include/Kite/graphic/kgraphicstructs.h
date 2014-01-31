@@ -73,7 +73,7 @@ namespace Kite{
         U16 lastShId;
 
         KCatchState(KRenderMode Render = KRM_UNSET,
-                    KBlendMode Blend = KBLEND_ALPHA,
+                    KBlendMode Blend = KB_ALPHA,
                     U16 LastBufferID  = 0,
                     U16 LastTextureID = 0,
                     U16 LastSeaderID  = 0):

@@ -5,12 +5,12 @@ namespace Kite{
 
     KGL2DRender::KGL2DRender():
       _kcurrentCam(&_kdefaultCam),
-      _kgeoType(KGL_POINTS)
+      _kgeoType(KGP_POINTS)
     {}
 
     KGL2DRender::KGL2DRender(const KCamera &Camera):
         _kcurrentCam(&Camera),
-        _kgeoType(KGL_POINTS)
+        _kgeoType(KGP_POINTS)
     {}
 
     KGL2DRender::~KGL2DRender(){}
@@ -70,6 +70,11 @@ namespace Kite{
 
         // draw buffer
         DGL_CALL(glDrawArrays(type, FirstIndex, Size));
+    }
+
+    void KGL2DRender::setTextureEnv(KTextureEnvMode Mode){
+        int envPar[] = {GL_ADD, GL_MODULATE, GL_DECAL, GL_BLEND, GL_REPLACE, GL_COMBINE};
+        DGL_CALL(glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, envPar[Mode]));
     }
 
     void KGL2DRender::setClearColor(const KColor &Color){

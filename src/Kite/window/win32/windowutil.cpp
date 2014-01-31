@@ -25,34 +25,34 @@ namespace Kite{
             // retrieve aspect ratio
             aspRat = (int)(((float)dm.dmPelsWidth / (float)dm.dmPelsHeight) * 10);
             if (aspRat == 13){
-                mode.aspectRatio = KASPRAT_4X3;
+                mode.aspectRatio = KAR_4X3;
             }else if (aspRat == 16){
-                mode.aspectRatio = KASPRAT_16X10;
+                mode.aspectRatio = KAR_16X10;
             }else if (aspRat == 17){
-                mode.aspectRatio = KASPRAT_16X9;
+                mode.aspectRatio = KAR_16X9;
             }else{
-                mode.aspectRatio = KASPRAT_UNKNOWN;
+                mode.aspectRatio = KAR_UNKNOWN;
             }
 
             // retrieve color depth
             switch(dm.dmBitsPerPel){
             case 4:
-                mode.colorDepth = KCOLOR_DEPTH_4;
+                mode.colorDepth = KCD_4;
                 break;
             case 8:
-                mode.colorDepth = KCOLOR_DEPTH_8;
+                mode.colorDepth = KCD_8;
                 break;
             case 16:
-                mode.colorDepth = KCOLOR_DEPTH_16;
+                mode.colorDepth = KCD_16;
                 break;
             case 24:
-                mode.colorDepth = KCOLOR_DEPTH_24;
+                mode.colorDepth = KCD_24;
                 break;
             case 32:
-                mode.colorDepth = KCOLOR_DEPTH_32;
+                mode.colorDepth = KCD_32;
                 break;
             default:
-                mode.colorDepth = KCOLOR_DEPTH_OUT;
+                mode.colorDepth = KCD_OUT;
                 break;
             }
             m_disList.push_back(mode);
@@ -77,34 +77,34 @@ namespace Kite{
         // retrieve aspect ratio
         aspRat = (int)(((float)dm.dmPelsWidth / (float)dm.dmPelsHeight) * 10);
         if (aspRat == 13){
-            m_desktop.aspectRatio = KASPRAT_4X3;
+            m_desktop.aspectRatio = KAR_4X3;
         }else if (aspRat == 16){
-            m_desktop.aspectRatio = KASPRAT_16X10;
+            m_desktop.aspectRatio = KAR_16X10;
         }else if (aspRat == 17){
-            m_desktop.aspectRatio = KASPRAT_16X9;
+            m_desktop.aspectRatio = KAR_16X9;
         }else{
-            m_desktop.aspectRatio = KASPRAT_UNKNOWN;
+            m_desktop.aspectRatio = KAR_UNKNOWN;
         }
 
         // retrieve color depth
         switch(dm.dmBitsPerPel){
         case 4:
-            m_desktop.colorDepth = KCOLOR_DEPTH_4;
+            m_desktop.colorDepth = KCD_4;
             break;
         case 8:
-            m_desktop.colorDepth = KCOLOR_DEPTH_8;
+            m_desktop.colorDepth = KCD_8;
             break;
         case 16:
-            m_desktop.colorDepth = KCOLOR_DEPTH_16;
+            m_desktop.colorDepth = KCD_16;
             break;
         case 24:
-            m_desktop.colorDepth = KCOLOR_DEPTH_24;
+            m_desktop.colorDepth = KCD_24;
             break;
         case 32:
-            m_desktop.colorDepth = KCOLOR_DEPTH_32;
+            m_desktop.colorDepth = KCD_32;
             break;
         default:
-            m_desktop.colorDepth = KCOLOR_DEPTH_OUT;
+            m_desktop.colorDepth = KCD_OUT;
             break;
         }
         return &m_desktop;

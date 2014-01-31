@@ -9,8 +9,8 @@ namespace Kite{
             KBatteryStateTypes batteryTypes;
             U16 batteryLife;
 
-            KPowerState(const KPowerStateTypes PowerType = KPOWER_UNKNOWN,
-                        const KBatteryStateTypes BatteryTypes = KBATTERY_UNKNOWN,
+            KPowerState(const KPowerStateTypes PowerType = KPS_UNKNOWN,
+                        const KBatteryStateTypes BatteryTypes = KBS_UNKNOWN,
                         const U16 BatteryLife = 0):
                 powerType(PowerType),
                 batteryTypes(BatteryTypes),

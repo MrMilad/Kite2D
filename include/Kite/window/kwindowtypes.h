@@ -7,28 +7,28 @@ namespace Kite{
 
 /* ColorDepth */
 enum KColorDepthTypes{
-    KCOLOR_DEPTH_4 = 4,
-    KCOLOR_DEPTH_8 = 8,
-    KCOLOR_DEPTH_16 = 16,
-    KCOLOR_DEPTH_24 = 24,
-    KCOLOR_DEPTH_32 = 32,
-    KCOLOR_DEPTH_OUT = 0
+    KCD_4 = 4,
+    KCD_8 = 8,
+    KCD_16 = 16,
+    KCD_24 = 24,
+    KCD_32 = 32,
+    KCD_OUT = 0
 };
 
 enum KAspectRatioTypes{
-    KASPRAT_4X3,
-    KASPRAT_16X9,
-    KASPRAT_16X10,
-    KASPRAT_UNKNOWN
+    KAR_4X3,
+    KAR_16X9,
+    KAR_16X10,
+    KAR_UNKNOWN
 };
 
 /* Callbacks */
 enum KWindowCallbackTypes{
-    KCALL_WIN_SIZECHANGE,
-    KCALL_WIN_POSCHANGE,
-    KCALL_WIN_FOCUSCHANGE,
-    KCALL_WIN_CLOSE,
-    KCALL_WIN_ALL // use only for unregistering callback
+    KWC_SIZECHANGE,
+    KWC_POSCHANGE,
+    KWC_FOCUSCHANGE,
+    KWC_CLOSE,
+    KWC_ALL // use only for unregistering callback
 };
 
 typedef void (KCallWinSizeChange)(const U32 Width, const U32 Height);

@@ -85,10 +85,10 @@ namespace Internal{
 
     GLBindGuard::~GLBindGuard(){
         switch (_ktypes){
-        case KBGUARD_TEXTURE:
+        case KBG_TEXTURE:
             DGL_CALL(glBindTexture(GL_TEXTURE_2D, _kglobject));
             break;
-        case KBGUARD_BUFFER:
+        case KBG_BUFFER:
             DGL_CALL(glBindBuffer(GL_ARRAY_BUFFER_ARB, _kglobject));
             break;
         default:

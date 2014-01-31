@@ -5,26 +5,26 @@ namespace Kite{
 
 /* Power Sourece State */
 enum KPowerStateTypes{
-    KPOWER_ACON,
-    KPOWER_ACOFF,
-    KPOWER_UNKNOWN
+    KPS_ACON,
+    KPS_ACOFF,
+    KPS_UNKNOWN
 };
 
 /* Battery State */
 enum KBatteryStateTypes{
-    KBATTERY_USING,
-    KBATTERY_CHARGING,
-    KBATTERY_NOBATTERY,
-    KBATTERY_UNKNOWN
+    KBS_USING,
+    KBS_CHARGING,
+    KBS_NOBATTERY,
+    KBS_UNKNOWN
 };
 
 enum KSeqIOAccTypes{
-    KSEQIO_ACC_READ,
-    KSEQIO_ACC_WRITE,
-    KSEQIO_ACC_APPEND,
-    KSEQIO_ACC_RW,
-    KSEQIO_ACC_RWEX,
-    KSEQIO_ACC_RWTOEND
+    KSIOA_READ,
+    KSIOA_WRITE,
+    KSIOA_APPEND,
+    KSIOA_RW,
+    KSIOA_RWEX,
+    KSIOA_RWTOEND
 };
 
 enum KVectorComponent{

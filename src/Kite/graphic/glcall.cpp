@@ -47,48 +47,40 @@ namespace Internal{
             switch (OGLErrCode){
             case GL_INVALID_ENUM :{
                 KDEBUG_PRINT("GL_INVALID_ENUM\n");
-                KDEBUG_BREAK;
                 break;
             }
 
             case GL_INVALID_VALUE :{
                 KDEBUG_PRINT("GL_INVALID_VALUE\n");
-                KDEBUG_BREAK;
                 break;
             }
 
             case GL_INVALID_OPERATION :{
                 KDEBUG_PRINT("GL_INVALID_OPERATION\n");
-                KDEBUG_BREAK;
                 break;
             }
 
             case GL_STACK_OVERFLOW :{
                 KDEBUG_PRINT("GL_STACK_OVERFLOW\n");
-                KDEBUG_BREAK;
                 break;
             }
 
             case GL_STACK_UNDERFLOW :{
                 KDEBUG_PRINT("GL_STACK_UNDERFLOW\n");
-                KDEBUG_BREAK;
                 break;
             }
 
             case GL_OUT_OF_MEMORY :{
                 KDEBUG_PRINT("GL_OUT_OF_MEMORY\n");
-                KDEBUG_BREAK;
                 break;
             }
 
             case GL_INVALID_FRAMEBUFFER_OPERATION_EXT :{
                 KDEBUG_PRINT("GL_INVALID_FRAMEBUFFER_OPERATION_EXT\n");
-                KDEBUG_BREAK;
                 break;
             }
             default:
                 KDEBUG_PRINT("UNKNOWN_ERROR\n");
-                KDEBUG_BREAK;
                 break;
             }
             OGLErrCode = glGetError();

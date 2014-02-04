@@ -103,27 +103,13 @@ namespace Internal{
     Input::~Input(){
 
         // release keyboard
-        if (_kdkeyboard != 0){
-            _kdkeyboard->Unacquire();
-            _kdkeyboard->Release();
-            _kdkeyboard = 0;
-        }
+        this->releaseKeyboard();
 
         // release mouse
-        if (_kdmouse != 0){
-            _kdmouse->Unacquire();
-            _kdmouse->Release();
-            _kdmouse = 0;
-        }
+        this->releaseMouse();
 
         // release joystick(s)
-        for (int i = 0; i < _kenumDevice.joystickCount; ++i){
-            if (_kdjoysticks[i] != 0){
-                _kdjoysticks[i]->Unacquire();
-                _kdjoysticks[i]->Release();
-                _kdjoysticks[i] = 0;
-            }
-        }
+        this->releaseJoysticks();
 
         // release DirectInput
         if (_kdinput != 0){
@@ -146,7 +132,7 @@ namespace Internal{
         }
     }
 
-    void Input::activeMouse(){
+    void Input::activeMouse(bool Exclusive){
         // check mouse device
         if (_kdmouse == 0 && _kenumDevice.mouse){
 
@@ -154,7 +140,13 @@ namespace Internal{
             DDI_CALL(_kdinput->CreateDevice(GUID_SysMouse, &_kdmouse, NULL));
 
             // set mouse exclusive option
-            DDI_CALL(_kdmouse->SetCooperativeLevel(_kwhwnd, DISCL_FOREGROUND | DISCL_NONEXCLUSIVE)); // | DISCL_EXCLUSIVE
+            DWORD mExc;
+            if (Exclusive){
+                mExc = DISCL_FOREGROUND | DISCL_EXCLUSIVE;
+            }else{
+                mExc = DISCL_FOREGROUND | DISCL_NONEXCLUSIVE;
+            }
+            DDI_CALL(_kdmouse->SetCooperativeLevel(_kwhwnd, mExc));
 
             // set mouse data format (using standard format)
             DDI_CALL(_kdmouse->SetDataFormat(&c_dfDIMouse));
@@ -201,7 +193,15 @@ namespace Internal{
         return &_kmouseInput;
     }
 
-    void Input::activeKeyboard(){
+    void Input::releaseMouse(){
+        if (_kdmouse != 0){
+            _kdmouse->Unacquire();
+            _kdmouse->Release();
+            _kdmouse = 0;
+        }
+    }
+
+    void Input::activeKeyboard(bool Exclusive){
         // check keyboard device
         if (_kdkeyboard == 0 && _kenumDevice.keyboard){
 
@@ -209,7 +209,13 @@ namespace Internal{
             DDI_CALL(_kdinput->CreateDevice(GUID_SysKeyboard, &_kdkeyboard, NULL));
 
             // set keyboard exclusive option
-            DDI_CALL(_kdkeyboard->SetCooperativeLevel(_kwhwnd, DISCL_FOREGROUND | DISCL_EXCLUSIVE));
+            DWORD mExc;
+            if (Exclusive){
+                mExc = DISCL_FOREGROUND | DISCL_EXCLUSIVE;
+            }else{
+                mExc = DISCL_FOREGROUND | DISCL_NONEXCLUSIVE;
+            }
+            DDI_CALL(_kdkeyboard->SetCooperativeLevel(_kwhwnd, mExc));
 
             // set keyboard data format
             DDI_CALL(_kdkeyboard->SetDataFormat(&c_dfDIKeyboard));
@@ -251,7 +257,15 @@ namespace Internal{
         return &_kkeyboardInput;
     }
 
-    void Input::activeJoystick(){
+    void Input::releaseKeyboard(){
+        if (_kdkeyboard != 0){
+            _kdkeyboard->Unacquire();
+            _kdkeyboard->Release();
+            _kdkeyboard = 0;
+        }
+    }
+
+    void Input::activeJoysticks(bool Exclusive){
         // check keyboard device
         if (_kenumDevice.joystick){
 
@@ -261,7 +275,13 @@ namespace Internal{
                     // joystick(s) objects created. (in enum function)
 
                     // set joystick(s) exclusive option
-                    DDI_CALL(_kdjoysticks[i]->SetCooperativeLevel(_kwhwnd, DISCL_FOREGROUND | DISCL_EXCLUSIVE));
+                    DWORD mExc;
+                    if (Exclusive){
+                        mExc = DISCL_FOREGROUND | DISCL_EXCLUSIVE;
+                    }else{
+                        mExc = DISCL_FOREGROUND | DISCL_NONEXCLUSIVE;
+                    }
+                    DDI_CALL(_kdjoysticks[i]->SetCooperativeLevel(_kwhwnd, mExc));
 
                     // set joystick(s) data format
                     DDI_CALL(_kdjoysticks[i]->SetDataFormat(&c_dfDIJoystick));
@@ -309,6 +329,16 @@ namespace Internal{
             }
         }
         return &_kjoystickInput;
+    }
+
+    void Input::releaseJoysticks(){
+        for (int i = 0; i < _kenumDevice.joystickCount; ++i){
+            if (_kdjoysticks[i] != 0){
+                _kdjoysticks[i]->Unacquire();
+                _kdjoysticks[i]->Release();
+                _kdjoysticks[i] = 0;
+            }
+        }
     }
 
 }

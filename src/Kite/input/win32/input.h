@@ -37,16 +37,19 @@ namespace Internal{
         inline const KEnumInputDevice *getEnumDevices() const {return &_kenumDevice;}
 
         // mouse
-        void activeMouse();
+        void activeMouse(bool Exclusive);
         const KMouseInput *getMouseInput();
+        void releaseMouse();
 
         // keyboard
-        void activeKeyboard();
+        void activeKeyboard(bool Exclusive);
         const KKeyboardInput *getKeyboardInput();
+        void releaseKeyboard();
 
         // joystick
-        void activeJoystick();
+        void activeJoysticks(bool Exclusive);
         const KJoystickInput *getJoystickInput(U8 JoyID);
+        void releaseJoysticks();
 
     private:
 

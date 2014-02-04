@@ -44,7 +44,7 @@ namespace Internal{
         void setVSync(bool Enable);
 
         inline const WGLContext *getSharedContext() const {return _ksharedContext;}
-        inline const KContextHandle getContext() const {return (KContextHandle)_kcontext;}
+        inline KContextHandle getContext() const {return _kcontext;}
         inline bool isVsyncEnable() const {return _kisVSync;}
         inline bool isActiveRender() const {return _kisActiveCon;}
         static inline bool isAnyContext() {if (_kinsCounter > 0) return true; return false;}

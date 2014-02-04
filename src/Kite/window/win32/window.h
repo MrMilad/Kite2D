@@ -58,10 +58,10 @@ namespace Internal{
         bool setFullscreen(bool Enable);
         void setParrentWindow(); // used in multyple window creation
 
-        inline const KWindowHandle getWindowHandle() const {return (KWindowHandle) _kwindowHandle;}
+        inline KWindowHandle getWindowHandle() const {return _kwindowHandle;}
         inline const KWindowState &getWindowState() const {return _kwinState;}
-        inline const bool isOpen() const {return _kisOpen;}
-        inline const bool isParrentWindow() const {return _kisActiveWin;} // used in multyple window creation
+        inline bool isOpen() const {return _kisOpen;}
+        inline bool isParrentWindow() const {return _kisActiveWin;} // used in multyple window creation
 
     private:
         static LRESULT WINAPI _WinProc( HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam );

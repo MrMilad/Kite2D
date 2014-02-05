@@ -15,27 +15,13 @@
  You should have received a copy of the GNU General Public License
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#ifndef KKEYBOARD_H
-#define KKEYBOARD_H
+#ifndef KINPUT_H
+#define KINPUT_H
 
-#include "Kite/system/ksystemdef.h"
+#include "Kite/input/kinputtypes.h"
 #include "Kite/input/kinputstructs.h"
-#include "Kite/window/kwindowstructs.h"
+#include "Kite/input/kmouse.h"
+#include "Kite/input/kkeyboard.h"
+#include "Kite/input/kjoystick.h"
 
-namespace Kite{
-namespace Internal{
-    class Input;
-}
-    class KITE_FUNC_EXPORT KKeyboard{
-    public:
-        KKeyboard(KWindowHandle WindowHandle, bool Exclusive);
-        ~KKeyboard();
-
-        const KKeyboardInput *getInput();
-        bool isInstalled() const;
-    private:
-        Kite::Internal::Input *_kimpl;
-    };
-}
-
-#endif // KKEYBOARD_H
+#endif // KINPUT_H

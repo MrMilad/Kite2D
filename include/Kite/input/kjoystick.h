@@ -26,7 +26,7 @@ namespace Kite{
 namespace Internal{
     class Input;
 }
-    class KJoystick{
+    class KITE_FUNC_EXPORT KJoystick{
     public:
         KJoystick(KWindowHandle WindowHandle, bool Exclusive);
         ~KJoystick();

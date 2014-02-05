@@ -15,27 +15,20 @@
  You should have received a copy of the GNU General Public License
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#ifndef KKEYBOARD_H
-#define KKEYBOARD_H
+#ifndef KGRAPHIC_H
+#define KGRAPHIC_H
 
-#include "Kite/system/ksystemdef.h"
-#include "Kite/input/kinputstructs.h"
-#include "Kite/window/kwindowstructs.h"
+#include "Kite/graphic/kgraphicdef.h"
+#include "Kite/graphic/kgraphictypes.h"
+#include "Kite/graphic/kgraphicstructs.h"
+#include "Kite/graphic/kglrender.h"
+#include "Kite/graphic/kgl2drender.h"
+#include "Kite/graphic/kdrawable.h"
+#include "Kite/graphic/kcamera.h"
+#include "Kite/graphic/kimage.h"
+#include "Kite/graphic/ktexture.h"
+#include "Kite/graphic/kvertexbuffer.h"
+#include "Kite/graphic/ktransform.h"
+#include "Kite/graphic/kgraphicutil.h"
 
-namespace Kite{
-namespace Internal{
-    class Input;
-}
-    class KITE_FUNC_EXPORT KKeyboard{
-    public:
-        KKeyboard(KWindowHandle WindowHandle, bool Exclusive);
-        ~KKeyboard();
-
-        const KKeyboardInput *getInput();
-        bool isInstalled() const;
-    private:
-        Kite::Internal::Input *_kimpl;
-    };
-}
-
-#endif // KKEYBOARD_H
+#endif // KGRAPHIC_H

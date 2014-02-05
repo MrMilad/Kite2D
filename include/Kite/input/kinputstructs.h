@@ -21,33 +21,47 @@
 #include "Kite/system/ksystemdef.h"
 
 namespace Kite{
+namespace Internal{
+    struct KEnumInputDevice{
+        bool mouse;
+        bool keyboard;
+        bool joystick;
+        U8 joystickCount;
+        KEnumInputDevice():
+            mouse(false),
+            keyboard(false),
+            joystick(false),
+            joystickCount(0)
+        {}
+    };
+}
 
     // keyboard state
-    struct KKeyboardInput{
-        const U8 *keys; // pointer to array[256] of keys
-        bool rshift;
-        bool lshift;
-        bool rctrl;
-        bool lctrl;
-        bool ralt;
-        bool lalt;
-        bool isChanged;
-    };
+//    struct KKeyboardInput{
+//        const U8 *keys; // pointer to array[256] of keys
+//        bool rshift;
+//        bool lshift;
+//        bool rctrl;
+//        bool lctrl;
+//        bool ralt;
+//        bool lalt;
+//        bool isChanged;
+//    };
 
     // standard mouse state (8 button)
-    struct KMouseInput{
-        U32 xPos;
-        U32 yPos;
-        I32 xWinPos;
-        I32 yWinPos;
-        I32 xDelta;
-        I32 yDelta;
-        I32 zDelta; // z-axis, typically a wheel. If the mouse does not have a z-axis, the value is 0.
-        bool rightButton;
-        bool leftButton;
-        bool middleButton;
-        bool isChanged;
-    };
+//    struct KMouseInput{
+//        U32 xPos;
+//        U32 yPos;
+//        I32 xWinPos;
+//        I32 yWinPos;
+//        I32 xDelta;
+//        I32 yDelta;
+//        I32 zDelta; // z-axis, typically a wheel. If the mouse does not have a z-axis, the value is 0.
+//        bool rightButton;
+//        bool leftButton;
+//        bool middleButton;
+//        bool isChanged;
+//    };
 
     // complex mouse state (8 button)
 //    struct KMouseInput2{
@@ -151,18 +165,6 @@ namespace Kite{
 //        {}
 //    };
 
-    struct KEnumInputDevice{
-        bool mouse;
-        bool keyboard;
-        bool joystick;
-        U8 joystickCount;
-        KEnumInputDevice():
-            mouse(false),
-            keyboard(false),
-            joystick(false),
-            joystickCount(0)
-        {}
-    };
 
 //    struct KInputState{
 //        bool exclusive, complexInput;

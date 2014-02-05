@@ -19,22 +19,13 @@
 #define KKEYBOARD_H
 
 #include "Kite/system/ksystemdef.h"
-#include "Kite/input/kinputstructs.h"
-#include "Kite/window/kwindowstructs.h"
+#include "Kite/input/kinputtypes.h"
 
 namespace Kite{
-namespace Internal{
-    class Input;
-}
     class KITE_FUNC_EXPORT KKeyboard{
     public:
-        KKeyboard(KWindowHandle WindowHandle, bool Exclusive);
-        ~KKeyboard();
-
-        const KKeyboardInput *getInput();
-        bool isInstalled() const;
-    private:
-        Kite::Internal::Input *_kimpl;
+        static bool isButtonPressed(KKeyboardButtonTypes Button);
+        static bool isInstalled();
     };
 }
 

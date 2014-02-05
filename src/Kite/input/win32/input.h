@@ -18,72 +18,59 @@
 #ifndef INPUT_H
 #define INPUT_H
 
-#include <vector>
+// we using DirectInput only for joystick(s)
 #include "Kite/input/win32/dicall.h"
+#include <windows.h>
 #include "Kite/system/knoncopyable.h"
+#include "Kite/system/kvector2.h"
 #include "Kite/input/kinputstructs.h"
+#include "Kite/input/kinputtypes.h"
 
 namespace Kite{
 namespace Internal{
     class Input : KNonCopyable{
     public:
 
-        static Input *CreateInstance();
-        static void DestroyInstance();
-
-        // initialize DirectInput 8
-        // enumerates installed devices
-        void setup(HWND WindowHandle);
-        inline const KEnumInputDevice *getEnumDevices() const {return &_kenumDevice;}
+        // enumerates installed devices (mouse and keyboard)
+        static const KEnumInputDevice *getEnumDevices();
 
         // mouse
-        void activeMouse(bool Exclusive);
-        const KMouseInput *getMouseInput();
-        void releaseMouse();
+        static bool getMouseButton(KMouseButtonTypes Button);
+        static KVector2I32 getMousePosition(KMousePositionTypes Position, HWND Window);
 
         // keyboard
-        void activeKeyboard(bool Exclusive);
-        const KKeyboardInput *getKeyboardInput();
-        void releaseKeyboard();
+        static bool getKeyboardButton(KKeyboardButtonTypes Button);
 
         // joystick
-        void activeJoysticks(bool Exclusive);
-        const KJoystickInput *getJoystickInput(U8 JoyID);
-        void releaseJoysticks();
+        // initialize DirectInput 8
+        // enumerates installed devices (joystick(s))
+        static void activeJoysticks(bool Exclusive, HWND Window);
+        static const KJoystickInput *getJoystickInput(U8 JoyID);
+        static void releaseJoysticks();
 
     private:
 
+        Input();
+        ~Input();
+
+        static KEnumInputDevice _kenumDevice;          // enum input device (only joystick(s))
+
+        // we use DirectInput only for joystick(s)
+        #ifdef KDINPUT_ALLOW
         // callback function for enumerating objects (axes, buttons, POVs, Keys)
         // set axes min/max values of Joystick.
         static BOOL CALLBACK _kenumObjCallb(const DIDEVICEOBJECTINSTANCE* pdidOInstance, VOID* pContext);
 
         // Callback function for enumerating input device (mouse, keyboard, joystick)
-        BOOL _kenumDevCallbMember(const DIDEVICEINSTANCE *pdidInstance);
         static BOOL CALLBACK _kenumDevCallb(const DIDEVICEINSTANCE *pdidInstance, VOID* pContext);
 
-        Input();
-        ~Input();
-
-        static Input *_kinstance;           // class instance
-        LPDIRECTINPUT8 _kdinput;            // direct input 8 device
-        KEnumInputDevice _kenumDevice;      // enum input device
-        HWND _kwhwnd;
-
-        LPDIRECTINPUTDEVICE8 _kdmouse;      // DirectInput device (mouse)
-        LPDIRECTINPUTDEVICE8 _kdkeyboard;   // DirectInput device (keyboard)
-        LPDIRECTINPUTDEVICE8 _kdjoysticks[4];// DirectInput device (joystick - support 4 joysticks)
-
-        // mouse
-        KMouseInput _kmouseInput;
-        DIMOUSESTATE _kdmouseState;
-
-        // keyboard
-        KKeyboardInput _kkeyboardInput;
-        U8 _kdkeyboardState[256];
+        static LPDIRECTINPUT8 _kdinput;                // direct input 8 device
+        static LPDIRECTINPUTDEVICE8 _kdjoysticks[4];   // DirectInput device (joystick - support 4 joysticks)
 
         // joystick
-        KJoystickInput _kjoystickInput;
-        DIJOYSTATE _kdjoysticState;
+        static DIJOYSTATE _kdjoysticState;
+        #endif
+        static KJoystickInput _kjoystickInput;
     };
 }
 }

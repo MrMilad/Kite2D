@@ -23,9 +23,6 @@
 #include "Kite/window/kwindowstructs.h"
 
 namespace Kite{
-namespace Internal{
-    class Input;
-}
     class KITE_FUNC_EXPORT KJoystick{
     public:
         KJoystick(KWindowHandle WindowHandle, bool Exclusive);
@@ -34,8 +31,6 @@ namespace Internal{
         const KJoystickInput *getInput(U8 JoystickID);
         bool isInstalled() const;
         U8 getCount() const;
-    private:
-        Kite::Internal::Input *_kimpl;
     };
 }
 

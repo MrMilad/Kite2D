@@ -19,23 +19,11 @@
 
 namespace Kite{
 namespace Internal{
-    Input *Input::_kinstance = 0;
 
+#ifdef KDINPUT_ALLOW
     BOOL CALLBACK Input::_kenumDevCallb(const DIDEVICEINSTANCE *pdidInstance, VOID* pContext){
-        // call member function callback
-        // because we need access to private member variable
-        Input *classPtr = (Input *)pContext;
-        return classPtr->_kenumDevCallbMember(pdidInstance);
-    }
-
-    BOOL Input::_kenumDevCallbMember(const DIDEVICEINSTANCE *pdidInstance){
+        // we use DirectInput only for joystick(s)
         switch( 0xff & pdidInstance->dwDevType ){
-        case DI8DEVTYPE_KEYBOARD:
-            _kenumDevice.keyboard = true;
-            break;
-        case DI8DEVTYPE_MOUSE:
-            _kenumDevice.mouse = true;
-            break;
         case DI8DEVTYPE_GAMEPAD:
         case DI8DEVTYPE_JOYSTICK:
             // we have to create joystick(s) device here.
@@ -80,224 +68,252 @@ namespace Internal{
 //      if (pdidOInstance->guidType == GUID_Key)    {++rDev->keyCount; rDev->key = true; return DIENUM_CONTINUE;}
         return DIENUM_CONTINUE;
     }
+#endif
 
-    Input *Input::CreateInstance(){
-        if (_kinstance == 0)
-            _kinstance = new Input();
+    // initialize static objects
+    KEnumInputDevice Input::_kenumDevice;
+    #ifdef KDINPUT_ALLOW
+    LPDIRECTINPUT8 Input::_kdinput = 0;
+    LPDIRECTINPUTDEVICE8 Input::_kdjoysticks[4] = {0};
+    DIJOYSTATE Input::_kdjoysticState;
+    #endif
+    KJoystickInput Input::_kjoystickInput;
 
-        return _kinstance;
-    }
+    const KEnumInputDevice *Input::getEnumDevices(){
+        UINT nDevices;
+        PRAWINPUTDEVICELIST pRawDevList;
 
-    void Input::DestroyInstance(){
-        delete _kinstance;
-        _kinstance = 0;
-    }
+        // retrieve the number of device(s)
+        if (GetRawInputDeviceList(NULL, &nDevices, sizeof(RAWINPUTDEVICELIST)) != 0) {KDEBUG_BREAK;}
 
-    Input::Input():
-        _kdinput(0),
-        _kdmouse(0),
-        _kdkeyboard(0),
-        _kdjoysticks() // array
-    {}
+        // allocate enough size
+        pRawDevList = new RAWINPUTDEVICELIST[ sizeof( RAWINPUTDEVICELIST ) * nDevices ];
 
-    Input::~Input(){
+        // get device list
+        if (GetRawInputDeviceList(pRawDevList, &nDevices, sizeof(RAWINPUTDEVICELIST)) < 0) {KDEBUG_BREAK;}
 
-        // release keyboard
-        this->releaseKeyboard();
-
-        // release mouse
-        this->releaseMouse();
-
-        // release joystick(s)
-        this->releaseJoysticks();
-
-        // release DirectInput
-        if (_kdinput != 0){
-            _kdinput->Release();
-            _kdinput = 0;
+        // enumrates device(s)
+        for (unsigned int i = 0; i < nDevices; ++i){
+            switch (pRawDevList[i].dwType) {
+            case RIM_TYPEMOUSE:
+                _kenumDevice.mouse = true;
+                break;
+            case RIM_TYPEKEYBOARD:
+                _kenumDevice.keyboard = true;
+                break;
+            default: // joystick(s) enumrate with DirectInput
+                break;
+            }
         }
+
+        // free the RAWINPUTDEVICELIST
+        delete[] pRawDevList;
+
+        return &_kenumDevice;
     }
 
-    void Input::setup(HWND WindowHandle){
+    bool Input::getMouseButton(KMouseButtonTypes Button){
+        int vkey = 0;
+        switch (Button){
+        case KMB_LEFT:
+            vkey = VK_LBUTTON;
+            break;
+        case KMB_RIGHT:
+            vkey = VK_RBUTTON;
+            break;
+        case KMB_MIDDLE:
+            vkey = VK_MBUTTON;
+            break;
+        case KMB_X1:
+            vkey = VK_XBUTTON1;
+            break;
+        case KMB_X2:
+            vkey = VK_XBUTTON2;
+            break;
+        default:
+            vkey = 0;
+            break;
+        }
+
+        return (GetAsyncKeyState(vkey) & 0x8000) != 0;
+    }
+
+    KVector2I32 Input::getMousePosition(KMousePositionTypes Position, HWND Window){
+        POINT mPoint;
+        KVector2I32 mPos;
+
+        // get screen position
+        GetCursorPos(&mPoint);
+        mPos.x = mPoint.x;
+        mPos.y = mPoint.y;
+        if (Position == KMP_SCREEN)
+            return mPos;
+
+        // get window position
+        ScreenToClient(Window, &mPoint);
+        mPos.x = mPoint.x;
+        mPos.y = mPoint.y;
+        return mPos;
+    }
+
+    bool Input::getKeyboardButton(KKeyboardButtonTypes Button){
+        int vKey = 0;
+        switch (Button) {
+        case KKB_1:             vKey = '1';    break;
+        case KKB_2:             vKey = '2';    break;
+        case KKB_3:             vKey = '3';    break;
+        case KKB_4:             vKey = '4';    break;
+        case KKB_5:             vKey = '5';    break;
+        case KKB_6:             vKey = '6';    break;
+        case KKB_7:             vKey = '7';    break;
+        case KKB_8:             vKey = '8';    break;
+        case KKB_9:             vKey = '9';    break;
+        case KKB_0:             vKey = '0';    break;
+        case KKB_A:             vKey = 'A';    break;
+        case KKB_B:             vKey = 'B';    break;
+        case KKB_C:             vKey = 'C';    break;
+        case KKB_D:             vKey = 'D';    break;
+        case KKB_E:             vKey = 'E';    break;
+        case KKB_F:             vKey = 'F';    break;
+        case KKB_G:             vKey = 'G';    break;
+        case KKB_H:             vKey = 'H';    break;
+        case KKB_I:             vKey = 'I';    break;
+        case KKB_J:             vKey = 'G';    break;
+        case KKB_K:             vKey = 'K';    break;
+        case KKB_L:             vKey = 'L';    break;
+        case KKB_M:             vKey = 'M';    break;
+        case KKB_N:             vKey = 'N';    break;
+        case KKB_O:             vKey = 'O';    break;
+        case KKB_P:             vKey = 'P';    break;
+        case KKB_Q:             vKey = 'Q';    break;
+        case KKB_R:             vKey = 'R';    break;
+        case KKB_S:             vKey = 'S';    break;
+        case KKB_T:             vKey = 'T';    break;
+        case KKB_U:             vKey = 'U';    break;
+        case KKB_V:             vKey = 'V';    break;
+        case KKB_W:             vKey = 'W';    break;
+        case KKB_X:             vKey = 'X';    break;
+        case KKB_Y:             vKey = 'Y';    break;
+        case KKB_Z:             vKey = 'Z';    break;
+        case KKB_F1:            vKey = VK_F1;    break;
+        case KKB_F2:            vKey = VK_F2;    break;
+        case KKB_F3:            vKey = VK_F3;    break;
+        case KKB_F4:            vKey = VK_F4;    break;
+        case KKB_F5:            vKey = VK_F5;    break;
+        case KKB_F6:            vKey = VK_F6;    break;
+        case KKB_F7:            vKey = VK_F7;    break;
+        case KKB_F8:            vKey = VK_F8;    break;
+        case KKB_F9:            vKey = VK_F9;    break;
+        case KKB_F10:           vKey = VK_F10;    break;
+        case KKB_F11:           vKey = VK_F11;    break;
+        case KKB_F12:           vKey = VK_F12;    break;
+        case KKB_F13:           vKey = VK_F13;    break;
+        case KKB_F14:           vKey = VK_F14;    break;
+        case KKB_F15:           vKey = VK_F15;    break;
+        case KKB_NUMPAD0:       vKey = VK_NUMPAD0;    break;
+        case KKB_NUMPAD1:       vKey = VK_NUMPAD1;    break;
+        case KKB_NUMPAD2:       vKey = VK_NUMPAD2;    break;
+        case KKB_NUMPAD3:       vKey = VK_NUMPAD3;    break;
+        case KKB_NUMPAD4:       vKey = VK_NUMPAD4;    break;
+        case KKB_NUMPAD5:       vKey = VK_NUMPAD5;    break;
+        case KKB_NUMPAD6:       vKey = VK_NUMPAD6;    break;
+        case KKB_NUMPAD7:       vKey = VK_NUMPAD7;    break;
+        case KKB_NUMPAD8:       vKey = VK_NUMPAD8;    break;
+        case KKB_NUMPAD9:       vKey = VK_NUMPAD9;    break;
+        case KKB_ADD:           vKey = VK_ADD;    break;
+        case KKB_BACK:          vKey = VK_BACK;    break;
+        case KKB_BACKSLASH:     vKey = VK_OEM_5;    break;
+        case KKB_COMMA:         vKey = VK_OEM_COMMA;    break;
+        case KKB_DASH:          vKey = VK_OEM_MINUS;    break;
+        case KKB_DELETE:        vKey = VK_DELETE;    break;
+        case KKB_DIVIDE:        vKey = VK_DIVIDE;    break;
+        case KKB_DOWN:          vKey = VK_DOWN;    break;
+        case KKB_END:           vKey = VK_END;    break;
+        case KKB_EQUAL:         vKey = VK_OEM_PLUS;    break;
+        case KKB_ESCAPE:        vKey = VK_ESCAPE;    break;
+        case KKB_HOME:          vKey = VK_HOME;    break;
+        case KKB_INSERT:        vKey = VK_INSERT;    break;
+        case KKB_LALT:          vKey = VK_LMENU;    break;
+        case KKB_LBRACKET:      vKey = VK_OEM_4;    break;
+        case KKB_LCONTROL:      vKey = VK_LCONTROL;    break;
+        case KKB_LEFT:          vKey = VK_LEFT;    break;
+        case KKB_LSHIFT:        vKey = VK_LSHIFT;    break;
+        case KKB_LSYSTEM:       vKey = VK_LWIN;    break;
+        case KKB_MENU:          vKey = VK_MENU;    break;
+        case KKB_MULTIPLY:      vKey = VK_MULTIPLY;    break;
+        case KKB_PAGEDOWN:      vKey = VK_NEXT;    break;
+        case KKB_PAGEUP:        vKey = VK_PRIOR;    break;
+        case KKB_PAUSE:         vKey = VK_PAUSE;    break;
+        case KKB_PERIOD:        vKey = VK_OEM_PERIOD;    break;
+        case KKB_QUOTE:         vKey = VK_OEM_7;    break;
+        case KKB_RALT:          vKey = VK_RMENU;    break;
+        case KKB_RBRACKET:      vKey = VK_OEM_6;    break;
+        case KKB_RCONTROL:      vKey = VK_RCONTROL;    break;
+        case KKB_RETURN:        vKey = VK_RETURN;    break;
+        case KKB_RIGHT:         vKey = VK_RIGHT;    break;
+        case KKB_RSHIFT:        vKey = VK_RSHIFT;    break;
+        case KKB_RSYSTEM:       vKey = VK_RWIN;    break;
+        case KKB_SEMICOLON:     vKey = VK_OEM_1;    break;
+        case KKB_SLASH:         vKey = VK_OEM_2;    break;
+        case KKB_SPACE:         vKey = VK_SPACE;    break;
+        case KKB_SUBTRACT:      vKey = VK_SUBTRACT;    break;
+        case KKB_TAB:           vKey = VK_TAB;    break;
+        case KKB_TILDE:         vKey = VK_OEM_3;    break;
+        case KKB_UP:            vKey = VK_UP;    break;
+        default:
+            vKey = 0;
+            break;
+        }
+        return (GetAsyncKeyState(vKey) & 0x8000) != 0;
+    }
+
+    void Input::activeJoysticks(bool Exclusive, HWND Window){
+#ifdef KDINPUT_ALLOW
+
         if (_kdinput == 0){
             // create DirectInput 8 object
             DDI_CALL(DirectInput8Create(GetModuleHandle(NULL), DIRECTINPUT_VERSION,
                                         IID_IDirectInput8, (void**)&_kdinput, NULL));
 
-            _kwhwnd = WindowHandle;
-
-            // enumrate currently installed device
+            // enumrate currently installed device (only joystick(s))
             DDI_CALL(_kdinput->EnumDevices(DI8DEVCLASS_ALL, _kenumDevCallb,
-                                           (void *)this, DIEDFL_ATTACHEDONLY));
-        }
-    }
+                                           NULL, DIEDFL_ATTACHEDONLY));
 
-    void Input::activeMouse(bool Exclusive){
-        // check mouse device
-        if (_kdmouse == 0 && _kenumDevice.mouse){
+            // we find attached joystick(s)
+            if (_kenumDevice.joystick){
 
-            // create mouse device
-            DDI_CALL(_kdinput->CreateDevice(GUID_SysMouse, &_kdmouse, NULL));
+                for(unsigned int i = 0; i < _kenumDevice.joystickCount; ++i){
+                    if (_kdjoysticks[i] != 0){
 
-            // set mouse exclusive option
-            DWORD mExc;
-            if (Exclusive){
-                mExc = DISCL_FOREGROUND | DISCL_EXCLUSIVE;
-            }else{
-                mExc = DISCL_FOREGROUND | DISCL_NONEXCLUSIVE;
-            }
-            DDI_CALL(_kdmouse->SetCooperativeLevel(_kwhwnd, mExc));
+                        // joystick(s) objects created. (in enum function)
 
-            // set mouse data format (using standard format)
-            DDI_CALL(_kdmouse->SetDataFormat(&c_dfDIMouse));
+                        // set joystick(s) exclusive option
+                        DWORD mExc;
+                        if (Exclusive){
+                            mExc = DISCL_FOREGROUND | DISCL_EXCLUSIVE;
+                        }else{
+                            mExc = DISCL_FOREGROUND | DISCL_NONEXCLUSIVE;
+                        }
+                        DDI_CALL(_kdjoysticks[i]->SetCooperativeLevel(Window, mExc));
 
-            // enum mouse capabilities
-            // currently we dont need get capabilities (maybe later!)
-            // DDI_CALL(_kdmouse->EnumObjects( _kenumObjCallb, NULL, DIDFT_ALL ));
-        }
-    }
+                        // set joystick(s) data format
+                        DDI_CALL(_kdjoysticks[i]->SetDataFormat(&c_dfDIJoystick));
 
-    const KMouseInput *Input::getMouseInput(){
-        // check mouse device
-        if (_kdmouse != 0){
 
-            // clear mouse state structure
-            ZeroMemory( &_kdmouseState, sizeof(_kdmouseState));
-            _kmouseInput.isChanged = false;
-
-            // get current mouse-state
-            // and fill our mouse-state structure
-            HRESULT hRes;
-            hRes = _kdmouse->GetDeviceState(sizeof(DIMOUSESTATE),(LPVOID)&_kdmouseState);
-            if (hRes == DI_OK){
-                POINT _kmousePos;
-                GetCursorPos(&_kmousePos);
-                _kmouseInput.xPos = _kmousePos.x;
-                _kmouseInput.yPos =  _kmousePos.y;
-                ScreenToClient(_kwhwnd, &_kmousePos);
-                _kmouseInput.xWinPos = _kmousePos.x;
-                _kmouseInput.yWinPos = _kmousePos.y;
-                _kmouseInput.xDelta = _kdmouseState.lX;
-                _kmouseInput.yDelta = _kdmouseState.lY;
-                _kmouseInput.zDelta = _kdmouseState.lZ;
-                _kmouseInput.leftButton = (_kdmouseState.rgbButtons[0] & 0x80);
-                _kmouseInput.rightButton = (_kdmouseState.rgbButtons[1] & 0x80);
-                _kmouseInput.middleButton = (_kdmouseState.rgbButtons[2] & 0x80);
-                _kmouseInput.isChanged = true;
-
-            // reacquire device (if device lost)
-            }else if (hRes == DIERR_INPUTLOST || hRes == DIERR_NOTACQUIRED){
-                _kdmouse->Acquire();
-            }
-        }
-        return &_kmouseInput;
-    }
-
-    void Input::releaseMouse(){
-        if (_kdmouse != 0){
-            _kdmouse->Unacquire();
-            _kdmouse->Release();
-            _kdmouse = 0;
-        }
-    }
-
-    void Input::activeKeyboard(bool Exclusive){
-        // check keyboard device
-        if (_kdkeyboard == 0 && _kenumDevice.keyboard){
-
-            // create keyboard device
-            DDI_CALL(_kdinput->CreateDevice(GUID_SysKeyboard, &_kdkeyboard, NULL));
-
-            // set keyboard exclusive option
-            DWORD mExc;
-            if (Exclusive){
-                mExc = DISCL_FOREGROUND | DISCL_EXCLUSIVE;
-            }else{
-                mExc = DISCL_FOREGROUND | DISCL_NONEXCLUSIVE;
-            }
-            DDI_CALL(_kdkeyboard->SetCooperativeLevel(_kwhwnd, mExc));
-
-            // set keyboard data format
-            DDI_CALL(_kdkeyboard->SetDataFormat(&c_dfDIKeyboard));
-
-            // enum keyboard capabilities
-            // currently we dont need get capabilities (maybe later!)
-            // DDI_CALL(_kdkeyboard->EnumObjects( _kenumObjCallb, NULL, DIDFT_ALL ));
-        }
-    }
-
-    const KKeyboardInput *Input::getKeyboardInput(){
-        // check keyboard device
-        if (_kdkeyboard != 0){
-
-            // clear keyboard-state structure
-            ZeroMemory( &_kdkeyboardState, sizeof(_kdkeyboardState));
-            _kkeyboardInput.isChanged = false;
-
-            // get current keyboard-state
-            // and fill our keyboard-state structure
-            HRESULT hRes;
-            hRes = _kdkeyboard->GetDeviceState(sizeof(_kdkeyboardState),(LPVOID)&_kdkeyboardState);
-
-            if (hRes == DI_OK){
-                _kkeyboardInput.keys = _kdkeyboardState;
-                _kkeyboardInput.lctrl = (_kdkeyboardState[DIK_LCONTROL] & 0x80);
-                _kkeyboardInput.rctrl = (_kdkeyboardState[DIK_RCONTROL] & 0x80);
-                _kkeyboardInput.lalt = (_kdkeyboardState[DIK_LALT] & 0x80);
-                _kkeyboardInput.ralt = (_kdkeyboardState[DIK_RALT] & 0x80);
-                _kkeyboardInput.lshift = (_kdkeyboardState[DIK_LSHIFT] & 0x80);
-                _kkeyboardInput.rshift = (_kdkeyboardState[DIK_RSHIFT] & 0x80);
-                _kkeyboardInput.isChanged = true;
-
-            // reacquire device (if device lost)
-            }else if (hRes == DIERR_INPUTLOST || hRes == DIERR_NOTACQUIRED){
-                _kdkeyboard->Acquire();
-            }
-        }
-        return &_kkeyboardInput;
-    }
-
-    void Input::releaseKeyboard(){
-        if (_kdkeyboard != 0){
-            _kdkeyboard->Unacquire();
-            _kdkeyboard->Release();
-            _kdkeyboard = 0;
-        }
-    }
-
-    void Input::activeJoysticks(bool Exclusive){
-        // check keyboard device
-        if (_kenumDevice.joystick){
-
-            for(unsigned int i = 0; i < _kenumDevice.joystickCount; ++i){
-                if (_kdjoysticks[i] != 0){
-
-                    // joystick(s) objects created. (in enum function)
-
-                    // set joystick(s) exclusive option
-                    DWORD mExc;
-                    if (Exclusive){
-                        mExc = DISCL_FOREGROUND | DISCL_EXCLUSIVE;
-                    }else{
-                        mExc = DISCL_FOREGROUND | DISCL_NONEXCLUSIVE;
+                        // enum joystick(s) capabilities
+                        // currently we dont need get capabilities (maybe later!)
+                        // but we must set min/max range for axis
+                        // this job will done in "EnumObjectsCallback()"
+                        DDI_CALL(_kdjoysticks[i]->EnumObjects(_kenumObjCallb, (void *)_kdjoysticks, DIDFT_ALL));
                     }
-                    DDI_CALL(_kdjoysticks[i]->SetCooperativeLevel(_kwhwnd, mExc));
-
-                    // set joystick(s) data format
-                    DDI_CALL(_kdjoysticks[i]->SetDataFormat(&c_dfDIJoystick));
-
-
-                    // enum joystick(s) capabilities
-                    // currently we dont need get capabilities (maybe later!)
-                    // but we must set min/max range for axis
-                    // this job will done in "EnumObjectsCallback()"
-                    DDI_CALL(_kdjoysticks[i]->EnumObjects(_kenumObjCallb, (void *)_kdjoysticks, DIDFT_ALL));
                 }
             }
-        }
+            }
+#endif
     }
 
     const KJoystickInput *Input::getJoystickInput(Kite::U8 JoyID){
+#ifdef KDINPUT_ALLOW
         if (_kenumDevice.joystick && JoyID <= _kenumDevice.joystickCount){
             if (_kdjoysticks[JoyID] != 0){
 
@@ -328,10 +344,12 @@ namespace Internal{
                 }
             }
         }
+#endif
         return &_kjoystickInput;
     }
 
     void Input::releaseJoysticks(){
+#ifdef KDINPUT_ALLOW
         for (int i = 0; i < _kenumDevice.joystickCount; ++i){
             if (_kdjoysticks[i] != 0){
                 _kdjoysticks[i]->Unacquire();
@@ -339,6 +357,7 @@ namespace Internal{
                 _kdjoysticks[i] = 0;
             }
         }
+#endif
     }
 
 }

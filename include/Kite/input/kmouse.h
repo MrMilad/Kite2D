@@ -19,22 +19,16 @@
 #define KMOUSE_H
 
 #include "Kite/system/ksystemdef.h"
-#include "Kite/input/kinputstructs.h"
+#include "Kite/system/kvector2.h"
+#include "Kite/input/kinputtypes.h"
 #include "Kite/window/kwindowstructs.h"
 
 namespace Kite{
-namespace Internal{
-    class Input;
-}
     class KITE_FUNC_EXPORT KMouse{
     public:
-        KMouse(KWindowHandle WindowHandle, bool Exclusive);
-        ~KMouse();
-
-        const KMouseInput *getInput();
-        bool isInstalled() const;
-    private:
-        Kite::Internal::Input *_kimpl;
+        static bool isButtonPressed(KMouseButtonTypes Button);
+        static KVector2I32 getMousePosition(KMousePositionTypes PositionType, KWindowHandle Window);
+        static bool isInstalled();
     };
 }
 

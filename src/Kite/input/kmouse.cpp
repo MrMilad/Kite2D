@@ -17,7 +17,6 @@
 */
 
 #include "Kite/input/kmouse.h"
-#include "Kite/system/ksystemdef.h"
 
 #if defined (KITE_PLATFORM_WINDOWS)
 
@@ -32,29 +31,15 @@
 #endif
 
 namespace Kite{
-    KMouse::KMouse(KWindowHandle WindowHandle, bool Exclusive){
-    #if defined (KITE_PLATFORM_WINDOWS)
-        _kimpl = Kite::Internal::Input::CreateInstance();
-        _kimpl->setup((HWND)WindowHandle);
-        _kimpl->activeMouse(Exclusive);
-    #elif defined (KITE_PLATFORM_LINUX)
-
-
-    #elif defined (KITE_PLATFORM_MACOS)
-
-
-    #endif
+    bool KMouse::isButtonPressed(KMouseButtonTypes Button){
+        return Internal::Input::getMouseButton(Button);
     }
 
-    KMouse::~KMouse(){
-        _kimpl->releaseMouse();
+    KVector2I32 KMouse::getMousePosition(KMousePositionTypes PositionType, KWindowHandle Window){
+        return Internal::Input::getMousePosition(PositionType, (HWND)Window);
     }
 
-    const Kite::KMouseInput *KMouse::getInput(){
-        return _kimpl->getMouseInput();
-    }
-
-    bool KMouse::isInstalled() const{
-        return _kimpl->getEnumDevices()->mouse;
+    bool KMouse::isInstalled(){
+        return Internal::Input::getEnumDevices()->mouse;
     }
 }

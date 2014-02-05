@@ -152,6 +152,11 @@
     #endif
 #endif
 
+// using DirectInput (only for joystick(s))
+#if defined(KITE_USE_DIRECTINPUT)
+    #define KDINPUT_ALLOW
+#endif
+
 #ifndef DWORD
 // 64 bits integer types
 typedef unsigned short WORD;

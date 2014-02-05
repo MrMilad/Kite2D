@@ -17,7 +17,6 @@
 */
 
 #include "Kite/input/kkeyboard.h"
-#include "Kite/system/ksystemdef.h"
 
 #if defined (KITE_PLATFORM_WINDOWS)
 
@@ -32,30 +31,13 @@
 #endif
 
 namespace Kite{
-    KKeyboard::KKeyboard(KWindowHandle WindowHandle, bool Exclusive){
-    #if defined (KITE_PLATFORM_WINDOWS)
-        _kimpl = Kite::Internal::Input::CreateInstance();
-        _kimpl->setup((HWND)WindowHandle);
-        _kimpl->activeKeyboard(Exclusive);
-    #elif defined (KITE_PLATFORM_LINUX)
 
-
-    #elif defined (KITE_PLATFORM_MACOS)
-
-
-    #endif
+    bool KKeyboard::isButtonPressed(KKeyboardButtonTypes Button){
+        return Internal::Input::getKeyboardButton(Button);
     }
 
-    KKeyboard::~KKeyboard(){
-        _kimpl->releaseKeyboard();
-    }
-
-    const KKeyboardInput *KKeyboard::getInput(){
-        return _kimpl->getKeyboardInput();
-    }
-
-    bool KKeyboard::isInstalled() const{
-        return _kimpl->getEnumDevices()->keyboard;
+    bool KKeyboard::isInstalled(){
+        return Internal::Input::getEnumDevices()->keyboard;
     }
 }
 

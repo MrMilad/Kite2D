@@ -15,8 +15,6 @@
  You should have received a copy of the GNU General Public License
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-
-#include "Kite/system/ksystemdef.h"
 #include "Kite/input/kjoystick.h"
 
 #if defined (KITE_PLATFORM_WINDOWS)
@@ -35,9 +33,7 @@ namespace Kite{
 
     KJoystick::KJoystick(KWindowHandle WindowHandle, bool Exclusive){
     #if defined (KITE_PLATFORM_WINDOWS)
-        _kimpl = Kite::Internal::Input::CreateInstance();
-        _kimpl->setup((HWND)WindowHandle);
-        _kimpl->activeJoysticks(Exclusive);
+        Internal::Input::activeJoysticks(Exclusive, (HWND)WindowHandle);
     #elif defined (KITE_PLATFORM_LINUX)
 
 
@@ -48,18 +44,18 @@ namespace Kite{
     }
 
     KJoystick::~KJoystick(){
-        _kimpl->releaseJoysticks();
+        Internal::Input::releaseJoysticks();
     }
 
     const KJoystickInput *KJoystick::getInput(U8 JoystickID){
-        return _kimpl->getJoystickInput(JoystickID);
+        return Internal::Input::getJoystickInput(JoystickID);
     }
 
     bool KJoystick::isInstalled() const{
-        return _kimpl->getEnumDevices()->joystick;
+        return Internal::Input::getEnumDevices()->joystick;
     }
 
     U8 KJoystick::getCount() const{
-        return _kimpl->getEnumDevices()->joystickCount;
+        return Internal::Input::getEnumDevices()->joystickCount;
     }
 }

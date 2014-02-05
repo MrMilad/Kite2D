@@ -32,7 +32,7 @@ namespace Internal{
         ~KKeyboard();
 
         const KKeyboardInput *getInput();
-        bool isInstalled();
+        bool isInstalled() const;
     private:
         Kite::Internal::Input *_kimpl;
     };

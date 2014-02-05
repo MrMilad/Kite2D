@@ -16,8 +16,8 @@
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "Kite/input/kkeyboard.h"
 #include "Kite/system/ksystemdef.h"
+#include "Kite/input/kjoystick.h"
 
 #if defined (KITE_PLATFORM_WINDOWS)
 
@@ -32,11 +32,12 @@
 #endif
 
 namespace Kite{
-    KKeyboard::KKeyboard(KWindowHandle WindowHandle, bool Exclusive){
+
+    KJoystick::KJoystick(KWindowHandle WindowHandle, bool Exclusive){
     #if defined (KITE_PLATFORM_WINDOWS)
         _kimpl = Kite::Internal::Input::CreateInstance();
         _kimpl->setup((HWND)WindowHandle);
-        _kimpl->activeKeyboard(Exclusive);
+        _kimpl->activeJoysticks(Exclusive);
     #elif defined (KITE_PLATFORM_LINUX)
 
 
@@ -46,16 +47,19 @@ namespace Kite{
     #endif
     }
 
-    KKeyboard::~KKeyboard(){
-        _kimpl->releaseKeyboard();
+    KJoystick::~KJoystick(){
+        _kimpl->releaseJoysticks();
     }
 
-    const KKeyboardInput *KKeyboard::getInput(){
-        return _kimpl->getKeyboardInput();
+    const KJoystickInput *KJoystick::getInput(U8 JoystickID){
+        return _kimpl->getJoystickInput(JoystickID);
     }
 
-    bool KKeyboard::isInstalled() const{
-        return _kimpl->getEnumDevices()->keyboard;
+    bool KJoystick::isInstalled() const{
+        return _kimpl->getEnumDevices()->joystick;
+    }
+
+    U8 KJoystick::getCount() const{
+        return _kimpl->getEnumDevices()->joystickCount;
     }
 }
-

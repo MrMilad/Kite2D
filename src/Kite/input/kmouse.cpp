@@ -54,7 +54,7 @@ namespace Kite{
         return _kimpl->getMouseInput();
     }
 
-    bool KMouse::isInstalled(){
+    bool KMouse::isInstalled() const{
         return _kimpl->getEnumDevices()->mouse;
     }
 }

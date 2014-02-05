@@ -1,10 +1,10 @@
-/* 
+/*
  Kite2D Game Framework.
  Copyright (C) 2010-2014  Milad Rasaneh <milad_rasaneh2000@yahoo.com>
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
- the Free Software Foundation, either version 3 of the License, or 
+ the Free Software Foundation, either version 3 of the License, or
  any later version.
 
  This program is distributed in the hope that it will be useful,
@@ -15,8 +15,8 @@
  You should have received a copy of the GNU General Public License
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#ifndef KMOUSE_H
-#define KMOUSE_H
+#ifndef KJOYSTICK_H
+#define KJOYSTICK_H
 
 #include "Kite/system/ksystemdef.h"
 #include "Kite/input/kinputstructs.h"
@@ -26,16 +26,17 @@ namespace Kite{
 namespace Internal{
     class Input;
 }
-    class KITE_FUNC_EXPORT KMouse{
+    class KJoystick{
     public:
-        KMouse(KWindowHandle WindowHandle, bool Exclusive);
-        ~KMouse();
+        KJoystick(KWindowHandle WindowHandle, bool Exclusive);
+        ~KJoystick();
 
-        const KMouseInput *getInput();
+        const KJoystickInput *getInput(U8 JoystickID);
         bool isInstalled() const;
+        U8 getCount() const;
     private:
         Kite::Internal::Input *_kimpl;
     };
 }
 
-#endif // KMOUSE_H
+#endif // KJOYSTICK_H

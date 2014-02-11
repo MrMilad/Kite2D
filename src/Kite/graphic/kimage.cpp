@@ -70,15 +70,15 @@ namespace Kite{
         }
     }
 
-    bool KImage::load(const std::string &FileName){
+    void KImage::load(const std::string &FileName){
         return Internal::ImageIO::CreateInstance()->readFromFile(FileName, _kpixels, _ksize);
     }
 
-    bool KImage::load(const void *Data, std::size_t Size){
+    void KImage::load(const void *Data, std::size_t Size){
         return Internal::ImageIO::CreateInstance()->readFromMemory(Data, Size, _kpixels, _ksize);
     }
 
-    bool KImage::save(const std::string &FileName){
+    void KImage::save(const std::string &FileName){
         return Internal::ImageIO::CreateInstance()->writeToFile(FileName, _kpixels, _ksize);
     }
 

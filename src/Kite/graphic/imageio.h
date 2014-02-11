@@ -30,17 +30,17 @@ namespace Internal{
         static ImageIO *CreateInstance();
         static void DestroyInstance();
 
-        bool readFromFile(const std::string &FileName, std::vector<U8> &Pixels, KVector2U32 &Size);
-        bool readFromMemory(const void *Data, std::size_t DataSize,
+        void readFromFile(const std::string &FileName, std::vector<U8> &Pixels, KVector2U32 &Size);
+        void readFromMemory(const void *Data, std::size_t DataSize,
                             std::vector<U8> &Pixels, KVector2U32 &Size);
 
-        bool writeToFile(const std::string &FileName, const std::vector<U8> &Pixels,
+        void writeToFile(const std::string &FileName, const std::vector<U8> &Pixels,
                          const KVector2U32& Size);
     private:
         ImageIO();
         ~ImageIO();
 
-        // Convert a string to lower case
+        // convert a string to lower case
         std::string toLower(std::string str);
         static ImageIO *_kinstance;
     };

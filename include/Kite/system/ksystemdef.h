@@ -188,12 +188,5 @@ namespace Kite{
 
     // 64 bits floating types
     typedef double F64;
-
-//    // kengine Types
-//    typedef DWORD KTEXTURE;
-//    typedef DWORD KCOLOR;
-//    typedef U32 KFONT;
-//    typedef U32 KABUFFER;
-//    typedef U32 KASOURCE;
 }
 #endif // KSYSTEMDEF_H

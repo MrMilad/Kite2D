@@ -136,13 +136,5 @@ namespace Kite{
         KMP_SCREEN,
         KMP_WINDOW
     };
-
-//    // Input Device(s) Types
-//    enum KInputDeviceTypes{
-//        KINPUT_DEVICE_MOUSE,
-//        KINPUT_DEVICE_KEYBOARD,
-//        KINPUT_DEVICE_JOYSTICK,
-//        KINPUT_DEVICE_UNKNOWN
-//    };
 }
 #endif // KINPUTTYPES_H

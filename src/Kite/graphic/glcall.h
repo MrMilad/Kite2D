@@ -19,7 +19,7 @@
 #define GLCALL_H
 
 //#define GLEW_STATIC
-#include "GL/glew.h"
+#include "extlibs/headers/glew.h"
 #include "Kite/system/ksystemdef.h"
 #include "Kite/graphic/kgraphictypes.h"
 

@@ -45,42 +45,36 @@ namespace Internal{
             ret = false;
             // decode the error code
             switch (OGLErrCode){
-            case GL_INVALID_ENUM :{
-                KDEBUG_PRINT("GL_INVALID_ENUM\n");
+            case GL_INVALID_ENUM:
+                KDEBUG_PRINT("GL_INVALID_ENUM");
                 break;
-            }
 
-            case GL_INVALID_VALUE :{
-                KDEBUG_PRINT("GL_INVALID_VALUE\n");
+            case GL_INVALID_VALUE:
+                KDEBUG_PRINT("GL_INVALID_VALUE");
                 break;
-            }
 
-            case GL_INVALID_OPERATION :{
-                KDEBUG_PRINT("GL_INVALID_OPERATION\n");
+            case GL_INVALID_OPERATION:
+                KDEBUG_PRINT("GL_INVALID_OPERATION");
                 break;
-            }
 
-            case GL_STACK_OVERFLOW :{
-                KDEBUG_PRINT("GL_STACK_OVERFLOW\n");
+            case GL_STACK_OVERFLOW:
+                KDEBUG_PRINT("GL_STACK_OVERFLOW");
                 break;
-            }
 
-            case GL_STACK_UNDERFLOW :{
-                KDEBUG_PRINT("GL_STACK_UNDERFLOW\n");
+            case GL_STACK_UNDERFLOW:
+                KDEBUG_PRINT("GL_STACK_UNDERFLOW");
                 break;
-            }
 
-            case GL_OUT_OF_MEMORY :{
-                KDEBUG_PRINT("GL_OUT_OF_MEMORY\n");
+            case GL_OUT_OF_MEMORY:
+                KDEBUG_PRINT("GL_OUT_OF_MEMORY");
                 break;
-            }
 
-            case GL_INVALID_FRAMEBUFFER_OPERATION_EXT :{
-                KDEBUG_PRINT("GL_INVALID_FRAMEBUFFER_OPERATION_EXT\n");
+            case GL_INVALID_FRAMEBUFFER_OPERATION_EXT:
+                KDEBUG_PRINT("GL_INVALID_FRAMEBUFFER_OPERATION_EXT");
                 break;
-            }
+
             default:
-                KDEBUG_PRINT("UNKNOWN_ERROR\n");
+                KDEBUG_PRINT("GL_UNKNOWN_ERROR");
                 break;
             }
             OGLErrCode = glGetError();

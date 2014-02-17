@@ -25,8 +25,8 @@
 
 namespace Kite{
 namespace Internal{
-    extern bool initeGLEW();
-    extern bool checkLastGLErr();
+    bool initeGLEW();
+    bool checkLastGLErr();
 
     class GLBindGuard{
     public:

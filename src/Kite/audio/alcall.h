@@ -24,7 +24,6 @@
 
 namespace Kite{
 namespace Internal{
-    bool checkLastALErr();
 
     class ALDevice{
     public:
@@ -37,6 +36,9 @@ namespace Internal{
         ALCcontext* _kcontext;
     };
     extern ALDevice _kaldevice;
+
+    extern bool checkLastALErr();
+    extern ALenum getFormatChCount(U32 ChannelCount);
 }
 }
 

@@ -60,6 +60,21 @@ namespace Internal{
         return ret;
     }
 
+    ALenum getFormatChCount(U32 ChannelCount){
+
+        // find the good format according to the number of channels
+        switch (ChannelCount){
+            case 1: return AL_FORMAT_MONO16;
+            case 2: return AL_FORMAT_STEREO16;
+            case 4: return alGetEnumValue("AL_FORMAT_QUAD16");
+            case 6: return alGetEnumValue("AL_FORMAT_51CHN16");
+            case 7: return alGetEnumValue("AL_FORMAT_61CHN16");
+            case 8: return alGetEnumValue("AL_FORMAT_71CHN16");
+            default : return 0;
+        }
+    }
+
+
     ALDevice::ALDevice(const char *DeviceName){
         // open\create device (if DeviceName = NULL then oal select the preferred (default) device)
         DAL_CALL(_kdevice = alcOpenDevice(DeviceName));

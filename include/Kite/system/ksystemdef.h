@@ -21,7 +21,7 @@
 #include <cstdio>
 #include <iostream>
 
-/* Identify the Little/Big endian */
+// identify the Little/Big endian
 #if defined(__m68k__) || defined(mc68000) || defined(_M_M68K) || (defined(__MIPS__) && defined(__MISPEB__)) || \
     defined(__ppc__) || defined(__POWERPC__) || defined(_M_PPC) || defined(__sparc__) || defined(__hppa__)
 
@@ -35,7 +35,7 @@
 
 #endif
 
-/* Identify the operating system */
+// identify the operating system
 #if defined(_WIN32) || defined(__WIN32__)
 
     // Windows
@@ -62,7 +62,7 @@
 #else
 
     // Unsupported system
-    #error This operating system is not supported by KiteEngine library
+    #error This operating system is not supported by Kite library
 
 #endif
 
@@ -110,7 +110,7 @@
 
 #endif
 
-// Alignment macro
+// alignment macro
 #if defined(_MSC_VER)
     #define K_ALIGNED(t,x) __declspec(align(x)) t
 #elif defined(__GNUC__)
@@ -133,8 +133,8 @@
 #elif defined(KITE_USER_DEBUG) // print debug output (without break).
     #define KDEBUG_BREAK;
     #define KDEBUG_PRINT(x) printf (#x); printf("\n     Line: %u \n     File: %s \n", __LINE__, __FILE__);
-    #define KDEBUG_ASSERT(expr) if (!(expr)) {KDEBUG_PRINT(#expr)); KDEBUG_BREAK}
-    #define KDEBUG_ASSERT_T(expr) if (!(expr)) {KDEBUG_PRINT(#expr)); KDEBUG_BREAK}
+    #define KDEBUG_ASSERT(expr) if (!(expr)) {KDEBUG_PRINT(#expr));}
+    #define KDEBUG_ASSERT_T(expr) if (!(expr)) {KDEBUG_PRINT(#expr));}
     #define KDEBUG_TEMP(expr) expr
 
 #else // release state. (without debug output and break)

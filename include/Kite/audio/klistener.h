@@ -22,7 +22,7 @@
 #include "Kite/system/kvector3.h"
 
 namespace Kite{
-    class KListener{
+    class KITE_FUNC_EXPORT KListener{
     public:
 
         static void setMasterGain(F32 Gain);

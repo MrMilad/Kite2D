@@ -34,8 +34,8 @@ namespace Internal{
 
         void start();                            // start timer
         void stop();                             // stop the timer
-        F64 getElapsedTime();                    // get elapsed time in second
-        F64 getElapsedTimeInSec();               // get elapsed time in second (same as getElapsedTime)
+
+        F64 getElapsedTimeInSec();               // get elapsed time in second
         F64 getElapsedTimeInMilliSec();          // get elapsed time in milli-second
         F64 getElapsedTimeInMicroSec();          // get elapsed time in micro-second
 

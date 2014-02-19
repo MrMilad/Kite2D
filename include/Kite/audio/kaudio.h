@@ -22,5 +22,6 @@
 #include "Kite/audio/kaudiostructs.h"
 #include "Kite/audio/klistener.h"
 #include "Kite/audio/ksoundbuffer.h"
+#include "Kite/audio/ksoundsource.h"
 
 #endif // KAUDIO_H

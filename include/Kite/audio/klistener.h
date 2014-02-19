@@ -25,12 +25,19 @@ namespace Kite{
     class KITE_FUNC_EXPORT KListener{
     public:
 
+        // master global gain
+        // default 1
         static void setMasterGain(F32 Gain);
         static F32 getMasterGain();
 
+        // listener position
+        // pass (-1, 0, 0) or (1, 0, 0) for 2D panning
+        // default (0, 0, 0)
         static void setPosition(const KVector3F32 &Position);
         static KVector3F32 getPosition();
 
+        // listener orientation
+        // default (0, 0, 0)
         static void setOrientation(const KVector3F32 &Orientation);
         static KVector3F32 getOrientation();
 

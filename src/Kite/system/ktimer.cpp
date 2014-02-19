@@ -42,10 +42,6 @@ namespace Kite{
         _kimpl->stop();
     }
 
-    F64 KTimer::getElapsedTime(){
-        return _kimpl->getElapsedTimeInMicroSec() * 0.000001;
-    }
-
     F64 KTimer::getElapsedTimeInSec(){
         // divide elapsedTimeInMicroSec by 1000000
         return _kimpl->getElapsedTimeInMicroSec() * 0.000001;

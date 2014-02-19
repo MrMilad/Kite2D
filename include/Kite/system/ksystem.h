@@ -27,5 +27,6 @@
 #include "Kite/system/kthread.h"
 #include "Kite/system/ktimer.h"
 #include "Kite/system/kvector2.h"
+#include "Kite/system/kvector3.h"
 
 #endif // KSYSTEM_H

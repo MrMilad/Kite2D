@@ -30,17 +30,17 @@ namespace Kite{
         // load sound file
         void load(const std::string &FileName);
 
-        inline U32 getSampleRate() const {return _ksRate;}
-        inline std::size_t getSampleCount() const {return _ksCount;}
-        inline U32 getChannelCount() const {return _kchCount;}
-        inline U32 getSize() const {return _ksize;}
+        inline UL32 getSampleRate() const {return _ksampleRate;}
+        inline U16 getChannelCount() const {return _kchannelCount;}
+        inline U16 getBitsPerSample() const {return _kbitsPerSample;}
+        inline UL32 getSize() const {return _ksize;}
         inline U32 getID() const {return _kID;}
 
     private:
-        U32 _ksRate;
-        std::size_t _ksCount;
-        U32 _kchCount;
-        U32 _ksize;
+        UL32 _ksampleRate;
+        U16 _kchannelCount;
+        U16 _kbitsPerSample;
+        UL32 _ksize;
         U32 _kID;
     };
 }

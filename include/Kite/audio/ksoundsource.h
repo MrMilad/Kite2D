@@ -60,8 +60,8 @@ namespace Kite{
 
         // position
         // default (0, 0, 0)
-        void setPositon(KVector3F32 Position);
-        KVector3F32 getPositon();
+        void setPosition(KVector3F32 Position);
+        KVector3F32 getPosition();
 
         // current source state
         KSourceStateTypes getState();
@@ -69,7 +69,7 @@ namespace Kite{
         // get ID
         inline U32 getID() const {return _kID;}
 
-    private:
+    protected:
         KSoundSource();
         virtual ~KSoundSource();
 

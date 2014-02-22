@@ -23,5 +23,6 @@
 #include "Kite/audio/klistener.h"
 #include "Kite/audio/ksoundbuffer.h"
 #include "Kite/audio/ksoundsource.h"
+#include "Kite/audio/kstaticsource.h"
 
 #endif // KAUDIO_H

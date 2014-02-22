@@ -15,7 +15,6 @@
  You should have received a copy of the GNU General Public License
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-
 #include "Kite/audio/ksoundsource.h"
 #include "src/Kite/audio/alcall.h"
 
@@ -94,11 +93,11 @@ namespace Kite{
         return distance;
     }
 
-    void KSoundSource::setPositon(KVector3F32 Position){
+    void KSoundSource::setPosition(KVector3F32 Position){
         DAL_CALL(alSource3f(_kID, AL_POSITION, Position.x, Position.y, Position.z));
     }
 
-    KVector3F32 KSoundSource::getPositon(){
+    KVector3F32 KSoundSource::getPosition(){
         KVector3F32 position;
         DAL_CALL(alGetSource3f(_kID, AL_POSITION, &position.x, &position.y, &position.z));
 

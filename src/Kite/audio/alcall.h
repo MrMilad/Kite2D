@@ -38,7 +38,7 @@ namespace Internal{
     extern ALDevice _kaldevice;
 
     extern bool checkLastALErr();
-    extern ALenum getFormatChCount(U32 ChannelCount);
+    extern ALenum getFormat(U16 ChannelCount, U16 BitsPerSample);
 }
 }
 

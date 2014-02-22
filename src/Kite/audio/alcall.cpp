@@ -60,18 +60,33 @@ namespace Internal{
         return ret;
     }
 
-    ALenum getFormatChCount(U32 ChannelCount){
+    ALenum getFormat(U16 ChannelCount, U16 BitsPerSample){
 
         // find the good format according to the number of channels
-        switch (ChannelCount){
-            case 1: return AL_FORMAT_MONO16;
-            case 2: return AL_FORMAT_STEREO16;
+        // MONO
+        if (ChannelCount == 1){
+            switch(BitsPerSample){
+            case 4: return alGetEnumValue("AL_FORMAT_MONO_IMA4");
+            case 8: return alGetEnumValue("AL_FORMAT_MONO8");
+            case 16: return alGetEnumValue("AL_FORMAT_MONO16");
+            }
+        // STEREO
+        }else if (ChannelCount == 2){
+            switch (BitsPerSample){
+            case 4: return alGetEnumValue("AL_FORMAT_STEREO_IMA4");
+            case 8: return alGetEnumValue("AL_FORMAT_STEREO8");
+            case 16: return alGetEnumValue("AL_FORMAT_STEREO16");
+            }
+        }else{
+            switch (ChannelCount){
             case 4: return alGetEnumValue("AL_FORMAT_QUAD16");
             case 6: return alGetEnumValue("AL_FORMAT_51CHN16");
             case 7: return alGetEnumValue("AL_FORMAT_61CHN16");
             case 8: return alGetEnumValue("AL_FORMAT_71CHN16");
             default : return 0;
+            }
         }
+        return 0;
     }
 
 

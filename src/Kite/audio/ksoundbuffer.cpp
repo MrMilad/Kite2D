@@ -17,13 +17,15 @@
 */
 #include "Kite/audio/ksoundbuffer.h"
 #include "src/Kite/audio/alcall.h"
-#include "src/Kite/audio/soundio.h"
+#include "src/Kite/audio/win32/waveio.h"
 #include <vector>
+#include <cstdlib>
 
 namespace Kite{
     KSoundBuffer::KSoundBuffer():
-        _ksRate(0),
-        _kchCount(0),
+        _ksampleRate(0),
+        _kchannelCount(0),
+        _kbitsPerSample(0),
         _ksize(0),
         _kID(0)
     {
@@ -35,29 +37,35 @@ namespace Kite{
     }
 
     void KSoundBuffer::load(const std::string &FileName){
-        Internal::SoundIO reader;
-        std::vector<I16> Data;
+        Internal::WaveIO reader;
+        void *Data;
 
         // open file for reading data
-        Data.resize(reader.getSampleCount());
-        reader.openReadFromFile(FileName);
+        reader.openFile(FileName);
 
         // first get file properties
-        _ksCount = reader.getSampleCount();
-        _ksRate = reader.getSampleRate();
-        _kchCount = reader.getChannelCount();
+        _ksize = reader.getSize();
+        _ksampleRate = reader.getSampleRate();
+        _kchannelCount = reader.getChannelCount();
+        _kbitsPerSample = reader.getBitPerSample();
 
         // read data from file
-        KDEBUG_ASSERT((reader.read(&Data[0], _ksCount) == _ksCount));
+        UL32 read;
+        Data = malloc(_ksize);
+        reader.setReadOffset(0);
+        reader.readFile(Data, _ksize, &read);
+        KDEBUG_ASSERT(read == _ksize);
 
-        // find best format from ChannelCount
-        ALenum format = Internal::getFormatChCount(_kchCount);
+        // find best format
+        ALenum format = Internal::getFormat(_kchannelCount, _kbitsPerSample);
         KDEBUG_ASSERT(format != 0);
 
         // fill buffer
-        ALsizei size = (ALsizei)(Data.size() * sizeof(I16));
-        _ksize = size;
-        DAL_CALL(alBufferData(_kID, format, &Data[0], size, _ksRate));
+        DAL_CALL(alBufferData(_kID, format, Data, _ksize, _ksampleRate));
+
+        // cleanup
+        free(Data);
+        Data = NULL;
     }
 
 }

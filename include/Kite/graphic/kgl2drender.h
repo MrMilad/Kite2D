@@ -42,6 +42,7 @@ namespace Kite{
                         KGeoPrimitiveTypes Primitive);
 
         void setTextureEnv(KTextureEnvMode Mode);
+        void setPointSprite(bool PointSprite);
         void setClearColor(const KColor &Color);
         void setPointsOption(const KPointOption &Option);
         inline void setCamera(const KCamera &Camera) {_kcurrentCam = &Camera;}

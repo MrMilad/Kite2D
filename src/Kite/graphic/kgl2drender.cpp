@@ -94,6 +94,16 @@ namespace Kite{
         DGL_CALL(glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, envPar[Mode]));
     }
 
+    void KGL2DRender::setPointSprite(bool PointSprite){
+        if (PointSprite){
+            // enable point sprite
+            DGL_CALL(glEnable(GL_POINT_SPRITE));
+            DGL_CALL(glTexEnvi(GL_POINT_SPRITE, GL_COORD_REPLACE, GL_TRUE));
+        }else{
+            DGL_CALL(glDisable(GL_POINT_SPRITE));
+        }
+    }
+
     void KGL2DRender::setClearColor(const KColor &Color){
         DGL_CALL(glClearColor((GLclampf)((F32)Color.r/255.0f),
                               (GLclampf)((F32)Color.g/255.0f),

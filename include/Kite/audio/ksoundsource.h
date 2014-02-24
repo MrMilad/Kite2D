@@ -25,10 +25,16 @@
 namespace Kite{
     class KITE_FUNC_EXPORT KSoundSource{
     public:
+
+        // basic audio operations
+        virtual void play() = 0;
+        virtual void pause() = 0;
+        virtual void stop() = 0;
+
         // loop
         // default false
-        void setLoop(bool Loop);
-        bool getLoop();
+        virtual void setLoop(bool Loop) = 0;
+        virtual bool getLoop() = 0;
 
         // make the sound's position relative to the listener or absolute
         // default false

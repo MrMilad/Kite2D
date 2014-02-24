@@ -27,17 +27,6 @@ namespace Kite{
         DAL_CALL(alDeleteSources(1, &_kID));
     }
 
-    void KSoundSource::setLoop(bool Loop){
-        DAL_CALL(alSourcei(_kID, AL_LOOPING, Loop));
-    }
-
-    bool KSoundSource::getLoop(){
-        ALint loop;
-        DAL_CALL(alGetSourcei(_kID, AL_LOOPING, &loop));
-
-        return loop != 0;
-    }
-
     void KSoundSource::setReleative(bool Releative){
         DAL_CALL(alSourcei(_kID, AL_SOURCE_RELATIVE, Releative));
     }

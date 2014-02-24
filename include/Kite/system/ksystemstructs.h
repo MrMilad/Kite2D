@@ -39,7 +39,7 @@ namespace Kite{
     struct KThreadFunc
     {
         virtual ~KThreadFunc() {}
-        void start() {}
+        virtual void start() {}
     };
 
     // a functor with no argument

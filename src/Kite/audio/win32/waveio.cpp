@@ -27,7 +27,8 @@ namespace Internal{
         _ksampleRate(0),
         _kbyteRate(0),
         _kchannel(0),
-        _kbitPerSample(0)
+        _kbitPerSample(0),
+        _kblockAlign(0)
     {}
 
     WaveIO::~WaveIO(){
@@ -37,30 +38,31 @@ namespace Internal{
 
     void WaveIO::openFile(const std::string &FileName){
         // open file
-        KDEBUG_ASSERT(_kcwaves->OpenWaveFile(FileName.c_str(), &_kID) == 0);
+        KDEBUG_ASSERT_EQ(_kcwaves->OpenWaveFile(FileName.c_str(), &_kID), 0);
 
         // get information
         WAVEFORMATEX format;
-        KDEBUG_ASSERT(_kcwaves->GetWaveSize(_kID, &_ksize) == 0);
-        KDEBUG_ASSERT(_kcwaves->GetWaveFormatExHeader(_kID, &format) == 0);
+        KDEBUG_ASSERT_EQ(_kcwaves->GetWaveSize(_kID, &_ksize), 0);
+        KDEBUG_ASSERT_EQ(_kcwaves->GetWaveFormatExHeader(_kID, &format), 0);
         _ksampleRate = format.nSamplesPerSec;
         _kbyteRate = format.nAvgBytesPerSec;
         _kchannel = format.nChannels;
         _kbitPerSample = format.wBitsPerSample;
+        _kblockAlign = format.nBlockAlign;
     }
 
     void WaveIO::readFile(void *Data, UL32 DataSize, UL32 *BytesWritten){
-        KDEBUG_ASSERT(_kcwaves->ReadWaveData(_kID, Data, DataSize, BytesWritten) == 0);
+        KDEBUG_ASSERT_EQ(_kcwaves->ReadWaveData(_kID, Data, DataSize, BytesWritten), 0);
     }
 
     UL32 WaveIO::getReadOffset(){
         UL32 offset = 0;
-        KDEBUG_ASSERT(_kcwaves->GetWaveDataOffset(_kID, &offset) == 0);
+        KDEBUG_ASSERT_EQ(_kcwaves->GetWaveDataOffset(_kID, &offset), 0);
         return offset;
     }
 
     void WaveIO::setReadOffset(UL32 Offset){
-        KDEBUG_ASSERT(_kcwaves->SetWaveDataOffset(_kID, Offset) == 0);
+        KDEBUG_ASSERT_EQ(_kcwaves->SetWaveDataOffset(_kID, Offset), 0);
     }
 }
 }

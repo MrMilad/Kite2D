@@ -44,6 +44,7 @@ namespace Internal{
         inline UL32 getByteRate() const {return _kbyteRate;}
         inline U16 getChannelCount() const {return _kchannel;}
         inline U16 getBitPerSample() const {return _kbitPerSample;}
+        inline U16 getBlockAllign() const {return _kblockAlign;}
 
     private:
         CWaves *_kcwaves; // CWaves pointer
@@ -53,6 +54,7 @@ namespace Internal{
         UL32 _kbyteRate;
         U16 _kchannel;
         U16 _kbitPerSample;
+        U16 _kblockAlign;
     };
 }
 }

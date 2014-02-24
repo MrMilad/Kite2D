@@ -17,9 +17,21 @@
 */
 #include "Kite/audio/ksoundbuffer.h"
 #include "src/Kite/audio/alcall.h"
-#include "src/Kite/audio/win32/waveio.h"
 #include <vector>
 #include <cstdlib>
+
+#if defined (KITE_PLATFORM_WINDOWS)
+
+    #include "src/Kite/audio/win32/waveio.h"
+
+#elif defined (KITE_PLATFORM_LINUX)
+
+
+#elif defined (KITE_PLATFORM_MACOS)
+
+
+#endif
+
 
 namespace Kite{
     KSoundBuffer::KSoundBuffer():
@@ -54,11 +66,11 @@ namespace Kite{
         Data = malloc(_ksize);
         reader.setReadOffset(0);
         reader.readFile(Data, _ksize, &read);
-        KDEBUG_ASSERT(read == _ksize);
+        KDEBUG_ASSERT_T(read == _ksize);
 
         // find best format
         ALenum format = Internal::getFormat(_kchannelCount, _kbitsPerSample);
-        KDEBUG_ASSERT(format != 0);
+        KDEBUG_ASSERT_T(format != 0);
 
         // fill buffer
         DAL_CALL(alBufferData(_kID, format, Data, _ksize, _ksampleRate));

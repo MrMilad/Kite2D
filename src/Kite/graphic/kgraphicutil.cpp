@@ -15,22 +15,27 @@
  You should have received a copy of the GNU General Public License
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#ifndef KGRAPHICUTIL_H
-#define KGRAPHICUTIL_H
-
-#include "Kite/system/ksystemdef.h"
+#include "Kite/graphic/glcall.h"
+#include "Kite/graphic/kgraphicutil.h"
 
 namespace Kite{
+    I32 getMaximumTextureSize(){
+        GLint size;
+        DGL_CALL(glGetIntegerv(GL_MAX_TEXTURE_SIZE, &size));
+        return (I32)size;
+    }
 
-/// return one side of maximum texture size (e.g 1024 = 1024x1024)
-extern "C" { KITE_FUNC_EXPORT I32 getMaximumTextureSize(); }
 
-/// maximum number of supported texture units
-extern "C" { KITE_FUNC_EXPORT I32 getMaximumTextureUnit(); }
+    I32 getMaximumTextureUnit(){
+        GLint maxUnits;
+        DGL_CALL(glGetIntegerv(GL_MAX_TEXTURE_COORDS_ARB, &maxUnits));
+        return (I32)maxUnits;
+    }
 
-/// check availability of opengl shader programs
-extern "C" { KITE_FUNC_EXPORT bool isShaderAvailable(); }
-
+    bool isShaderAvailable(){
+        return GLEW_ARB_shading_language_100 &&
+               GLEW_ARB_shader_objects       &&
+               GLEW_ARB_vertex_shader        &&
+               GLEW_ARB_fragment_shader;
+    }
 }
-
-#endif // KGRAPHICUTIL_H

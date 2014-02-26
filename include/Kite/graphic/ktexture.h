@@ -31,16 +31,16 @@ namespace Kite{
         KTexture();
         ~KTexture();
 
-        // create texture and load image pixels
+        /// create texture and load image pixels
         void create(const KImage &Image, KTextureFilterTypes Filter, KTextureWrapTypes Wrap);
 
-        // update whole or piece of texture with image
-        // image size + position must equal or smaller than texture size
+        /// update whole or piece of texture with image
+        /// image size + position must equal or smaller than texture size
         void update(const KImage &Image, U32 XPos, U32 YPos);
 
-        // bind the texture and ready for render
-        // (handle autimatic by internal render system)
-        void bind();
+        /// bind the texture and ready for render
+        /// (handle autimatic by internal render system)
+        void bind() const;
 
         inline KTextureFilterTypes getFilter() const {return _kfilter;}
         inline KTextureWrapTypes getWrap() const {return _kwrap;}

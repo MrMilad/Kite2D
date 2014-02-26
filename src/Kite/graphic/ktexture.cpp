@@ -85,7 +85,7 @@ namespace Kite{
         }
     }
 
-    void KTexture::bind(){
+    void KTexture::bind() const{
         // bind texture
         if (_ktexId > 0){
             DGL_CALL(glBindTexture(GL_TEXTURE_2D, _ktexId));

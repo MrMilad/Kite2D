@@ -18,7 +18,7 @@
 #ifndef KGRAPHICUTIL_H
 #define KGRAPHICUTIL_H
 
-#include "Kite/system/ksystemdef.h"
+#include "Kite/Core/system/ksystemdef.h"
 
 namespace Kite{
 

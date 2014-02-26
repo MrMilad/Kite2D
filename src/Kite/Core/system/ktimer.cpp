@@ -15,13 +15,13 @@
  You should have received a copy of the GNU General Public License
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#include "Kite/system/ksystemdef.h"
-#include "Kite/system/ktimer.h"
+#include "Kite/core/system/ksystemdef.h"
+#include "Kite/core/system/ktimer.h"
 
 #if defined(KITE_PLATFORM_WINDOWS)
-    #include "Kite/system/win32/timer.h"
+    #include "Kite/core/system/win32/timer.h"
 #else
-    #include "Kite/system/unix/timer.h"
+    #include "Kite/core/system/unix/timer.h"
 #endif
 
 namespace Kite{

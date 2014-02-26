@@ -18,10 +18,10 @@
 #ifndef KINPUT_H
 #define KINPUT_H
 
-#include "Kite/input/kinputtypes.h"
-#include "Kite/input/kinputstructs.h"
-#include "Kite/input/kmouse.h"
-#include "Kite/input/kkeyboard.h"
-#include "Kite/input/kjoystick.h"
+#include "Kite/Core/input/kinputtypes.h"
+#include "Kite/Core/input/kinputstructs.h"
+#include "Kite/Core/input/kmouse.h"
+#include "Kite/Core/input/kkeyboard.h"
+#include "Kite/Core/input/kjoystick.h"
 
 #endif // KINPUT_H

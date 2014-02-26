@@ -18,11 +18,11 @@
 #ifndef KSHADER_H
 #define KSHADER_H
 
-#include "Kite/system/ksystemdef.h"
-#include "Kite/graphic/kgraphictypes.h"
-#include "Kite/graphic/kgraphicstructs.h"
-#include "Kite/graphic/ktexture.h"
-#include "Kite/graphic/ktransform.h"
+#include "Kite/Core/system/ksystemdef.h"
+#include "Kite/Core/graphic/kgraphictypes.h"
+#include "Kite/Core/graphic/kgraphicstructs.h"
+#include "Kite/Core/graphic/ktexture.h"
+#include "Kite/Core/graphic/ktransform.h"
 #include <map>
 #include <vector>
 #include <string>
@@ -67,12 +67,13 @@ namespace Kite{
         /// send current texture
         void setParam(const std::string &ParamName, KShaderTextureTypes Texture);
 
-
         /// bind the shader
         void bind() const;
 
         /// unbind the shader
         void unbind() const;
+
+        inline U32 getID() const {return _kprogram;}
 
     private:
         void readFile(const char *FileName, std::vector<char> &data);

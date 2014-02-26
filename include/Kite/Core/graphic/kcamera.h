@@ -18,10 +18,10 @@
 #ifndef KCAMERA_H
 #define KCAMERA_H
 
-#include "Kite/system/ksystemdef.h"
-#include "Kite/system/kvector2.h"
-#include "Kite/graphic/kgraphicstructs.h"
-#include "Kite/graphic/ktransform.h"
+#include "Kite/Core/system/ksystemdef.h"
+#include "Kite/Core/system/kvector2.h"
+#include "Kite/Core/graphic/kgraphicstructs.h"
+#include "Kite/Core/graphic/ktransform.h"
 #include <cmath>
 
 namespace Kite{

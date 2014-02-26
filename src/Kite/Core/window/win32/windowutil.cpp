@@ -15,8 +15,8 @@
  You should have received a copy of the GNU General Public License
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#include "Kite/system/ksystemdef.h"
-#include "Kite/window/kwindowutil.h"
+#include "Kite/core/system/ksystemdef.h"
+#include "Kite/core/window/kwindowutil.h"
 #include <algorithm>
 #include <windows.h>
 

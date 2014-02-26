@@ -15,8 +15,8 @@
  You should have received a copy of the GNU General Public License
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#include "Kite/graphic/kglrender.h"
-#include "Kite/graphic/glcall.h"
+#include "Kite/core/graphic/kglrender.h"
+#include "Kite/core/graphic/glcall.h"
 
 namespace Kite{
     KGLRender::KGLRender(){}

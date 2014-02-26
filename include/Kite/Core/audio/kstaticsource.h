@@ -18,9 +18,9 @@
 #ifndef KSTATICSOURCE_H
 #define KSTATICSOURCE_H
 
-#include "Kite/system/ksystemdef.h"
-#include "Kite/audio/ksoundsource.h"
-#include "Kite/audio/ksoundbuffer.h"
+#include "Kite/Core/system/ksystemdef.h"
+#include "Kite/Core/audio/ksoundsource.h"
+#include "Kite/Core/audio/ksoundbuffer.h"
 
 namespace Kite{
     class KITE_FUNC_EXPORT KStaticSource : public KSoundSource{

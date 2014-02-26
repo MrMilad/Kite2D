@@ -15,8 +15,8 @@
  You should have received a copy of the GNU General Public License
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#include "Kite/graphic/kimage.h"
-#include "Kite/graphic/imageio.h"
+#include "Kite/core/graphic/kimage.h"
+#include "Kite/core/graphic/imageio.h"
 #include <cstring>
 
 namespace Kite{

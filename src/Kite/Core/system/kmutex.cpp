@@ -15,11 +15,11 @@
  You should have received a copy of the GNU General Public License
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#include "include/Kite/system/kmutex.h"
+#include "include/Kite/core/system/kmutex.h"
 
 #if defined(KITE_PLATFORM_WINDOWS)
 
-    #include "src/Kite/system/win32/mutex.h"
+    #include "src/Kite/core/system/win32/mutex.h"
 
 #elif defined(KITE_PLATFORM_LINUX)
 

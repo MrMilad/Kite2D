@@ -15,8 +15,8 @@
  You should have received a copy of the GNU General Public License
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#include "Kite/system/ksystemdef.h"
-#include "src/Kite/graphic/imageio.h"
+#include "Kite/core/system/ksystemdef.h"
+#include "src/Kite/core/graphic/imageio.h"
 #include "extlibs/headers/stb_image.h"
 #include <string>
 #define STB_IMAGE_WRITE_IMPLEMENTATION

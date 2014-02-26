@@ -18,7 +18,7 @@
 #ifndef ALCALL_H
 #define ALCALL_H
 
-#include "Kite/system/ksystemdef.h"
+#include "Kite/core/system/ksystemdef.h"
 #include "extlibs/headers/al.h"
 #include "extlibs/headers/alc.h"
 

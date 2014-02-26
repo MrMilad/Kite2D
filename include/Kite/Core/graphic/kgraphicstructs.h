@@ -18,10 +18,10 @@
 #ifndef KRENDERSTRUCTS_H
 #define KRENDERSTRUCTS_H
 
-#include "Kite/system/ksystemtypes.h"
-#include "Kite/graphic/kgraphictypes.h"
-#include "Kite/system/kvector2.h"
-#include "Kite/system/ksystemdef.h"
+#include "Kite/Core/system/ksystemtypes.h"
+#include "Kite/Core/graphic/kgraphictypes.h"
+#include "Kite/Core/system/kvector2.h"
+#include "Kite/Core/system/ksystemdef.h"
 
 namespace Kite{
     struct KColor{
@@ -85,9 +85,9 @@ namespace Kite{
         /// need fix
         KRenderMode render;
         KBlendMode blend;
-        U16 lastBufId;
-        U16 lastTexId;
-        U16 lastShId;
+        U32 lastBufId;
+        U32 lastTexId;
+        U32 lastShId;
 
         KCatchState(KRenderMode Render = KRM_UNSET,
                     KBlendMode Blend = KB_ALPHA,

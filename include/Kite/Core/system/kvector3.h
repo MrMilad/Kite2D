@@ -18,7 +18,7 @@
 #ifndef KVECTOR3_H
 #define KVECTOR3_H
 
-#include "Kite/system/ksystemdef.h"
+#include "Kite/core/system/ksystemdef.h"
 
 namespace Kite {
     template <typename T>

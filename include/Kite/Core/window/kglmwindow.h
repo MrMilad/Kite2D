@@ -19,10 +19,10 @@
 #define KGLMWINDOW_H
 
 #include <string>
-#include "Kite/system/ksystemdef.h"
-#include "Kite/window/kwindowtypes.h"
-#include "Kite/window/kwindowstructs.h"
-#include "Kite/system/knoncopyable.h"
+#include "Kite/core/system/ksystemdef.h"
+#include "Kite/core/window/kwindowtypes.h"
+#include "Kite/core/window/kwindowstructs.h"
+#include "Kite/core/system/knoncopyable.h"
 
 namespace Kite{
 namespace Internal{

@@ -20,8 +20,8 @@
 
 #include "windows.h"
 #include "WinGDI.h"
-#include "Kite/system/knoncopyable.h"
-#include "Kite/window/kwindowstructs.h"
+#include "Kite/core/system/knoncopyable.h"
+#include "Kite/core/window/kwindowstructs.h"
 
 namespace Kite{
 namespace Internal{

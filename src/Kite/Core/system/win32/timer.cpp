@@ -15,7 +15,7 @@
  You should have received a copy of the GNU General Public License
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#include "src/Kite/system/win32/timer.h"
+#include "src/Kite/core/system/win32/timer.h"
 
 namespace Kite{
 namespace Internal{

@@ -20,8 +20,8 @@
 
 //#define GLEW_STATIC
 #include "extlibs/headers/glew.h"
-#include "Kite/system/ksystemdef.h"
-#include "Kite/graphic/kgraphictypes.h"
+#include "Kite/core/system/ksystemdef.h"
+#include "Kite/core/graphic/kgraphictypes.h"
 
 namespace Kite{
 namespace Internal{

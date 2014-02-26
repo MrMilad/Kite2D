@@ -20,7 +20,7 @@
 
 #include <time.h>
 #include "windows.h"
-#include "Kite/system/ksystemdef.h"
+#include "Kite/core/system/ksystemdef.h"
 
 namespace Kite{
 namespace Internal{

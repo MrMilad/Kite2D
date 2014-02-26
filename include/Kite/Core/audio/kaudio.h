@@ -18,12 +18,11 @@
 #ifndef KAUDIO_H
 #define KAUDIO_H
 
-#include "Kite/audio/kaudiotypes.h"
-#include "Kite/audio/kaudiostructs.h"
-#include "Kite/audio/klistener.h"
-#include "Kite/audio/ksoundbuffer.h"
-#include "Kite/audio/ksoundsource.h"
-#include "Kite/audio/kstaticsource.h"
-#include "Kite/audio/kstreamsource.h"
+#include "Kite/Core/audio/kaudiotypes.h"
+#include "Kite/Core/audio/klistener.h"
+#include "Kite/Core/audio/ksoundbuffer.h"
+#include "Kite/Core/audio/ksoundsource.h"
+#include "Kite/Core/audio/kstaticsource.h"
+#include "Kite/Core/audio/kstreamsource.h"
 
 #endif // KAUDIO_H

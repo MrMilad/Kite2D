@@ -18,8 +18,8 @@
 #ifndef KLISTENER_H
 #define KLISTENER_H
 
-#include "Kite/system/ksystemdef.h"
-#include "Kite/system/kvector3.h"
+#include "Kite/Core/system/ksystemdef.h"
+#include "Kite/Core/system/kvector3.h"
 
 namespace Kite{
     class KITE_FUNC_EXPORT KListener{

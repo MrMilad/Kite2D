@@ -18,9 +18,9 @@
 #ifndef KGLRENDER_H
 #define KGLRENDER_H
 
-#include "Kite/system/ksystemdef.h"
-#include "Kite/system/knoncopyable.h"
-#include "Kite/graphic/kgraphictypes.h"
+#include "Kite/Core/system/ksystemdef.h"
+#include "Kite/Core/system/knoncopyable.h"
+#include "Kite/Core/graphic/kgraphictypes.h"
 #include <cstring>
 
 namespace Kite{

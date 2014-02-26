@@ -18,12 +18,12 @@
 #ifndef KTEXTURE_H
 #define KTEXTURE_H
 
-#include "Kite/system/ksystemdef.h"
-#include "Kite/system/knoncopyable.h"
-#include "Kite/system/kvector2.h"
-#include "Kite/graphic/kgraphictypes.h"
-#include "Kite/graphic/kgraphicstructs.h"
-#include "Kite/graphic/kimage.h"
+#include "Kite/Core/system/ksystemdef.h"
+#include "Kite/Core/system/knoncopyable.h"
+#include "Kite/Core/system/kvector2.h"
+#include "Kite/Core/graphic/kgraphictypes.h"
+#include "Kite/Core/graphic/kgraphicstructs.h"
+#include "Kite/Core/graphic/kimage.h"
 
 namespace Kite{
     class KTexture : public KNonCopyable{

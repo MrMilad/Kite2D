@@ -15,13 +15,13 @@
  You should have received a copy of the GNU General Public License
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#include "Kite/audio/kstreamsource.h"
-#include "Kite/audio/alcall.h"
-#include "Kite/system/ksystemutil.h"
+#include "Kite/core/audio/kstreamsource.h"
+#include "Kite/core/audio/alcall.h"
+#include "Kite/core/system/ksystemutil.h"
 #include <cstdlib>
 #if defined (KITE_PLATFORM_WINDOWS)
 
-    #include "src/Kite/audio/win32/waveio.h"
+    #include "src/Kite/core/audio/win32/waveio.h"
 
 #elif defined (KITE_PLATFORM_LINUX)
 

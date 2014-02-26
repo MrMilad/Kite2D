@@ -18,13 +18,16 @@
 #ifndef KGL2DRENDER_H
 #define KGL2DRENDER_H
 
-#include "Kite/system/ksystemdef.h"
-#include "Kite/graphic/kgraphicdef.h"
-#include "Kite/graphic/kglrender.h"
-#include "Kite/graphic/kcamera.h"
-#include "Kite/graphic/kgraphictypes.h"
-#include "Kite/graphic/kgraphicstructs.h"
-#include "Kite/graphic/kvertexbuffer.h"
+#include "Kite/Core/system/ksystemdef.h"
+#include "Kite/Core/graphic/kgraphicdef.h"
+#include "Kite/Core/graphic/kglrender.h"
+#include "Kite/Core/graphic/kcamera.h"
+#include "Kite/Core/graphic/kgraphictypes.h"
+#include "Kite/Core/graphic/kgraphicstructs.h"
+#include "Kite/Core/graphic/kvertexbuffer.h"
+#include "Kite/Core/graphic/ktexture.h"
+#include "Kite/Core/graphic/kshader.h"
+#include <vector>
 
 namespace Kite{
     class KITE_FUNC_EXPORT KGL2DRender : public KGLRender{
@@ -39,10 +42,16 @@ namespace Kite{
         /// clear the scene
         void clear();
 
-        /// draw vbo
+        /// draw vbo (ranged)
         void drawBuffer(KVertexBuffer &Buffer);
         void drawBuffer(KVertexBuffer &Buffer,
                         U32 FirstIndex, U32 Size,
+                        KGeoPrimitiveTypes Primitive);
+
+        /// draw vbo (indexed)
+        void drawBuffer(KVertexBuffer &Buffer,
+                        U32 Count,
+                        const std::vector<U16> &Indices,
                         KGeoPrimitiveTypes Primitive);
 
         void setTextureEnv(KTextureEnvMode Mode);
@@ -59,9 +68,13 @@ namespace Kite{
         /// 2D camera
         inline void setCamera(const KCamera &Camera) {_kcurrentCam = &Camera;}
         void updateCamera();
+
+        /// set texture
+        void setTexture(const KTexture &Texture);
+
+        /// set shader
+        void setSheader(const KShader &Sheader);
 //        void setBlendMode(KBlendMode BlendMode);
-//        void setTexture(const KTexture *Texture);
-//        void setSheader(const KSheader Sheader);
 
         //void unbindBuffers();
 

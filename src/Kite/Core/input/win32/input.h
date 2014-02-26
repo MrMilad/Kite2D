@@ -19,12 +19,12 @@
 #define INPUT_H
 
 // we using DirectInput only for joystick(s)
-#include "Kite/input/win32/dicall.h"
+#include "Kite/core/input/win32/dicall.h"
 #include <windows.h>
-#include "Kite/system/knoncopyable.h"
-#include "Kite/system/kvector2.h"
-#include "Kite/input/kinputstructs.h"
-#include "Kite/input/kinputtypes.h"
+#include "Kite/core/system/knoncopyable.h"
+#include "Kite/core/system/kvector2.h"
+#include "Kite/core/input/kinputstructs.h"
+#include "Kite/core/input/kinputtypes.h"
 
 namespace Kite{
 namespace Internal{

@@ -15,8 +15,8 @@
  You should have received a copy of the GNU General Public License
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#include "Kite/audio/klistener.h"
-#include "src/Kite/audio/alcall.h"
+#include "Kite/core/audio/klistener.h"
+#include "src/Kite/core/audio/alcall.h"
 
 namespace Kite{
     void KListener::setMasterGain(F32 Gain){

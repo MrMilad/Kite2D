@@ -18,7 +18,7 @@
 #ifndef KWINDOWTYPES_H
 #define KWINDOWTYPES_H
 
-#include "Kite/system/ksystemdef.h"
+#include "Kite/core/system/ksystemdef.h"
 
 namespace Kite{
 

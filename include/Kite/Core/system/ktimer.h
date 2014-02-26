@@ -21,7 +21,7 @@
 #ifndef KTIMER_H
 #define KTIMER_H
 
-#include "Kite/system/ksystemdef.h"
+#include "Kite/core/system/ksystemdef.h"
 
 namespace Kite {
 namespace Internal{

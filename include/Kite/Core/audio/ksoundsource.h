@@ -18,9 +18,9 @@
 #ifndef KSOUNDSOURCE_H
 #define KSOUNDSOURCE_H
 
-#include "Kite/system/ksystemdef.h"
-#include "Kite/system/kvector3.h"
-#include "Kite/audio/kaudiotypes.h"
+#include "Kite/Core/system/ksystemdef.h"
+#include "Kite/Core/system/kvector3.h"
+#include "Kite/Core/audio/kaudiotypes.h"
 
 namespace Kite{
     class KITE_FUNC_EXPORT KSoundSource{

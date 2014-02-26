@@ -18,10 +18,10 @@
 #ifndef KVERTEXBUFFER_H
 #define KVERTEXBUFFER_H
 
-#include "Kite/system/ksystemdef.h"
-#include "Kite/system/knoncopyable.h"
-#include "Kite/graphic/kgraphicstructs.h"
-#include "Kite/graphic/kgraphictypes.h"
+#include "Kite/Core/system/ksystemdef.h"
+#include "Kite/Core/system/knoncopyable.h"
+#include "Kite/Core/graphic/kgraphicstructs.h"
+#include "Kite/Core/graphic/kgraphictypes.h"
 
 namespace Kite{
     class KITE_FUNC_EXPORT KVertexBuffer : KNonCopyable{

@@ -18,10 +18,10 @@
 #ifndef KIMAGE_H
 #define KIMAGE_H
 
-#include "Kite/system/knoncopyable.h"
-#include "Kite/system/ksystemdef.h"
-#include "Kite/system/kvector2.h"
-#include "Kite/graphic/kgraphicstructs.h"
+#include "Kite/Core/system/knoncopyable.h"
+#include "Kite/Core/system/ksystemdef.h"
+#include "Kite/Core/system/kvector2.h"
+#include "Kite/Core/graphic/kgraphicstructs.h"
 #include <string>
 #include <vector>
 

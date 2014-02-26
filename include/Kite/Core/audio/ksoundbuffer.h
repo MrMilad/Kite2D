@@ -18,7 +18,7 @@
 #ifndef KSOUNDBUFFER_H
 #define KSOUNDBUFFER_H
 
-#include "Kite/system/ksystemdef.h"
+#include "Kite/Core/system/ksystemdef.h"
 #include <string>
 
 namespace Kite{

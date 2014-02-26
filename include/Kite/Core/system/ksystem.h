@@ -18,15 +18,15 @@
 #ifndef KSYSTEM_H
 #define KSYSTEM_H
 
-#include "Kite/system/ksystemdef.h"
-#include "Kite/system/ksystemtypes.h"
-#include "Kite/system/ksystemstructs.h"
-#include "Kite/system/knoncopyable.h"
-#include "Kite/system/ksystemutil.h"
-#include "Kite/system/kmutex.h"
-#include "Kite/system/kthread.h"
-#include "Kite/system/ktimer.h"
-#include "Kite/system/kvector2.h"
-#include "Kite/system/kvector3.h"
+#include "Kite/Core/system/ksystemdef.h"
+#include "Kite/Core/system/ksystemtypes.h"
+#include "Kite/core/system/ksystemstructs.h"
+#include "Kite/core/system/knoncopyable.h"
+#include "Kite/core/system/ksystemutil.h"
+#include "Kite/core/system/kmutex.h"
+#include "Kite/core/system/kthread.h"
+#include "Kite/core/system/ktimer.h"
+#include "Kite/core/system/kvector2.h"
+#include "Kite/core/system/kvector3.h"
 
 #endif // KSYSTEM_H

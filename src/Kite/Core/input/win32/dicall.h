@@ -18,7 +18,7 @@
 #ifndef DICALL_H
 #define DICALL_H
 
-#include "Kite/system/ksystemdef.h"
+#include "Kite/core/system/ksystemdef.h"
 
 #ifdef KDINPUT_ALLOW // using DirectInput
 #define DIRECTINPUT_VERSION 0x0800

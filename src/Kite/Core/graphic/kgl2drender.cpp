@@ -15,8 +15,8 @@
  You should have received a copy of the GNU General Public License
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#include "Kite/graphic/kgl2drender.h"
-#include "Kite/graphic/glcall.h"
+#include "Kite/core/graphic/kgl2drender.h"
+#include "Kite/core/graphic/glcall.h"
 
 namespace Kite{
 
@@ -89,6 +89,31 @@ namespace Kite{
         DGL_CALL(glDrawArrays(type, FirstIndex, Size));
     }
 
+    void KGL2DRender::drawBuffer(KVertexBuffer &Buffer, U32 Count, const std::vector<U16> &Indices, KGeoPrimitiveTypes Primitive){
+        // set geometric type
+        static const GLenum geoTypes[] = {GL_POINTS, GL_LINES,
+                                         GL_LINE_STRIP, GL_LINE_LOOP,
+                                         GL_TRIANGLES, GL_TRIANGLE_STRIP,
+                                         GL_TRIANGLE_FAN, GL_QUADS,
+                                         GL_QUAD_STRIP, GL_POLYGON};
+        _kgeoType = Primitive;
+        static GLenum type;
+        type = geoTypes[_kgeoType];
+
+        // check last render state for avoide extra ogl state-change
+        if (_kcatch.render != Internal::KRM_VBO || _kcatch.lastBufId != Buffer.getID()){
+            Buffer.bind();
+            DGL_CALL(glVertexPointer(2, GL_FLOAT, sizeof(KVertex), KBUFFER_OFFSET(0)));
+            DGL_CALL(glTexCoordPointer(2, GL_FLOAT, sizeof(KVertex), KBUFFER_OFFSET(8)));
+            DGL_CALL(glColorPointer(4, GL_FLOAT, sizeof(KVertex), KBUFFER_OFFSET(16)));
+            _kcatch.render = Internal::KRM_VBO;
+            _kcatch.lastBufId = Buffer.getID();
+        }
+
+        // draw buffer
+        DGL_CALL(glDrawElements(type, Count, GL_UNSIGNED_SHORT, &Indices[0]));
+    }
+
     void KGL2DRender::setTextureEnv(KTextureEnvMode Mode){
         int envPar[] = {GL_ADD, GL_MODULATE, GL_DECAL, GL_BLEND, GL_REPLACE, GL_COMBINE};
         DGL_CALL(glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, envPar[Mode]));
@@ -137,6 +162,21 @@ namespace Kite{
         DGL_CALL(glMatrixMode(GL_MODELVIEW));
 
     }
+
+    void KGL2DRender::setTexture(const KTexture &Texture){
+        if (_kcatch.lastTexId != Texture.getID()){
+            Texture.bind();
+            _kcatch.lastTexId = Texture.getID();
+        }
+    }
+
+    void KGL2DRender::setSheader(const Kite::KShader &Sheader){
+        if (_kcatch.lastShId != Sheader.getID()){
+            Sheader.bind();
+            _kcatch.lastShId = Sheader.getID();
+        }
+    }
+
 
     std::string KGL2DRender::getRendererName(){
         return "Kite2D Fixed (default) 2D Renderer.";

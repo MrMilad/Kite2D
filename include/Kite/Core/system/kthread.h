@@ -18,9 +18,9 @@
 #ifndef KTHREAD_H
 #define KTHREAD_H
 
-#include "include/Kite/system/ksystemdef.h"
-#include "include/Kite/system/knoncopyable.h"
-#include "include/Kite/system/ksystemstructs.h"
+#include "Kite/core/system/ksystemdef.h"
+#include "Kite/core/system/knoncopyable.h"
+#include "Kite/core/system/ksystemstructs.h"
 
 namespace Kite{
 namespace Internal{

@@ -18,7 +18,7 @@
 #ifndef KINPUTSTRUCTS_H
 #define KINPUTSTRUCTS_H
 
-#include "Kite/system/ksystemdef.h"
+#include "Kite/Core/system/ksystemdef.h"
 
 namespace Kite{
 namespace Internal{

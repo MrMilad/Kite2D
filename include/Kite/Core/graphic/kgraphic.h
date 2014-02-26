@@ -18,17 +18,17 @@
 #ifndef KGRAPHIC_H
 #define KGRAPHIC_H
 
-#include "Kite/graphic/kgraphicdef.h"
-#include "Kite/graphic/kgraphictypes.h"
-#include "Kite/graphic/kgraphicstructs.h"
-#include "Kite/graphic/kglrender.h"
-#include "Kite/graphic/kgl2drender.h"
-#include "Kite/graphic/kdrawable.h"
-#include "Kite/graphic/kcamera.h"
-#include "Kite/graphic/kimage.h"
-#include "Kite/graphic/ktexture.h"
-#include "Kite/graphic/kvertexbuffer.h"
-#include "Kite/graphic/ktransform.h"
-#include "Kite/graphic/kgraphicutil.h"
+#include "Kite/Core/graphic/kgraphicdef.h"
+#include "Kite/Core/graphic/kgraphictypes.h"
+#include "Kite/Core/graphic/kgraphicstructs.h"
+#include "Kite/Core/graphic/kglrender.h"
+#include "Kite/Core/graphic/kgl2drender.h"
+#include "Kite/Core/graphic/kdrawable.h"
+#include "Kite/Core/graphic/kcamera.h"
+#include "Kite/Core/graphic/kimage.h"
+#include "Kite/Core/graphic/ktexture.h"
+#include "Kite/Core/graphic/kvertexbuffer.h"
+#include "Kite/Core/graphic/ktransform.h"
+#include "Kite/Core/graphic/kgraphicutil.h"
 
 #endif // KGRAPHIC_H

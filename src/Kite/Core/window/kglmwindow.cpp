@@ -15,12 +15,12 @@
  You should have received a copy of the GNU General Public License
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#include "include/Kite/system/ksystemdef.h"
-#include "include/Kite/window/kglmwindow.h"
+#include "include/Kite/core/system/ksystemdef.h"
+#include "include/Kite/core/window/kglmwindow.h"
 
 #if defined (KITE_PLATFORM_WINDOWS)
 
-    #include "src/Kite/window/win32/mwindow.h"
+    #include "src/Kite/core/window/win32/mwindow.h"
 
 #elif defined (KITE_PLATFORM_LINUX)
 

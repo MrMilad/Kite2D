@@ -15,11 +15,11 @@
  You should have received a copy of the GNU General Public License
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#include "Kite/input/kjoystick.h"
+#include "Kite/core/input/kjoystick.h"
 
 #if defined (KITE_PLATFORM_WINDOWS)
 
-    #include "src/Kite/input/win32/input.h"
+    #include "src/Kite/core/input/win32/input.h"
 
 #elif defined (KITE_PLATFORM_LINUX)
 

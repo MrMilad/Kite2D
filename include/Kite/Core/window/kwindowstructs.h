@@ -20,8 +20,8 @@
 
 #include <vector>
 #include <string>
-#include "Kite/system/ksystemdef.h"
-#include "Kite/window/kwindowtypes.h"
+#include "Kite/core/system/ksystemdef.h"
+#include "Kite/core/window/kwindowtypes.h"
 
 namespace Kite{
     struct KWindowState{

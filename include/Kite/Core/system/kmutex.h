@@ -18,8 +18,8 @@
 #ifndef KMUTEX_H
 #define KMUTEX_H
 
-#include "include/Kite/system/ksystemdef.h"
-#include "include/Kite/system/knoncopyable.h"
+#include "Kite/Core/system/ksystemdef.h"
+#include "Kite/Core/system/knoncopyable.h"
 
 namespace Kite{
 namespace Internal{

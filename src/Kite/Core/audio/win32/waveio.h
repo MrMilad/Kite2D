@@ -18,7 +18,7 @@
 #ifndef WAVEIO_H
 #define WAVEIO_H
 
-#include "Kite/system/ksystemdef.h"
+#include "Kite/core/system/ksystemdef.h"
 #include <string>
 
 class CWaves;

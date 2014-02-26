@@ -18,9 +18,9 @@
 #ifndef KSYSTEMUTIL_H
 #define KSYSTEMUTIL_H
 
-#include "Kite/system/ksystemdef.h"
-#include "Kite/system/ksystemtypes.h"
-#include "Kite/system/ksystemstructs.h"
+#include "Kite/core/system/ksystemdef.h"
+#include "Kite/core/system/ksystemtypes.h"
+#include "Kite/core/system/ksystemstructs.h"
 
 namespace Kite{
 

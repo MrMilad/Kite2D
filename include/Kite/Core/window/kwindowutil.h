@@ -18,7 +18,7 @@
 #ifndef KWINDOWUTIL_H
 #define KWINDOWUTIL_H
 
-#include "Kite/window/kwindowstructs.h"
+#include "Kite/core/window/kwindowstructs.h"
 
 namespace Kite{
 

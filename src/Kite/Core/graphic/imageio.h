@@ -18,8 +18,8 @@
 #ifndef IMAGEIO_H
 #define IMAGEIO_H
 
-#include "Kite/system/knoncopyable.h"
-#include "Kite/system/kvector2.h"
+#include "Kite/core/system/knoncopyable.h"
+#include "Kite/core/system/kvector2.h"
 #include <string>
 #include <vector>
 

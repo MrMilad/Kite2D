@@ -18,8 +18,8 @@
 #ifndef KDRAWABLE_H
 #define KDRAWABLE_H
 
-#include "Kite/system/ksystemdef.h"
-#include "Kite/graphic/kglrender.h"
+#include "Kite/Core/system/ksystemdef.h"
+#include "Kite/Core/graphic/kglrender.h"
 
 namespace Kite{
     class KITE_FUNC_EXPORT KDrawable{

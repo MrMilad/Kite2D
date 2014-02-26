@@ -19,9 +19,9 @@
 #define THREAD_H
 
 #include "windows.h"
-#include "include/Kite/system/ksystemdef.h"
-#include "include/Kite/system/knoncopyable.h"
-#include "include/Kite/system/kthread.h"
+#include "include/Kite/core/system/ksystemdef.h"
+#include "include/Kite/core/system/knoncopyable.h"
+#include "include/Kite/core/system/kthread.h"
 
 namespace Kite{
 namespace Internal{

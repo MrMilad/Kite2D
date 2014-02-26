@@ -18,10 +18,10 @@
 #ifndef KMOUSE_H
 #define KMOUSE_H
 
-#include "Kite/system/ksystemdef.h"
-#include "Kite/system/kvector2.h"
-#include "Kite/input/kinputtypes.h"
-#include "Kite/window/kwindowstructs.h"
+#include "Kite/Core/system/ksystemdef.h"
+#include "Kite/Core/system/kvector2.h"
+#include "Kite/Core/input/kinputtypes.h"
+#include "Kite/Core/window/kwindowstructs.h"
 
 namespace Kite{
     class KITE_FUNC_EXPORT KMouse{

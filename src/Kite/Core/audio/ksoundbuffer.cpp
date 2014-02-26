@@ -15,14 +15,14 @@
  You should have received a copy of the GNU General Public License
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#include "Kite/audio/ksoundbuffer.h"
-#include "src/Kite/audio/alcall.h"
+#include "Kite/core/audio/ksoundbuffer.h"
+#include "src/Kite/core/audio/alcall.h"
 #include <vector>
 #include <cstdlib>
 
 #if defined (KITE_PLATFORM_WINDOWS)
 
-    #include "src/Kite/audio/win32/waveio.h"
+    #include "src/Kite/core/audio/win32/waveio.h"
 
 #elif defined (KITE_PLATFORM_LINUX)
 

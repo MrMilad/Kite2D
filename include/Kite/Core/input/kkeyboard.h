@@ -18,8 +18,8 @@
 #ifndef KKEYBOARD_H
 #define KKEYBOARD_H
 
-#include "Kite/system/ksystemdef.h"
-#include "Kite/input/kinputtypes.h"
+#include "Kite/Core/system/ksystemdef.h"
+#include "Kite/Core/input/kinputtypes.h"
 
 namespace Kite{
     class KITE_FUNC_EXPORT KKeyboard{

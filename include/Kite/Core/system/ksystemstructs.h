@@ -18,7 +18,7 @@
 #ifndef KSYSTEMSTRUCTS_H
 #define KSYSTEMSTRUCTS_H
 
-#include "Kite/system/ksystemtypes.h"
+#include "Kite/core/system/ksystemtypes.h"
 
 namespace Kite{
     struct KPowerState{

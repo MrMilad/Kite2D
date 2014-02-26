@@ -18,9 +18,9 @@
 #ifndef KJOYSTICK_H
 #define KJOYSTICK_H
 
-#include "Kite/system/ksystemdef.h"
-#include "Kite/input/kinputstructs.h"
-#include "Kite/window/kwindowstructs.h"
+#include "Kite/Core/system/ksystemdef.h"
+#include "Kite/Core/input/kinputstructs.h"
+#include "Kite/Core/window/kwindowstructs.h"
 
 namespace Kite{
     class KITE_FUNC_EXPORT KJoystick{

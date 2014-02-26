@@ -18,9 +18,9 @@
 #ifndef KWINDOW_H
 #define KWINDOW_H
 
-#include "Kite/window/kwindowtypes.h"
-#include "Kite/window/kwindowstructs.h"
-#include "Kite/window/kwindowutil.h"
-#include "Kite/window/kglmwindow.h"
+#include "Kite/core/window/kwindowtypes.h"
+#include "Kite/core/window/kwindowstructs.h"
+#include "Kite/core/window/kwindowutil.h"
+#include "Kite/core/window/kglmwindow.h"
 
 #endif // KWINDOW_H

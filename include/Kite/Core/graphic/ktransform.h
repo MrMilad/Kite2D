@@ -18,10 +18,10 @@
 #ifndef KTRANSFORM_H
 #define KTRANSFORM_H
 
-#include "Kite/system/ksystemdef.h"
-#include "Kite/graphic/kgraphicstructs.h"
-#include "Kite/graphic/kgraphicdef.h"
-#include "Kite/system/kvector2.h"
+#include "Kite/Core/system/ksystemdef.h"
+#include "Kite/Core/graphic/kgraphicstructs.h"
+#include "Kite/Core/graphic/kgraphicdef.h"
+#include "Kite/Core/system/kvector2.h"
 
 namespace Kite{
     class KITE_FUNC_EXPORT KTransform{

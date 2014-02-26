@@ -18,9 +18,9 @@
 #ifndef KSTREAMSOURCE_H
 #define KSTREAMSOURCE_H
 
-#include "Kite/system/ksystemdef.h"
-#include "Kite/audio/ksoundsource.h"
-#include "Kite/system/kthread.h"
+#include "Kite/Core/system/ksystemdef.h"
+#include "Kite/Core/audio/ksoundsource.h"
+#include "Kite/Core/system/kthread.h"
 #include <string>
 
 namespace Kite{

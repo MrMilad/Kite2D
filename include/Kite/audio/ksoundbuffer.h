@@ -27,9 +27,10 @@ namespace Kite{
         KSoundBuffer();
         ~KSoundBuffer();
 
-        // load sound file
-        void load(const std::string &FileName);
+        /// load sound file
+        void loadFile(const std::string &FileName);
 
+        /// file informations
         inline UL32 getSampleRate() const {return _ksampleRate;}
         inline U16 getChannelCount() const {return _kchannelCount;}
         inline U16 getBitsPerSample() const {return _kbitsPerSample;}

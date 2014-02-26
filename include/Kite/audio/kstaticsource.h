@@ -29,12 +29,17 @@ namespace Kite{
         void pause();
         void stop();
 
+        /// default false
         void setLoop(bool Loop);
         bool getLoop();
 
+        /// attach a buffer to the source
         void attachBuffer(const KSoundBuffer &Buffer);
+
+        /// deattach buffer
         void deattachBuffer();
 
+        /// set play offset
         void setPlayOffset(U32 Second);
     };
 }

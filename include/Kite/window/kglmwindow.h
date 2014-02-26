@@ -30,8 +30,9 @@ namespace Internal{
 }
     class KITE_FUNC_EXPORT KGLMWindow : KNonCopyable{
     public:
-        KGLMWindow(); // (window will created after open() call)
-        KGLMWindow(KWindowState &WindowState); // (window will created after open() call)
+        // window will be created after open() call
+        KGLMWindow();
+        KGLMWindow(KWindowState &WindowState);
         ~KGLMWindow();
 
         static bool update();
@@ -41,7 +42,7 @@ namespace Internal{
         void open(KWindowState &WindowState);
         void close();
 
-        /* manipulate window settings */
+        // manipulate window settings
         void setTitle(const std::wstring &Title);
         void setSize(U32 Width, U32 Height);
         void setPosition(U32 XPosition, U32 YPosition);

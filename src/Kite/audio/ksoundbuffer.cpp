@@ -48,7 +48,7 @@ namespace Kite{
         DAL_CALL(alDeleteBuffers(1, &_kID));
     }
 
-    void KSoundBuffer::load(const std::string &FileName){
+    void KSoundBuffer::loadFile(const std::string &FileName){
         Internal::WaveIO reader;
         void *Data;
 

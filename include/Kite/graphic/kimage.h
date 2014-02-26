@@ -34,9 +34,15 @@ namespace Kite{
         void create(U32 Width, U32 Height, const KColor &Color);
         void create(U32 Width, U32 Height, const U8 *Pixels);
 
-        void load(const std::string &FileName); // Load from file
-        void load(const void *Data, std::size_t Size); // Load from memory
+        /// load from file
+        void loadFile(const std::string &FileName);
+
+        /// load from memory
+        void loadMemory(const void *Data, std::size_t Size);
+
+        /// save to file
         void save(const std::string &FileName);
+
         void makeColorMask(const KColor& Color, U8 Alpha = 0);
         void flipH();
         void flipV();

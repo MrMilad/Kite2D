@@ -33,18 +33,30 @@ namespace Kite{
         KGL2DRender(const KCamera &Camera);
         ~KGL2DRender();
 
+        /// initialize renderer
         virtual bool initialize();
 
+        /// clear the scene
         void clear();
+
+        /// draw vbo
         void drawBuffer(KVertexBuffer &Buffer);
         void drawBuffer(KVertexBuffer &Buffer,
                         U32 FirstIndex, U32 Size,
                         KGeoPrimitiveTypes Primitive);
 
         void setTextureEnv(KTextureEnvMode Mode);
+
+        /// point sprite
         void setPointSprite(bool PointSprite);
+
+        /// clear color
         void setClearColor(const KColor &Color);
+
+        /// set points option (like size of points)
         void setPointsOption(const KPointOption &Option);
+
+        /// 2D camera
         inline void setCamera(const KCamera &Camera) {_kcurrentCam = &Camera;}
         void updateCamera();
 //        void setBlendMode(KBlendMode BlendMode);

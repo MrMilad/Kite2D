@@ -30,17 +30,17 @@ namespace Kite{
         KVertexBuffer();
         ~KVertexBuffer();
 
-        // create buffer
+        /// create buffer
         void create(const KVertex *VertexArray, U32 ArrayLenght, KVertexBufferTypes BufferType);
 
-        // update buffer
+        /// update buffer
         void update(KMapAccessTypes AccessType);
 
-        // bind buffer
-        // (handle autimatic by internal render system)
+        /// bind buffer
+        /// (handle autimatic by internal render system)
         void bind();
 
-        // set update handle for updating buffer
+        /// set update handle for updating buffer
         inline void setUpdateHandle(KCallVBUpdate *UpdateHandle) {_kupdateHnd = UpdateHandle;}
 
         inline KVertexBufferTypes getType() const {return _kbufType;}

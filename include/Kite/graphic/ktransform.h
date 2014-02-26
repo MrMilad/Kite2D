@@ -26,7 +26,7 @@
 namespace Kite{
     class KITE_FUNC_EXPORT KTransform{
     public:
-        // constructors
+        /// constructors
         KTransform();  // init with identity
         KTransform(F32 *MatrixArray);
         KTransform(F32 A00, F32 A01, F32 A02,
@@ -51,7 +51,7 @@ namespace Kite{
         KTransform &scale(const KVector2F32 &Scale);
         KTransform &scale(const KVector2F32 &Scale, const KVector2F32& Center);
 
-        // unit matrix
+        /// unit matrix
         static const KTransform UnitMatrix;
     private:
         #ifdef KITE_USE_SSE

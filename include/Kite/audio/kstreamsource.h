@@ -36,13 +36,15 @@ class WaveIO;
         void pause();
         void stop();
 
+        /// default false
         inline void setLoop(bool Loop) {_kloop = Loop;}
         inline bool getLoop() {return _kloop;}
 
-        void load(const std::string &FileName);
+        /// load sound file
+        void loadFile(const std::string &FileName);
 
     private:
-        void loader(); // fill buffers immediately
+        void loader(); // fill buffers immediately (thread task)
         void fillFirst4Buffer();
         Internal::WaveIO *_kreader;
         KThread *_kthread;

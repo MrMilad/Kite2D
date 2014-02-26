@@ -26,53 +26,52 @@ namespace Kite{
     class KITE_FUNC_EXPORT KSoundSource{
     public:
 
-        // basic audio operations
+        /// basic audio operations
         virtual void play() = 0;
         virtual void pause() = 0;
         virtual void stop() = 0;
 
-        // loop
-        // default false
+        /// loop
         virtual void setLoop(bool Loop) = 0;
         virtual bool getLoop() = 0;
 
-        // make the sound's position relative to the listener or absolute
-        // default false
+        /// make the sound's position relative to the listener or absolute
+        /// default false
         void setReleative(bool Releative);
         bool getReleative();
 
-        // pitch
-        // default 1
+        /// pitch
+        /// default 1
         void setPitch(F32 Pitch);
         F32 getPitch();
 
-        // volume
-        // range 0 to 100
-        // default 100
+        /// volume
+        /// range 0 to 100
+        /// default 100
         void setVolume(F32 Volume);
         F32 getVolume();
 
-        // rollof factor
-        // pass 0 for simulate 2D panning
-        // default 1
+        /// rollof factor
+        /// pass 0 for simulate 2D panning
+        /// default 1
         void setRolloffFactor(F32 Factor);
         F32 getRolloffFactor();
 
-        // minimum distance of sound
-        // always positive
-        // default 1
+        /// minimum distance of sound
+        /// always positive
+        /// default 1
         void setMinDistance(F32 Distance);
         F32 getMinDistance();
 
-        // position
-        // default (0, 0, 0)
+        /// position
+        /// default (0, 0, 0)
         void setPosition(KVector3F32 Position);
         KVector3F32 getPosition();
 
-        // current source state
+        /// current source state
         KSourceStateTypes getState();
 
-        // get ID
+        /// get ID
         inline U32 getID() const {return _kID;}
 
     protected:

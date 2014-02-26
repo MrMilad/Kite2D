@@ -103,7 +103,7 @@ namespace Kite{
         free(data);
     }
 
-    void KStreamSource::load(const std::string &FileName){
+    void KStreamSource::loadFile(const std::string &FileName){
         // first we stop the source
         stop();
 

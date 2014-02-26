@@ -145,6 +145,15 @@ namespace Kite{
         //KTW_CLAMP_TO_BORDER // border not supported (see KTexture::create())
     };
 
+    enum KShaderTypes{
+        KS_VERTEX,
+        KS_FRAGMENT
+    };
+
+    enum KShaderTextureTypes{
+        KCT_CURRENT = 0
+    };
+
     namespace Internal{
     enum KGLBindGuardTypes{
         KBG_NONE = 0,

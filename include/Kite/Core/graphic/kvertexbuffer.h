@@ -38,7 +38,7 @@ namespace Kite{
 
         /// bind buffer
         /// (handle autimatic by internal render system)
-        void bind();
+        void bind() const;
 
         /// set update handle for updating buffer
         inline void setUpdateHandle(KCallVBUpdate *UpdateHandle) {_kupdateHnd = UpdateHandle;}

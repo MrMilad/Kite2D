@@ -60,11 +60,8 @@ namespace Kite{
         DGL_CALL(glClear(GL_COLOR_BUFFER_BIT));
     }
 
-    void KGL2DRender::drawBuffer(KVertexBuffer &Buffer){
-        drawBuffer(Buffer, 0, Buffer.getLength(), _kgeoType);
-    }
 
-    void KGL2DRender::drawBuffer(KVertexBuffer &Buffer, U32 FirstIndex, U32 Size, KGeoPrimitiveTypes Primitive){
+    void KGL2DRender::draw(U32 FirstIndex, U32 Size, KGeoPrimitiveTypes Primitive){
         // set geometric type
         static const GLenum geoTypes[] = {GL_POINTS, GL_LINES,
                                          GL_LINE_STRIP, GL_LINE_LOOP,
@@ -75,21 +72,12 @@ namespace Kite{
         static GLenum type;
         type = geoTypes[_kgeoType];
 
-        // check last render state for avoide extra ogl state-change
-        if (_kcatch.render != Internal::KRM_VBO || _kcatch.lastBufId != Buffer.getID()){
-            Buffer.bind();
-            DGL_CALL(glVertexPointer(2, GL_FLOAT, sizeof(KVertex), KBUFFER_OFFSET(0)));
-            DGL_CALL(glTexCoordPointer(2, GL_FLOAT, sizeof(KVertex), KBUFFER_OFFSET(8)));
-            DGL_CALL(glColorPointer(4, GL_FLOAT, sizeof(KVertex), KBUFFER_OFFSET(16)));
-            _kcatch.render = Internal::KRM_VBO;
-            _kcatch.lastBufId = Buffer.getID();
-        }
-
         // draw buffer
-        DGL_CALL(glDrawArrays(type, FirstIndex, Size));
+        if (_kcatch.lastBufId > 0)
+            DGL_CALL(glDrawArrays(type, FirstIndex, Size));
     }
 
-    void KGL2DRender::drawBuffer(KVertexBuffer &Buffer, U32 Count, const std::vector<U16> &Indices, KGeoPrimitiveTypes Primitive){
+    void KGL2DRender::draw(U32 Count, const std::vector<U16> &Indices, KGeoPrimitiveTypes Primitive){
         // set geometric type
         static const GLenum geoTypes[] = {GL_POINTS, GL_LINES,
                                          GL_LINE_STRIP, GL_LINE_LOOP,
@@ -100,6 +88,12 @@ namespace Kite{
         static GLenum type;
         type = geoTypes[_kgeoType];
 
+        // draw buffer
+        if (_kcatch.lastBufId > 0)
+            DGL_CALL(glDrawElements(type, Count, GL_UNSIGNED_SHORT, &Indices[0]));
+    }
+
+    void KGL2DRender::setVertexBuffer(const KVertexBuffer &Buffer){
         // check last render state for avoide extra ogl state-change
         if (_kcatch.render != Internal::KRM_VBO || _kcatch.lastBufId != Buffer.getID()){
             Buffer.bind();
@@ -109,9 +103,6 @@ namespace Kite{
             _kcatch.render = Internal::KRM_VBO;
             _kcatch.lastBufId = Buffer.getID();
         }
-
-        // draw buffer
-        DGL_CALL(glDrawElements(type, Count, GL_UNSIGNED_SHORT, &Indices[0]));
     }
 
     void KGL2DRender::setTextureEnv(KTextureEnvMode Mode){

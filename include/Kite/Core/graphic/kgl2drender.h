@@ -43,16 +43,10 @@ namespace Kite{
         void clear();
 
         /// draw vbo (ranged)
-        void drawBuffer(KVertexBuffer &Buffer);
-        void drawBuffer(KVertexBuffer &Buffer,
-                        U32 FirstIndex, U32 Size,
-                        KGeoPrimitiveTypes Primitive);
+        void draw(U32 FirstIndex, U32 Size, KGeoPrimitiveTypes Primitive);
 
         /// draw vbo (indexed)
-        void drawBuffer(KVertexBuffer &Buffer,
-                        U32 Count,
-                        const std::vector<U16> &Indices,
-                        KGeoPrimitiveTypes Primitive);
+        void draw(U32 Count, const std::vector<U16> &Indices, KGeoPrimitiveTypes Primitive);
 
         void setTextureEnv(KTextureEnvMode Mode);
 
@@ -68,6 +62,9 @@ namespace Kite{
         /// 2D camera
         inline void setCamera(const KCamera &Camera) {_kcurrentCam = &Camera;}
         void updateCamera();
+
+        /// set vertex buffer
+        void setVertexBuffer(const KVertexBuffer &Buffer);
 
         /// set texture
         void setTexture(const KTexture &Texture);

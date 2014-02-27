@@ -82,7 +82,7 @@ namespace Kite{
         }
     }
 
-    void KVertexBuffer::bind(){
+    void KVertexBuffer::bind() const{
         // bind buffer
         if (_kbufId != 0){
             DGL_CALL(glBindBuffer(GL_ARRAY_BUFFER_ARB, _kbufId));

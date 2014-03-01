@@ -78,7 +78,7 @@ namespace Kite{
         U8 minor;
     };
 
-    typedef void (KCallVBUpdate)(KVertex *BufferData, U32 Size);
+    typedef void (KCallVBUpdate)(KVertex *BufferData, U32 Size, void *Sender);
 
     namespace Internal{
     struct KCatchState{

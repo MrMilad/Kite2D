@@ -23,11 +23,10 @@
 
 namespace Kite{
     class KITE_FUNC_EXPORT KDrawable{
-        friend class KGLRender;
     public:
         virtual ~KDrawable();
     protected:
-        virtual void draw() = 0;
+        virtual void draw(KGLRender *Renderer) = 0;
     };
 }
 

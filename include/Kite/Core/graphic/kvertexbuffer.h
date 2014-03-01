@@ -34,7 +34,7 @@ namespace Kite{
         void create(const KVertex *VertexArray, U32 ArrayLenght, KVertexBufferTypes BufferType);
 
         /// update buffer
-        void update(KMapAccessTypes AccessType);
+        void update(KMapAccessTypes AccessType, void *Sender);
 
         /// bind buffer
         /// (handle autimatic by internal render system)

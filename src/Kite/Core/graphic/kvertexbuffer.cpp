@@ -59,7 +59,7 @@ namespace Kite{
         }
     }
 
-    void KVertexBuffer::update(KMapAccessTypes AccessType){
+    void KVertexBuffer::update(KMapAccessTypes AccessType, void *Sender){
         // check update handle and buffer
         if (_kupdateHnd && _kbufId > 0){
 
@@ -72,7 +72,7 @@ namespace Kite{
             void *dataPtr = DGL_CALL(glMapBuffer(GL_ARRAY_BUFFER_ARB, accType[AccessType]));
 
             // call update handle
-            (*_kupdateHnd)((KVertex *)dataPtr, _karrLen);
+            (*_kupdateHnd)((KVertex *)dataPtr, _karrLen, Sender);
 
             // unmap buffer
             DGL_CALL(glUnmapBuffer(GL_ARRAY_BUFFER_ARB));

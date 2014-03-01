@@ -77,7 +77,7 @@ namespace Kite{
             DGL_CALL(glDrawArrays(type, FirstIndex, Size));
     }
 
-    void KGL2DRender::draw(U32 Count, const std::vector<U16> &Indices, KGeoPrimitiveTypes Primitive){
+    void KGL2DRender::draw(U32 Count, const std::vector<Kite::U32> &Indices, KGeoPrimitiveTypes Primitive){
         // set geometric type
         static const GLenum geoTypes[] = {GL_POINTS, GL_LINES,
                                          GL_LINE_STRIP, GL_LINE_LOOP,

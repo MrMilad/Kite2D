@@ -46,7 +46,7 @@ namespace Kite{
         void draw(U32 FirstIndex, U32 Size, KGeoPrimitiveTypes Primitive);
 
         /// draw vbo (indexed)
-        void draw(U32 Count, const std::vector<U16> &Indices, KGeoPrimitiveTypes Primitive);
+        void draw(U32 Count, const std::vector<U32> &Indices, KGeoPrimitiveTypes Primitive);
 
         void setTextureEnv(KTextureEnvMode Mode);
 

@@ -43,7 +43,10 @@ namespace Kite{
         void clear();
 
         /// draw vbo (ranged)
+        /// start: Range.x
+        /// lenght: Range.y
         void draw(U32 FirstIndex, U32 Size, KGeoPrimitiveTypes Primitive);
+        void draw(const KVector2U32 &Range, KGeoPrimitiveTypes Primitive);
 
         /// draw vbo (indexed)
         void draw(U32 Count, const std::vector<U32> &Indices, KGeoPrimitiveTypes Primitive);

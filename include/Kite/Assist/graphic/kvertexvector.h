@@ -18,6 +18,7 @@
 #ifndef KVERTEXVECTOR_H
 #define KVERTEXVECTOR_H
 
+#include "Kite/Core/system/ksystemdef.h"
 #include "Kite/Core/graphic/kgraphicstructs.h"
 #include "Kite/Core/graphic/kgraphictypes.h"
 #include "Kite/Core/graphic/kvertexbuffer.h"
@@ -25,7 +26,7 @@
 #include <vector>
 
 namespace Kite{
-    class KVertexVector{
+    class KITE_FUNC_EXPORT KVertexVector{
     public:
         /// add vertex data
         /// input: Vertex

@@ -82,6 +82,18 @@ namespace Kite{
         }
     }
 
+    void KVertexBuffer::update(U64 Offset, U64 Size, KVertex *Data){
+        if (_kbufId > 0){
+
+            // save currently binded buffer then bind our buffer temporary
+            Internal::GLBindGuard bindGuard(Internal::KBG_BUFFER, _klastBufId);
+            DGL_CALL(glBindBuffer(GL_ARRAY_BUFFER_ARB, _kbufId));
+
+            // replace data
+            DGL_CALL(glBufferSubData(GL_ARRAY_BUFFER_ARB, (GLintptr)Offset, (GLsizeiptr)Size, (void *)Data));
+        }
+    }
+
     void KVertexBuffer::bind() const{
         // bind buffer
         if (_kbufId != 0){

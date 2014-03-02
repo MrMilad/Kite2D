@@ -33,14 +33,22 @@ namespace Kite{
         /// create buffer
         void create(const KVertex *VertexArray, U32 ArrayLenght, KVertexBufferTypes BufferType);
 
-        /// update buffer
+        /// update buffer.
+        /// map entire set of data in memory
+        /// and send its pointer to handle.
+        /// inefficeint if you have a large buffer
+        /// and need to update a small portion of the values.
         void update(KMapAccessTypes AccessType, void *Sender);
 
-        /// bind buffer
+        /// update buffer.
+        /// replace some subset of the data with new data.
+        void update(U64 Offset, U64 Size, KVertex *Data);
+
+        /// bind buffer.
         /// (handle autimatic by internal render system)
         void bind() const;
 
-        /// set update handle for updating buffer
+        /// set function handle for mapping buffer.
         inline void setUpdateHandle(KCallVBUpdate *UpdateHandle) {_kupdateHnd = UpdateHandle;}
 
         inline KVertexBufferTypes getType() const {return _kbufType;}

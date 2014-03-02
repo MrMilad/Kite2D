@@ -55,6 +55,23 @@ namespace Kite{
         F32 r,g,b,a;
     };
 
+    struct KAtlasObject{
+        U32 id;
+        F32 u,v; // texture position
+        U32 w,h; // size
+
+        KAtlasObject(U32 ID = 0, F32 U = 0, F32 V = 0, U32 W = 0, U32 H = 0):
+            id(ID),
+            u(U), v(V),
+            w(W), h(H)
+        {}
+    };
+
+    struct KAtlasHeader{
+        char format[7]; // = {'k', 'a', 't', 'l', 'a', 's', '\0'};
+        U32 objCount;
+    };
+
     template <typename T>
     struct KRect{
         T x, y, width, height;

@@ -29,11 +29,17 @@ namespace Kite{
         KAtlas();
         ~KAtlas();
 
+        /// load atlas file
         bool loadFile(const std::string &FileName);
         //bool loadMemory(const void *Data);
+
+        /// save atlas file
         void saveFile(const std::string &FileName, const std::vector<KAtlasObject> &Objects);
 
+        /// get number of loaded objects
         inline U32 getSize() const {return _ksize;}
+
+        /// get a copy of object(s) by ID
         KAtlasObject getObject(U32 ID) const;
 
     private:

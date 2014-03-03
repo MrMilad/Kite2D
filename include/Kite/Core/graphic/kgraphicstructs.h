@@ -25,9 +25,9 @@
 
 namespace Kite{
     struct KColor{
-        U32 r,g,b,a;
+        U8 r,g,b,a;
 
-        KColor(U32 R = 1, U32 G = 1, U32 B = 1, U32 A = 0):
+        KColor(U8 R = 1, U8 G = 1, U8 B = 1, U8 A = 0):
             r(R), g(G), b(B), a(A)
         {}
 
@@ -53,6 +53,12 @@ namespace Kite{
         F32 x,y;
         F32 u,v;
         F32 r,g,b,a;
+
+        KVertex(F32 X = -1.0, F32 Y = -1.0, F32 U = 0.0, F32 V = 0.0
+                , F32 R = 0.0, F32 G = 0.0, F32 B = 0.0, F32 A = 1.0):
+            x(X), y(Y), u(U), v(V),
+            r(R), g(G), b(B), a(A)
+        {}
     };
 
     struct KAtlasObject{
@@ -105,17 +111,20 @@ namespace Kite{
         U32 lastBufId;
         U32 lastTexId;
         U32 lastShId;
+        bool pointSpr;
 
         KCatchState(KRenderMode Render = KRM_UNSET,
                     KBlendMode Blend = KB_ALPHA,
                     U16 LastBufferID  = 0,
                     U16 LastTextureID = 0,
-                    U16 LastSeaderID  = 0):
+                    U16 LastSeaderID  = 0,
+                    bool PointSprite = false):
             render(Render),
             blend(Blend),
             lastBufId(LastBufferID),
             lastTexId(LastTextureID),
-            lastShId(LastSeaderID)
+            lastShId(LastSeaderID),
+            pointSpr(PointSprite)
         {}
     };
     }

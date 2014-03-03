@@ -90,7 +90,8 @@ namespace Kite{
             DGL_CALL(glBindBuffer(GL_ARRAY_BUFFER_ARB, _kbufId));
 
             // replace data
-            DGL_CALL(glBufferSubData(GL_ARRAY_BUFFER_ARB, (GLintptr)Offset, (GLsizeiptr)Size, (void *)Data));
+            DGL_CALL(glBufferSubData(GL_ARRAY_BUFFER_ARB, (GLintptr)(sizeof(KVertex)*Offset),
+                                     (GLsizeiptr)(sizeof(KVertex)*Size), (void *)Data));
         }
     }
 

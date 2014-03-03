@@ -115,12 +115,16 @@ namespace Kite{
     }
 
     void KGL2DRender::setPointSprite(bool PointSprite){
-        if (PointSprite){
-            // enable point sprite
-            DGL_CALL(glEnable(GL_POINT_SPRITE));
-            DGL_CALL(glTexEnvi(GL_POINT_SPRITE, GL_COORD_REPLACE, GL_TRUE));
-        }else{
-            DGL_CALL(glDisable(GL_POINT_SPRITE));
+        if (_kcatch.pointSpr != PointSprite){
+            if (PointSprite){
+                // enable point sprite
+                DGL_CALL(glEnable(GL_POINT_SPRITE));
+                DGL_CALL(glTexEnvi(GL_POINT_SPRITE, GL_COORD_REPLACE, GL_TRUE));
+                _kcatch.pointSpr = PointSprite;
+            }else{
+                DGL_CALL(glDisable(GL_POINT_SPRITE));
+                _kcatch.pointSpr = PointSprite;
+            }
         }
     }
 
@@ -172,6 +176,10 @@ namespace Kite{
         }
     }
 
+    void KGL2DRender::setTransform(const KTransform &Transform){
+        // it is always the GL_MODELVIEW
+        DGL_CALL(glLoadMatrixf(Transform.getMatrix()));
+    }
 
     std::string KGL2DRender::getRendererName(){
         return "Kite2D Fixed (default) 2D Renderer.";

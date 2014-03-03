@@ -74,6 +74,8 @@ namespace Kite{
 
         /// set shader
         void setSheader(const KShader &Sheader);
+
+        void setTransform(const KTransform &Transform);
 //        void setBlendMode(KBlendMode BlendMode);
 
         //void unbindBuffers();

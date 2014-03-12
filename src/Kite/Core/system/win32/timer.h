@@ -24,7 +24,7 @@
 
 namespace Kite{
 namespace Internal{
-    class KITE_FUNC_EXPORT Timer{
+    class Timer{
     public:
         Timer();
         ~Timer();

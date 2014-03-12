@@ -16,8 +16,8 @@
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 #include "Kite/core/audio/kstreamsource.h"
-#include "Kite/core/audio/alcall.h"
 #include "Kite/core/system/ksystemutil.h"
+#include "src/Kite/core/audio/alcall.h"
 #include <cstdlib>
 #if defined (KITE_PLATFORM_WINDOWS)
 

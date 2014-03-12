@@ -19,20 +19,20 @@
 
 namespace Kite{
     KCamera::KCamera():
-        _kviewport(0.0f, 0.0f, 1.0f, 1.0f),
+        _kviewport(0, 0, 1, 1),
         _kcenter(0, 0),
         _krotation(0.0f),
         _kzoom(1.0f),
         _kneedUpdateIn(true)
     {}
 
-    KCamera::KCamera(const KRectF32 &Viewport):
-        _kviewport(Viewport),
-        _kcenter(0.0f, 0.0f),
-        _krotation(0.0f),
-        _kzoom(1.0f),
-        _kneedUpdateIn(true)
-    {}
+	KCamera::KCamera(const KRectI32 &Viewport) :
+		_kviewport(Viewport),
+		_kcenter(0.0f, 0.0f),
+		_krotation(0.0f),
+		_kzoom(1.0f),
+		_kneedUpdateIn(true)
+	{}
 
 /*    const KTransform &KCamera::getTransform() const{
 //        // recompute the matrix if needed

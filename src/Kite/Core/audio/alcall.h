@@ -25,7 +25,7 @@
 namespace Kite{
 namespace Internal{
 
-    class ALDevice{
+    class KITE_FUNC_EXPORT  ALDevice{
     public:
         // pass 0 or NULL for select default device
         ALDevice(const char *DeviceName = NULL);
@@ -35,7 +35,7 @@ namespace Internal{
         ALCdevice*  _kdevice;
         ALCcontext* _kcontext;
     };
-    extern ALDevice _kaldevice;
+    extern KITE_FUNC_EXPORT ALDevice _kaldevice;
 
     extern bool checkLastALErr();
     extern ALenum getFormat(U16 ChannelCount, U16 BitsPerSample);

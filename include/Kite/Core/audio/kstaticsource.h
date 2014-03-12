@@ -40,7 +40,7 @@ namespace Kite{
         void deattachBuffer();
 
         /// set play offset
-        void setPlayOffset(U32 Second);
+        void setPlayOffset(F32 Second);
     };
 }
 

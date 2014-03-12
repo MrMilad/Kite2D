@@ -20,7 +20,7 @@
 namespace Kite{
 namespace Internal{
 
-    ALDevice _kaldevice(NULL);
+    //_kaldevice(NULL);
 
     bool checkLastALErr(){
         // get the last OpenAL error

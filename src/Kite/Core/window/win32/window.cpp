@@ -23,7 +23,7 @@ namespace Internal{
     LRESULT WINAPI Window::_WinProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam){
         switch(msg){
             case WM_CLOSE:
-                KDEBUG_ASSERT_T(_klastActiveWin);
+                KDEBUG_ASSERT_T(_klastActiveWin)
                 if (hWnd != _klastActiveWin->_kwindowHandle)
                     break;
                 if (_klastActiveWin->_kcallWinClose != 0)

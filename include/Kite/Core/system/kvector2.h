@@ -149,9 +149,13 @@ namespace Kite {
     typedef KVector2<U8>  KVector2U8;
     typedef KVector2<U16> KVector2U16;
     typedef KVector2<U32> KVector2U32;
+	typedef KVector2<UL32> KVector2UL32;
+	typedef KVector2<U64> KVector2U64;
     typedef KVector2<I8>  KVector2I8;
     typedef KVector2<I16> KVector2I16;
     typedef KVector2<I32> KVector2I32;
+	typedef KVector2<IL32> KVector2IL32;
+	typedef KVector2<I64> KVector2I64;
     typedef KVector2<F32> KVector2F32;
     typedef KVector2<F64> KVector2F64;
 

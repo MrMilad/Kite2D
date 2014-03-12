@@ -15,7 +15,7 @@
  You should have received a copy of the GNU General Public License
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#include "Kite/core/input/win32/input.h"
+#include "src/Kite/core/input/win32/input.h"
 
 namespace Kite{
 namespace Internal{
@@ -72,6 +72,7 @@ namespace Internal{
 
     // initialize static objects
     KEnumInputDevice Input::_kenumDevice;
+    HWND Input::_khwnd = NULL;
     #ifdef KDINPUT_ALLOW
     LPDIRECTINPUT8 Input::_kdinput = 0;
     LPDIRECTINPUTDEVICE8 Input::_kdjoysticks[4] = {0};
@@ -112,6 +113,10 @@ namespace Internal{
         return &_kenumDevice;
     }
 
+    void Input::setMouseWinHandle(HWND Window){
+        _khwnd = Window;
+    }
+
     bool Input::getMouseButton(KMouseButtonTypes Button){
         int vkey = 0;
         switch (Button){
@@ -138,9 +143,9 @@ namespace Internal{
         return (GetAsyncKeyState(vkey) & 0x8000) != 0;
     }
 
-    KVector2I32 Input::getMousePosition(KMousePositionTypes Position, HWND Window){
+    KVector2IL32 Input::getMousePosition(KMousePositionTypes Position){
         POINT mPoint;
-        KVector2I32 mPos;
+        KVector2IL32 mPos;
 
         // get screen position
         GetCursorPos(&mPoint);
@@ -149,8 +154,13 @@ namespace Internal{
         if (Position == KMP_SCREEN)
             return mPos;
 
+        if (_khwnd == NULL){
+            KDEBUG_PRINT("window handle not set yet.");
+            return mPos;
+        }
+
         // get window position
-        ScreenToClient(Window, &mPoint);
+        ScreenToClient(_khwnd, &mPoint);
         mPos.x = mPoint.x;
         mPos.y = mPoint.y;
         return mPos;

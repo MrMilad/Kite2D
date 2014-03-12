@@ -26,7 +26,7 @@
 #include "Kite/Core/graphic/kimage.h"
 
 namespace Kite{
-    class KTexture : public KNonCopyable{
+    class KITE_FUNC_EXPORT KTexture : public KNonCopyable{
     public:
         KTexture();
         ~KTexture();

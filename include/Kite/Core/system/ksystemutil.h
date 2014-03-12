@@ -25,7 +25,7 @@
 namespace Kite{
 
 // Sleep
-extern "C" { KITE_FUNC_EXPORT void sleep(U64 MicroSec); }
+extern "C" { KITE_FUNC_EXPORT void sleep(UL32 MicroSec); }
 
 // Time
 extern "C" { KITE_FUNC_EXPORT U32 getCurrentTimeSec(); }

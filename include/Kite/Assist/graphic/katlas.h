@@ -24,7 +24,7 @@
 #include <vector>
 
 namespace Kite{
-    class KITE_FUNC_IMPORT KAtlas{
+    class KITE_FUNC_EXPORT KAtlas{
     public:
         KAtlas();
         ~KAtlas();

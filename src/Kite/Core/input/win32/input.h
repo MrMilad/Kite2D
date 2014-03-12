@@ -19,7 +19,7 @@
 #define INPUT_H
 
 // we using DirectInput only for joystick(s)
-#include "Kite/core/input/win32/dicall.h"
+#include "src/Kite/core/input/win32/dicall.h"
 #include <windows.h>
 #include "Kite/core/system/knoncopyable.h"
 #include "Kite/core/system/kvector2.h"
@@ -35,8 +35,9 @@ namespace Internal{
         static const KEnumInputDevice *getEnumDevices();
 
         // mouse
+        static void setMouseWinHandle(HWND Window);
         static bool getMouseButton(KMouseButtonTypes Button);
-        static KVector2I32 getMousePosition(KMousePositionTypes Position, HWND Window);
+        static KVector2IL32 getMousePosition(KMousePositionTypes Position);
 
         // keyboard
         static bool getKeyboardButton(KKeyboardButtonTypes Button);
@@ -53,6 +54,7 @@ namespace Internal{
         Input();
         ~Input();
 
+        static HWND _khwnd;
         static KEnumInputDevice _kenumDevice;          // enum input device (only joystick(s))
 
         // we use DirectInput only for joystick(s)

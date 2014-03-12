@@ -15,8 +15,8 @@
  You should have received a copy of the GNU General Public License
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#include "include/Kite/core/system/ksystemdef.h"
-#include "include/Kite/core/window/kglmwindow.h"
+#include "Kite/core/system/ksystemdef.h"
+#include "Kite/core/window/kglmwindow.h"
 
 #if defined (KITE_PLATFORM_WINDOWS)
 
@@ -36,7 +36,7 @@ namespace Kite{
     {
         #if defined (KITE_PLATFORM_WINDOWS)
         _kimpl->_kwindow = new Kite::Internal::Window();
-        _kimpl->_kcontext = new Kite::Internal::WGLContext();
+		_kimpl->_kcontext = new Kite::Internal::WGLContext(); 
         #elif defined (KITE_PLATFORM_LINUX)
 
 

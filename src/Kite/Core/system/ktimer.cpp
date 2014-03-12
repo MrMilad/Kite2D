@@ -19,7 +19,7 @@
 #include "Kite/core/system/ktimer.h"
 
 #if defined(KITE_PLATFORM_WINDOWS)
-    #include "Kite/core/system/win32/timer.h"
+    #include "src/Kite/core/system/win32/timer.h"
 #else
     #include "Kite/core/system/unix/timer.h"
 #endif

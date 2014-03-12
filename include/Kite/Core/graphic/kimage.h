@@ -50,7 +50,7 @@ namespace Kite{
         void setPixel(KVector2U32 Position, const KColor &Color);
         KColor getPixel(KVector2U32 Position) const;
         inline KVector2U32 getSize() const {return _ksize;}
-        inline const U8 *getPixelsData() const {return &_kpixels[0];}
+		inline const U8 *getPixelsData() const { if (!_kpixels.empty()) return &_kpixels[0]; return 0; }
     private:
         std::vector<U8> _kpixels;
         KVector2U32 _ksize;

@@ -16,7 +16,7 @@
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 #include "Kite/core/graphic/kgl2drender.h"
-#include "Kite/core/graphic/glcall.h"
+#include "src/Kite/core/graphic/glcall.h"
 
 namespace Kite{
 

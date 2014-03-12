@@ -16,7 +16,7 @@
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 #include "Kite/core/graphic/ktexture.h"
-#include "Kite/core/graphic/glcall.h"
+#include "src/Kite/core/graphic/glcall.h"
 
 namespace Kite{
     U32 Kite::KTexture::_klastTexId = 0;
@@ -69,8 +69,8 @@ namespace Kite{
         if (_ktexId > 0){
 
             // check new image size with texture size
-            KDEBUG_ASSERT((XPos + Image.getSize().x) <= _ksize.x);
-            KDEBUG_ASSERT((YPos + Image.getSize().y) <= _ksize.y);
+            KDEBUG_ASSERT_T((XPos + Image.getSize().x) <= _ksize.x);
+            KDEBUG_ASSERT_T((YPos + Image.getSize().y) <= _ksize.y);
 
             // save currently binded texture then bind our texture temporary
             Internal::GLBindGuard guard(Internal::KBG_TEXTURE, _klastTexId);

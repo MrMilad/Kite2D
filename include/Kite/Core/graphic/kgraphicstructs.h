@@ -27,7 +27,7 @@ namespace Kite{
     struct KColor{
         U8 r,g,b,a;
 
-        KColor(U8 R = 1, U8 G = 1, U8 B = 1, U8 A = 0):
+        KColor(U8 R = 255, U8 G = 255, U8 B = 255, U8 A = 255):
             r(R), g(G), b(B), a(A)
         {}
 
@@ -36,7 +36,7 @@ namespace Kite{
             return hexCod;
         }
 
-        static inline void setHexCodeToKColor(KColor &Color, U64 HexCode){
+        static inline void setHexCodeToKColor(KColor &Color, UL32 HexCode){
             Color.r = (HexCode & 0xFF000000) >> 24;
             Color.g = (HexCode & 0x00FF0000) >> 16;
             Color.b = (HexCode & 0x0000FF00) >> 8;

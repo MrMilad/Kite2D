@@ -20,17 +20,21 @@
 namespace Kite{
 
     KQuad::KQuad():
-        shader(0),
-        textur(0),
+        buttomLeft(-1.0, -1.0),
+        topRight(0.0,0.0),
+        color(),
         buttomLeftUV(0,0),
-        topRightUV(1,1)
+        topRightUV(1,1),
+        _kshader(0),
+        _ktextur(0)
     {}
 
     KQuad::KQuad(const KVector2F32 &ButtomLeft, const KVector2F32 &TopRight, const KColor &Color, const KShader *Shader,
           const KTexture *Texture, const KVector2F32 &ButtomLeftUV, const Kite::KVector2F32 &TopRightUV):
         buttomLeft(ButtomLeft), topRight(TopRight),
-        color(Color), shader(Shader),
-      textur(Texture), buttomLeftUV(ButtomLeftUV), topRightUV(TopRightUV)
+        color(Color),
+        buttomLeftUV(ButtomLeftUV), topRightUV(TopRightUV),
+        _kshader(Shader), _ktextur(Texture)
     {}
 
     void KQuad::pushVertex(KVertexVector &Vector){
@@ -40,42 +44,32 @@ namespace Kite{
         _kvertex[0].x = buttomLeft.x;
         _kvertex[0].y = buttomLeft.y;
         _kvertex[0].u = buttomLeftUV.x;
-        _kvertex[0].v = buttomLeftUV.y;
-        _kvertex[0].r = color.r / 255.0;
-        _kvertex[0].g = color.g / 255.0;
-        _kvertex[0].b = color.b / 255.0;
-        _kvertex[0].a = color.a / 255.0;
+        _kvertex[0].v = topRightUV.y;
+
 
         // top left
         _kvertex[1].x = buttomLeft.x;
         _kvertex[1].y = topRight.y;
         _kvertex[1].u = buttomLeftUV.x;
-        _kvertex[1].v = topRightUV.y;
-        _kvertex[1].r = color.r / 255.0;
-        _kvertex[1].g = color.g / 255.0;
-        _kvertex[1].b = color.b / 255.0;
-        _kvertex[1].a = color.a / 255.0;
+        _kvertex[1].v = buttomLeftUV.y;
 
         // top right
         _kvertex[2].x = topRight.x;
         _kvertex[2].y = topRight.y;
         _kvertex[2].u = topRightUV.x;
-        _kvertex[2].v = topRightUV.y;
-        _kvertex[2].r = color.r / 255.0;
-        _kvertex[2].g = color.g / 255.0;
-        _kvertex[2].b = color.b / 255.0;
-        _kvertex[2].a = color.a / 255.0;
+        _kvertex[2].v = buttomLeftUV.y;
+
 
         // buttom right
         _kvertex[3].x = topRight.x;
         _kvertex[3].y = buttomLeft.y;
         _kvertex[3].u = topRightUV.x;
-        _kvertex[3].v = buttomLeftUV.y;
-        _kvertex[3].r = color.r / 255.0;
-        _kvertex[3].g = color.g / 255.0;
-        _kvertex[3].b = color.b / 255.0;
-        _kvertex[3].a = color.a / 255.0;
+        _kvertex[3].v = topRightUV.y;
 
+        _kvertex[0].r = _kvertex[1].r = _kvertex[2].r = _kvertex[3].r = color.r / 255.0f;
+        _kvertex[0].g = _kvertex[1].g = _kvertex[2].g = _kvertex[3].g = color.g / 255.0f;
+        _kvertex[0].b = _kvertex[1].b = _kvertex[2].b = _kvertex[3].b = color.b / 255.0f;
+        _kvertex[0].a = _kvertex[1].a = _kvertex[2].a = _kvertex[3].a = color.a / 255.0f;
         // assign vertex data to the vector
         vertex.assign(_kvertex, _kvertex+4);
 
@@ -111,10 +105,10 @@ namespace Kite{
         _kvertex[3].v = buttomLeftUV.y;
 
 
-        _kvertex[0].r = _kvertex[1].r = _kvertex[2].r = _kvertex[3].r = color.r / 255.0;
-        _kvertex[0].g = _kvertex[1].g = _kvertex[2].g = _kvertex[3].g = color.g / 255.0;
-        _kvertex[0].b = _kvertex[1].b = _kvertex[2].b = _kvertex[3].b = color.b / 255.0;
-        _kvertex[0].a = _kvertex[1].a = _kvertex[2].a = _kvertex[3].a = color.a / 255.0;
+        _kvertex[0].r = _kvertex[1].r = _kvertex[2].r = _kvertex[3].r = color.r / 255.0f;
+        _kvertex[0].g = _kvertex[1].g = _kvertex[2].g = _kvertex[3].g = color.g / 255.0f;
+        _kvertex[0].b = _kvertex[1].b = _kvertex[2].b = _kvertex[3].b = color.b / 255.0f;
+        _kvertex[0].a = _kvertex[1].a = _kvertex[2].a = _kvertex[3].a = color.a / 255.0f;
 
         Buffer.update(_krange.x, _krange.y, _kvertex);
     }
@@ -122,16 +116,15 @@ namespace Kite{
 
     void KQuad::draw(KGL2DRender &Renderer, const KVertexBuffer &Buffer){
         // set texture
-        if(textur)
-            Renderer.setTexture(*textur);
+        if(_ktextur)
+            Renderer.setTexture(*_ktextur);
 
         // set shader
-        if(shader)
-            Renderer.setSheader(*shader);
+        if(_kshader)
+            Renderer.setSheader(*_kshader);
 
         // ser transform
-        if(transform)
-            Renderer.setTransform(*transform);
+        Renderer.setTransform(this->getTransform());
 
         // set buffer
         Renderer.setVertexBuffer(Buffer);

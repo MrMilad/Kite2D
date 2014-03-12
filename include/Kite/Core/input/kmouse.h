@@ -26,8 +26,9 @@
 namespace Kite{
     class KITE_FUNC_EXPORT KMouse{
     public:
+        static void setWindowHandle(KWindowHandle Window);
         static bool isButtonPressed(KMouseButtonTypes Button);
-        static KVector2I32 getMousePosition(KMousePositionTypes PositionType, KWindowHandle Window);
+        static KVector2IL32 getMousePosition(KMousePositionTypes PositionType);
         static bool isInstalled();
     };
 }

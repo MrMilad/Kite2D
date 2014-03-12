@@ -18,8 +18,10 @@
 #ifndef KNONCOPYABLE_H
 #define KNONCOPYABLE_H
 
+#include "Kite/Core/system/ksystemdef.h"
+
 namespace Kite{
-    class KNonCopyable{
+    class KITE_FUNC_EXPORT KNonCopyable{
     protected:
         KNonCopyable () {}
         ~KNonCopyable () {} // Protected non-virtual destructor

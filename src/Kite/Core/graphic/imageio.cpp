@@ -19,6 +19,7 @@
 #include "src/Kite/core/graphic/imageio.h"
 #include "extlibs/headers/stb_image.h"
 #include <string>
+#include <algorithm>
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #include "extlibs/headers/stb_image_write.h"
 
@@ -105,19 +106,20 @@ namespace Internal{
                 // Extract the extension
                 std::string extension = FileName.substr(FileName.size() - 3);
 
-                if (toLower(extension) == "bmp"){
+				toLower(extension);
+                if (extension == "bmp"){
                     // BMP format
                     if (stbi_write_bmp(FileName.c_str(), Size.x, Size.y, 4, &Pixels[0]))
                         return;
-                }else if (toLower(extension) == "tga"){
+                }else if (extension == "tga"){
                     // TGA format
                     if (stbi_write_tga(FileName.c_str(), Size.x, Size.y, 4, &Pixels[0]))
                         return;
-                }else if(toLower(extension) == "png"){
+                }else if(extension == "png"){
                     // PNG format
                     if (stbi_write_png(FileName.c_str(), Size.x, Size.y, 4, &Pixels[0], 0))
                         return;
-                }/*else if (toLower(extension) == "jpg"){
+                }/*else if (extension == "jpg"){
                     // JPG format
                     if (writeJpg(FileName, Pixels, Size.x, Size.y))
                         return true;
@@ -130,10 +132,8 @@ namespace Internal{
     }
 
     // Convert a string to lower case
-    std::string ImageIO::toLower(std::string str){
-        for (std::string::iterator i = str.begin(); i != str.end(); ++i)
-            *i = static_cast<char>(std::tolower(*i));
-        return str;
+    void ImageIO::toLower(std::string &str){
+		std::transform(str.begin(), str.end(), str.begin(), ::tolower);
     }
 }
 }

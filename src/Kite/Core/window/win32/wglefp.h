@@ -19,7 +19,7 @@
 #define WGLEFP_H
 
 #include "GL/gl.h"
-#include "extlibs/headers/wglext.h"
+#include "extlibs/headers/gl/wglext.h"
 
 // WGL function pointer (OGL extensions)
 static PFNWGLCHOOSEPIXELFORMATARBPROC wglChoosePixelFormatARB = 0;

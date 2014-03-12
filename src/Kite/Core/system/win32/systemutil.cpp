@@ -20,7 +20,7 @@
 #include <windows.h>
 
 namespace Kite{
-    void sleep(U64 MicroSec){
+    void sleep(UL32 MicroSec){
         static bool m_isPeriodSet = false;
         if (!m_isPeriodSet){
             timeBeginPeriod(1);

@@ -41,7 +41,7 @@ namespace Internal{
         ~ImageIO();
 
         // convert a string to lower case
-        std::string toLower(std::string str);
+        void toLower(std::string &str);
         static ImageIO *_kinstance;
     };
 }

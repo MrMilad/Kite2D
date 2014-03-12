@@ -31,12 +31,16 @@
 #endif
 
 namespace Kite{
+    void KMouse::setWindowHandle(KWindowHandle Window){
+        Internal::Input::setMouseWinHandle((HWND) Window);
+    }
+
     bool KMouse::isButtonPressed(KMouseButtonTypes Button){
         return Internal::Input::getMouseButton(Button);
     }
 
-    KVector2I32 KMouse::getMousePosition(KMousePositionTypes PositionType, KWindowHandle Window){
-        return Internal::Input::getMousePosition(PositionType, (HWND)Window);
+    KVector2IL32 KMouse::getMousePosition(KMousePositionTypes PositionType){
+        return Internal::Input::getMousePosition(PositionType);
     }
 
     bool KMouse::isInstalled(){

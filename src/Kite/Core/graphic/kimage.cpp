@@ -16,7 +16,7 @@
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 #include "Kite/core/graphic/kimage.h"
-#include "Kite/core/graphic/imageio.h"
+#include "src/Kite/core/graphic/imageio.h"
 #include <cstring>
 
 namespace Kite{

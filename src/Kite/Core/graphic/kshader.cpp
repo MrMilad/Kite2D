@@ -216,7 +216,7 @@ namespace Kite{
 
             // find the location of the variable in the shader
             _kcurrentTexture = glGetUniformLocationARB(_kprogram, ParamName.c_str());
-            if (_kcurrentTexture == -1)
+            KDEBUG_TEMP(if (_kcurrentTexture == -1))
                 KDEBUG_PRINT("Texture not found in shader");
         }
     }

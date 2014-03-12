@@ -51,7 +51,7 @@ namespace Kite{
         DAL_CALL(alSourcei(_kID, AL_BUFFER, 0));
     }
 
-    void KStaticSource::setPlayOffset(U32 Second){
+    void KStaticSource::setPlayOffset(F32 Second){
         DAL_CALL(alSourcef(_kID, AL_SEC_OFFSET, Second));
     }
 }

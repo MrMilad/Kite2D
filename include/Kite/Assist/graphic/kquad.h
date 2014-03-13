@@ -21,29 +21,23 @@
 #include "Kite/Core/system/ksystemdef.h"
 #include "Kite/Core/graphic/kgraphicstructs.h"
 #include "Kite/Assist/graphic/kdrawable.h"
+#include "Kite/Assist/graphic/kbufferable.h"
+#include "Kite/Assist/graphic/ktransformable.h"
 #include "Kite/Core/graphic/ktexture.h"
 #include "Kite/Core/graphic/kshader.h"
-#include "Kite/Assist/graphic/ktransformable.h"
 #include "Kite/Core/system/kvector2.h"
 #include <vector>
 
 namespace Kite{
-    class KITE_FUNC_EXPORT KQuad : public KDrawable, public KTransformable{
+    class KITE_FUNC_EXPORT KQuad : public KDrawable, public KBufferable, public KTransformable{
     public:
         KQuad();
-        KQuad(const KVector2F32 &ButtomLeft, const KVector2F32 &TopRight, const KColor &Color, const KShader *Shader,
-              const KTexture *Texture, const KVector2F32 &ButtomLeftUV, const KVector2F32 &TopRightUV);
+        KQuad(const KQuadAttrib &QuadAttribute, const KShader *Shader,const KTexture *Texture);
 
         //virtual ~KQuad();
 
-//        inline void setButtomLeft(const KVector2F32 &ButtomLeft) {_kbuttomLeft = ButtomLeft;}
-//        inline KVector2F32 getButtomLeft() const {return _kbuttomLeft;}
-
-//        inline void setTopRight(const KVector2F32 &TopRight) {_ktopRight = TopRight;}
-//        inline KVector2F32 getTopRight() const {return _ktopRight;}
-
-//        inline void setColor(const KColor &Color) { _kcolor = Color;}
-//        inline KColor getColor() const {return _kcolor;}
+        void setQuadAttribute(const KQuadAttrib &QuadAttribute);
+        inline const KQuadAttrib *getQuadAttribute() const {return &_kquadattr;}
 
         inline void setShader(const KShader *Shader) {_kshader = Shader;}
         inline const KShader *getShader() const {return _kshader;}
@@ -51,30 +45,21 @@ namespace Kite{
         inline void setTexture(const KTexture *Texture) {_ktextur = Texture;}
         inline const KTexture *getTexture() const {return _ktextur;}
 
-//        inline void setTextureUV(const KVector2F32 &TextureUV) {_kuv = TextureUV;}
-//        inline KVector2F32 getTextureUV() const {return _kuv;}
-
-        /// push vertex data to buffer
-        void pushVertex(KVertexVector &Vector);
+        /// push vertex data to pre vertex buffer
+        void pushVertex();
 
         /// draw
-        void draw(KGL2DRender &Renderer, const KVertexBuffer &Buffer);
-
-        /// updata (only) vertex data (position/size/color/uv)
-        void update(KVertexBuffer &Buffer);
-
-        KVector2F32 buttomLeft;
-        KVector2F32 topRight;
-        KColor color;
-        KVector2F32 buttomLeftUV;
-        KVector2F32 topRightUV;
+        void draw(KGL2DRender &Renderer);
 
     private:
+        void updateVertex();
+        KQuadAttrib _kquadattr;
         const KShader *_kshader;
         const KTexture *_ktextur;
 
         KVector2U32 _krange;
-        KVertex _kvertex[4];
+        std::vector<KVertex> _kvertex;
+        bool _kpushed;
     };
 }
 

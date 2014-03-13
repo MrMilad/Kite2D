@@ -19,18 +19,22 @@
 #define KDRAWABLE_H
 
 #include "Kite/Core/system/ksystemdef.h"
-#include "Kite/Core/graphic/kgraphicstructs.h"
-#include "Kite/Core/graphic/kvertexbuffer.h"
 #include "Kite/Core/graphic/kgl2drender.h"
-#include "Kite/Assist/graphic/kvertexvector.h"
-#include <vector>
 
 namespace Kite{
     class KITE_FUNC_EXPORT KDrawable{
     public:
-        virtual void pushVertex(KVertexVector &Vector) = 0;
-        virtual void update(KVertexBuffer &Buffer) = 0;
-        virtual void draw(KGL2DRender &Renderer, const KVertexBuffer &Buffer) = 0;
+        KDrawable():
+            _kvisible(true)
+        {}
+        virtual ~KDrawable(){}
+
+        virtual void draw(KGL2DRender &Renderer) = 0;
+        inline void setVisible(bool Visible) {_kvisible = Visible;}
+        inline bool getVisible() const {return _kvisible;}
+
+    protected:
+        bool _kvisible;
     };
 }
 

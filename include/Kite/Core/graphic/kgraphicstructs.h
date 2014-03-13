@@ -103,6 +103,29 @@ namespace Kite{
 
     typedef void (KCallVBUpdate)(KVertex *BufferData, U32 Size, void *Sender);
 
+    struct KQuadAttrib{
+        KVector2F32 buttomLeft;
+        KVector2F32 topRight;
+        KColor color;
+        KVector2F32 buttomLeftUV;
+        KVector2F32 topRightUV;
+
+        KQuadAttrib():
+            buttomLeft(-1.0, -1.0),
+            topRight(0.0,0.0),
+            color(),
+            buttomLeftUV(0,0),
+            topRightUV(1,1)
+        {}
+
+        KQuadAttrib(const KVector2F32 &ButtomLeft, const KVector2F32 &TopRight, const KColor &Color,
+                     const KVector2F32 &ButtomLeftUV, const KVector2F32 &TopRightUV):
+            buttomLeft(ButtomLeft), topRight(TopRight),
+            color(Color),
+            buttomLeftUV(ButtomLeftUV), topRightUV(TopRightUV)
+        {}
+    };
+
     namespace Internal{
     struct KCatchState{
         /// need fix

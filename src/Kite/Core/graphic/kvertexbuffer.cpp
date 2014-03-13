@@ -82,7 +82,7 @@ namespace Kite{
         }
     }
 
-    void KVertexBuffer::update(U64 Offset, U64 Size, KVertex *Data){
+    void KVertexBuffer::update(U64 Offset, U64 Size, const KVertex *Data){
         if (_kbufId > 0){
 
             // save currently binded buffer then bind our buffer temporary

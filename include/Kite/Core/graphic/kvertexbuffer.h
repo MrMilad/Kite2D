@@ -44,7 +44,7 @@ namespace Kite{
         /// replace some subset of the data with new data.
         /// Offset = sizeof(KVertext) * Offset
         /// Size = sizeof(KVertext) * Size
-        void update(U64 Offset, U64 Size, KVertex *Data);
+        void update(U64 Offset, U64 Size, const KVertex *Data);
 
         /// bind buffer.
         /// (handle autimatic by internal render system)

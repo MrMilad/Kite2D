@@ -28,6 +28,8 @@
 namespace Kite{
     class KITE_FUNC_EXPORT KVertexVector{
     public:
+        KVertexVector();
+        ~KVertexVector();
         /// add vertex data
         /// input: Vertex
         /// output: Index
@@ -35,7 +37,7 @@ namespace Kite{
 
         /// add vertex data
         /// input: Vertex
-        /// output: Vertex range
+        /// output: Range
         /// start: Range.x
         /// lenght: Range.y
         void addVertex(const std::vector<KVertex> &Vertex, KVector2U32 &Range);
@@ -48,12 +50,18 @@ namespace Kite{
         /// lenght: Range.y
         void updateVertex(const std::vector<KVertex> &NewVertex, const KVector2U32 &Range);
 
+        /// lock buffer
+        /// only update is valid with locked buffer
+        inline void setLock(bool Lock) {_klock = Lock;}
+        inline bool getLock() const {return _klock;}
+
         /// get size of buffer
         inline U32 getSize() const {return _kdata.size();}
         inline const KVertex *getVertex() const {if (_kdata.empty()) return 0; return &_kdata[0];}
 
     private:
         std::vector<KVertex> _kdata;
+        bool _klock;
     };
 }
 

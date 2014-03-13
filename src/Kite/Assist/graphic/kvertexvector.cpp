@@ -21,6 +21,12 @@
 
 namespace Kite{
 
+    KVertexVector::KVertexVector():
+        _klock(false)
+    {}
+
+    KVertexVector::~KVertexVector(){}
+
 //    void KVertexVector::addVertex(const std::vector<KVertex> &Vertex, std::vector<U32> &Index){
 //        // just in case
 //        Index.clear();
@@ -44,21 +50,25 @@ namespace Kite{
 //    }
 
     void KVertexVector::addVertex(const std::vector<KVertex> &Vertex, KVector2U32 &Range){
-        // store position of last elemnt
-        U32 lastPos = _kdata.size();
+        if (!_klock){
+            // store position of last elemnt
+            U32 lastPos = _kdata.size();
 
-        // calculate enough size
-        U32 needSize = lastPos + Vertex.size();
+            // calculate enough size
+            U32 needSize = lastPos + Vertex.size();
 
-        // allocate enough size
-        _kdata.reserve(needSize);
+            // allocate enough size
+            _kdata.reserve(needSize);
 
-        // copy new data
-        _kdata.insert(_kdata.end(), Vertex.begin(), Vertex.end());
+            // copy new data
+            _kdata.insert(_kdata.end(), Vertex.begin(), Vertex.end());
 
-        // range
-        Range.x = lastPos;
-        Range.y = Vertex.size();
+            // range
+            Range.x = lastPos;
+            Range.y = Vertex.size();
+        }else{
+            KDEBUG_PRINT("can't add vertex to locked buffer.");
+        }
     }
 
 //    void KVertexVector::changeVertex(const std::vector<KVertex> &NewVertex, const std::vector<U32> &Index){

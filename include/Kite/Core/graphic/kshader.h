@@ -19,6 +19,7 @@
 #define KSHADER_H
 
 #include "Kite/Core/system/ksystemdef.h"
+#include "Kite/Core/system/knoncopyable.h"
 #include "Kite/Core/graphic/kgraphictypes.h"
 #include "Kite/Core/graphic/kgraphicstructs.h"
 #include "Kite/Core/graphic/ktexture.h"
@@ -28,7 +29,7 @@
 #include <string>
 
 namespace Kite{
-    class KITE_FUNC_EXPORT KShader{
+    class KITE_FUNC_EXPORT KShader : KNonCopyable{
     public:
         KShader();
         ~KShader();

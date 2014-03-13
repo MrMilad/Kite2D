@@ -31,7 +31,7 @@ namespace Kite{
 #define KMATH_PIsub240 0.01308996939f
 #define KMATH_PIsub360 0.00872664626f
 
-// Hardware color macros
+/// Hardware color macros
 #define ARGB(a,r,g,b)	((DWORD(a)<<24) + (DWORD(r)<<16) + (DWORD(g)<<8) + DWORD(b))
 #define GETA(col)		((col)>>24)
 #define GETR(col)		(((col)>>16) & 0xFF)
@@ -42,16 +42,26 @@ namespace Kite{
 #define SETG(col,g)		(((col) & 0xFFFF00FF) + (DWORD(g)<<8))
 #define SETB(col,b)		(((col) & 0xFFFFFF00) + DWORD(b))
 
-// buffer offest
+/// buffer offest
 #define KBUFFER_OFFSET(i) ((void*)(i))
 
-// convert opengl coordinate to window coordinate
+/// convert opengl (buttom-left) float coordinate to window (top-left) integer coordinate
+/// default center = top-right
 #define KCGL_TO_WIN_X(x, w)         (((float)x + 1) * (w / 2))
 #define KCGL_TO_WIN_Y(y, h)         (h - (((float)y + 1) * (h / 2)))
 
-// convert window coordinate to opengl coordinate
+/// convert window (top-left) integer coordinate to opengl (buttom-left) float coordinate
+/// default center = top-right
 #define KCWIN_TO_GL_X(x, w)         ((x - ((float)w / 2)) * (1 / ((float)w / 2)))
 #define KCWIN_TO_GL_Y(y, h)         ((y - ((float)h / 2)) * (1 / ((float)h / 2)) * -1)
+
+/// convert (buttom-left) integer coordinate to (buttom-left) opengl float coordinate
+/// default center = top-right
+#define KCINT_TO_F_POS(xy, wh)      ((xy - ((float)wh / 2)) * (1 / ((float)wh / 2)))
+
+/// convert integer base size to float (opengl -1 to 0) base size
+/// e.g s = 10, b = 40 , result = 0.5
+#define KCINT_TO_F_SIZE(s, b)       ((2 / (float)b) * s)
 
 }
 #endif // KGRAPHICDEF_H

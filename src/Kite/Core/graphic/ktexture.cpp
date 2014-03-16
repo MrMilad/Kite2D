@@ -93,6 +93,11 @@ namespace Kite{
         }
     }
 
+    void KTexture::unbind(){
+        DGL_CALL(glBindTexture(GL_TEXTURE_2D, 0));
+        _klastTexId = 0;
+    }
+
     void KTexture::setFilter(KTextureFilterTypes Filter){
         if (_ktexId > 0){
 

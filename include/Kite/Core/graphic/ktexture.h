@@ -42,6 +42,8 @@ namespace Kite{
         /// (handle autimatic by internal render system)
         void bind() const;
 
+        static void unbind();
+
         inline KTextureFilterTypes getFilter() const {return _kfilter;}
         inline KTextureWrapTypes getWrap() const {return _kwrap;}
         inline U32 getID() const {return _ktexId;}

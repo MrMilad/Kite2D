@@ -44,9 +44,12 @@ namespace Kite{
         }
     };
 
-    struct KPointOption{
+    struct KLPOption{
         F32 size;
-        KPointDrawTypes drawTypes;
+        KFilteringDrawTypes filter;
+        KLPOption(F32 Size = 2, KFilteringDrawTypes FilterTypes = KFD_ALIASED):
+            size(Size), filter(FilterTypes)
+        {}
     };
 
     struct KVertex{
@@ -124,6 +127,15 @@ namespace Kite{
             color(Color),
             buttomLeftUV(ButtomLeftUV), topRightUV(TopRightUV)
         {}
+    };
+
+    struct KParticle{
+        I32 x, y;
+        I32 angle;
+        I32 speed;
+        U32 life;
+        U32 size;
+        U8 r, g, b, a;
     };
 
     namespace Internal{

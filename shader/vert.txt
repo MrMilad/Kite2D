@@ -1,0 +1,12 @@
+#version 140
+uniform mat4 in_mv;
+attribute vec2 in_Position;
+attribute vec2 in_uv;
+attribute vec4 in_Color;
+
+out vec4 ex_Color;
+void main(void)
+{
+     gl_Position = in_mv * vec4(in_Position, 0.0, 1.0);
+     ex_Color = in_Color;
+}

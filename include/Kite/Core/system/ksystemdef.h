@@ -124,17 +124,12 @@
 
 // debug macro(s)
 #if defined(KITE_DEV_DEBUG) // break in source cod.
-	//#define KDEBUG_BREAK __asm("int $3");
-	#if defined(KITE_PLATFORM_WINDOWS)
-		#include <Windows.h>
-		#define KDEBUG_BREAK DebugBreak();
-	#else
-		#define KDEBUG_BREAK raise(SIGTRAP);
-	#endif
+    #include <assert.h>
+    #define KDEBUG_BREAK assert(0);
     #define KDEBUG_PRINT(x) printf (#x); printf("\n     Line: %u \n     File: %s \n", __LINE__, __FILE__);
-    #define KDEBUG_ASSERT(expr) if (!(expr)) {KDEBUG_PRINT(#expr) KDEBUG_BREAK}
-    #define KDEBUG_ASSERT_T(expr) if (!(expr)) {KDEBUG_PRINT(#expr) KDEBUG_BREAK}
-    #define KDEBUG_ASSERT_EQ(expr, eq) if(expr != eq) {KDEBUG_PRINT(#expr) KDEBUG_BREAK}
+    #define KDEBUG_ASSERT(expr) assert(expr);
+    #define KDEBUG_ASSERT_T(expr) assert(expr);
+    #define KDEBUG_ASSERT_EQ(expr, eq) assert(expr != eq);
     #define KDEBUG_TEMP(expr) expr
 
 #elif defined(KITE_USER_DEBUG) // print debug output (without break).

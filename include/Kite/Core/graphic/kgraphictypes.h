@@ -64,9 +64,9 @@ namespace Kite{
         KGP_POLYGON
     };
 
-    enum KPointDrawTypes{
-        KPD_DEFAULT,
-        KPD_SMOOTH
+    enum KFilteringDrawTypes{
+        KFD_ALIASED,
+        KFD_SMOOTH
     };
 
     /* Colors */

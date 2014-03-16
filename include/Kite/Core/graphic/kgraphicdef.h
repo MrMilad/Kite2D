@@ -45,6 +45,11 @@ namespace Kite{
 /// buffer offest
 #define KBUFFER_OFFSET(i) ((void*)(i))
 
+/// vertex attribute index
+#define KVATTRIB_XY 0
+#define KVATTRIB_UV 1
+#define KVATTRIB_RGBA 2
+
 /// convert opengl (buttom-left) float coordinate to window (top-left) integer coordinate
 /// default center = top-right
 #define KCGL_TO_WIN_X(x, w)         (((float)x + 1) * (w / 2))

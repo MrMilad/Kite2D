@@ -33,23 +33,13 @@ namespace Kite{
             DGL_CALL(glDeleteObjectARB(_kprogram));
     }
 
-
-    void KShader::loadFile(const std::string &ShaderFile, KShaderTypes ShaderType){
-        if (!ShaderFile.empty()){
-            std::vector<char> data;
-
-            // read file content
-            readFile(ShaderFile.c_str(), data);
-
-            // compile
-            if (ShaderType == KS_VERTEX)
-                compile(&data[0], NULL);
-            else if (ShaderType == KS_FRAGMENT)
-                compile(NULL, &data[0]);
+    bool KShader::loadFile(const std::string &VertexFile, const std::string &FragmentFile){
+        // first make sure that we can use shaders
+        if(!isShaderAvailable()){
+            KDEBUG_PRINT("shader is not available.")
+            return false;
         }
-    }
 
-    void KShader::loadFile(const std::string &VertexFile, const std::string &FragmentFile){
         if (!VertexFile.empty() && !FragmentFile.empty()){
             std::vector<char> vertexSh;
             std::vector<char> fragmentSh;
@@ -58,142 +48,130 @@ namespace Kite{
             readFile(VertexFile.c_str(), vertexSh);
             readFile(FragmentFile.c_str(), fragmentSh);
 
-            // compile
-            compile(&vertexSh[0], &fragmentSh[0]);
+            if (vertexSh.empty() || fragmentSh.empty()){
+                KDEBUG_PRINT("empty shader file.")
+                return false;
+            }
+
+            // destroy the shader if it was already created
+            if (_kprogram)
+                DGL_CALL(glDeleteObjectARB(_kprogram));
+
+            // create the new program
+            _kprogram = glCreateProgramObjectARB();
+
+            // create vertex shader object
+            if (!createShader(&vertexSh[0], KS_VERTEX))
+                return false;
+
+            // create fragment shader object
+            if (!createShader(&fragmentSh[0], KS_FRAGMENT))
+                return false;
+
+            return true;
         }
+        return false;
     }
 
-    void KShader::loadMemory(const std::string &ShaderCod, KShaderTypes ShaderType){
-        if (!ShaderCod.empty()){
-            if (ShaderType == KS_VERTEX)
-                compile(ShaderCod.c_str(), NULL);
-            else if (ShaderType == KS_FRAGMENT)
-                compile(NULL, ShaderCod.c_str());
+    bool KShader::loadMemory(const std::string &VertexCod, const std::string &FragmentCod){
+        // first make sure that we can use shaders
+        if(!isShaderAvailable()){
+            KDEBUG_PRINT("shader is not available.")
+            return false;
         }
-    }
 
-    void KShader::loadMemory(const std::string &VertexCod, const std::string &FragmentCod){
         if (!VertexCod.empty() && !FragmentCod.empty()){
-            compile(VertexCod.c_str(), FragmentCod.c_str());
+            // destroy the shader if it was already created
+            if (_kprogram)
+                DGL_CALL(glDeleteObjectARB(_kprogram));
+
+            // create the new program
+            _kprogram = glCreateProgramObjectARB();
+
+            // create vertex shader object
+            if (!createShader(VertexCod.c_str(), KS_VERTEX))
+                return false;
+
+            // create fragment shader object
+            if (!createShader(FragmentCod.c_str(), KS_FRAGMENT))
+                return false;
+
+            return true;
         }
+        return false;
     }
 
-    void KShader::setParam(const std::string &ParamName, F32 x){
+    void KShader::bindAttribute(U16 Index, const std::string Name){
+        DGL_CALL(glBindAttribLocation(_kprogram, (GLuint)Index, Name.c_str()));
+    }
+
+    bool KShader::link(){
+        if (!_kprogram)
+            return false;
+
+        // link the program
+        DGL_CALL(glLinkProgramARB(_kprogram));
+
+        // check the link log
+        GLint success;
+        DGL_CALL(glGetObjectParameterivARB(_kprogram, GL_OBJECT_LINK_STATUS_ARB, &success));
+        if (success == GL_FALSE){
+            KDEBUG_PRINT("Failed to link shader program.");
+            DGL_CALL(glDeleteObjectARB(_kprogram));
+            _kprogram = 0;
+            return false;
+        }
+
+        return true;
+    }
+
+    I16 KShader::getUniformLocation(const std::string &ParamName) const{
         if (_kprogram){
-
-            // enable program
-            GLhandleARB program = glGetHandleARB(GL_PROGRAM_OBJECT_ARB);
-            DGL_CALL(glUseProgramObjectARB(_kprogram));
-
-            // get parameter location and assign it new values
             GLint location = glGetUniformLocationARB(_kprogram, ParamName.c_str());
-            if (location != -1){
-                DGL_CALL(glUniform1fARB(location, x));
-            }else{
-                KDEBUG_PRINT("requested parameter not found in shader");
-            }
-
-            // disable program
-            DGL_CALL(glUseProgramObjectARB(program));
+            return (I16)location;
         }
+        return -1;
     }
 
-    void KShader::setParam(const std::string &ParamName, F32 x, F32 y){
-        if (_kprogram){
-
-            // enable program
-            GLhandleARB program = glGetHandleARB(GL_PROGRAM_OBJECT_ARB);
-            DGL_CALL(glUseProgramObjectARB(_kprogram));
-
+    void KShader::setParam(Kite::I16 Location, F32 x) const{
+        if (_kprogram && Location >= 0){
             // get parameter location and assign it new values
-            GLint location = glGetUniformLocationARB(_kprogram, ParamName.c_str());
-            if (location != -1){
-                DGL_CALL(glUniform2fARB(location, x, y));
-            }else{
-                KDEBUG_PRINT("requested parameter not found in shader");
-            }
-
-            // disable program
-            DGL_CALL(glUseProgramObjectARB(program));
+            DGL_CALL(glUniform1fARB(Location, x));
         }
     }
 
-    void KShader::setParam(const std::string &ParamName, F32 x, F32 y, F32 z){
-        if (_kprogram){
-
-            // enable program
-            GLhandleARB program = glGetHandleARB(GL_PROGRAM_OBJECT_ARB);
-            DGL_CALL(glUseProgramObjectARB(_kprogram));
-
-            // get parameter location and assign it new values
-            GLint location = glGetUniformLocationARB(_kprogram, ParamName.c_str());
-            if (location != -1){
-                DGL_CALL(glUniform3fARB(location, x, y, z));
-            }else{
-                KDEBUG_PRINT("requested parameter not found in shader");
-            }
-
-            // disable program
-            DGL_CALL(glUseProgramObjectARB(program));
+    void KShader::setParam(Kite::I16 Location, F32 x, F32 y) const{
+        if (_kprogram && Location >= 0){
+            DGL_CALL(glUniform2fARB(Location, x, y));
         }
     }
 
-    void KShader::setParam(const std::string &ParamName, F32 x, F32 y, F32 z, F32 w){
-        if (_kprogram){
-
-            // enable program
-            GLhandleARB program = glGetHandleARB(GL_PROGRAM_OBJECT_ARB);
-            DGL_CALL(glUseProgramObjectARB(_kprogram));
-
-            // get parameter location and assign it new values
-            GLint location = glGetUniformLocationARB(_kprogram, ParamName.c_str());
-            if (location != -1){
-                DGL_CALL(glUniform4fARB(location, x, y, z, w));
-            }else{
-                KDEBUG_PRINT("requested parameter not found in shader");
-            }
-
-            // disable program
-            DGL_CALL(glUseProgramObjectARB(program));
+    void KShader::setParam(Kite::I16 Location, F32 x, F32 y, F32 z) const{
+        if (_kprogram && Location >= 0){
+            DGL_CALL(glUniform3fARB(Location, x, y, z));
         }
     }
 
-    void KShader::setParam(const std::string &ParamName, const KColor& Color){
-        setParam(ParamName, Color.r / 255.f, Color.g / 255.f, Color.b / 255.f, Color.a / 255.f);
-    }
-
-    void KShader::setParam(const std::string &ParamName, const KTransform& Transform){
-        if (_kprogram){
-
-            // enable program
-            GLhandleARB program = glGetHandleARB(GL_PROGRAM_OBJECT_ARB);
-            DGL_CALL(glUseProgramObjectARB(_kprogram));
-
-            // get parameter location and assign it new values
-            GLint location = glGetUniformLocationARB(_kprogram, ParamName.c_str());
-            if (location != -1){
-                DGL_CALL(glUniformMatrix4fvARB(location, 1, GL_FALSE, Transform.getMatrix()));
-            }else{
-                KDEBUG_PRINT("requested parameter not found in shader");
-            }
-
-            // disable program
-            DGL_CALL(glUseProgramObjectARB(program));
+    void KShader::setParam(Kite::I16 Location, F32 x, F32 y, F32 z, F32 w) const{
+        if (_kprogram && Location >= 0){
+            DGL_CALL(glUniform4fARB(Location, x, y, z, w));
         }
     }
 
-    void KShader::setParam(const std::string &ParamName, const KTexture& Texture){
-        if (_kprogram){
+    void KShader::setParam(Kite::I16 Location, const KColor& Color) const{
+        setParam(Location, Color.r / 255.f, Color.g / 255.f, Color.b / 255.f, Color.a / 255.f);
+    }
 
-            // Find the location of the variable in the shader
-            int location = glGetUniformLocationARB(_kprogram, ParamName.c_str());
-            if (location == -1){
-                KDEBUG_PRINT("Texture not found in shader");
-                return;
-            }
+    void KShader::setParam(Kite::I16 Location, const KTransform& Transform) const{
+        if (_kprogram && Location >= 0){
+            DGL_CALL(glUniformMatrix4fvARB(Location, 1, GL_FALSE, Transform.getMatrix()));
+        }
+    }
 
+    void KShader::setParam(Kite::I16 Location, const KTexture& Texture){
+        if (_kprogram && Location >= 0){
             // store the location -> texture mapping
-            std::map<I32, const KTexture *>::iterator it = _ktextureTable.find(location);
+            std::map<I32, const KTexture *>::iterator it = _ktextureTable.find(Location);
             if (it == _ktextureTable.end()){
                 // new entry, make sure there are enough texture units
                 static const GLint maxUnits = getMaximumTextureUnit();
@@ -202,7 +180,7 @@ namespace Kite{
                     return;
                 }
 
-                _ktextureTable[location] = &Texture;
+                _ktextureTable[Location] = &Texture;
             }
             else{
                 // location already used, just replace the texture
@@ -211,15 +189,12 @@ namespace Kite{
         }
     }
 
-    void KShader::setParam(const std::string &ParamName, KShaderTextureTypes Texture){
-        if (_kprogram){
-
-            // find the location of the variable in the shader
-            _kcurrentTexture = glGetUniformLocationARB(_kprogram, ParamName.c_str());
-            KDEBUG_TEMP(if (_kcurrentTexture == -1))
-                KDEBUG_PRINT("Texture not found in shader");
-        }
-    }
+//    void KShader::setParam(Kite::I16 Location, KShaderTextureTypes Texture){
+//        if (_kprogram && Location >= 0){
+//            KDEBUG_TEMP(if (Location == -1))
+//                KDEBUG_PRINT("Texture not found in shader");
+//        }
+//    }
 
     void KShader::bind() const{
         if (_kprogram){
@@ -235,7 +210,7 @@ namespace Kite{
         }
     }
 
-    void KShader::unbind() const{
+    void KShader::unbind(){
         // disable the program
         DGL_CALL(glUseProgramObjectARB(0));
     }
@@ -258,46 +233,6 @@ namespace Kite{
 
         // append '\0' at the end of cod
         data.push_back('\0');
-    }
-
-    bool KShader::compile(const char *Vertex, const char *Fragment){
-        // first make sure that we can use shaders
-        if(!isShaderAvailable()){
-            KDEBUG_PRINT("shader is not available.")
-            return false;
-        }
-
-        // destroy the shader if it was already created
-        if (_kprogram)
-            DGL_CALL(glDeleteObjectARB(_kprogram));
-
-        // create the program
-        _kprogram = glCreateProgramObjectARB();
-
-        // create vertex shader object
-        if (Vertex)
-            if (!createShader(Vertex, KS_VERTEX))
-                return false;
-
-        // create fragment shader object
-        if (Fragment)
-            if (!createShader(Fragment, KS_FRAGMENT))
-                return false;
-
-        // link the program
-        DGL_CALL(glLinkProgramARB(_kprogram));
-
-        // check the link log
-        GLint success;
-        DGL_CALL(glGetObjectParameterivARB(_kprogram, GL_OBJECT_LINK_STATUS_ARB, &success));
-        if (success == GL_FALSE){
-            KDEBUG_PRINT("Failed to compile vertex shader.");
-            DGL_CALL(glDeleteObjectARB(_kprogram));
-            _kprogram = 0;
-            return false;
-        }
-
-        return true;
     }
 
     bool KShader::createShader(const char *ShaderCod, KShaderTypes ShaderType){
@@ -338,6 +273,7 @@ namespace Kite{
             DGL_CALL(glDeleteObjectARB(shader));
             return true;
         }
+        KDEBUG_PRINT("invalid pointer");
         return false;
     }
 

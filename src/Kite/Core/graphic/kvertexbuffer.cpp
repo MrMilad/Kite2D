@@ -103,4 +103,9 @@ namespace Kite{
         }
     }
 
+    void KVertexBuffer::unbind(){
+        DGL_CALL(glBindBuffer(GL_ARRAY_BUFFER, 0));
+        _klastBufId = 0;
+    }
+
 }

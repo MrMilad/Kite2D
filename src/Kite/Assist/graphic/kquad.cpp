@@ -72,18 +72,20 @@ namespace Kite{
             if (_kvisible){
 
                 // set buffer
-                Renderer.setVertexBuffer(*_kvbuffer);
+                Renderer.setVertexBuffer(_kvbuffer);
 
                 // set texture
                 if(_ktextur)
-                    Renderer.setTexture(*_ktextur);
+                    Renderer.setTexture(_ktextur);
 
                 // set shader
-                if(_kshader)
-                    Renderer.setSheader(*_kshader);
+                if(_kshader){
+                    Renderer.setShader(_kshader);
 
-                // ser transform
-                Renderer.setTransform(this->getTransform());
+                    // set transform
+                    static I16 loc = _kshader->getUniformLocation("in_mv");
+                    _kshader->setParam(loc, this->getTransform());
+                }
 
                 // disable point sprite
                 Renderer.setPointSprite(false);

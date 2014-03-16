@@ -59,23 +59,30 @@ namespace Kite{
         /// clear color
         void setClearColor(const KColor &Color);
 
-        /// set points option (like size of points)
-        void setPointsOption(const KPointOption &Option);
+        /// set line/point options (size/smooth)
+        /// only KGP_POINTS and KGP_LINES is valid for type
+        void setLPOptions(KGeoPrimitiveTypes Type, const KLPOption &Options);
 
         /// 2D camera
         inline void setCamera(const KCamera &Camera) {_kcurrentCam = &Camera;}
         void updateCamera();
 
-        /// set vertex buffer
-        void setVertexBuffer(const KVertexBuffer &Buffer);
 
-        /// set texture
-        void setTexture(const KTexture &Texture);
+        /// set vertex buffer
+        void setVertexBuffer(const KVertexBuffer *Buffer);
+        inline const KVertexBuffer *getVertexBuffer() const {return _kbuffer;}
 
         /// set shader
-        void setSheader(const KShader &Sheader);
+        /// pass 0 = disable shader
+        void setShader(const KShader *Shader);
+        inline const KShader *getShader() const {return _kshader;}
 
-        void setTransform(const KTransform &Transform);
+        /// set texture
+        /// pass 0 = disable texture
+        void setTexture(const KTexture *Texture);
+        inline const KTexture *getTexture() const {return _ktexture;}
+
+        //void setTransform(const KTransform &Transform);
 //        void setBlendMode(KBlendMode BlendMode);
 
         //void unbindBuffers();
@@ -84,6 +91,9 @@ namespace Kite{
         virtual KRendererFlags getRendererFlag();
 
     private:
+        const KShader *_kshader;
+        const KVertexBuffer *_kbuffer;
+        const KTexture *_ktexture;
         const KCamera _kdefaultCam;
         const KCamera *_kcurrentCam;
         KGeoPrimitiveTypes _kgeoType;

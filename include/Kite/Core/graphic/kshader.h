@@ -35,50 +35,59 @@ namespace Kite{
         ~KShader();
 
         /// load from file
-        void loadFile(const std::string &ShaderFile, KShaderTypes ShaderType);
-        void loadFile(const std::string &VertexFile, const std::string &FragmentFile);
+        //void loadFile(const std::string &ShaderFile, KShaderTypes ShaderType);
+        bool loadFile(const std::string &VertexFile, const std::string &FragmentFile);
 
         /// load from memory
-        void loadMemory(const std::string &ShaderCod, KShaderTypes ShaderType);
-        void loadMemory(const std::string &VertexCod, const std::string &FragmentCod);
+        //void loadMemory(const std::string &ShaderCod, KShaderTypes ShaderType);
+        bool loadMemory(const std::string &VertexCod, const std::string &FragmentCod);
 
-        /// send a flaot
-        void setParam(const std::string &ParamName, F32 x);
+        /// bind attribute
+        void bindAttribute(U16 Index, const std::string Name);
 
-        /// send 2x1 vector (vec2 in GLSL)
-        void setParam(const std::string &ParamName, F32 x, F32 y);
+        /// link the shader program
+        bool link();
 
-        /// send 3x1 vector (vec3 in GLSL)
-        void setParam(const std::string &ParamName, F32 x, F32 y, F32 z);
+        /// get location of the uniform in the shader
+        /// return -1 if failed
+        I16 getUniformLocation(const std::string &ParamName) const;
 
-        /// send 4x1 vector (vec4 in GLSL)
-        void setParam(const std::string &ParamName, F32 x, F32 y, F32 z, F32 w);
+        /// pass a flaot
+        void setParam(I16 Location, F32 x) const;
 
-        /// send color
+        /// pass 2x1 vector (vec2 in GLSL)
+        void setParam(I16 Location, F32 x, F32 y) const;
+
+        /// pass 3x1 vector (vec3 in GLSL)
+        void setParam(I16 Location, F32 x, F32 y, F32 z) const;
+
+        /// pass 4x1 vector (vec4 in GLSL)
+        void setParam(I16 Location, F32 x, F32 y, F32 z, F32 w) const;
+
+        /// pass color
         /// a KColor will be transformed
         /// to a normalized vec4(1.0, 0.5, 0.0, 1.0) in the shader
-        void setParam(const std::string &ParamName, const KColor& Color);
+        void setParam(I16 Location, const KColor& Color) const;
 
-        /// send 4x4 matrix
-        void setParam(const std::string &ParamName, const KTransform& Transform);
+        /// pass 4x4 matrix
+        void setParam(I16 Location, const KTransform& Transform) const;
 
-        /// send texture
-        void setParam(const std::string &ParamName, const KTexture& Texture);
+        /// pass texture
+        void setParam(I16 Location, const KTexture& Texture);
 
-        /// send current texture
-        void setParam(const std::string &ParamName, KShaderTextureTypes Texture);
+        /// pass current texture
+        //void setParam(I16 Location, KShaderTextureTypes Texture);
 
         /// bind the shader
         void bind() const;
 
         /// unbind the shader
-        void unbind() const;
+        static void unbind();
 
         inline U32 getID() const {return _kprogram;}
 
     private:
         void readFile(const char *FileName, std::vector<char> &data);
-        bool compile(const char *Vertex, const char *Fragment);
         bool createShader(const char *ShaderCod, KShaderTypes ShaderType);
         void fillTextureUnits() const;
 

@@ -21,11 +21,17 @@
 namespace Kite{
 
     KGL2DRender::KGL2DRender():
+      _kshader(0),
+      _kbuffer(0),
+      _ktexture(0),
       _kcurrentCam(&_kdefaultCam),
       _kgeoType(KGP_POINTS)
     {}
 
     KGL2DRender::KGL2DRender(const KCamera &Camera):
+        _kshader(0),
+        _kbuffer(0),
+        _ktexture(0),
         _kcurrentCam(&Camera),
         _kgeoType(KGP_POINTS)
     {}
@@ -34,6 +40,7 @@ namespace Kite{
 
     bool KGL2DRender::initialize(){
         if (init() == false){ // Initialize GLEW
+            KDEBUG_PRINT("Initialization Failed");
             return false;
         }
 
@@ -50,9 +57,18 @@ namespace Kite{
         // initialize camera
         updateCamera();
 
-        DGL_CALL(glEnableClientState(GL_VERTEX_ARRAY));
-        DGL_CALL(glEnableClientState(GL_TEXTURE_COORD_ARRAY));
-        DGL_CALL(glEnableClientState(GL_COLOR_ARRAY));
+        // attribute buffer : vertices coordinate (x,y)
+        DGL_CALL(glEnableVertexAttribArray(0));
+
+        // attribute buffer : texture coordinate (u,v)
+        DGL_CALL(glEnableVertexAttribArray(1));
+
+        // attribute buffer : color (r,g,b,a)
+        DGL_CALL(glEnableVertexAttribArray(2));
+
+//        DGL_CALL(glEnableClientState(GL_VERTEX_ARRAY));
+//        DGL_CALL(glEnableClientState(GL_TEXTURE_COORD_ARRAY));
+//        DGL_CALL(glEnableClientState(GL_COLOR_ARRAY));
         return true;
      }
 
@@ -73,7 +89,7 @@ namespace Kite{
         type = geoTypes[_kgeoType];
 
         // draw buffer
-        if (_kcatch.lastBufId > 0)
+        if (_kcatch.lastBufId > 0 && _kcatch.lastShId > 0)
             DGL_CALL(glDrawArrays(type, FirstIndex, Size));
     }
 
@@ -97,15 +113,32 @@ namespace Kite{
             DGL_CALL(glDrawElements(type, Count, GL_UNSIGNED_SHORT, &Indices[0]));
     }
 
-    void KGL2DRender::setVertexBuffer(const KVertexBuffer &Buffer){
-        // check last render state for avoide extra ogl state-change
-        if (_kcatch.render != Internal::KRM_VBO || _kcatch.lastBufId != Buffer.getID()){
-            Buffer.bind();
-            DGL_CALL(glVertexPointer(2, GL_FLOAT, sizeof(KVertex), KBUFFER_OFFSET(0)));
-            DGL_CALL(glTexCoordPointer(2, GL_FLOAT, sizeof(KVertex), KBUFFER_OFFSET(8)));
-            DGL_CALL(glColorPointer(4, GL_FLOAT, sizeof(KVertex), KBUFFER_OFFSET(16)));
-            _kcatch.render = Internal::KRM_VBO;
-            _kcatch.lastBufId = Buffer.getID();
+    void KGL2DRender::setVertexBuffer(const Kite::KVertexBuffer *Buffer){
+        if (Buffer != 0){
+            // check last render state for avoide extra ogl state-change
+            if (_kcatch.render != Internal::KRM_VBO || _kcatch.lastBufId != Buffer->getID()){
+                Buffer->bind();
+
+                // vertex coordinate (x,y)
+                DGL_CALL(glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(KVertex), KBUFFER_OFFSET(0)));
+                //DGL_CALL(glVertexPointer(2, GL_FLOAT, sizeof(KVertex), KBUFFER_OFFSET(0)));
+
+                // texture coordinate (u,v)
+                DGL_CALL(glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(KVertex), KBUFFER_OFFSET(8)));
+                //DGL_CALL(glTexCoordPointer(2, GL_FLOAT, sizeof(KVertex), KBUFFER_OFFSET(8)));
+
+                // color component (r,g,b,a)
+                DGL_CALL(glVertexAttribPointer(2, 4, GL_FLOAT, GL_FALSE, sizeof(KVertex), KBUFFER_OFFSET(16)));
+                //DGL_CALL(glColorPointer(4, GL_FLOAT, sizeof(KVertex), KBUFFER_OFFSET(16)));
+
+                _kcatch.render = Internal::KRM_VBO;
+                _kcatch.lastBufId = Buffer->getID();
+                _kbuffer = Buffer;
+            }
+        }else{
+            KVertexBuffer::unbind();
+            _kcatch.lastBufId = 0;
+            _kbuffer = 0;
         }
     }
 
@@ -135,14 +168,31 @@ namespace Kite{
                               (GLclampf)((F32)Color.a/255.0f)));
     }
 
-    void KGL2DRender::setPointsOption(const KPointOption &Option){
-        DGL_CALL(glPointSize(Option.size));
-        switch (Option.drawTypes) {
-        case KPD_SMOOTH:
-            DGL_CALL(glEnable(GL_POINT_SMOOTH));
+    void KGL2DRender::setLPOptions(KGeoPrimitiveTypes Type, const KLPOption &Options){
+        switch (Type){
+        // Line
+        case KGP_LINES:
+            if (Options.filter == KFD_ALIASED){
+                DGL_CALL(glDisable(GL_LINE_SMOOTH));
+            }else if (Options.filter == KFD_SMOOTH){
+                DGL_CALL(glEnable(GL_LINE_SMOOTH));
+            }
+            DGL_CALL(glLineWidth(Options.size));
             break;
+
+        // Point
+        case KGP_POINTS:
+            if (Options.filter == KFD_ALIASED){
+                DGL_CALL(glDisable(GL_POINT_SMOOTH));
+            }else if (Options.filter == KFD_SMOOTH){
+                DGL_CALL(glEnable(GL_POINT_SMOOTH));
+            }
+            DGL_CALL(glPointSize(Options.size));
+            break;
+
+        // invalid ...
         default:
-            DGL_CALL(glDisable(GL_POINT_SMOOTH));
+            KDEBUG_PRINT("invalid type");
             break;
         }
     }
@@ -154,32 +204,46 @@ namespace Kite{
                             _kcurrentCam->getViewport().width,
                             _kcurrentCam->getViewport().height));
 
-        DGL_CALL(glMatrixMode(GL_PROJECTION));
-        DGL_CALL(glLoadMatrixf(_kcurrentCam->getTransform().getMatrix()));
+        //DGL_CALL(glMatrixMode(GL_PROJECTION));
+        //DGL_CALL(glLoadMatrixf(_kcurrentCam->getTransform().getMatrix()));
 
         // Go back to model-view mode
-        DGL_CALL(glMatrixMode(GL_MODELVIEW));
+        //DGL_CALL(glMatrixMode(GL_MODELVIEW));
 
     }
 
-    void KGL2DRender::setTexture(const KTexture &Texture){
-        if (_kcatch.lastTexId != Texture.getID()){
-            Texture.bind();
-            _kcatch.lastTexId = Texture.getID();
+    void KGL2DRender::setTexture(const Kite::KTexture *Texture){
+        if (Texture != 0){
+            if (_kcatch.lastTexId != Texture->getID()){
+                Texture->bind();
+                _kcatch.lastTexId = Texture->getID();
+                _ktexture = Texture;
+            }
+        }else{
+            KTexture::unbind();
+            _kcatch.lastTexId = 0;
+            _ktexture = 0;
         }
     }
 
-    void KGL2DRender::setSheader(const Kite::KShader &Sheader){
-        if (_kcatch.lastShId != Sheader.getID()){
-            Sheader.bind();
-            _kcatch.lastShId = Sheader.getID();
+    void KGL2DRender::setShader(const Kite::KShader *Shader){
+        if (Shader != 0){
+            if (_kcatch.lastShId != Shader->getID()){
+                Shader->bind();
+                _kshader = Shader;
+                _kcatch.lastShId = Shader->getID();
+            }
+        }else{
+            KShader::unbind();
+            _kcatch.lastShId = 0;
+            _kshader = 0;
         }
     }
 
-    void KGL2DRender::setTransform(const KTransform &Transform){
-        // it is always the GL_MODELVIEW
-        DGL_CALL(glLoadMatrixf(Transform.getMatrix()));
-    }
+//    void KGL2DRender::setTransform(const KTransform &Transform){
+//        // it is always the GL_MODELVIEW
+
+//    }
 
     std::string KGL2DRender::getRendererName(){
         return "Kite2D Fixed (default) 2D Renderer.";

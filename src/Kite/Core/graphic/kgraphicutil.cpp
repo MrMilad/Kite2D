@@ -32,6 +32,12 @@ namespace Kite{
         return (I32)maxUnits;
     }
 
+    I32 getMaximumVertexAttrib(){
+        GLint maxVertAttr;
+        DGL_CALL(glGetIntegerv(GL_MAX_VERTEX_ATTRIBS, &maxVertAttr));
+        return (I32)maxVertAttr;
+    }
+
     bool isShaderAvailable(){
         return GLEW_ARB_shading_language_100 &&
                GLEW_ARB_shader_objects       &&

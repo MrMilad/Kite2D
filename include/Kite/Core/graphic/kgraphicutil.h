@@ -28,6 +28,9 @@ extern "C" { KITE_FUNC_EXPORT I32 getMaximumTextureSize(); }
 /// maximum number of supported texture units
 extern "C" { KITE_FUNC_EXPORT I32 getMaximumTextureUnit(); }
 
+/// maximum number of supported vertex attributes
+extern "C" { KITE_FUNC_EXPORT I32 getMaximumVertexAttrib(); }
+
 /// check availability of opengl shader programs
 extern "C" { KITE_FUNC_EXPORT bool isShaderAvailable(); }
 

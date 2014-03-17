@@ -26,25 +26,6 @@
 namespace Kite{
 namespace Internal{
     class Window : KNonCopyable{
-    private:
-        static LRESULT WINAPI _WinProc( HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam );
-		static bool _kcontinueLoop;
-        HWND _kwindowHandle;
-        HINSTANCE _kinstance;
-        KWindowState _kwinState;
-        bool _kisActiveWin;
-        bool _kisOpen;
-        wchar_t _kclassName[14];
-        unsigned int  _kextraW, _kextraH;
-
-        // callbacks
-        KCallWinSizeChange *_kcallWinSizeChange;
-        KCallWinPositionChange *_kcallWinPosChange;
-        KCallWinFocusChange *_kcallWinFocusChange;
-        KCallWinClose *_kcallWinClose;
-
-        static unsigned int  _kclassCounter;
-        static Window *_klastActiveWin;
 	public:
 		Window();
 		virtual ~Window();
@@ -81,6 +62,26 @@ namespace Internal{
 		inline const KWindowState &getWindowState() const { return _kwinState; }
 		inline bool isOpen() const { return _kisOpen; }
 		inline bool isParrentWindow() const { return _kisActiveWin; } // used in multyple window creation
+
+    private:
+        static LRESULT WINAPI _WinProc( HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam );
+        static bool _kcontinueLoop;
+        HWND _kwindowHandle;
+        HINSTANCE _kinstance;
+        KWindowState _kwinState;
+        bool _kisActiveWin;
+        bool _kisOpen;
+        wchar_t _kclassName[14];
+        unsigned int  _kextraW, _kextraH;
+
+        // callbacks
+        KCallWinSizeChange *_kcallWinSizeChange;
+        KCallWinPositionChange *_kcallWinPosChange;
+        KCallWinFocusChange *_kcallWinFocusChange;
+        KCallWinClose *_kcallWinClose;
+
+        static unsigned int  _kclassCounter;
+        static Window *_klastActiveWin;
     };
 }
 }

@@ -46,11 +46,11 @@ namespace Kite{
 
         // disable unnecessary things
         DGL_CALL(glDisable(GL_DEPTH_TEST));
-        DGL_CALL(glDisable(GL_LIGHTING));
-        DGL_CALL(glDisable(GL_ALPHA_TEST));
+        // DGL_CALL(glDisable(GL_LIGHTING)); // deprecated
+        // DGL_CALL(glDisable(GL_ALPHA_TEST)); // deprecated
 
         // enable texture and blend
-        DGL_CALL(glEnable(GL_TEXTURE_2D));
+        //DGL_CALL(glEnable(GL_TEXTURE_2D)); // deprecated
         DGL_CALL(glEnable(GL_BLEND));
         DGL_CALL(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
 
@@ -66,9 +66,6 @@ namespace Kite{
         // attribute buffer : color (r,g,b,a)
         DGL_CALL(glEnableVertexAttribArray(2));
 
-//        DGL_CALL(glEnableClientState(GL_VERTEX_ARRAY));
-//        DGL_CALL(glEnableClientState(GL_TEXTURE_COORD_ARRAY));
-//        DGL_CALL(glEnableClientState(GL_COLOR_ARRAY));
         return true;
      }
 
@@ -140,11 +137,6 @@ namespace Kite{
             _kcatch.lastBufId = 0;
             _kbuffer = 0;
         }
-    }
-
-    void KGL2DRender::setTextureEnv(KTextureEnvMode Mode){
-        int envPar[] = {GL_ADD, GL_MODULATE, GL_DECAL, GL_BLEND, GL_REPLACE, GL_COMBINE};
-        DGL_CALL(glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, envPar[Mode]));
     }
 
     void KGL2DRender::setPointSprite(bool PointSprite){

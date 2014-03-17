@@ -26,7 +26,7 @@
 
 namespace Kite{
 namespace Internal{
-    class MWindow;
+    class GLWindow;
 }
     class KITE_FUNC_EXPORT KGLMWindow : KNonCopyable{
     public:
@@ -65,7 +65,7 @@ namespace Internal{
         void unregisterCallback(KWindowCallbackTypes CallbackType);
 
     private:
-        Internal::MWindow *_kimpl; // platform-specific implementation
+        Internal::GLWindow *_kimpl; // platform-specific implementation
         KWindowState _kwinstate;
     };
 }

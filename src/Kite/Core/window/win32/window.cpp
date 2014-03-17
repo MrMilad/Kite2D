@@ -192,12 +192,13 @@ namespace Internal{
     }
 
     void Window::close(){
-        // if this window is active window
-        if (this->_kwindowHandle)
+        if (this->_kwindowHandle){
             DestroyWindow(this->_kwindowHandle);
+            _kwindowHandle = 0;
+        }
         if (this->_kinstance)
             UnregisterClassW(_kclassName, _kinstance);
-        _kwindowHandle = 0;
+
         if (this == _klastActiveWin){
             _kcontinueLoop = false;
             _klastActiveWin = 0;

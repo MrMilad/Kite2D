@@ -21,7 +21,7 @@
 #include "windows.h"
 #include "WinGDI.h"
 #include "Kite/core/system/knoncopyable.h"
-#include "Kite/core/window/kwindowstructs.h"
+#include "src/Kite/core/window/win32/window.h"
 
 namespace Kite{
 namespace Internal{
@@ -30,9 +30,7 @@ namespace Internal{
         WGLContext();
         virtual ~WGLContext();
 
-        void bind(KWindowHandle WindowHandle,
-                  const KWindowState &WindowState,
-                  const WGLContext *ShareContext);
+        void bind(const Window &OpenWindow, const WGLContext *ShareContext);
         void unbind();
 
         inline void display(){
@@ -50,16 +48,13 @@ namespace Internal{
         static inline bool isAnyContext() {if (_kinsCounter > 0) return true; return false;}
 
     private:
-        static void _inite();
-        void _create();
+        void inite();
         const WGLContext *_ksharedContext;
-        KWindowState _kwinState;
         HGLRC _kcontext;
         HWND _khwnd;
         HDC _khdc;
         bool _kisActiveCon;
         bool _kisVSync;
-        static bool _kisInited;
         static unsigned int _kinsCounter;
     };
 }

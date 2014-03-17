@@ -51,8 +51,6 @@ namespace Kite{
         /// draw vbo (indexed)
         void draw(U32 Count, const std::vector<U32> &Indices, KGeoPrimitiveTypes Primitive);
 
-        void setTextureEnv(KTextureEnvMode Mode);
-
         /// point sprite
         void setPointSprite(bool PointSprite);
 

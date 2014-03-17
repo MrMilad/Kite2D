@@ -21,10 +21,9 @@ namespace Kite{
 namespace Internal{
 
     bool initeGLEW(){
-
         static bool isInit = false;
-        GLenum err = glewInit();
         if (isInit == false){
+            GLenum err = glewInit();
             if (err != GLEW_OK){
                 KDEBUG_PRINT("glewInit failed.");
                 KDEBUG_BREAK;

@@ -36,33 +36,12 @@ namespace Kite{
         }
     }
 
+    void KTexture::create(const Kite::KVector2U32 &Size, KTextureFilterTypes Filter, KTextureWrapTypes Wrap){
+        _create(0, Size, Filter, Wrap, *this);
+    }
+
     void KTexture::create(const KImage &Image, KTextureFilterTypes Filter, KTextureWrapTypes Wrap){
-        // generate texture
-        if (_ktexId <= 0)
-            DGL_CALL(glGenTextures(1, &_ktexId));
-
-        // save currently binded texture then bind our texture temporary
-        Internal::GLBindGuard guard(Internal::KBG_TEXTURE, _klastTexId);
-        DGL_CALL(glBindTexture(GL_TEXTURE_2D, _ktexId));
-
-        // fill texture with image pixel data
-        DGL_CALL(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, Image.getSize().x, Image.getSize().y,
-                     0, GL_RGBA, GL_UNSIGNED_BYTE, Image.getPixelsData()));
-
-        // save texture size
-        _ksize.x = Image.getSize().x;
-        _ksize.y = Image.getSize().y;
-
-        // setup texture parameters
-        int wrapType[] = {GL_REPEAT, GL_MIRRORED_REPEAT, GL_CLAMP_TO_EDGE};
-        DGL_CALL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, wrapType[Wrap]));
-        DGL_CALL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, wrapType[Wrap]));
-        _kwrap = Wrap;
-
-        int filterType[] = {GL_NEAREST, GL_LINEAR};
-        DGL_CALL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, filterType[Filter]));
-        DGL_CALL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, filterType[Filter]));
-        _kfilter = Filter;
+        _create(Image.getPixelsData(), Image.getSize(), Filter, Wrap, *this);
     }
 
     void KTexture::update(const KImage &Image, U32 XPos, U32 YPos){
@@ -134,6 +113,35 @@ namespace Kite{
         }else{
             KDEBUG_PRINT("texture is not created.");
         }
+    }
+
+    void KTexture::_create(const U8 *Data, const KVector2U32 &Size,
+                        KTextureFilterTypes Filter, KTextureWrapTypes Wrap, KTexture &Instance){
+        // re-generate texture
+        DGL_CALL(glDeleteTextures(1, &Instance._ktexId));
+        DGL_CALL(glGenTextures(1, &Instance._ktexId));
+
+        // save currently binded texture then bind our texture temporary
+        Internal::GLBindGuard guard(Internal::KBG_TEXTURE, _klastTexId);
+        DGL_CALL(glBindTexture(GL_TEXTURE_2D, Instance._ktexId));
+
+        // fill texture with image pixel data
+        DGL_CALL(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, Size.x, Size.y,
+                     0, GL_RGBA, GL_UNSIGNED_BYTE, Data));
+
+        // save texture size
+        Instance._ksize = Size;
+
+        // setup texture parameters
+        int wrapType[] = {GL_REPEAT, GL_MIRRORED_REPEAT, GL_CLAMP_TO_EDGE};
+        DGL_CALL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, wrapType[Wrap]));
+        DGL_CALL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, wrapType[Wrap]));
+        Instance._kwrap = Wrap;
+
+        int filterType[] = {GL_NEAREST, GL_LINEAR};
+        DGL_CALL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, filterType[Filter]));
+        DGL_CALL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, filterType[Filter]));
+        Instance._kfilter = Filter;
     }
 
 }

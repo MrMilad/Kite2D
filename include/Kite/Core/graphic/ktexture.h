@@ -31,7 +31,10 @@ namespace Kite{
         KTexture();
         ~KTexture();
 
-        /// create texture and load image pixels
+        /// create blank texture
+        void create(const KVector2U32 &Size ,KTextureFilterTypes Filter, KTextureWrapTypes Wrap);
+
+        /// create texture from image
         void create(const KImage &Image, KTextureFilterTypes Filter, KTextureWrapTypes Wrap);
 
         /// update whole or piece of texture with image
@@ -52,6 +55,8 @@ namespace Kite{
         void setWrap(KTextureWrapTypes Wrap);
 
     private:
+        static void _create(const U8 *Data, const KVector2U32 &Size,
+                            KTextureFilterTypes Filter, KTextureWrapTypes Wrap, KTexture &Instance);
         //U64 _kuid; // unique texture id (use in state catch)
         U32 _ktexId; // ogl texture name
         KTextureFilterTypes _kfilter; // texture interpolation

@@ -145,9 +145,12 @@ namespace Kite{
     }
 
     void KGLMWindow::open(){
-        // we need version 3.1
-        _kwinstate.oglMajor = 3;
-        _kwinstate.oglMinor = 1;
+        // we need version 3.3 (minimum)
+        if(_kwinstate.oglMajor < 3){
+            _kwinstate.oglMajor = 3;
+            if (_kwinstate.oglMinor < 3)
+                _kwinstate.oglMinor = 3;
+        }
 
         // open window then bind gl context
         _kimpl->_kwindow.open(_kwinstate);

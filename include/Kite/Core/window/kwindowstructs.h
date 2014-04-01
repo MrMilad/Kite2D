@@ -33,7 +33,7 @@ namespace Kite{
         KColorDepthTypes colorDepth;
 
         KWindowState(const std::wstring &Title = L"",
-                     U8 OGLMajorVer = 3, U8 OGLMinorVer = 1, // minimum version is 3.1
+                     U8 OGLMajorVer = 3, U8 OGLMinorVer = 3, // minimum version is 3.3
                      U32 Width = 200, U32 Height = 200,
                      I32 XPosition = 0, I32 YPosition = 0,
                      bool ShowCursor = true, bool Fullscreen = false,

@@ -23,6 +23,7 @@ namespace Internal{
     bool initeGLEW(){
         static bool isInit = false;
         if (isInit == false){
+            glewExperimental = GL_TRUE;
             GLenum err = glewInit();
             if (err != GLEW_OK){
                 KDEBUG_PRINT("glewInit failed.");
@@ -30,6 +31,13 @@ namespace Internal{
                 return false;
             }
         }
+
+        // free error queue just in case
+        GLenum OGLErrCode = glGetError();
+        while (OGLErrCode != GL_NO_ERROR){
+            OGLErrCode = glGetError();
+        }
+
         isInit = true;
         return true;
     }

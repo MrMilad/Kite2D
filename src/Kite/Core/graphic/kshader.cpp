@@ -35,18 +35,18 @@ namespace Kite{
 
     bool KShader::loadFile(const std::string &VertexFile, const std::string &FragmentFile){
         // first make sure that we can use shaders
-        if(!isShaderAvailable()){
-            KDEBUG_PRINT("shader is not available.")
-            return false;
-        }
+//        if(!isShaderAvailable()){
+//            KDEBUG_PRINT("shader is not available.")
+//            return false;
+//        }
 
         if (!VertexFile.empty() && !FragmentFile.empty()){
             std::vector<char> vertexSh;
             std::vector<char> fragmentSh;
 
             // read file content
-            readFile(VertexFile.c_str(), vertexSh);
-            readFile(FragmentFile.c_str(), fragmentSh);
+            _readFile(VertexFile.c_str(), vertexSh);
+            _readFile(FragmentFile.c_str(), fragmentSh);
 
             if (vertexSh.empty() || fragmentSh.empty()){
                 KDEBUG_PRINT("empty shader file.")
@@ -61,11 +61,11 @@ namespace Kite{
             _kprogram = glCreateProgramObjectARB();
 
             // create vertex shader object
-            if (!createShader(&vertexSh[0], KS_VERTEX))
+            if (!_createShader(&vertexSh[0], KS_VERTEX))
                 return false;
 
             // create fragment shader object
-            if (!createShader(&fragmentSh[0], KS_FRAGMENT))
+            if (!_createShader(&fragmentSh[0], KS_FRAGMENT))
                 return false;
 
             return true;
@@ -75,10 +75,10 @@ namespace Kite{
 
     bool KShader::loadMemory(const std::string &VertexCod, const std::string &FragmentCod){
         // first make sure that we can use shaders
-        if(!isShaderAvailable()){
-            KDEBUG_PRINT("shader is not available.")
-            return false;
-        }
+//        if(!isShaderAvailable()){
+//            KDEBUG_PRINT("shader is not available.")
+//            return false;
+//        }
 
         if (!VertexCod.empty() && !FragmentCod.empty()){
             // destroy the shader if it was already created
@@ -89,11 +89,11 @@ namespace Kite{
             _kprogram = glCreateProgramObjectARB();
 
             // create vertex shader object
-            if (!createShader(VertexCod.c_str(), KS_VERTEX))
+            if (!_createShader(VertexCod.c_str(), KS_VERTEX))
                 return false;
 
             // create fragment shader object
-            if (!createShader(FragmentCod.c_str(), KS_FRAGMENT))
+            if (!_createShader(FragmentCod.c_str(), KS_FRAGMENT))
                 return false;
 
             return true;
@@ -113,9 +113,10 @@ namespace Kite{
         DGL_CALL(glLinkProgramARB(_kprogram));
 
         // check the link log
-        GLint success;
-        DGL_CALL(glGetObjectParameterivARB(_kprogram, GL_OBJECT_LINK_STATUS_ARB, &success));
-        if (success == GL_FALSE){
+        GLint isLinked;
+        DGL_CALL(glGetProgramiv(_kprogram, GL_LINK_STATUS, (int *)&isLinked));
+        //DGL_CALL(glGetObjectParameterivARB(_kprogram, GL_OBJECT_LINK_STATUS_ARB, &success)); // old version
+        if (isLinked == GL_FALSE){
             KDEBUG_PRINT("Failed to link shader program.");
             DGL_CALL(glDeleteObjectARB(_kprogram));
             _kprogram = 0;
@@ -202,7 +203,7 @@ namespace Kite{
             DGL_CALL(glUseProgramObjectARB(_kprogram));
 
             // fill the texture units for sending them to shader
-            fillTextureUnits();
+            _fillTextureUnits();
 
             // bind the current texture
             if (_kcurrentTexture != -1)
@@ -215,7 +216,7 @@ namespace Kite{
         DGL_CALL(glUseProgramObjectARB(0));
     }
 
-    void KShader::readFile(const char *FileName, std::vector<char> &data){
+    void KShader::_readFile(const char *FileName, std::vector<char> &data){
 
         // open file in binary mode
         std::ifstream reader(FileName, std::ios_base::binary);
@@ -235,7 +236,7 @@ namespace Kite{
         data.push_back('\0');
     }
 
-    bool KShader::createShader(const char *ShaderCod, KShaderTypes ShaderType){
+    bool KShader::_createShader(const char *ShaderCod, KShaderTypes ShaderType){
 
         if (ShaderCod){
 
@@ -259,7 +260,11 @@ namespace Kite{
             GLint success;
             DGL_CALL(glGetObjectParameterivARB(shader, GL_OBJECT_COMPILE_STATUS_ARB, &success));
             if (success == GL_FALSE){
-                KDEBUG_PRINT("Failed to compile vertex shader.");
+                if  (ShaderType == KS_VERTEX){
+                    KDEBUG_PRINT("Failed to compile vertex shader.");
+                }else{
+                    KDEBUG_PRINT("Failed to compile fragment shader.");
+                }
 
                 // cleanup
                 DGL_CALL(glDeleteObjectARB(shader));
@@ -277,7 +282,7 @@ namespace Kite{
         return false;
     }
 
-    void KShader::fillTextureUnits() const{
+    void KShader::_fillTextureUnits() const{
         // iterate our texture table and setup texture units
         std::map<I32, const KTexture *>::const_iterator it = _ktextureTable.begin();
         for (std::size_t i = 0; i < _ktextureTable.size(); ++i){
@@ -290,5 +295,11 @@ namespace Kite{
 
         // finally we activate texture unit 0 again
         DGL_CALL(glActiveTextureARB(GL_TEXTURE0_ARB));
+    }
+
+    const std::string KShader::getShaderVersion(){
+        std::string ver;
+        ver.append((const char*)glGetString(GL_SHADING_LANGUAGE_VERSION));
+        return ver;
     }
 }

@@ -85,11 +85,12 @@ namespace Kite{
         static void unbind();
 
         inline U32 getID() const {return _kprogram;}
+        static const std::string getShaderVersion();
 
     private:
-        void readFile(const char *FileName, std::vector<char> &data);
-        bool createShader(const char *ShaderCod, KShaderTypes ShaderType);
-        void fillTextureUnits() const;
+        void _readFile(const char *FileName, std::vector<char> &data);
+        bool _createShader(const char *ShaderCod, KShaderTypes ShaderType);
+        void _fillTextureUnits() const;
 
         U32 _kprogram;
         std::map<I32, const KTexture *> _ktextureTable;

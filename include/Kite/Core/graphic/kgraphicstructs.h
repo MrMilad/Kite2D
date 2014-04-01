@@ -104,7 +104,7 @@ namespace Kite{
         U8 minor;
     };
 
-    typedef void (KCallVBUpdate)(KVertex *BufferData, U32 Size, void *Sender);
+    typedef void (KCallVBUpdate)(void *Data, U32 DataSize, void *Sender);
 
     struct KQuadAttrib{
         KVector2F32 buttomLeft;

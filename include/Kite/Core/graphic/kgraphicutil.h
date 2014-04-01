@@ -32,7 +32,7 @@ extern "C" { KITE_FUNC_EXPORT I32 getMaximumTextureUnit(); }
 extern "C" { KITE_FUNC_EXPORT I32 getMaximumVertexAttrib(); }
 
 /// check availability of opengl shader programs
-extern "C" { KITE_FUNC_EXPORT bool isShaderAvailable(); }
+//extern "C" { KITE_FUNC_EXPORT bool isShaderAvailable(); }
 
 }
 

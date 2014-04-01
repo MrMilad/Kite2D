@@ -22,16 +22,16 @@ namespace Kite{
     KQuad::KQuad():
         _kquadattr(),
         _kshader(0),
-        _ktextur(0),
+        _ktexture(0),
         _kpushed(false)
     {
         _kvertex.resize(4);
     }
 
-    KQuad::KQuad(const Kite::KQuadAttrib &QuadAttribute, const KShader *Shader,
+    KQuad::KQuad(const Kite::KQuadAttrib &QuadAttribute, KShader *Shader,
           const KTexture *Texture):
         _kquadattr(QuadAttribute),
-        _kshader(Shader), _ktextur(Texture),
+        _kshader(Shader), _ktexture(Texture),
         _kpushed(false)
     {
         _kvertex.resize(4);
@@ -41,7 +41,7 @@ namespace Kite{
         _kquadattr = QuadAttribute;
         if (_kpreVBuffer != 0 && _kpushed){
             // update vertex
-            updateVertex();
+            _updateVertex();
 
             // push
             _kpreVBuffer->updateVertex(_kvertex, _krange);
@@ -53,7 +53,7 @@ namespace Kite{
         if (_kpreVBuffer != 0){
             if (!_kpreVBuffer->getLock() && !_kpushed){
                 // update vertex
-                updateVertex();
+                _updateVertex();
 
                 // push
                 _kpreVBuffer->addVertex(_kvertex, _krange);
@@ -74,21 +74,25 @@ namespace Kite{
                 // set buffer
                 Renderer.setVertexBuffer(_kvbuffer);
 
-                // set texture
-                if(_ktextur)
-                    Renderer.setTexture(_ktextur);
-
                 // set shader
                 if(_kshader){
                     Renderer.setShader(_kshader);
 
+                    // set texture
+                    if(_ktexture){
+                        Renderer.setTexture(_ktexture);
+
+                        static I16 teLoc = _kshader->getUniformLocation("in_texture");
+                        _kshader->setParam(teLoc, *_ktexture);
+                    }
+
                     // set transform
-                    static I16 loc = _kshader->getUniformLocation("in_mv");
-                    _kshader->setParam(loc, this->getTransform());
+                    static I16 trLoc = _kshader->getUniformLocation("in_mv");
+                    _kshader->setParam(trLoc, this->getTransform());
                 }
 
                 // disable point sprite
-                Renderer.setPointSprite(false);
+                 Renderer.setPointSprite(false);
 
                 // draw
                 Renderer.draw(_krange.x, _krange.y, KGP_QUADS);
@@ -98,7 +102,7 @@ namespace Kite{
         }
     }
 
-    void KQuad::updateVertex(){
+    void KQuad::_updateVertex(){
         // buttom left
         _kvertex[0].x = _kquadattr.buttomLeft.x;
         _kvertex[0].y = _kquadattr.buttomLeft.y;

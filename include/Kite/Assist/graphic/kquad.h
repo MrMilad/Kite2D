@@ -32,18 +32,18 @@ namespace Kite{
     class KITE_FUNC_EXPORT KQuad : public KDrawable, public KBufferable, public KTransformable{
     public:
         KQuad();
-        KQuad(const KQuadAttrib &QuadAttribute, const KShader *Shader,const KTexture *Texture);
+        KQuad(const KQuadAttrib &QuadAttribute, KShader *Shader, const KTexture *Texture);
 
         //virtual ~KQuad();
 
         void setQuadAttribute(const KQuadAttrib &QuadAttribute);
         inline const KQuadAttrib *getQuadAttribute() const {return &_kquadattr;}
 
-        inline void setShader(const KShader *Shader) {_kshader = Shader;}
-        inline const KShader *getShader() const {return _kshader;}
+        inline void setShader(KShader *Shader) {_kshader = Shader;}
+        inline KShader *getShader() const {return _kshader;}
 
-        inline void setTexture(const KTexture *Texture) {_ktextur = Texture;}
-        inline const KTexture *getTexture() const {return _ktextur;}
+        inline void setTexture(const KTexture *Texture) {_ktexture = Texture;}
+        inline const KTexture *getTexture() const {return _ktexture;}
 
         /// push vertex data to pre vertex buffer
         void pushVertex();
@@ -52,10 +52,10 @@ namespace Kite{
         void draw(KGL2DRender &Renderer);
 
     private:
-        void updateVertex();
+        void _updateVertex();
         KQuadAttrib _kquadattr;
-        const KShader *_kshader;
-        const KTexture *_ktextur;
+        KShader *_kshader;
+        const KTexture *_ktexture;
 
         KVector2U32 _krange;
         std::vector<KVertex> _kvertex;

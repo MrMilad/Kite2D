@@ -25,10 +25,9 @@ namespace Kite{
         return (I32)size;
     }
 
-
     I32 getMaximumTextureUnit(){
         GLint maxUnits;
-        DGL_CALL(glGetIntegerv(GL_MAX_TEXTURE_COORDS_ARB, &maxUnits));
+        DGL_CALL(glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS, &maxUnits));
         return (I32)maxUnits;
     }
 
@@ -38,10 +37,12 @@ namespace Kite{
         return (I32)maxVertAttr;
     }
 
-    bool isShaderAvailable(){
-        return GLEW_ARB_shading_language_100 &&
-               GLEW_ARB_shader_objects       &&
-               GLEW_ARB_vertex_shader        &&
-               GLEW_ARB_fragment_shader;
-    }
+    // not work with gl 3.3 context
+//    bool isShaderAvailable(){
+//        return false;
+//        return GLEW_ARB_shading_language_100 &&
+//               GLEW_ARB_shader_objects       &&
+//               GLEW_ARB_vertex_shader        &&
+//               GLEW_ARB_fragment_shader;
+//    }
 }

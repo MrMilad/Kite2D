@@ -15,7 +15,7 @@
  You should have received a copy of the GNU General Public License
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#include "Kite/Core/window/win32/glwindow.h"
+#include "src/Kite/Core/window/win32/glwindow.h"
 
 namespace Kite{
 namespace Internal{

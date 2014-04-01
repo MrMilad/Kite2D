@@ -59,9 +59,11 @@ namespace Kite{
         KGP_TRIANGLES,
         KGP_TRIANGLE_STRIP,
         KGP_TRIANGLE_FAN,
-        KGP_QUADS,
-        KGP_QUAD_STRIP,
-        KGP_POLYGON
+        KGP_POLYGON,
+        KGP_LINE_STRIP_ADJACENCY,
+        KGP_LINES_ADJACENCY,
+        KGP_TRIANGLE_STRIP_ADJACENCY,
+        KGP_TRIANGLES_ADJACENCY
     };
 
     enum KFilteringDrawTypes{

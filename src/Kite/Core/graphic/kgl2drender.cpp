@@ -20,19 +20,27 @@
 
 namespace Kite{
 
+    // gl geometric types
+    const U32 KGL2DRender::geoTypes[] = {GL_POINTS, GL_LINES,
+                                    GL_LINE_STRIP, GL_LINE_LOOP,
+                                    GL_TRIANGLES, GL_TRIANGLE_STRIP,
+                                    GL_TRIANGLE_FAN, GL_LINE_STRIP_ADJACENCY,
+                                    GL_LINES_ADJACENCY, GL_TRIANGLE_STRIP_ADJACENCY,
+                                    GL_TRIANGLES_ADJACENCY};
+
     KGL2DRender::KGL2DRender():
       _kshader(0),
       _kbuffer(0),
       _ktexture(0),
-      _kcurrentCam(&_kdefaultCam),
+      _kviewport(),
       _kgeoType(KGP_POINTS)
     {}
 
-    KGL2DRender::KGL2DRender(const KCamera &Camera):
+    KGL2DRender::KGL2DRender(const Kite::KRectI32 &Viewport):
         _kshader(0),
         _kbuffer(0),
         _ktexture(0),
-        _kcurrentCam(&Camera),
+        _kviewport(Viewport),
         _kgeoType(KGP_POINTS)
     {}
 
@@ -44,18 +52,19 @@ namespace Kite{
             return false;
         }
 
-        // disable unnecessary things
         DGL_CALL(glDisable(GL_DEPTH_TEST));
-        // DGL_CALL(glDisable(GL_LIGHTING)); // deprecated
-        // DGL_CALL(glDisable(GL_ALPHA_TEST)); // deprecated
 
-        // enable texture and blend
-        //DGL_CALL(glEnable(GL_TEXTURE_2D)); // deprecated
+        // enable blend
         DGL_CALL(glEnable(GL_BLEND));
         DGL_CALL(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
 
         // initialize camera
         updateCamera();
+
+        // main vao
+        GLuint vao;
+        DGL_CALL(glGenVertexArrays(1, &vao));
+        DGL_CALL(glBindVertexArray(vao));
 
         // attribute buffer : vertices coordinate (x,y)
         DGL_CALL(glEnableVertexAttribArray(0));
@@ -75,12 +84,6 @@ namespace Kite{
 
 
     void KGL2DRender::draw(U32 FirstIndex, U32 Size, KGeoPrimitiveTypes Primitive){
-        // set geometric type
-        static const GLenum geoTypes[] = {GL_POINTS, GL_LINES,
-                                         GL_LINE_STRIP, GL_LINE_LOOP,
-                                         GL_TRIANGLES, GL_TRIANGLE_STRIP,
-                                         GL_TRIANGLE_FAN, GL_QUADS,
-                                         GL_QUAD_STRIP, GL_POLYGON};
         _kgeoType = Primitive;
         static GLenum type;
         type = geoTypes[_kgeoType];
@@ -90,17 +93,17 @@ namespace Kite{
             DGL_CALL(glDrawArrays(type, FirstIndex, Size));
     }
 
-    void KGL2DRender::draw(const KVector2U32 &Range, KGeoPrimitiveTypes Primitive){
-        draw(Range.x, Range.y, Primitive);
+    void KGL2DRender::draw(U32 FirstIndex, U32 Size, KGeoPrimitiveTypes Primitive, U32 InstanceCount){
+        _kgeoType = Primitive;
+        static GLenum type;
+        type = geoTypes[_kgeoType];
+
+        // draw buffer
+        if (_kcatch.lastBufId > 0 && _kcatch.lastShId > 0)
+            DGL_CALL(glDrawArraysInstanced(type, FirstIndex, Size, InstanceCount));
     }
 
-    void KGL2DRender::draw(U32 Count, const std::vector<Kite::U32> &Indices, KGeoPrimitiveTypes Primitive){
-        // set geometric type
-        static const GLenum geoTypes[] = {GL_POINTS, GL_LINES,
-                                         GL_LINE_STRIP, GL_LINE_LOOP,
-                                         GL_TRIANGLES, GL_TRIANGLE_STRIP,
-                                         GL_TRIANGLE_FAN, GL_QUADS,
-                                         GL_QUAD_STRIP, GL_POLYGON};
+    void KGL2DRender::draw(U32 Count, const std::vector<U32> &Indices, KGeoPrimitiveTypes Primitive){
         _kgeoType = Primitive;
         static GLenum type;
         type = geoTypes[_kgeoType];
@@ -108,6 +111,16 @@ namespace Kite{
         // draw buffer
         if (_kcatch.lastBufId > 0)
             DGL_CALL(glDrawElements(type, Count, GL_UNSIGNED_SHORT, &Indices[0]));
+    }
+
+    void KGL2DRender::draw(U32 Count, const std::vector<U32> &Indices, KGeoPrimitiveTypes Primitive, U32 InstanceCount){
+        _kgeoType = Primitive;
+        static GLenum type;
+        type = geoTypes[_kgeoType];
+
+        // draw buffer
+        if (_kcatch.lastBufId > 0)
+            DGL_CALL(glDrawElementsInstanced(type, Count, GL_UNSIGNED_SHORT, &Indices[0], InstanceCount));
     }
 
     void KGL2DRender::setVertexBuffer(const Kite::KVertexBuffer *Buffer){
@@ -140,17 +153,7 @@ namespace Kite{
     }
 
     void KGL2DRender::setPointSprite(bool PointSprite){
-        if (_kcatch.pointSpr != PointSprite){
-            if (PointSprite){
-                // enable point sprite
-                DGL_CALL(glEnable(GL_POINT_SPRITE));
-                DGL_CALL(glTexEnvi(GL_POINT_SPRITE, GL_COORD_REPLACE, GL_TRUE));
-                _kcatch.pointSpr = PointSprite;
-            }else{
-                DGL_CALL(glDisable(GL_POINT_SPRITE));
-                _kcatch.pointSpr = PointSprite;
-            }
-        }
+        _kcatch.pointSpr = PointSprite;
     }
 
     void KGL2DRender::setClearColor(const KColor &Color){
@@ -162,23 +165,13 @@ namespace Kite{
 
     void KGL2DRender::setLPOptions(KGeoPrimitiveTypes Type, const KLPOption &Options){
         switch (Type){
-        // Line
+        // line
         case KGP_LINES:
-            if (Options.filter == KFD_ALIASED){
-                DGL_CALL(glDisable(GL_LINE_SMOOTH));
-            }else if (Options.filter == KFD_SMOOTH){
-                DGL_CALL(glEnable(GL_LINE_SMOOTH));
-            }
             DGL_CALL(glLineWidth(Options.size));
             break;
 
-        // Point
+        // point
         case KGP_POINTS:
-            if (Options.filter == KFD_ALIASED){
-                DGL_CALL(glDisable(GL_POINT_SMOOTH));
-            }else if (Options.filter == KFD_SMOOTH){
-                DGL_CALL(glEnable(GL_POINT_SMOOTH));
-            }
             DGL_CALL(glPointSize(Options.size));
             break;
 
@@ -189,19 +182,12 @@ namespace Kite{
         }
     }
 
-    void KGL2DRender::updateCamera(){
-        // set viewport
-        DGL_CALL(glViewport(_kcurrentCam->getViewport().x,
-                            _kcurrentCam->getViewport().y,
-                            _kcurrentCam->getViewport().width,
-                            _kcurrentCam->getViewport().height));
-
-        //DGL_CALL(glMatrixMode(GL_PROJECTION));
-        //DGL_CALL(glLoadMatrixf(_kcurrentCam->getTransform().getMatrix()));
-
-        // Go back to model-view mode
-        //DGL_CALL(glMatrixMode(GL_MODELVIEW));
-
+    void KGL2DRender::setViewport(const KRectI32 &Viewport){
+        _kviewport = Viewpoert;
+        DGL_CALL(glViewport(_kviewport.x,
+                            _kviewport.y,
+                            _kviewport.width,
+                            _kviewport.height));
     }
 
     void KGL2DRender::setTexture(const Kite::KTexture *Texture){
@@ -231,11 +217,6 @@ namespace Kite{
             _kshader = 0;
         }
     }
-
-//    void KGL2DRender::setTransform(const KTransform &Transform){
-//        // it is always the GL_MODELVIEW
-
-//    }
 
     std::string KGL2DRender::getRendererName(){
         return "Kite2D Fixed (default) 2D Renderer.";

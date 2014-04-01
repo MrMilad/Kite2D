@@ -21,7 +21,6 @@
 #include "Kite/Core/system/ksystemdef.h"
 #include "Kite/Core/graphic/kgraphicdef.h"
 #include "Kite/Core/graphic/kglrender.h"
-#include "Kite/Core/graphic/kcamera.h"
 #include "Kite/Core/graphic/kgraphictypes.h"
 #include "Kite/Core/graphic/kgraphicstructs.h"
 #include "Kite/Core/graphic/kvertexbuffer.h"
@@ -33,7 +32,7 @@ namespace Kite{
     class KITE_FUNC_EXPORT KGL2DRender : public KGLRender{
     public:
         KGL2DRender();
-        KGL2DRender(const KCamera &Camera);
+        KGL2DRender(const KRectI32 &Viewport);
         ~KGL2DRender();
 
         /// initialize renderer
@@ -42,14 +41,17 @@ namespace Kite{
         /// clear the scene
         void clear();
 
-        /// draw vbo (ranged)
-        /// start: Range.x
-        /// lenght: Range.y
+        /// draw (range)
         void draw(U32 FirstIndex, U32 Size, KGeoPrimitiveTypes Primitive);
-        void draw(const KVector2U32 &Range, KGeoPrimitiveTypes Primitive);
 
-        /// draw vbo (indexed)
+        /// draw instanced (range)
+        void draw(U32 FirstIndex, U32 Size, KGeoPrimitiveTypes Primitive, U32 InstanceCount);
+
+        /// draw (index)
         void draw(U32 Count, const std::vector<U32> &Indices, KGeoPrimitiveTypes Primitive);
+
+        /// draw instanced (index)
+        void draw(U32 Count, const std::vector<U32> &Indices, KGeoPrimitiveTypes Primitive, U32 InstanceCount);
 
         /// point sprite
         void setPointSprite(bool PointSprite);
@@ -61,10 +63,9 @@ namespace Kite{
         /// only KGP_POINTS and KGP_LINES is valid for type
         void setLPOptions(KGeoPrimitiveTypes Type, const KLPOption &Options);
 
-        /// 2D camera
-        inline void setCamera(const KCamera &Camera) {_kcurrentCam = &Camera;}
-        void updateCamera();
-
+        /// viewport
+        void setViewport(const KRectI32 &Viewport);
+        inline KRectI32 getViewport() const {return _kviewport;}
 
         /// set vertex buffer
         void setVertexBuffer(const KVertexBuffer *Buffer);
@@ -80,20 +81,19 @@ namespace Kite{
         void setTexture(const KTexture *Texture);
         inline const KTexture *getTexture() const {return _ktexture;}
 
-        //void setTransform(const KTransform &Transform);
-//        void setBlendMode(KBlendMode BlendMode);
+        inline KGeoPrimitiveTypes getGeoType() const {return _kgeoType;}
 
-        //void unbindBuffers();
+//        void setBlendMode(KBlendMode BlendMode);
 
         virtual std::string getRendererName();
         virtual KRendererFlags getRendererFlag();
 
     private:
+        static const U32 geoTypes[11];
         const KShader *_kshader;
         const KVertexBuffer *_kbuffer;
         const KTexture *_ktexture;
-        const KCamera _kdefaultCam;
-        const KCamera *_kcurrentCam;
+        const KRectI32 _kviewport;
         KGeoPrimitiveTypes _kgeoType;
         Kite::Internal::KCatchState _kcatch;
     };

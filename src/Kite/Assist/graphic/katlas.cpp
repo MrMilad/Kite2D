@@ -20,21 +20,9 @@
 #include <cstring>
 
 namespace Kite{
-    KAtlas::KAtlas():
-        _kobjects(0),
-        _ksize(0)
-    {}
-    KAtlas::~KAtlas(){
-        if (_kobjects != 0)
-            delete[] _kobjects;
-    }
-
-    bool KAtlas::loadFile(const std::string &FileName){
-        if (_kobjects != 0){
-            delete[]  _kobjects;
-            _kobjects = NULL;
-            _ksize = 0;
-        }
+    bool KAtlas::loadFile(const std::string &FileName, std::vector<KAtlasObject> &Objects){
+        // just in case
+        Objects.clear();
 
         // open file
         FILE *file = fopen(FileName.c_str(), "r");
@@ -54,17 +42,16 @@ namespace Kite{
                 // check file format
                 if (strcmp(header.format, "katlas\0") == 0){
 
-
                     // check size of atlas objects
                     if (header.objCount > 0){
 
                         // allocate enough size
-                        _kobjects = new KAtlasObject[header.objCount];
+                        KAtlasObject *objArr = new KAtlasObject[header.objCount];
 
                         // read atlas objects
-                        rsize = fread(_kobjects, sizeof(KAtlasObject), header.objCount, file);
+                        rsize = fread(objArr, sizeof(KAtlasObject), header.objCount, file);
                             if (rsize == header.objCount){
-                                _ksize = header.objCount;
+                                Objects.assign(objArr, objArr + header.objCount);
                                 fclose(file);
                                 return true;
                             }
@@ -102,13 +89,5 @@ namespace Kite{
 
         fwrite(&Objects[0], sizeof(KAtlasObject), Objects.size(), file);
         fclose(file);
-    }
-
-    KAtlasObject KAtlas::getObject(U32 ID) const{
-        if (ID < this->getSize()){
-            return _kobjects[ID];
-        }
-        KAtlasObject temp;
-        return temp;
     }
 }

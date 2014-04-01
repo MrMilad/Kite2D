@@ -37,13 +37,13 @@ namespace Kite{
         }
     }
 
-    void KVertexBuffer::create(const KVertex *VertexArray, U32 ArrayLenght, KVertexBufferTypes BufferType){
+    void KVertexBuffer::create(const void *Data, U32 DataSize, KVertexBufferTypes BufferType){
         // generate buffer
         if (_kbufId <= 0)
             DGL_CALL(glGenBuffers(1, &_kbufId));
 
         // check array pointer and size of array
-        if (VertexArray != 0 && ArrayLenght > 0){
+        if (Data != 0 && DataSize > 0){
 
             // save currently binded buffer then bind our buffer temporary
             Internal::GLBindGuard bindGuard(Internal::KBG_BUFFER, _klastBufId);
@@ -51,15 +51,15 @@ namespace Kite{
 
             // fill buffer with vertex data
             int dataHint[] = {GL_STATIC_DRAW, GL_DYNAMIC_DRAW, GL_STREAM_DRAW};
-            DGL_CALL(glBufferData(GL_ARRAY_BUFFER_ARB, sizeof(KVertex)*ArrayLenght,
-                                  (const void *) &VertexArray[0].x, dataHint[BufferType]));
+            DGL_CALL(glBufferData(GL_ARRAY_BUFFER_ARB, DataSize,
+                                  (const GLvoid *)Data, dataHint[BufferType]));
 
             _kbufType = BufferType;
-            _karrLen = ArrayLenght;
+            _karrLen = DataSize;
         }
     }
 
-    void KVertexBuffer::update(KMapAccessTypes AccessType, void *Sender){
+    void KVertexBuffer::update(void *Sender){
         // check update handle and buffer
         if (_kupdateHnd && _kbufId > 0){
 
@@ -68,11 +68,10 @@ namespace Kite{
             DGL_CALL(glBindBuffer(GL_ARRAY_BUFFER_ARB, _kbufId));
 
             // map buffer
-            int accType[] = {GL_READ_ONLY_ARB, GL_WRITE_ONLY_ARB, GL_READ_WRITE_ARB};
-            void *dataPtr = DGL_CALL(glMapBuffer(GL_ARRAY_BUFFER_ARB, accType[AccessType]));
+            void *dataPtr = DGL_CALL(glMapBuffer(GL_ARRAY_BUFFER_ARB, GL_WRITE_ONLY_ARB));
 
             // call update handle
-            (*_kupdateHnd)((KVertex *)dataPtr, _karrLen, Sender);
+            (*_kupdateHnd)(dataPtr, _karrLen, Sender);
 
             // unmap buffer
             DGL_CALL(glUnmapBuffer(GL_ARRAY_BUFFER_ARB));
@@ -82,7 +81,38 @@ namespace Kite{
         }
     }
 
-    void KVertexBuffer::update(U64 Offset, U64 Size, const KVertex *Data){
+    void KVertexBuffer::update(U64 Offset, U64 Size, bool Discarded, void *Sender){
+        // check update handle and buffer
+        if (_kupdateHnd && _kbufId > 0){
+
+            // save currently binded buffer then bind our buffer temporary
+            Internal::GLBindGuard bindGuard(Internal::KBG_BUFFER, _klastBufId);
+            DGL_CALL(glBindBuffer(GL_ARRAY_BUFFER_ARB, _kbufId));
+
+            // discarded (streaming purpose only)
+            GLbitfield acc;
+            if (Discarded){
+                acc =   GL_MAP_WRITE_BIT | GL_MAP_FLUSH_EXPLICIT_BIT |
+                        GL_MAP_UNSYNCHRONIZED_BIT | GL_MAP_INVALIDATE_RANGE_BIT;
+            }else{
+                acc =   GL_MAP_WRITE_BIT | GL_MAP_FLUSH_EXPLICIT_BIT;
+            }
+
+            // map a section of buffer
+            void *dataPtr = DGL_CALL(glMapBufferRange(GL_ARRAY_BUFFER_ARB, Offset, Size, acc));
+
+            // call update handle
+            (*_kupdateHnd)(dataPtr, Size, Sender);
+
+            // unmap buffer
+            DGL_CALL(glFlushMappedBufferRange(GL_ARRAY_BUFFER_ARB, Offset, Size));
+
+        }else{
+            KDEBUG_PRINT("buffer is not created or update handle not set yet.");
+        }
+    }
+
+    void KVertexBuffer::update(U64 Offset, U64 Size, const void *Data){
         if (_kbufId > 0){
 
             // save currently binded buffer then bind our buffer temporary
@@ -90,8 +120,8 @@ namespace Kite{
             DGL_CALL(glBindBuffer(GL_ARRAY_BUFFER_ARB, _kbufId));
 
             // replace data
-            DGL_CALL(glBufferSubData(GL_ARRAY_BUFFER_ARB, (GLintptr)(sizeof(KVertex)*Offset),
-                                     (GLsizeiptr)(sizeof(KVertex)*Size), (void *)Data));
+            DGL_CALL(glBufferSubData(GL_ARRAY_BUFFER_ARB, (GLintptr)Offset,
+                                     (GLsizeiptr)Size, Data));
         }
     }
 

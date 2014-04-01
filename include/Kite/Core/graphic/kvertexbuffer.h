@@ -31,20 +31,29 @@ namespace Kite{
         ~KVertexBuffer();
 
         /// create buffer
-        void create(const KVertex *VertexArray, U32 ArrayLenght, KVertexBufferTypes BufferType);
+        /// DataSize: sizeof(DataType) * DataArrayLenght
+        void create(const void *Data, U32 DataSize, KVertexBufferTypes BufferType);
 
         /// update buffer.
         /// map entire set of data in memory
-        /// and send its pointer to handle.
+        /// and send its pointer to handle function.
         /// inefficeint if you have a large buffer
         /// and need to update a small portion of the values.
-        void update(KMapAccessTypes AccessType, void *Sender);
+        void update(void *Sender);
+
+        /// update buffer.
+        /// map a section of data in memory
+        /// and send its pointer to handle function.
+        /// Offset = sizeof(DataType) * Offset
+        /// Size = sizeof(DataType) * DataArrayLenght
+        /// best methode for streaming buffer
+        void update(U64 Offset, U64 Size, bool Discarded, void *Sender);
 
         /// update buffer.
         /// replace some subset of the data with new data.
-        /// Offset = sizeof(KVertext) * Offset
-        /// Size = sizeof(KVertext) * Size
-        void update(U64 Offset, U64 Size, const KVertex *Data);
+        /// Offset = sizeof(DataType) * Offset
+        /// Size = sizeof(DataType) * DataArrayLenght
+        void update(U64 Offset, U64 Size, const void *Data);
 
         /// bind buffer.
         /// (handle autimatic by internal render system)

@@ -58,8 +58,8 @@ namespace Kite{
         DGL_CALL(glEnable(GL_BLEND));
         DGL_CALL(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
 
-        // initialize camera
-        updateCamera();
+        // initialize viewport
+        setViewport(_kviewport);
 
         // main vao
         GLuint vao;
@@ -130,16 +130,13 @@ namespace Kite{
                 Buffer->bind();
 
                 // vertex coordinate (x,y)
-                DGL_CALL(glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(KVertex), KBUFFER_OFFSET(0)));
-                //DGL_CALL(glVertexPointer(2, GL_FLOAT, sizeof(KVertex), KBUFFER_OFFSET(0)));
+                DGL_CALL(glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(KVBPack1), KBUFFER_OFFSET(0)));
 
                 // texture coordinate (u,v)
-                DGL_CALL(glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(KVertex), KBUFFER_OFFSET(8)));
-                //DGL_CALL(glTexCoordPointer(2, GL_FLOAT, sizeof(KVertex), KBUFFER_OFFSET(8)));
+                DGL_CALL(glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(KVBPack1), KBUFFER_OFFSET(8)));
 
                 // color component (r,g,b,a)
-                DGL_CALL(glVertexAttribPointer(2, 4, GL_FLOAT, GL_FALSE, sizeof(KVertex), KBUFFER_OFFSET(16)));
-                //DGL_CALL(glColorPointer(4, GL_FLOAT, sizeof(KVertex), KBUFFER_OFFSET(16)));
+                DGL_CALL(glVertexAttribPointer(2, 4, GL_FLOAT, GL_FALSE, sizeof(KVBPack1), KBUFFER_OFFSET(16)));
 
                 _kcatch.render = Internal::KRM_VBO;
                 _kcatch.lastBufId = Buffer->getID();
@@ -183,7 +180,7 @@ namespace Kite{
     }
 
     void KGL2DRender::setViewport(const KRectI32 &Viewport){
-        _kviewport = Viewpoert;
+        _kviewport = Viewport;
         DGL_CALL(glViewport(_kviewport.x,
                             _kviewport.y,
                             _kviewport.width,

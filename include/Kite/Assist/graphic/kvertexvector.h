@@ -40,7 +40,7 @@ namespace Kite{
         /// output: Range
         /// start: Range.x
         /// lenght: Range.y
-        void addVertex(const std::vector<KVertex> &Vertex, KVector2U32 &Range);
+        void addVertex(const std::vector<KVBPack1> &Vertex, KVector2U32 &Range);
 
         /// change stored vertex data
         //void changeVertex(const std::vector<KVertex> &NewVertex, const std::vector<U32> &Index);
@@ -48,7 +48,7 @@ namespace Kite{
         /// update stored vertex data
         /// start: Range.x
         /// lenght: Range.y
-        void updateVertex(const std::vector<KVertex> &NewVertex, const KVector2U32 &Range);
+        void updateVertex(const std::vector<KVBPack1> &NewVertex, const KVector2U32 &Range);
 
         /// lock buffer
         /// only update is valid with locked buffer
@@ -57,10 +57,10 @@ namespace Kite{
 
         /// get size of buffer
         inline U32 getSize() const {return _kdata.size();}
-        inline const KVertex *getVertex() const {if (_kdata.empty()) return 0; return &_kdata[0];}
+        inline const KVBPack1 *getVertex() const {if (_kdata.empty()) return 0; return &_kdata[0];}
 
     private:
-        std::vector<KVertex> _kdata;
+        std::vector<KVBPack1> _kdata;
         bool _klock;
     };
 }

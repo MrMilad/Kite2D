@@ -20,6 +20,7 @@
 
 #include "Kite/Assist/graphic/kdrawable.h"
 #include "Kite/Assist/graphic/ktransformable.h"
+#include "Kite/Assist/graphic/kcamera.h"
 #include "Kite/Assist/graphic/kvertexvector.h"
 #include "Kite/Assist/graphic/katlas.h"
 #include "Kite/Assist/graphic/kquad.h"

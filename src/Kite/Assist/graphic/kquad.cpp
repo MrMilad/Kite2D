@@ -95,7 +95,7 @@ namespace Kite{
                  Renderer.setPointSprite(false);
 
                 // draw
-                Renderer.draw(_krange.x, _krange.y, KGP_QUADS);
+                Renderer.draw(_krange.x, _krange.y, KGP_TRIANGLES);
             }
         }else{
             KDEBUG_PRINT("pre vertex buffer or vertex buffer not set yet.");

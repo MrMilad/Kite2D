@@ -19,18 +19,25 @@
 #define KJOYSTICK_H
 
 #include "Kite/Core/system/ksystemdef.h"
-#include "Kite/Core/input/kinputstructs.h"
-#include "Kite/Core/window/kwindowstructs.h"
+#include "Kite/Core/input/kinputtypes.h"
+#include <string>
+#include <vector>
 
 namespace Kite{
     class KITE_FUNC_EXPORT KJoystick{
     public:
-        KJoystick(KWindowHandle WindowHandle, bool Exclusive);
-        ~KJoystick();
 
-        const KJoystickInput *getInput(U8 JoystickID);
-        bool isInstalled() const;
-        U8 getCount() const;
+        /// returns the values of all axes
+        static const std::vector<F32> &getAxes(KJoystcikIDTypes JoystickID);
+
+        /// returns the state of all buttons
+        static const std::vector<U8> &getButtonsState(KJoystcikIDTypes JoystickID);
+
+        /// returns whether the specified joystick is present
+        static bool isInstalled(KJoystcikIDTypes JoystickID);
+
+        /// returns the name of the specified joystick
+        static std::string getName(KJoystcikIDTypes JoystickID);
     };
 }
 

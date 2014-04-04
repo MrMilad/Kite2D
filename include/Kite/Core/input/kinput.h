@@ -19,7 +19,6 @@
 #define KINPUT_H
 
 #include "Kite/Core/input/kinputtypes.h"
-#include "Kite/Core/input/kinputstructs.h"
 #include "Kite/Core/input/kmouse.h"
 #include "Kite/Core/input/kkeyboard.h"
 #include "Kite/Core/input/kjoystick.h"

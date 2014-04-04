@@ -23,10 +23,10 @@
 #include "Kite/Core/graphic/kgraphicstructs.h"
 #include "Kite/Core/graphic/kglrender.h"
 #include "Kite/Core/graphic/kgl2drender.h"
-#include "Kite/Core/graphic/kcamera.h"
 #include "Kite/Core/graphic/kimage.h"
 #include "Kite/Core/graphic/ktexture.h"
 #include "Kite/Core/graphic/kvertexbuffer.h"
+#include "Kite/Core/graphic/kframebuffer.h"
 #include "Kite/Core/graphic/ktransform.h"
 #include "Kite/Core/graphic/kgraphicutil.h"
 

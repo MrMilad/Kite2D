@@ -15,35 +15,69 @@
  You should have received a copy of the GNU General Public License
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-
 #include "Kite/core/input/kmouse.h"
-
-#if defined (KITE_PLATFORM_WINDOWS)
-
-    #include "src/Kite/core/input/win32/input.h"
-
-#elif defined (KITE_PLATFORM_LINUX)
-
-
-#elif defined (KITE_PLATFORM_MACOS)
-
-
-#endif
+#include "src/Kite/Core/window/fwcall.h"
 
 namespace Kite{
-    void KMouse::setWindowHandle(KWindowHandle Window){
-        Internal::Input::setMouseWinHandle((HWND) Window);
+    KWindowHandle KMouse::_kwinHandle = 0;
+
+    Kite::KButtonStateTypes KMouse::getButtonState(KMouseButtonTypes Button){
+        return (KButtonStateTypes)glfwGetMouseButton((GLFWwindow *)_kwinHandle, Button);
     }
 
-    bool KMouse::isButtonPressed(KMouseButtonTypes Button){
-        return Internal::Input::getMouseButton(Button);
+    KVector2F64 KMouse::getPosition(){
+        KVector2F64 pos;
+        glfwGetCursorPos((GLFWwindow *)_kwinHandle, &pos.x, &pos.y);
+        return pos;
     }
 
-    KVector2IL32 KMouse::getMousePosition(KMousePositionTypes PositionType){
-        return Internal::Input::getMousePosition(PositionType);
+    void KMouse::setPosition(const KVector2F64 &Position){
+        glfwSetCursorPos((GLFWwindow *)_kwinHandle, Position.x, Position.y);
     }
 
-    bool KMouse::isInstalled(){
-        return Internal::Input::getEnumDevices()->mouse;
+    void KMouse::registerCallback(void *Callback, KMouseCallbackTypes CallbackType){
+        switch (CallbackType){
+        case KMC_MBUTTON:
+            glfwSetMouseButtonCallback((GLFWwindow *)_kwinHandle, (GLFWmousebuttonfun) Callback);
+            break;
+        case KMC_MENTER:
+            glfwSetCursorEnterCallback((GLFWwindow *)_kwinHandle, (GLFWcursorenterfun) Callback);
+            break;
+        case KMC_MPOSITION:
+            glfwSetCursorPosCallback((GLFWwindow *)_kwinHandle, (GLFWcursorposfun) Callback);
+            break;
+        case KMC_MSCROLL:
+            glfwSetScrollCallback((GLFWwindow *)_kwinHandle, (GLFWscrollfun) Callback);
+            break;
+        default:
+            KDEBUG_PRINT("invalid mouse callback type");
+            break;
+        }
+    }
+
+    void KMouse::unregisterCallback(Kite::KMouseCallbackTypes CallbackType){
+        switch (CallbackType){
+        case KMC_ALL:
+            glfwSetMouseButtonCallback((GLFWwindow *)_kwinHandle, 0);
+            glfwSetCursorEnterCallback((GLFWwindow *)_kwinHandle, 0);
+            glfwSetCursorPosCallback((GLFWwindow *)_kwinHandle, 0);
+            glfwSetScrollCallback((GLFWwindow *)_kwinHandle, 0);
+            break;
+        case KMC_MBUTTON:
+            glfwSetMouseButtonCallback((GLFWwindow *)_kwinHandle, 0);
+            break;
+        case KMC_MENTER:
+            glfwSetCursorEnterCallback((GLFWwindow *)_kwinHandle, 0);
+            break;
+        case KMC_MPOSITION:
+            glfwSetCursorPosCallback((GLFWwindow *)_kwinHandle, 0);
+            break;
+        case KMC_MSCROLL:
+            glfwSetScrollCallback((GLFWwindow *)_kwinHandle, 0);
+            break;
+        default:
+            KDEBUG_PRINT("invalid mouse callback type");
+            break;
+        }
     }
 }

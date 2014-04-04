@@ -93,7 +93,7 @@ namespace Kite{
         const KShader *_kshader;
         const KVertexBuffer *_kbuffer;
         const KTexture *_ktexture;
-        const KRectI32 _kviewport;
+        KRectI32 _kviewport;
         KGeoPrimitiveTypes _kgeoType;
         Kite::Internal::KCatchState _kcatch;
     };

@@ -59,7 +59,6 @@ namespace Kite{
         KGP_TRIANGLES,
         KGP_TRIANGLE_STRIP,
         KGP_TRIANGLE_FAN,
-        KGP_POLYGON,
         KGP_LINE_STRIP_ADJACENCY,
         KGP_LINES_ADJACENCY,
         KGP_TRIANGLE_STRIP_ADJACENCY,
@@ -159,8 +158,9 @@ namespace Kite{
     namespace Internal{
     enum KGLBindGuardTypes{
         KBG_NONE = 0,
-        KBG_TEXTURE,
-        KBG_BUFFER
+        KBG_TEXTURE, // texture
+        KBG_VBUFFER, // vertex buffer
+        KGB_PBUFFER  // frame buffer
     };
 
     enum KRenderMode{

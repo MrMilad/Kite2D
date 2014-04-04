@@ -16,46 +16,45 @@
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 #include "Kite/core/input/kjoystick.h"
-
-#if defined (KITE_PLATFORM_WINDOWS)
-
-    #include "src/Kite/core/input/win32/input.h"
-
-#elif defined (KITE_PLATFORM_LINUX)
-
-
-#elif defined (KITE_PLATFORM_MACOS)
-
-
-#endif
+#include "src/Kite/Core/window/fwcall.h"
 
 namespace Kite{
 
-    KJoystick::KJoystick(KWindowHandle WindowHandle, bool Exclusive){
-    #if defined (KITE_PLATFORM_WINDOWS)
-        Internal::Input::activeJoysticks(Exclusive, (HWND)WindowHandle);
-    #elif defined (KITE_PLATFORM_LINUX)
+    const std::vector<F32> &KJoystick::getAxes(KJoystcikIDTypes JoystickID){
+        int count = 0;
+        static std::vector<F32> axesArr;
+        axesArr.clear();
 
+        const F32 *axes = glfwGetJoystickAxes(JoystickID, &count);
 
-    #elif defined (KITE_PLATFORM_MACOS)
+        if (count)
+            axesArr.assign(axes, axes + count);
 
-
-    #endif
+        return axesArr;
     }
 
-    KJoystick::~KJoystick(){
-        Internal::Input::releaseJoysticks();
+    const std::vector<U8> &KJoystick::getButtonsState(KJoystcikIDTypes JoystickID){
+        int count = 0;
+        static std::vector<U8> buttArr;
+        buttArr.clear();
+
+        const U8 *buttons = glfwGetJoystickButtons(JoystickID, &count);
+
+        if (count)
+            buttArr.assign(buttons, buttons + count);
+
+        return buttArr;
     }
 
-    const KJoystickInput *KJoystick::getInput(U8 JoystickID){
-        return Internal::Input::getJoystickInput(JoystickID);
+    bool KJoystick::isInstalled(KJoystcikIDTypes JoystickID){
+        return glfwJoystickPresent(JoystickID);
     }
 
-    bool KJoystick::isInstalled() const{
-        return Internal::Input::getEnumDevices()->joystick;
+    std::string KJoystick::getName(KJoystcikIDTypes JoystickID){
+        std::string strName;
+        const char *name = glfwGetJoystickName(JoystickID);
+        strName.assign(name);
+        return strName;
     }
 
-    U8 KJoystick::getCount() const{
-        return Internal::Input::getEnumDevices()->joystickCount;
-    }
 }

@@ -15,33 +15,28 @@
  You should have received a copy of the GNU General Public License
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-/*  High Resolution Timer Class
-    Timer class provides timing and stopwatch features to the engine */
-
 #ifndef KTIMER_H
 #define KTIMER_H
 
 #include "Kite/core/system/ksystemdef.h"
 
 namespace Kite {
-namespace Internal{
-    class Timer;
-}
     class KITE_FUNC_EXPORT KTimer{
     public:
-        KTimer();                                // default constructor
-        ~KTimer();                               // default destructor
+        /// start timer
+        void start();
 
-        void start();                            // start timer
-        void stop();                             // stop the timer
+        /// stop the timer
+        void stop();
 
-        F64 getElapsedTimeInSec();               // get elapsed time in second
-        F64 getElapsedTimeInMilliSec();          // get elapsed time in milli-second
-        F64 getElapsedTimeInMicroSec();          // get elapsed time in micro-second
+        /// get elapsed time in second
+        F64 getElapsedTimeInSec();
+
+        /// set all timers to 0
+        static void resetAllTimers();
 
     private:
-
-        Internal::Timer *_kimpl; // platform-specific object
+        F64 _kdelta;
     };
 }
 #endif // KTIMER_H

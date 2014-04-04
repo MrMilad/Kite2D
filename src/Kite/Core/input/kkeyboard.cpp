@@ -15,29 +15,46 @@
  You should have received a copy of the GNU General Public License
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-
 #include "Kite/core/input/kkeyboard.h"
-
-#if defined (KITE_PLATFORM_WINDOWS)
-
-    #include "src/Kite/core/input/win32/input.h"
-
-#elif defined (KITE_PLATFORM_LINUX)
-
-
-#elif defined (KITE_PLATFORM_MACOS)
-
-
-#endif
+#include "src/Kite/Core/window/fwcall.h"
 
 namespace Kite{
+    KWindowHandle KKeyboard::_kwinHandle = 0;
 
-    bool KKeyboard::isButtonPressed(KKeyboardButtonTypes Button){
-        return Internal::Input::getKeyboardButton(Button);
+    KButtonStateTypes KKeyboard::getButtonState(Kite::KKeyboardKeyTypes Button){
+        return (KButtonStateTypes)glfwGetKey((GLFWwindow *)_kwinHandle, Button);
     }
 
-    bool KKeyboard::isInstalled(){
-        return Internal::Input::getEnumDevices()->keyboard;
+    void KKeyboard::registerCallback(void *Callback, KKeyboardCallbackTypes CallbackType){
+        switch (CallbackType){
+        case KKC_KEY:
+            glfwSetKeyCallback((GLFWwindow *)_kwinHandle, (GLFWkeyfun) Callback);
+            break;
+        case KKC_UNICODE:
+            glfwSetCharCallback((GLFWwindow *)_kwinHandle, (GLFWcharfun) Callback);
+            break;
+        default:
+            KDEBUG_PRINT("invalid keyboard callback type");
+            break;
+        }
+    }
+
+    void KKeyboard::unregisterCallback(KKeyboardCallbackTypes CallbackType){
+        switch (CallbackType){
+        case KKC_ALL:
+            glfwSetKeyCallback((GLFWwindow *)_kwinHandle, 0);
+            glfwSetCharCallback((GLFWwindow *)_kwinHandle, 0);
+            break;
+        case KKC_KEY:
+            glfwSetKeyCallback((GLFWwindow *)_kwinHandle, 0);
+            break;
+        case KKC_UNICODE:
+            glfwSetCharCallback((GLFWwindow *)_kwinHandle, 0);
+            break;
+        default:
+            KDEBUG_PRINT("invalid keyboard callback type");
+            break;
+        }
     }
 }
 

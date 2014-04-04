@@ -99,7 +99,7 @@ void cpuid(unsigned int CPUInfo[4],int InfoType){
     }
 
     U64 getUniqueNumber(){
-        static U16 id = 0;
+        static U64 id = 0;
         return ++id;
     }
 }

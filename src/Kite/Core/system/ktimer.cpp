@@ -17,42 +17,27 @@
 */
 #include "Kite/core/system/ksystemdef.h"
 #include "Kite/core/system/ktimer.h"
-
-#if defined(KITE_PLATFORM_WINDOWS)
-    #include "src/Kite/core/system/win32/timer.h"
-#else
-    #include "Kite/core/system/unix/timer.h"
-#endif
+#include "src/Kite/Core/window/fwcall.h"
 
 namespace Kite{
-
-    KTimer::KTimer():
-        _kimpl(new Internal::Timer())
-    {}
-
-    KTimer::~KTimer(){
-        delete _kimpl;
-    }
-
     void KTimer::start(){
-        _kimpl->start();
+        // initialize glfw
+        Internal::initeGLFW();
+
+        // get current time
+        _kdelta = glfwGetTime();
     }
 
     void KTimer::stop(){
-        _kimpl->stop();
+        F64 end = glfwGetTime();
+        _kdelta = end - _kdelta;
     }
 
     F64 KTimer::getElapsedTimeInSec(){
-        // divide elapsedTimeInMicroSec by 1000000
-        return _kimpl->getElapsedTimeInMicroSec() * 0.000001;
+        return (glfwGetTime() - _kdelta);
     }
 
-    F64 KTimer::getElapsedTimeInMilliSec(){
-        // divide elapsedTimeInMicroSec by 1000
-        return _kimpl->getElapsedTimeInMicroSec() * 0.001;
-    }
-
-    F64 KTimer::getElapsedTimeInMicroSec(){
-        return _kimpl->getElapsedTimeInMicroSec();
+    void KTimer::resetAllTimers(){
+        glfwSetTime(0.0);
     }
 }

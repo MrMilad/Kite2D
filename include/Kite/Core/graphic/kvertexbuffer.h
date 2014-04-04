@@ -30,9 +30,9 @@ namespace Kite{
         KVertexBuffer();
         ~KVertexBuffer();
 
-        /// create buffer
+        /// create vertex buffer
         /// DataSize: sizeof(DataType) * DataArrayLenght
-        void create(const void *Data, U32 DataSize, KVertexBufferTypes BufferType);
+        void fill(const void *Data, U32 DataSize, KVertexBufferTypes BufferType);
 
         /// update buffer.
         /// map entire set of data in memory

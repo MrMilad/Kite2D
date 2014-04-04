@@ -21,15 +21,30 @@
 #include "Kite/Core/system/ksystemdef.h"
 #include "Kite/Core/system/kvector2.h"
 #include "Kite/Core/input/kinputtypes.h"
-#include "Kite/Core/window/kwindowstructs.h"
 
 namespace Kite{
     class KITE_FUNC_EXPORT KMouse{
     public:
-        static void setWindowHandle(KWindowHandle Window);
-        static bool isButtonPressed(KMouseButtonTypes Button);
-        static KVector2IL32 getMousePosition(KMousePositionTypes PositionType);
-        static bool isInstalled();
+        /// set window handle
+        inline static void setWindowHandle(KWindowHandle Window) {_kwinHandle = Window;}
+
+        /// returns the last reported state of a mouse button
+        static KButtonStateTypes getButtonState(KMouseButtonTypes Button);
+
+        /// retrieves the last reported cursor position,
+        /// relative to the client area of the window
+        static KVector2F64 getPosition();
+
+        /// sets the position of the cursor,
+        /// relative to the client area of the window
+        static void setPosition(const KVector2F64 &Position);
+
+        /// input callbacks
+        static void registerCallback(void *Callback, KMouseCallbackTypes CallbackType);
+        static void unregisterCallback(KMouseCallbackTypes CallbackType);
+
+    private:
+        static KWindowHandle _kwinHandle;
     };
 }
 

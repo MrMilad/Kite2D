@@ -41,17 +41,19 @@ enum KAspectRatioTypes{
 
 /* Callbacks */
 enum KWindowCallbackTypes{
+    KWC_ALL = 0, // use only for unregistering callback
     KWC_SIZECHANGE,
     KWC_POSCHANGE,
     KWC_FOCUSCHANGE,
     KWC_CLOSE,
-    KWC_ALL // use only for unregistering callback
+    KWC_FBCHANGE, // frame buffer
 };
 
-typedef void (KCallWinSizeChange)(const U32 Width, const U32 Height);
-typedef void (KCallWinPositionChange)(const I32 Top, const I32 Left);
-typedef void (KCallWinFocusChange)(const bool Focus);
-typedef bool (KCallWinClose)(); // return false = close window
+typedef void (*KCallWinSizeChange)(KWindowHandle WinHandle, I32 Width, I32 Height);
+typedef void (*KCallWinPosChange)(KWindowHandle WinHandle, I32 Top, I32 Left);
+typedef void (*KCallWinFBChange)(KWindowHandle WinHandle, I32 Width, I32 Height);
+typedef void (*KCallWinFocusChange)(KWindowHandle WinHandle, bool Focus);
+typedef void (*KCallWinClose)(KWindowHandle WinHandle); // return false = close window
 
 }
 

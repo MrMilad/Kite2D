@@ -52,18 +52,61 @@ namespace Kite{
         {}
     };
 
-    struct KVertex{
+    /// position, texture, color
+    struct KVBPack1{
         F32 x,y;
         F32 u,v;
         F32 r,g,b,a;
 
-        KVertex(F32 X = -1.0, F32 Y = -1.0, F32 U = 0.0, F32 V = 0.0
+        KVBPack1(F32 X = -1.0, F32 Y = -1.0, F32 U = 0.0, F32 V = 0.0
                 , F32 R = 0.0, F32 G = 0.0, F32 B = 0.0, F32 A = 1.0):
             x(X), y(Y), u(U), v(V),
             r(R), g(G), b(B), a(A)
         {}
     };
 
+/*    /// position, texture
+    struct KVBPack2{
+        F32 x,y;
+        F32 u,v;
+
+        KVertex(F32 X = -1.0, F32 Y = -1.0, F32 U = 0.0, F32 V = 0.0,
+                 F32 R = 0.0):
+            x(X), y(Y), u(U), v(V)
+        {}
+    };
+
+    /// position, color
+    struct KVBPack3{
+        F32 x,y;
+        F32 r,g,b,a;
+
+        KVertex(F32 X = -1.0, F32 Y = -1.0,
+                 F32 R = 0.0, F32 G = 0.0, F32 B = 0.0, F32 A = 1.0):
+            x(X), y(Y),
+            r(R), g(G), b(B), a(A)
+        {}
+    };
+
+    /// position (Point)
+    struct KVBPack4{
+        F32 x,y;
+
+        KVertex(F32 X = -1.0, F32 Y = -1.0):
+            x(X), y(Y)
+        {}
+    };
+
+    /// position, 4x4 matrix
+    struct KVBPack5{
+        F32 x,y;
+        F32
+
+        KVertex(F32 X = -1.0, F32 Y = -1.0):
+            x(X), y(Y)
+        {}
+    };
+*/
     struct KAtlasObject{
         U32 id;
         F32 u,v; // texture position

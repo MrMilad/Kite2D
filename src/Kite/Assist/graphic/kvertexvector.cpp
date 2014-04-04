@@ -49,7 +49,7 @@ namespace Kite{
 //        }
 //    }
 
-    void KVertexVector::addVertex(const std::vector<KVertex> &Vertex, KVector2U32 &Range){
+    void KVertexVector::addVertex(const std::vector<KVBPack1> &Vertex, KVector2U32 &Range){
         if (!_klock){
             // store position of last elemnt
             U32 lastPos = _kdata.size();
@@ -85,7 +85,7 @@ namespace Kite{
 //        }
 //    }
 
-    void KVertexVector::updateVertex(const std::vector<KVertex> &NewVertex, const KVector2U32 &Range){
+    void KVertexVector::updateVertex(const std::vector<KVBPack1> &NewVertex, const KVector2U32 &Range){
         if (_kdata.empty() || Range.y > NewVertex.size()){
             KDEBUG_PRINT("buffer is empty or lenght is greater than vertex size.");
             return;
@@ -97,11 +97,11 @@ namespace Kite{
         }
 
         // set iterator to end of range (source)
-        std::vector<KVertex>::const_iterator itEnd = NewVertex.begin();
+        std::vector<KVBPack1>::const_iterator itEnd = NewVertex.begin();
         std::advance(itEnd, Range.y);
 
         // set iterator to start of range (dest)
-        std::vector<KVertex>::iterator itDest = _kdata.begin();
+        std::vector<KVBPack1>::iterator itDest = _kdata.begin();
         std::advance(itDest, Range.x);
 
         // update data

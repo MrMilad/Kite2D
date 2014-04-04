@@ -24,8 +24,18 @@
 namespace Kite{
     class KITE_FUNC_EXPORT KKeyboard{
     public:
-        static bool isButtonPressed(KKeyboardButtonTypes Button);
-        static bool isInstalled();
+        /// set window handle
+        inline static void setWindowHandle(KWindowHandle Window) {_kwinHandle = Window;}
+
+        /// returns the last state reported for the specified key
+        static KButtonStateTypes getButtonState(KKeyboardKeyTypes Button);
+
+        /// input callbacks
+        static void registerCallback(void *Callback, KKeyboardCallbackTypes CallbackType);
+        static void unregisterCallback(KKeyboardCallbackTypes CallbackType);
+
+    private:
+        static KWindowHandle _kwinHandle;
     };
 }
 

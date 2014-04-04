@@ -21,6 +21,6 @@
 #include "Kite/core/window/kwindowtypes.h"
 #include "Kite/core/window/kwindowstructs.h"
 #include "Kite/core/window/kwindowutil.h"
-#include "Kite/core/window/kglmwindow.h"
+#include "Kite/core/window/kglwindow.h"
 
 #endif // KWINDOW_H

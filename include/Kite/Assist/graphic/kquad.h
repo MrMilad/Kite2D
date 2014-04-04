@@ -58,7 +58,7 @@ namespace Kite{
         const KTexture *_ktexture;
 
         KVector2U32 _krange;
-        std::vector<KVertex> _kvertex;
+        std::vector<KVBPack1> _kvertex;
         bool _kpushed;
     };
 }

@@ -25,14 +25,15 @@ namespace Kite{
         _kfilter(KTF_LINEAR),
         _kwrap(KTW_CLAMP_TO_EDGE),
         _ksize(KVector2U32(0,0))
-    {}
+    {
+        // generate texture
+        DGL_CALL(glGenTextures(1, &_ktexId));
+    }
 
     KTexture::~KTexture(){
-        if (_ktexId != 0){
-            DGL_CALL(glDeleteTextures(1, &_ktexId));
-            if (_klastTexId == _ktexId){
-                _klastTexId = 0;
-            }
+        DGL_CALL(glDeleteTextures(1, &_ktexId));
+        if (_klastTexId == _ktexId){
+            _klastTexId = 0;
         }
     }
 
@@ -66,10 +67,8 @@ namespace Kite{
 
     void KTexture::bind() const{
         // bind texture
-        if (_ktexId > 0){
-            DGL_CALL(glBindTexture(GL_TEXTURE_2D, _ktexId));
-            _klastTexId = _ktexId;
-        }
+        DGL_CALL(glBindTexture(GL_TEXTURE_2D, _ktexId));
+        _klastTexId = _ktexId;
     }
 
     void KTexture::unbind(){
@@ -117,9 +116,6 @@ namespace Kite{
 
     void KTexture::_create(const U8 *Data, const KVector2U32 &Size,
                         KTextureFilterTypes Filter, KTextureWrapTypes Wrap, KTexture &Instance){
-        // re-generate texture
-        DGL_CALL(glDeleteTextures(1, &Instance._ktexId));
-        DGL_CALL(glGenTextures(1, &Instance._ktexId));
 
         // save currently binded texture then bind our texture temporary
         Internal::GLBindGuard guard(Internal::KBG_TEXTURE, _klastTexId);

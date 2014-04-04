@@ -26,27 +26,24 @@ namespace Kite{
         _karrLen(0),
         _kbufId(0),
         _kupdateHnd(0)
-    {}
+    {
+        // generate buffer
+        DGL_CALL(glGenBuffers(1, &_kbufId));
+    }
 
     KVertexBuffer::~KVertexBuffer(){
-        if (_kbufId > 0){
-            DGL_CALL(glDeleteBuffers(1, &_kbufId));
-            if (_klastBufId == _kbufId){
-                _klastBufId = 0;
-            }
+        DGL_CALL(glDeleteBuffers(1, &_kbufId));
+        if (_klastBufId == _kbufId){
+            _klastBufId = 0;
         }
     }
 
-    void KVertexBuffer::create(const void *Data, U32 DataSize, KVertexBufferTypes BufferType){
-        // generate buffer
-        if (_kbufId <= 0)
-            DGL_CALL(glGenBuffers(1, &_kbufId));
-
+    void KVertexBuffer::fill(const void *Data, U32 DataSize, KVertexBufferTypes BufferType){
         // check array pointer and size of array
         if (Data != 0 && DataSize > 0){
 
             // save currently binded buffer then bind our buffer temporary
-            Internal::GLBindGuard bindGuard(Internal::KBG_BUFFER, _klastBufId);
+            Internal::GLBindGuard bindGuard(Internal::KBG_VBUFFER, _klastBufId);
             DGL_CALL(glBindBuffer(GL_ARRAY_BUFFER_ARB, _kbufId));
 
             // fill buffer with vertex data
@@ -64,7 +61,7 @@ namespace Kite{
         if (_kupdateHnd && _kbufId > 0){
 
             // save currently binded buffer then bind our buffer temporary
-            Internal::GLBindGuard bindGuard(Internal::KBG_BUFFER, _klastBufId);
+            Internal::GLBindGuard bindGuard(Internal::KBG_VBUFFER, _klastBufId);
             DGL_CALL(glBindBuffer(GL_ARRAY_BUFFER_ARB, _kbufId));
 
             // map buffer
@@ -86,7 +83,7 @@ namespace Kite{
         if (_kupdateHnd && _kbufId > 0){
 
             // save currently binded buffer then bind our buffer temporary
-            Internal::GLBindGuard bindGuard(Internal::KBG_BUFFER, _klastBufId);
+            Internal::GLBindGuard bindGuard(Internal::KBG_VBUFFER, _klastBufId);
             DGL_CALL(glBindBuffer(GL_ARRAY_BUFFER_ARB, _kbufId));
 
             // discarded (streaming purpose only)
@@ -116,7 +113,7 @@ namespace Kite{
         if (_kbufId > 0){
 
             // save currently binded buffer then bind our buffer temporary
-            Internal::GLBindGuard bindGuard(Internal::KBG_BUFFER, _klastBufId);
+            Internal::GLBindGuard bindGuard(Internal::KBG_VBUFFER, _klastBufId);
             DGL_CALL(glBindBuffer(GL_ARRAY_BUFFER_ARB, _kbufId));
 
             // replace data
@@ -127,10 +124,8 @@ namespace Kite{
 
     void KVertexBuffer::bind() const{
         // bind buffer
-        if (_kbufId != 0){
-            DGL_CALL(glBindBuffer(GL_ARRAY_BUFFER_ARB, _kbufId));
-            _klastBufId = _kbufId;
-        }
+        DGL_CALL(glBindBuffer(GL_ARRAY_BUFFER_ARB, _kbufId));
+        _klastBufId = _kbufId;
     }
 
     void KVertexBuffer::unbind(){

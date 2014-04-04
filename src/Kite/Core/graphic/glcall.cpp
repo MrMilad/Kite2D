@@ -98,10 +98,14 @@ namespace Internal{
         case KBG_TEXTURE:
             DGL_CALL(glBindTexture(GL_TEXTURE_2D, _kglobject));
             break;
-        case KBG_BUFFER:
+        case KBG_VBUFFER:
             DGL_CALL(glBindBuffer(GL_ARRAY_BUFFER_ARB, _kglobject));
             break;
+        case KGB_PBUFFER:
+            DGL_CALL(glBindFramebuffer(GL_FRAMEBUFFER, _kglobject));
+            break;
         default:
+            KDEBUG_PRINT("Invalid types.");
             break;
         }
     }

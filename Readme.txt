@@ -24,23 +24,17 @@ Kite2D provides a simple interface to the various components of your PC,
 to ease the development of games.
 
 ---------------------[ Features ]---------------------
-[Graphic]
-OpenGL version 2 (or later)
-+ easy to use VAO, VBO, PBO
-+ 2D transformation class
-+ support PNG, BMP, TGA image file formats
-+ 2D batch rendering and instancing
-+ ...
-
-[Audio]
-OpenAL
-+ 2D audio options
-+ support wav, ogg
-+ audio effects
-+ streaming
-+ ...
-
 [+]
-+ support mouse, keyboard, joystick
++ multi-platform (Windows - Linux - Mac OSX)
++ Based on modern OpenGL v3.3
++ Easy to use VAO, VBO, PBO, Shader and Texture classes
++ 2D transformation class
++ Support PNG, BMP, TGA image file formats
++ 2D sprite batch rendering and instancing
++ 2D\3D audio options (pitch, pan, ...)
++ Support wav, ogg file formats
++ Audio effects (reverb, ...)
++ Audio Streaming
++ Support mouse, keyboard, joystick
 + easy window creation and handling
 + ...

@@ -24,23 +24,25 @@
 
 namespace Kite{
 
-// Sleep
-extern "C" { KITE_FUNC_EXPORT void sleep(UL32 MicroSec); }
+	/// Sleep
+	KITE_FUNC_EXPORT extern void sleep(UL32 MicroSec);
 
-// Time
-extern "C" { KITE_FUNC_EXPORT U32 getCurrentTimeSec(); }
-extern "C" { KITE_FUNC_EXPORT U32 getCurrentTimeMin(); }
-extern "C" { KITE_FUNC_EXPORT U32 getCurrentTimeHours(); }
+	/// Time
+	KITE_FUNC_EXPORT extern U32 getCurrentTimeSec();
 
-// Power
-extern "C" { KITE_FUNC_EXPORT KPowerState getPowerState(); }
+	KITE_FUNC_EXPORT extern U32 getCurrentTimeMin();
 
-// CPU
-extern "C" { KITE_FUNC_EXPORT const KCPUInfo *getCPUInfo(); }
+	KITE_FUNC_EXPORT extern U32 getCurrentTimeHours();
 
-// unique identifier generator (1 to 18,446,744,073,709,551,615)
-// not thread-safe
-extern "C" { KITE_FUNC_EXPORT U64 getUniqueNumber(); }
+	/// Power
+	KITE_FUNC_EXPORT extern KPowerState getPowerState();
+
+	/// CPU
+	KITE_FUNC_EXPORT extern const KCPUInfo *getCPUInfo();
+
+	/// unique identifier generator (1 to 18,446,744,073,709,551,615)
+	/// not thread-safe
+	KITE_FUNC_EXPORT extern U64 getUniqueNumber();
 
 }
 

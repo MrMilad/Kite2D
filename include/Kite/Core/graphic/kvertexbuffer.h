@@ -47,7 +47,7 @@ namespace Kite{
         /// Offset = sizeof(DataType) * Offset
         /// Size = sizeof(DataType) * DataArrayLenght
         /// best methode for streaming buffer
-        void update(U64 Offset, U64 Size, bool Discarded, void *Sender);
+        void update(I64 Offset, I64 Size, bool Discarded, void *Sender);
 
         /// update buffer.
         /// replace some subset of the data with new data.
@@ -65,12 +65,12 @@ namespace Kite{
         inline void setUpdateHandle(KCallVBUpdate *UpdateHandle) {_kupdateHnd = UpdateHandle;}
 
         inline KVertexBufferTypes getType() const {return _kbufType;}
-        inline U32 getLength() const {return _karrLen;}
+        inline I64 getLength() const {return _karrLen;}
         inline U32 getID() const {return _kbufId;}
 
     private:
         KVertexBufferTypes _kbufType;
-        U32 _karrLen;
+        I64 _karrLen;
         U32 _kbufId;
         KCallVBUpdate *_kupdateHnd;
         static U32 _klastBufId;

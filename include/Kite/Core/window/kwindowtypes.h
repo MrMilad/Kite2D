@@ -22,16 +22,6 @@
 
 namespace Kite{
 
-/* ColorDepth */
-enum KColorDepthTypes{
-    KCD_4 = 4,
-    KCD_8 = 8,
-    KCD_16 = 16,
-    KCD_24 = 24,
-    KCD_32 = 32,
-    KCD_OUT = 0
-};
-
 enum KAspectRatioTypes{
     KAR_4X3,
     KAR_16X9,

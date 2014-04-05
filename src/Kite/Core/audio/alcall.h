@@ -19,8 +19,8 @@
 #define ALCALL_H
 
 #include "Kite/core/system/ksystemdef.h"
-#include "extlibs/headers/al.h"
-#include "extlibs/headers/alc.h"
+#include "AL/al.h"
+#include "AL/alc.h"
 
 namespace Kite{
 namespace Internal{

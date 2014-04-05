@@ -224,12 +224,12 @@ namespace Kite{
 
         // calculate size of file
         reader.seekg(0, std::ios_base::end);
-        std::streamsize size = reader.tellg();
+		std::streamsize size = reader.tellg();
         KDEBUG_ASSERT_T(size > 0);
 
         // reading file
         reader.seekg(0, std::ios_base::beg);
-        data.resize(size);
+        data.resize((U32)size);
         reader.read(&data[0], size);
 
         // append '\0' at the end of cod

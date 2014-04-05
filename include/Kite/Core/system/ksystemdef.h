@@ -133,10 +133,10 @@
     #define KDEBUG_TEMP(expr) expr
 
 #elif defined(KITE_USER_DEBUG) // print debug output (without break).
-    #define KDEBUG_BREAK;
+    #define KDEBUG_BREAK
     #define KDEBUG_PRINT(x) printf (x); printf("\n     Line: %u \n     File: %s \n", __LINE__, __FILE__);
-    #define KDEBUG_ASSERT(expr) if (!(expr)) {KDEBUG_PRINT(#expr));}
-    #define KDEBUG_ASSERT_T(expr) if (!(expr)) {KDEBUG_PRINT(#expr));}
+    #define KDEBUG_ASSERT(expr) if (!(expr)) {KDEBUG_PRINT(#expr)}
+    #define KDEBUG_ASSERT_T(expr) if (!(expr)) {KDEBUG_PRINT(#expr)}
     #define KDEBUG_ASSERT_EQ(expr, eq) if(expr != eq) {KDEBUG_PRINT(#expr)}
     #define KDEBUG_TEMP(expr) expr
 

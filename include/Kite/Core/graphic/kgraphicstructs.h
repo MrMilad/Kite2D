@@ -37,10 +37,9 @@ namespace Kite{
         }
 
         static inline void setHexCodeToKColor(KColor &Color, UL32 HexCode){
-            Color.r = (HexCode & 0xFF000000) >> 24;
-            Color.g = (HexCode & 0x00FF0000) >> 16;
-            Color.b = (HexCode & 0x0000FF00) >> 8;
-            Color.b = (HexCode & 0x000000FF);
+			Color.r = (U8)((HexCode >> 16) & 0xFF);  // Extract the RR byte
+			Color.g = (U8)((HexCode >> 8) & 0xFF);   // Extract the GG byte
+			Color.b = (U8)((HexCode)& 0xFF);        // Extract the BB byte
         }
     };
 
@@ -147,7 +146,7 @@ namespace Kite{
         U8 minor;
     };
 
-    typedef void (KCallVBUpdate)(void *Data, U32 DataSize, void *Sender);
+    typedef void (KCallVBUpdate)(void *Data, I64 DataSize, void *Sender);
 
     struct KQuadAttrib{
         KVector2F32 buttomLeft;

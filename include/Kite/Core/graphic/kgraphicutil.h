@@ -22,17 +22,17 @@
 
 namespace Kite{
 
-/// return one side of maximum texture size (e.g 1024 = 1024x1024)
-extern "C" { KITE_FUNC_EXPORT I32 getMaximumTextureSize(); }
+	/// return one side of maximum texture size (e.g 1024 = 1024x1024)
+	KITE_FUNC_EXPORT extern I32 getMaximumTextureSize();
 
-/// maximum number of supported texture units
-extern "C" { KITE_FUNC_EXPORT I32 getMaximumTextureUnit(); }
+	/// maximum number of supported texture units
+	KITE_FUNC_EXPORT extern I32 getMaximumTextureUnit();
 
-/// maximum number of supported vertex attributes
-extern "C" { KITE_FUNC_EXPORT I32 getMaximumVertexAttrib(); }
+	/// maximum number of supported vertex attributes
+	KITE_FUNC_EXPORT extern I32 getMaximumVertexAttrib();
 
-/// check availability of opengl shader programs
-//extern "C" { KITE_FUNC_EXPORT bool isShaderAvailable(); }
+	/// check availability of opengl shader programs
+	//KITE_FUNC_EXPORT extern bool isShaderAvailable(); 
 
 }
 

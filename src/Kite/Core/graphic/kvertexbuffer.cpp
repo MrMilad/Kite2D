@@ -78,7 +78,7 @@ namespace Kite{
         }
     }
 
-    void KVertexBuffer::update(U64 Offset, U64 Size, bool Discarded, void *Sender){
+    void KVertexBuffer::update(Kite::I64 Offset, I64 Size, bool Discarded, void *Sender){
         // check update handle and buffer
         if (_kupdateHnd && _kbufId > 0){
 
@@ -96,13 +96,13 @@ namespace Kite{
             }
 
             // map a section of buffer
-            void *dataPtr = DGL_CALL(glMapBufferRange(GL_ARRAY_BUFFER_ARB, Offset, Size, acc));
+            void *dataPtr = glMapBufferRange(GL_ARRAY_BUFFER_ARB, (GLintptr) Offset, (GLsizeiptr)Size, acc);
 
             // call update handle
             (*_kupdateHnd)(dataPtr, Size, Sender);
 
             // unmap buffer
-            DGL_CALL(glFlushMappedBufferRange(GL_ARRAY_BUFFER_ARB, Offset, Size));
+			DGL_CALL(glFlushMappedBufferRange(GL_ARRAY_BUFFER_ARB, (GLintptr)Offset, (GLsizeiptr) Size));
 
         }else{
             KDEBUG_PRINT("buffer is not created or update handle not set yet.");

@@ -47,7 +47,9 @@ namespace Kite{
     }
 
     bool KJoystick::isInstalled(KJoystcikIDTypes JoystickID){
-        return glfwJoystickPresent(JoystickID);
+		if (glfwJoystickPresent(JoystickID) == GL_TRUE)
+			return true;
+		return false;
     }
 
     std::string KJoystick::getName(KJoystcikIDTypes JoystickID){

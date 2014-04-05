@@ -22,14 +22,11 @@
 
 namespace Kite{
 
-extern "C" { KITE_FUNC_EXPORT const KEnumDisplayList *getFullscreenStates(); }
-extern "C" { KITE_FUNC_EXPORT const KEnumDisplay *getDesktopState(); }
-extern "C" { KITE_FUNC_EXPORT bool isValidDisplay(const KEnumDisplayList &DisplayList,
-                                                  const KEnumDisplay &Display); }
+    /// returns the available states
+    KITE_FUNC_EXPORT extern std::vector<KEnumDisplay> getFullscreenStates();
 
-// fill a KWindowState from KEnumDisplay
-extern "C" { KITE_FUNC_EXPORT void convertEnumToWin(const KEnumDisplay &EnumDisplay,
-                                                    KWindowState &WindowState); }
+    /// returns the current desktop state
+    KITE_FUNC_EXPORT extern KEnumDisplay getDesktopState();
 }
 
 #endif // KWINDOWUTIL_H

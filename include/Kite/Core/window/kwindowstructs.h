@@ -49,32 +49,28 @@ namespace Kite{
     };
 
     struct KEnumDisplay{
-        U32 width, height;
-        KColorDepthTypes colorDepth;
-        KAspectRatioTypes aspectRatio;
+        I32 width, height, refreshRate, colorDepth;
 
-        KEnumDisplay(const U32 Width = 0, const U32 Height = 0,
-                      const KColorDepthTypes ColorDepth = KCD_OUT,
-                      const KAspectRatioTypes AspectRatio = KAR_UNKNOWN):
+        KEnumDisplay(I32 Width = 0, I32 Height = 0,
+                     I32 RefreshRate = 0, I32 ColorDepth = 0):
             width(Width), height(Height),
-            colorDepth(ColorDepth),
-            aspectRatio(AspectRatio)
+            refreshRate(RefreshRate),
+            colorDepth(ColorDepth)
         {}
 
         /* Operators */
         bool operator ==(const KEnumDisplay &right) const {
             if (this->width == right.width)
                 if (this->height == right.height)
-                    if (this->colorDepth == right.colorDepth)
-                        return true;
+                    if (this->refreshRate == right.refreshRate)
+                        if (this->colorDepth == right.colorDepth)
+                            return true;
             return false;
         }
         bool operator !=(const KEnumDisplay &right) const {
             return !(*this == right);
         }
     };
-
-    typedef std::vector<KEnumDisplay> KEnumDisplayList;
 
 }
 

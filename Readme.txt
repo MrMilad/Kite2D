@@ -17,8 +17,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 ---------------------[ Overview ]---------------------
 
-Kite2D is a free open source 2-dimensional Game Framework
-written in C++ by Milad Rasaneh and published under the GPL license.
+Kite2D is a free open-source multi-platform 2-dimensional Game Framework
+written in C++ by Milad Rasaneh and published under the LGPL license.
 
 Kite2D provides a simple interface to the various components of your PC,
 to ease the development of games.
@@ -26,25 +26,21 @@ to ease the development of games.
 ---------------------[ Features ]---------------------
 [Graphic]
 OpenGL version 2 (or later)
-+ support VBO
-+ 2D flexible camera
-+ read/write PNG, BMP, TGA image file formats
-+ optimized state change manager
++ easy to use VAO, VBO, PBO
++ 2D transformation class
++ support PNG, BMP, TGA image file formats
++ 2D batch rendering and instancing
 + ...
 
 [Audio]
 OpenAL
 + 2D audio options
-+ wav, ogg audio file formats
++ support wav, ogg
 + audio effects
 + streaming
 + ...
 
-[Window]
-+ Multiple window/context support
+[+]
++ support mouse, keyboard, joystick
++ easy window creation and handling
 + ...
-
-[Input]
-+ Support mouse, keyboard, joystick
-
-...

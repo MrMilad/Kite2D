@@ -25,7 +25,8 @@
 namespace Kite{
     class KITE_FUNC_EXPORT KSoundSource{
     public:
-
+        KSoundSource();
+        virtual ~KSoundSource();
         /// basic audio operations
         virtual void play() = 0;
         virtual void pause() = 0;
@@ -75,9 +76,6 @@ namespace Kite{
         inline U32 getID() const {return _kID;}
 
     protected:
-        KSoundSource();
-        virtual ~KSoundSource();
-
         U32 _kID;
     };
 }

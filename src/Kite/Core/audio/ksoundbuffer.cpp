@@ -17,20 +17,9 @@
 */
 #include "Kite/core/audio/ksoundbuffer.h"
 #include "src/Kite/core/audio/alcall.h"
+#include "src/Kite/Core/audio/soundio.h"
 #include <vector>
 #include <cstdlib>
-
-#if defined (KITE_PLATFORM_WINDOWS)
-
-    #include "src/Kite/core/audio/win32/waveio.h"
-
-#elif defined (KITE_PLATFORM_LINUX)
-
-
-#elif defined (KITE_PLATFORM_MACOS)
-
-
-#endif
 
 
 namespace Kite{
@@ -41,6 +30,7 @@ namespace Kite{
         _ksize(0),
         _kID(0)
     {
+		Internal::initeAL();
         DAL_CALL(alGenBuffers(1, &_kID));
     }
 
@@ -48,24 +38,23 @@ namespace Kite{
         DAL_CALL(alDeleteBuffers(1, &_kID));
     }
 
-    void KSoundBuffer::loadFile(const std::string &FileName){
-        Internal::WaveIO reader;
-        void *Data;
+    void KSoundBuffer::loadFile(const std::string &FileName, Kite::KAudioFileTypes Format){
+        Internal::SoundIO sound;
+		char *Data;
 
         // open file for reading data
-        reader.openFile(FileName);
+        sound.openFile(FileName.c_str(), Format);
 
         // first get file properties
-        _ksize = reader.getSize();
-        _ksampleRate = reader.getSampleRate();
-        _kchannelCount = reader.getChannelCount();
-        _kbitsPerSample = reader.getBitPerSample();
+        _ksize = sound.getInfo().size;
+        _ksampleRate = sound.getInfo().sampleRate;
+        _kchannelCount = sound.getInfo().channel;
+        _kbitsPerSample = sound.getInfo().bitsPerSample;
 
         // read data from file
-        UL32 read;
-        Data = malloc(_ksize);
-        reader.setReadOffset(0);
-        reader.readFile(Data, _ksize, &read);
+        I64 read;
+		Data = new char[_ksize];
+        read = sound.readData((void *)Data, (I32)_ksize);
         KDEBUG_ASSERT_T(read == _ksize);
 
         // find best format
@@ -73,10 +62,10 @@ namespace Kite{
         KDEBUG_ASSERT_T(format != 0);
 
         // fill buffer
-        DAL_CALL(alBufferData(_kID, format, Data, _ksize, _ksampleRate));
+		DAL_CALL(alBufferData(_kID, format, (ALvoid *)Data, (ALsizei)_ksize, (ALsizei)_ksampleRate));
 
         // cleanup
-        free(Data);
+		delete[] Data;
         Data = NULL;
     }
 

@@ -18,33 +18,32 @@
 #include "Kite/core/audio/kstreamsource.h"
 #include "Kite/core/system/ksystemutil.h"
 #include "src/Kite/core/audio/alcall.h"
+#include "src/Kite/Core/audio/soundio.h"
 #include <cstdlib>
-#if defined (KITE_PLATFORM_WINDOWS)
-
-    #include "src/Kite/core/audio/win32/waveio.h"
-
-#elif defined (KITE_PLATFORM_LINUX)
-
-
-#elif defined (KITE_PLATFORM_MACOS)
-
-
-#endif
 
 namespace Kite{
     KStreamSource::KStreamSource():
-        _kreader(new Internal::WaveIO),
+        _kreader(new Internal::SoundIO),
         _kthread(new KThread(&Kite::KStreamSource::loader, this)),
+        _kdata(0),
         _kloop(false),
         _KuserStop(false)
     {
+        // create openal contextand set as current context
+		Internal::initeAL();
+
+        // create 4 buffer
         DAL_CALL(alGenBuffers(4, _kbuffers));
+
+        // temporary buffer
+        _kdata = new I8[KOGG_BUFF_SIZE * 4];
     }
 
     KStreamSource::~KStreamSource(){
         stop();
         delete _kthread;
         delete _kreader;
+        delete[] _kdata;
         DAL_CALL(alSourcei(_kID, AL_BUFFER, 0));
         DAL_CALL(alDeleteBuffers(4, _kbuffers));
         // source will be deleted in base class destructure
@@ -72,43 +71,28 @@ namespace Kite{
         DAL_CALL(alSourcei(_kID, AL_BUFFER, 0));
 
         // check file format
-        ALuint format = Internal::getFormat(_kreader->getChannelCount(), _kreader->getBitPerSample());
+        ALuint format = Internal::getFormat(_kreader->getInfo().channel, _kreader->getInfo().bitsPerSample);
         KDEBUG_ASSERT_T(format != 0);
-
-        // queue 250ms of audio data
-        UL32 bufferSize = _kreader->getBlockAllign();
-        bufferSize = _kreader->getByteRate() >> 2;
-
-        // IMPORTANT : the buffer size must be an exact multiple of the BlockAlignment
-        bufferSize -= (bufferSize % _kreader->getBlockAllign());
-
-        // reading data
-        // allocate enough size for storing data
-        void *data = malloc(bufferSize);
-        KDEBUG_ASSERT_T(data);
 
         // set read position to start of audio data
         _kreader->setReadOffset(0);
 
-        // finally fill all the Buffers with audio data from the wavefile
+        // finally fill all the Buffers with audio data
         // our buffers are ready for streaming now
-        UL32 bytes;
+        UL32 read = 0;
         for (U16 i = 0; i < 4; ++i){
-            _kreader->readFile(data, bufferSize, &bytes);
-            DAL_CALL(alBufferData(_kbuffers[i], format, data, bytes, _kreader->getSampleRate()));
+            read = _kreader->readData((void *)_kdata, KOGG_BUFF_SIZE * 4);
+            DAL_CALL(alBufferData(_kbuffers[i], format, _kdata, read, (ALsizei)_kreader->getInfo().sampleRate));
             DAL_CALL(alSourceQueueBuffers(_kID, 1, &_kbuffers[i]));
         }
-
-        // cleanup
-        free(data);
     }
 
-    void KStreamSource::loadFile(const std::string &FileName){
+    void KStreamSource::loadFile(const std::string &FileName, KAudioFileTypes Types){
         // first we stop the source
         stop();
 
         // open file for reading
-        _kreader->openFile(FileName);
+        _kreader->openFile(FileName.c_str(), Types);
 
         // fill buffers
         fillFirst4Buffer();
@@ -116,18 +100,7 @@ namespace Kite{
     }
 
     void KStreamSource::loader(){
-        // queue 250ms of audio data
-        UL32 bufferSize = _kreader->getBlockAllign();
-
-        // IMPORTANT : the buffer size must be an exact multiple of the BlockAlignment
-        bufferSize -= (bufferSize % _kreader->getBlockAllign());
-        bufferSize = _kreader->getByteRate() >> 2;
-
-        // allocate enough size for storing data
-        void *data = malloc(bufferSize);
-        KDEBUG_ASSERT_T(data);
-
-        ALuint format = Internal::getFormat(_kreader->getChannelCount(), _kreader->getBitPerSample());
+        ALuint format = Internal::getFormat(_kreader->getInfo().channel, _kreader->getInfo().bitsPerSample);
         KDEBUG_ASSERT_T(format != 0);
 
         while(true){
@@ -147,12 +120,12 @@ namespace Kite{
                 DAL_CALL(alSourceUnqueueBuffers(_kID, 1, &bufID));
 
                 // read more audio data (if there is any)
-                UL32 bytes;
-                _kreader->readFile(data, bufferSize, &bytes);
-                if (bytes > 0){
+                I32 read;
+                read = _kreader->readData((void *)_kdata, KOGG_BUFF_SIZE * 4);
+                if (read > 0){
 
                     // Copy audio data to Buffer
-                    DAL_CALL(alBufferData(bufID, format, data, bytes, _kreader->getSampleRate()));
+                    DAL_CALL(alBufferData(bufID, format, _kdata, read, (ALsizei)_kreader->getInfo().sampleRate));
                     // Queue Buffer on the Source
                     DAL_CALL(alSourceQueueBuffers(_kID, 1, &bufID));
                 }
@@ -206,9 +179,5 @@ namespace Kite{
                 break;
             }
         }
-
-        // cleanup
-        free(data);
-        data = NULL;
     }
 }

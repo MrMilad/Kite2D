@@ -20,6 +20,7 @@
 
 namespace Kite{
     KSoundSource::KSoundSource(){
+		Internal::initeAL();
         DAL_CALL(alGenSources(1, &_kID));
     }
 

@@ -27,6 +27,7 @@ namespace Kite{
 
         /// master global gain
         /// default 1
+		/// range 1 to 100
         static void setMasterGain(F32 Gain);
         static F32 getMasterGain();
 

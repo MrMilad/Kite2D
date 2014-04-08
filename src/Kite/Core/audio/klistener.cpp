@@ -20,10 +20,12 @@
 
 namespace Kite{
     void KListener::setMasterGain(F32 Gain){
+		Internal::initeAL();
         DAL_CALL(alListenerf(AL_GAIN, Gain * 0.01f));
     }
 
     F32 KListener::getMasterGain(){
+		Internal::initeAL();
         F32 gain = 0.f;
         DAL_CALL(alGetListenerf(AL_GAIN, &gain));
 
@@ -31,10 +33,12 @@ namespace Kite{
     }
 
     void KListener::setPosition(const KVector3F32 &Position){
+		Internal::initeAL();
         DAL_CALL(alListener3f(AL_POSITION, Position.x, Position.y, Position.z));
     }
 
     KVector3F32 KListener::getPosition(){
+		Internal::initeAL();
         KVector3F32 pos;
         DAL_CALL(alGetListener3f(AL_POSITION, &pos.x, &pos.y, &pos.z));
 
@@ -42,11 +46,13 @@ namespace Kite{
     }
 
     void KListener::setOrientation(const KVector3F32 &Orientation){
+		Internal::initeAL();
         F32 ori[] = {Orientation.x, Orientation.y, Orientation.z, 0.f, 1.f, 0.f};
         DAL_CALL(alListenerfv(AL_ORIENTATION, ori));
     }
 
     KVector3F32 KListener::getOrientation(){
+		Internal::initeAL();
         F32 ori[6];
         DAL_CALL(alGetListenerfv(AL_ORIENTATION, ori));
 

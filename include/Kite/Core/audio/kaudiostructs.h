@@ -15,27 +15,27 @@
  You should have received a copy of the GNU General Public License
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#ifndef ALCALL_H
-#define ALCALL_H
+#ifndef KAUDIOSTRUCTS_H
+#define KAUDIOSTRUCTS_H
 
-#include "Kite/core/system/ksystemdef.h"
-#include "AL/al.h"
-#include "AL/alc.h"
+#include "Kite/Core/system/ksystemdef.h"
 
 namespace Kite{
-namespace Internal{
-	extern bool initeAL(const char *DeviceName = NULL);
-    extern bool checkLastALErr();
-    extern ALenum getFormat(U16 ChannelCount, U16 BitsPerSample);
+    struct KAudioInfo{
+        U8 channel, bitsPerSample;
+        I32 size;
+        I64 bitRate, sampleRate;
+        F64 totalTime;
+        bool isSeekable;
+
+        KAudioInfo(U8 Channel = 0, U8 BitsPerSample = 0,
+                   I32 Size = 0, I64 BitRate = 0, I64 SampleRate = 0,
+                   F64 TotalTime = 0.0, bool IsSeekable = false):
+            channel(Channel), bitsPerSample(BitsPerSample),
+            size(Size), bitRate(BitRate), sampleRate(SampleRate),
+            totalTime(TotalTime), isSeekable(IsSeekable)
+        {}
+    };
 }
-}
 
-// OpenGL debug macro
-#if defined(KITE_DEV_DEBUG)
-    #define DAL_CALL(call) call; KDEBUG_ASSERT_T(Kite::Internal::checkLastALErr())
-#else
-    #define DAL_CALL(call) call;
-#endif
-
-
-#endif // ALCALL_H
+#endif // KAUDIOSTRUCTS_H

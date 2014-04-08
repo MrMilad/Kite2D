@@ -25,7 +25,7 @@
 
 namespace Kite{
 namespace Internal{
-class WaveIO;
+class SoundIO;
 }
     class KITE_FUNC_EXPORT KStreamSource : public KSoundSource{
     public:
@@ -41,14 +41,15 @@ class WaveIO;
         inline bool getLoop() {return _kloop;}
 
         /// load sound file
-        void loadFile(const std::string &FileName);
+        void loadFile(const std::string &FileName, KAudioFileTypes Types);
 
     private:
         void loader(); // fill buffers immediately (thread task)
         void fillFirst4Buffer();
-        Internal::WaveIO *_kreader;
+        Internal::SoundIO *_kreader;
         KThread *_kthread;
         U32 _kbuffers[4];
+        I8 *_kdata;
         bool _kloop;
         bool _KuserStop;
     };

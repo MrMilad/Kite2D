@@ -15,36 +15,41 @@
  You should have received a copy of the GNU General Public License
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#ifndef KSOUNDBUFFER_H
-#define KSOUNDBUFFER_H
+#ifndef SOUNDIO_H
+#define SOUNDIO_H
 
 #include "Kite/Core/system/ksystemdef.h"
 #include "Kite/Core/audio/kaudiotypes.h"
-#include <string>
+#include "Kite/Core/audio/kaudiostructs.h"
+#include "src/Kite/Core/audio/audioformatio.h"
 
 namespace Kite{
-    class KITE_FUNC_EXPORT KSoundBuffer{
+namespace Internal{
+    class SoundIO{
     public:
-        KSoundBuffer();
-        ~KSoundBuffer();
+        SoundIO();
+        ~SoundIO();
 
-        /// load sound file
-        void loadFile(const std::string &FileName, KAudioFileTypes Format);
+        /// open file for reading
+        bool openFile(const char *FileName, KAudioFileTypes FileTypes);
 
-        /// file informations
-        inline I64 getSampleRate() const {return _ksampleRate;}
-        inline U16 getChannelCount() const {return _kchannelCount;}
-        inline U16 getBitsPerSample() const {return _kbitsPerSample;}
-        inline I32 getSize() const {return _ksize;}
-        inline U32 getID() const {return _kID;}
+        /// read and decode data then fill buffer with data
+        /// return: indicates actual number of bytes read
+        I32 readData(void *Data, I32 Size);
+
+        /// get information of audio file
+        KAudioInfo getInfo() const;
+
+        /// set current read offset of opened file
+        bool setReadOffset(I32 Offset);
+
+        /// get current read position of opened file
+        I32 getReadOffset() const;
 
     private:
-        I64 _ksampleRate;
-        U16 _kchannelCount;
-        U16 _kbitsPerSample;
-        I32 _ksize;
-        U32 _kID;
+        AudioFormatIO *_kformat;
     };
 }
+}
 
-#endif // KSOUNDBUFFER_H
+#endif // SOUNDIO_H

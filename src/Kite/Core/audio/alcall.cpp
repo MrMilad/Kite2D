@@ -20,7 +20,24 @@
 namespace Kite{
 namespace Internal{
 
-    //_kaldevice(NULL);
+	bool initeAL(const char *DeviceName){
+		static bool isInit = false;
+		if (isInit == false){
+			ALCdevice*  _kdevice;
+			ALCcontext* _kcontext;
+			// open\create device (if DeviceName = NULL then oal select the preferred (default) device)
+			_kdevice = alcOpenDevice(DeviceName);
+
+			// create context
+			_kcontext = alcCreateContext(_kdevice, NULL);
+
+			// set context as current
+			DAL_CALL(alcMakeContextCurrent(_kcontext));
+
+			isInit = true;
+		}
+		return isInit;
+	}
 
     bool checkLastALErr(){
         // get the last OpenAL error
@@ -66,42 +83,30 @@ namespace Internal{
         // MONO
         if (ChannelCount == 1){
             switch(BitsPerSample){
-            case 4: return alGetEnumValue("AL_FORMAT_MONO_IMA4");
-            case 8: return alGetEnumValue("AL_FORMAT_MONO8");
-            case 16: return alGetEnumValue("AL_FORMAT_MONO16");
+                case 4: return alGetEnumValue("AL_FORMAT_MONO_IMA4");
+                case 8: return alGetEnumValue("AL_FORMAT_MONO8");
+                case 16: return alGetEnumValue("AL_FORMAT_MONO16");
             }
         // STEREO
         }else if (ChannelCount == 2){
             switch (BitsPerSample){
-            case 4: return alGetEnumValue("AL_FORMAT_STEREO_IMA4");
-            case 8: return alGetEnumValue("AL_FORMAT_STEREO8");
-            case 16: return alGetEnumValue("AL_FORMAT_STEREO16");
+                case 4: return alGetEnumValue("AL_FORMAT_STEREO_IMA4");
+                case 8: return alGetEnumValue("AL_FORMAT_STEREO8");
+                case 16: return alGetEnumValue("AL_FORMAT_STEREO16");
             }
         }else{
             switch (ChannelCount){
-            case 4: return alGetEnumValue("AL_FORMAT_QUAD16");
-            case 6: return alGetEnumValue("AL_FORMAT_51CHN16");
-            case 7: return alGetEnumValue("AL_FORMAT_61CHN16");
-            case 8: return alGetEnumValue("AL_FORMAT_71CHN16");
-            default : return 0;
+                case 4: return alGetEnumValue("AL_FORMAT_QUAD16");
+                case 6: return alGetEnumValue("AL_FORMAT_51CHN16");
+                case 7: return alGetEnumValue("AL_FORMAT_61CHN16");
+                case 8: return alGetEnumValue("AL_FORMAT_71CHN16");
+                default : return 0;
             }
         }
         return 0;
     }
 
-
-    ALDevice::ALDevice(const char *DeviceName){
-        // open\create device (if DeviceName = NULL then oal select the preferred (default) device)
-        DAL_CALL(_kdevice = alcOpenDevice(DeviceName));
-
-        // create context
-        DAL_CALL(_kcontext = alcCreateContext(_kdevice, NULL));
-
-        // set context as current
-        DAL_CALL(alcMakeContextCurrent(_kcontext));
-    }
-
-    ALDevice::~ALDevice(){
+    /*ALDevice::~ALDevice(){
         // destroy the context
         alcMakeContextCurrent(NULL);
         if (_kcontext)
@@ -110,6 +115,6 @@ namespace Internal{
         // destroy the device
         if (_kdevice)
             alcCloseDevice(_kdevice);
-    }
+    }*/
 }
 }

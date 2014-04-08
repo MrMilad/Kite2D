@@ -19,12 +19,18 @@
 #define KAUDIOTYPES_H
 namespace Kite{
 
-    // Source State Types
+    /// source State Types
     enum KSourceStateTypes{
         KSS_INTIAL,
         KSS_PLAYING,
         KSS_PAUSED,
         KSS_STOPPED
+    };
+
+    /// supported file format
+    enum KAudioFileTypes{
+        KAF_OGG,
+        KAF_WAV
     };
 }
 #endif // KAUDIOTYPES_H

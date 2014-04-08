@@ -19,6 +19,7 @@
 #define KAUDIO_H
 
 #include "Kite/Core/audio/kaudiotypes.h"
+#include "Kite/Core/audio/kaudiostructs.h"
 #include "Kite/Core/audio/klistener.h"
 #include "Kite/Core/audio/ksoundbuffer.h"
 #include "Kite/Core/audio/ksoundsource.h"

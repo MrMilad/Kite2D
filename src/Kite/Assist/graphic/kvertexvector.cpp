@@ -52,10 +52,10 @@ namespace Kite{
     void KVertexVector::addVertex(const std::vector<KVBPack1> &Vertex, KVector2U32 &Range){
         if (!_klock){
             // store position of last elemnt
-            U32 lastPos = _kdata.size();
+            U32 lastPos = (U32)_kdata.size();
 
             // calculate enough size
-            U32 needSize = lastPos + Vertex.size();
+            U32 needSize = lastPos + (U32)Vertex.size();
 
             // allocate enough size
             _kdata.reserve(needSize);
@@ -65,7 +65,7 @@ namespace Kite{
 
             // range
             Range.x = lastPos;
-            Range.y = Vertex.size();
+            Range.y = (U32)Vertex.size();
         }else{
             KDEBUG_PRINT("can't add vertex to locked buffer.");
         }

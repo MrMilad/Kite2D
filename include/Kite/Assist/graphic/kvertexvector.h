@@ -56,7 +56,7 @@ namespace Kite{
         inline bool getLock() const {return _klock;}
 
         /// get size of buffer
-        inline U32 getSize() const {return _kdata.size();}
+        inline U32 getSize() const {return (U32)_kdata.size();}
         inline const KVBPack1 *getVertex() const {if (_kdata.empty()) return 0; return &_kdata[0];}
 
     private:

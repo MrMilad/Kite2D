@@ -21,24 +21,24 @@
 #include <cstdio>
 #include <iostream>
 
-// identify the Little/Big endian
+/// identify the Little/Big endian
 #if defined(__m68k__) || defined(mc68000) || defined(_M_M68K) || (defined(__MIPS__) && defined(__MISPEB__)) || \
     defined(__ppc__) || defined(__POWERPC__) || defined(_M_PPC) || defined(__sparc__) || defined(__hppa__)
 
-    // Big endian
+    /// Big endian
     #define KITE_ENDIAN_BIG
 
 #else
 
-    // Little endian
+    /// Little endian
     #define KITE_ENDIAN_LITTLE
 
 #endif
 
-// identify the operating system
+/// identify the operating system
 #if defined(_WIN32) || defined(__WIN32__)
 
-    // Windows
+    /// Windows
     #define KITE_PLATFORM_WINDOWS
     #ifndef NOMINMAX
         #define NOMINMAX
@@ -46,55 +46,55 @@
 
 #elif defined(linux) || defined(__linux)
 
-    // Linux
+    /// Linux
     #define KITE_PLATFORM_LINUX
 
 #elif defined(__APPLE__) || defined(MACOSX) || defined(macintosh) || defined(Macintosh)
 
-    // MacOS
+    /// MacOS
     #define KITE_PLATFORM_MACOS
 
 #elif defined(__FreeBSD__) || defined(__FreeBSD_kernel__)
 
-    // FreeBSD
+    /// FreeBSD
     #define KITE_PLATFORM_FREEBSD
 
 #else
 
-    // Unsupported system
+    /// Unsupported system
     #error This operating system is not supported by Kite library
 
 #endif
 
 
-/* import / export macros (static/shared(dynamic) */
+/// import / export macros (static/shared(dynamic) 
 #if !defined(KITE_STATIC)
 
     #if defined(KITE_PLATFORM_WINDOWS)
 
-        // Windows compilers import / export specific
+        /// Windows compilers import / export specific
         #define KITE_FUNC_EXPORT __declspec(dllexport)
         #define KITE_FUNC_IMPORT __declspec(dllimport)
 
-        // turn off C4251 warning (in Visual C++ compilers)
+        /// turn off C4251 warning (in Visual C++ compilers)
         #ifdef _MSC_VER
 
             #pragma warning(disable : 4251)
 
         #endif
 
-    #else // Linux, FreeBSD, Mac OS X
+    #else /// Linux, FreeBSD, Mac OS X
 
         #if __GNUC__ >= 4
 
-            // GCC 4 has special keywords for showing/hidding symbols,
-            // the same keyword is used for both importing and exporting
+            /// GCC 4 has special keywords for showing/hidding symbols,
+            /// the same keyword is used for both importing and exporting
             #define KITE_FUNC_EXPORT __attribute__ ((__visibility__ ("default")))
             #define KITE_FUNC_IMPORT __attribute__ ((__visibility__ ("default")))
 
         #else
 
-            // GCC < 4 has no mechanism to explicitely hide symbols, everything's exported
+            /// GCC < 4 has no mechanism to explicitely hide symbols, everything's exported
             #define KITE_FUNC_EXPORT
             #define KITE_FUNC_IMPORT
 
@@ -104,25 +104,25 @@
 
 #else
 
-    // Static build doesn't need import/export macros
+    /// Static build doesn't need import/export macros
     #define KITE_FUNC_EXPORT
     #define KITE_FUNC_IMPORT
 
 #endif
 
-// alignment macro
+/// alignment macro
 #if defined(_MSC_VER)
     #define K_ALIGNED(t,x) __declspec(align(x)) t
 #elif defined(__GNUC__)
     #define K_ALIGNED(t,x) t __attribute__ ((aligned(x)))
 #endif
 
-// default (without any debug flag): framework will compiled in release state.
+/// default (without any debug flag): framework will compiled in release state.
 #if !defined(KITE_DEV_DEBUG) || !defined(KITE_USER_DEBUG)
     #define KITE_RELEASE
 #endif
 
-// debug macro(s)
+/// debug macro(s)
 #if defined(KITE_DEV_DEBUG) // break in source cod.
     #include <assert.h>
     #define KDEBUG_BREAK assert(0);
@@ -140,7 +140,7 @@
     #define KDEBUG_ASSERT_EQ(expr, eq) if(expr != eq) {KDEBUG_PRINT(#expr)}
     #define KDEBUG_TEMP(expr) expr
 
-#else // release state. (without debug output and break)
+#else /// release state. (without debug output and break)
     #define KDEBUG_PRINT(x)
     #define KDEBUG_BREAK
     #define KDEBUG_ASSERT(expr) expr;
@@ -149,23 +149,26 @@
     #define KDEBUG_TEMP(expr)
 #endif
 
-// using sse
+/// using sse
 #if defined(KITE_USE_SSE)
     #ifndef __SSE__
         #define __SSE__
     #endif
 #endif
 
-// using DirectInput (only for joystick(s))
+/// using DirectInput (only for joystick(s))
 #if defined(KITE_USE_DIRECTINPUT)
     #define KDINPUT_ALLOW
 #endif
 
 #ifndef DWORD
-// 64 bits integer types
+/// 64 bits integer types
 typedef unsigned short WORD;
 typedef unsigned long DWORD;
 #endif
+
+/// max audio buffer (ogg vorbis)
+#define KOGG_BUFF_SIZE 4096
 
 namespace Kite{
     // 8 bits integer types

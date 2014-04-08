@@ -45,7 +45,11 @@ namespace Kite{
         /// (handle autimatic by internal render system)
         void bind() const;
 
-        static void unbind();
+        /// unbind the texture if it is currently in use
+        void unbind();
+
+        /// unbind currently texture
+        static void unbindTexture();
 
         inline KTextureFilterTypes getFilter() const {return _kfilter;}
         inline KTextureWrapTypes getWrap() const {return _kwrap;}

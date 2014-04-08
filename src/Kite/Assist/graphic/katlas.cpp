@@ -83,7 +83,7 @@ namespace Kite{
         header.format[5] = 's';
         header.format[6] = '\0';
 
-        header.objCount = Objects.size();
+        header.objCount = (U32)Objects.size();
 
         fwrite(&header, sizeof(KAtlasHeader), 1, file);
 

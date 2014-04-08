@@ -81,8 +81,8 @@ namespace Kite{
         /// bind the shader
         void bind() const;
 
-        /// unbind the shader
-        static void unbind();
+        /// unbind currently shader
+        static void unbindShader();
 
         inline U32 getID() const {return _kprogram;}
         static const std::string getShaderVersion();

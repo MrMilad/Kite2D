@@ -22,7 +22,7 @@
 #include "Kite/Core/graphic/ktexture.h"
 
 namespace Kite{
-    class KITE_FUNC_EXPORT KFrameBuffer{
+    class KITE_FUNC_EXPORT KFrameBuffer : KNonCopyable{
         KFrameBuffer();
         ~KFrameBuffer();
 
@@ -31,11 +31,13 @@ namespace Kite{
 
         // void attachRenderBuffer(const KRenderBuffer *RenderBuffer);
 
-        /// bind framebuffer
         void bind();
 
-        /// unbind framebuffer
+        /// unbind the frame buffer if it is currently in use
         void unbind();
+
+        /// unbind currently frame buffer
+        static void unbindVertexBuffer();
 
     private:
         U32 _kbufId;

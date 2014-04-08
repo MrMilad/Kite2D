@@ -129,6 +129,13 @@ namespace Kite{
     }
 
     void KVertexBuffer::unbind(){
+        if (_klastBufId == _kbufId){
+            DGL_CALL(glBindBuffer(GL_ARRAY_BUFFER, 0));
+            _klastBufId = 0;
+        }
+    }
+
+    void KVertexBuffer::unbindVertexBuffer(){
         DGL_CALL(glBindBuffer(GL_ARRAY_BUFFER, 0));
         _klastBufId = 0;
     }

@@ -143,7 +143,7 @@ namespace Kite{
                 _kbuffer = Buffer;
             }
         }else{
-            KVertexBuffer::unbind();
+            KVertexBuffer::unbindVertexBuffer();
             _kcatch.lastBufId = 0;
             _kbuffer = 0;
         }
@@ -154,10 +154,10 @@ namespace Kite{
     }
 
     void KGL2DRender::setClearColor(const KColor &Color){
-        DGL_CALL(glClearColor((GLclampf)((F32)Color.r/255.0f),
-                              (GLclampf)((F32)Color.g/255.0f),
-                              (GLclampf)((F32)Color.b/255.0f),
-                              (GLclampf)((F32)Color.a/255.0f)));
+        DGL_CALL(glClearColor((GLclampf)((F32)Color.r / 255.0f),
+                              (GLclampf)((F32)Color.g / 255.0f),
+                              (GLclampf)((F32)Color.b / 255.0f),
+                              (GLclampf)((F32)Color.a / 255.0f)));
     }
 
     void KGL2DRender::setLPOptions(KGeoPrimitiveTypes Type, const KLPOption &Options){
@@ -195,7 +195,7 @@ namespace Kite{
                 _ktexture = Texture;
             }
         }else{
-            KTexture::unbind();
+            KTexture::unbindTexture();
             _kcatch.lastTexId = 0;
             _ktexture = 0;
         }
@@ -209,7 +209,7 @@ namespace Kite{
                 _kcatch.lastShId = Shader->getID();
             }
         }else{
-            KShader::unbind();
+            KShader::unbindShader();
             _kcatch.lastShId = 0;
             _kshader = 0;
         }

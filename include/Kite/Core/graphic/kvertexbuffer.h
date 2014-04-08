@@ -59,7 +59,11 @@ namespace Kite{
         /// (handle autimatic by internal render system)
         void bind() const;
 
-        static void unbind();
+        /// unbind the vertex buffer if it is currently in use
+        void unbind();
+
+        /// unbind currently vertex buffer
+        static void unbindVertexBuffer();
 
         /// set function handle for mapping buffer.
         inline void setUpdateHandle(KCallVBUpdate *UpdateHandle) {_kupdateHnd = UpdateHandle;}

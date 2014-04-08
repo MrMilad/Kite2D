@@ -211,7 +211,7 @@ namespace Kite{
         }
     }
 
-    void KShader::unbind(){
+    void KShader::unbindShader(){
         // disable the program
         DGL_CALL(glUseProgramObjectARB(0));
     }

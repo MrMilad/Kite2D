@@ -72,6 +72,13 @@ namespace Kite{
     }
 
     void KTexture::unbind(){
+        if (_klastTexId == _ktexId){
+            DGL_CALL(glBindTexture(GL_TEXTURE_2D, 0));
+            _klastTexId = 0;
+        }
+    }
+
+    void KTexture::unbindTexture(){
         DGL_CALL(glBindTexture(GL_TEXTURE_2D, 0));
         _klastTexId = 0;
     }

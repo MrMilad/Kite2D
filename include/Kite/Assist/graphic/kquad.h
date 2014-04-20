@@ -20,46 +20,23 @@
 
 #include "Kite/Core/system/ksystemdef.h"
 #include "Kite/Core/graphic/kgraphicstructs.h"
-#include "Kite/Assist/graphic/kdrawable.h"
-#include "Kite/Assist/graphic/kbufferable.h"
 #include "Kite/Assist/graphic/ktransformable.h"
-#include "Kite/Core/graphic/ktexture.h"
-#include "Kite/Core/graphic/kshader.h"
-#include "Kite/Core/system/kvector2.h"
+#include "Kite/Core/math/kvector2.h"
 #include <vector>
 
 namespace Kite{
-    class KITE_FUNC_EXPORT KQuad : public KDrawable, public KBufferable, public KTransformable{
+    class KITE_FUNC_EXPORT KQuad : public KTransformable{
     public:
-        KQuad();
-        KQuad(const KQuadAttrib &QuadAttribute, KShader *Shader, const KTexture *Texture);
+        KQuad(){}
+        KQuad(const KQuadAttrib &QuadAttribute):
+            _kquadattr(QuadAttribute)
+        {}
 
-        //virtual ~KQuad();
-
-        void setQuadAttribute(const KQuadAttrib &QuadAttribute);
+        inline void setQuadAttribute(const KQuadAttrib &Attribute) {_kquadattr = Attribute;}
         inline const KQuadAttrib *getQuadAttribute() const {return &_kquadattr;}
 
-        inline void setShader(KShader *Shader) {_kshader = Shader;}
-        inline KShader *getShader() const {return _kshader;}
-
-        inline void setTexture(const KTexture *Texture) {_ktexture = Texture;}
-        inline const KTexture *getTexture() const {return _ktexture;}
-
-        /// push vertex data to pre vertex buffer
-        void pushVertex();
-
-        /// draw
-        void draw(KGL2DRender &Renderer);
-
     private:
-        void _updateVertex();
         KQuadAttrib _kquadattr;
-        KShader *_kshader;
-        const KTexture *_ktexture;
-
-        KVector2U32 _krange;
-        std::vector<KVBPack1> _kvertex;
-        bool _kpushed;
     };
 }
 

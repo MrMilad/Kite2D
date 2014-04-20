@@ -21,16 +21,18 @@
 #include <fstream>
 
 namespace Kite{
-
+    U32 KShader::_klastProgId = 0;
     KShader::KShader():
-        _kprogram(0),
+        _kprogId(0),
         _kcurrentTexture(-1)
     {}
 
     KShader::~KShader(){
         // destroy program object
-        if (_kprogram)
-            DGL_CALL(glDeleteObjectARB(_kprogram));
+        DGL_CALL(glDeleteObjectARB(_kprogId));
+        if (_klastProgId == _kprogId){
+            _klastProgId = 0;
+        }
     }
 
     bool KShader::loadFile(const std::string &VertexFile, const std::string &FragmentFile){
@@ -54,11 +56,11 @@ namespace Kite{
             }
 
             // destroy the shader if it was already created
-            if (_kprogram)
-                DGL_CALL(glDeleteObjectARB(_kprogram));
+            if (_kprogId)
+                DGL_CALL(glDeleteObjectARB(_kprogId));
 
             // create the new program
-            _kprogram = glCreateProgramObjectARB();
+            _kprogId = glCreateProgramObjectARB();
 
             // create vertex shader object
             if (!_createShader(&vertexSh[0], KS_VERTEX))
@@ -82,11 +84,11 @@ namespace Kite{
 
         if (!VertexCod.empty() && !FragmentCod.empty()){
             // destroy the shader if it was already created
-            if (_kprogram)
-                DGL_CALL(glDeleteObjectARB(_kprogram));
+            if (_kprogId)
+                DGL_CALL(glDeleteObjectARB(_kprogId));
 
             // create the new program
-            _kprogram = glCreateProgramObjectARB();
+            _kprogId = glCreateProgramObjectARB();
 
             // create vertex shader object
             if (!_createShader(VertexCod.c_str(), KS_VERTEX))
@@ -102,24 +104,24 @@ namespace Kite{
     }
 
     void KShader::bindAttribute(U16 Index, const std::string Name){
-        DGL_CALL(glBindAttribLocation(_kprogram, (GLuint)Index, Name.c_str()));
+        DGL_CALL(glBindAttribLocation(_kprogId, (GLuint)Index, Name.c_str()));
     }
 
     bool KShader::link(){
-        if (!_kprogram)
+        if (!_kprogId)
             return false;
 
         // link the program
-        DGL_CALL(glLinkProgramARB(_kprogram));
+        DGL_CALL(glLinkProgramARB(_kprogId));
 
         // check the link log
         GLint isLinked;
-        DGL_CALL(glGetProgramiv(_kprogram, GL_LINK_STATUS, (int *)&isLinked));
+        DGL_CALL(glGetProgramiv(_kprogId, GL_LINK_STATUS, (int *)&isLinked));
         //DGL_CALL(glGetObjectParameterivARB(_kprogram, GL_OBJECT_LINK_STATUS_ARB, &success)); // old version
         if (isLinked == GL_FALSE){
             KDEBUG_PRINT("Failed to link shader program.");
-            DGL_CALL(glDeleteObjectARB(_kprogram));
-            _kprogram = 0;
+            DGL_CALL(glDeleteObjectARB(_kprogId));
+            _kprogId = 0;
             return false;
         }
 
@@ -127,34 +129,34 @@ namespace Kite{
     }
 
     I16 KShader::getUniformLocation(const std::string &ParamName) const{
-        if (_kprogram){
-            GLint location = glGetUniformLocationARB(_kprogram, ParamName.c_str());
+        if (_kprogId){
+            GLint location = glGetUniformLocationARB(_kprogId, ParamName.c_str());
             return (I16)location;
         }
         return -1;
     }
 
     void KShader::setParam(Kite::I16 Location, F32 x) const{
-        if (_kprogram && Location >= 0){
+        if (_kprogId && Location >= 0){
             // get parameter location and assign it new values
             DGL_CALL(glUniform1fARB(Location, x));
         }
     }
 
     void KShader::setParam(Kite::I16 Location, F32 x, F32 y) const{
-        if (_kprogram && Location >= 0){
+        if (_kprogId && Location >= 0){
             DGL_CALL(glUniform2fARB(Location, x, y));
         }
     }
 
     void KShader::setParam(Kite::I16 Location, F32 x, F32 y, F32 z) const{
-        if (_kprogram && Location >= 0){
+        if (_kprogId && Location >= 0){
             DGL_CALL(glUniform3fARB(Location, x, y, z));
         }
     }
 
     void KShader::setParam(Kite::I16 Location, F32 x, F32 y, F32 z, F32 w) const{
-        if (_kprogram && Location >= 0){
+        if (_kprogId && Location >= 0){
             DGL_CALL(glUniform4fARB(Location, x, y, z, w));
         }
     }
@@ -164,13 +166,13 @@ namespace Kite{
     }
 
     void KShader::setParam(Kite::I16 Location, const KTransform& Transform) const{
-        if (_kprogram && Location >= 0){
+        if (_kprogId && Location >= 0){
             DGL_CALL(glUniformMatrix4fvARB(Location, 1, GL_FALSE, Transform.getMatrix()));
         }
     }
 
     void KShader::setParam(Kite::I16 Location, const KTexture& Texture){
-        if (_kprogram && Location >= 0){
+        if (_kprogId && Location >= 0){
             // store the location -> texture mapping
             std::map<I32, const KTexture *>::iterator it = _ktextureTable.find(Location);
             if (it == _ktextureTable.end()){
@@ -198,9 +200,10 @@ namespace Kite{
 //    }
 
     void KShader::bind() const{
-        if (_kprogram){
+        if (_klastProgId != _kprogId){
             // enable the program
-            DGL_CALL(glUseProgramObjectARB(_kprogram));
+            DGL_CALL(glUseProgramObjectARB(_kprogId));
+            _klastProgId = _kprogId;
 
             // fill the texture units for sending them to shader
             _fillTextureUnits();
@@ -211,9 +214,18 @@ namespace Kite{
         }
     }
 
+    void KShader::unbind(){
+        // disable the program
+        if (_klastProgId == _kprogId){
+            DGL_CALL(glUseProgramObjectARB(0));
+            _klastProgId = 0;
+        }
+    }
+
     void KShader::unbindShader(){
         // disable the program
         DGL_CALL(glUseProgramObjectARB(0));
+        _klastProgId = 0;
     }
 
     void KShader::_readFile(const char *FileName, std::vector<char> &data){
@@ -268,13 +280,13 @@ namespace Kite{
 
                 // cleanup
                 DGL_CALL(glDeleteObjectARB(shader));
-                DGL_CALL(glDeleteObjectARB(_kprogram));
-                _kprogram = 0;
+                DGL_CALL(glDeleteObjectARB(_kprogId));
+                _kprogId = 0;
                 return false;
             }
 
             // attach the shader to the program, and delete it (not needed anymore)
-            DGL_CALL(glAttachObjectARB(_kprogram, shader));
+            DGL_CALL(glAttachObjectARB(_kprogId, shader));
             DGL_CALL(glDeleteObjectARB(shader));
             return true;
         }

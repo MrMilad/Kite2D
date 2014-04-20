@@ -19,9 +19,9 @@
 #define KCAMERA_H
 
 #include "Kite/Core/system/ksystemdef.h"
-#include "Kite/Core/system/kvector2.h"
+#include "Kite/Core/math/kvector2.h"
 #include "Kite/Core/graphic/kgraphicstructs.h"
-#include "Kite/Core/graphic/ktransform.h"
+#include "Kite/Core/math/ktransform.h"
 #include <cmath>
 
 namespace Kite{

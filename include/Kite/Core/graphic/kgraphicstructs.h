@@ -20,7 +20,7 @@
 
 #include "Kite/Core/system/ksystemtypes.h"
 #include "Kite/Core/graphic/kgraphictypes.h"
-#include "Kite/Core/system/kvector2.h"
+#include "Kite/Core/math/kvector2.h"
 #include "Kite/Core/system/ksystemdef.h"
 
 namespace Kite{
@@ -43,14 +43,6 @@ namespace Kite{
         }
     };
 
-    struct KLPOption{
-        F32 size;
-        KFilteringDrawTypes filter;
-        KLPOption(F32 Size = 2, KFilteringDrawTypes FilterTypes = KFD_ALIASED):
-            size(Size), filter(FilterTypes)
-        {}
-    };
-
     /// position, texture, color
     struct KVBPack1{
         F32 x,y;
@@ -64,13 +56,12 @@ namespace Kite{
         {}
     };
 
-/*    /// position, texture
+    /// position, texture
     struct KVBPack2{
         F32 x,y;
         F32 u,v;
 
-        KVertex(F32 X = -1.0, F32 Y = -1.0, F32 U = 0.0, F32 V = 0.0,
-                 F32 R = 0.0):
+        KVBPack2(F32 X = -1.0, F32 Y = -1.0, F32 U = 0.0, F32 V = 0.0):
             x(X), y(Y), u(U), v(V)
         {}
     };
@@ -80,32 +71,34 @@ namespace Kite{
         F32 x,y;
         F32 r,g,b,a;
 
-        KVertex(F32 X = -1.0, F32 Y = -1.0,
+        KVBPack3(F32 X = -1.0, F32 Y = -1.0,
                  F32 R = 0.0, F32 G = 0.0, F32 B = 0.0, F32 A = 1.0):
             x(X), y(Y),
             r(R), g(G), b(B), a(A)
         {}
     };
 
+	// uv, color
+	struct KVBPack4{
+		F32 u,v;
+		F32 r,g,b,a;
+
+		KVBPack4(F32 U = 0.0f, F32 V = 0.0f,
+				 F32 R = 0.0, F32 G = 0.0, F32 B = 0.0, F32 A = 1.0) :
+			u(U), v(V),
+			r(R), g(G), b(B), a(A)
+		{}
+	};
+
     /// position (Point)
-    struct KVBPack4{
-        F32 x,y;
-
-        KVertex(F32 X = -1.0, F32 Y = -1.0):
-            x(X), y(Y)
-        {}
-    };
-
-    /// position, 4x4 matrix
     struct KVBPack5{
         F32 x,y;
-        F32
 
-        KVertex(F32 X = -1.0, F32 Y = -1.0):
+        KVBPack5(F32 X = -1.0, F32 Y = -1.0):
             x(X), y(Y)
         {}
     };
-*/
+
     struct KAtlasObject{
         U32 id;
         F32 u,v; // texture position
@@ -183,24 +176,19 @@ namespace Kite{
     namespace Internal{
     struct KCatchState{
         /// need fix
-        KRenderMode render;
         KBlendMode blend;
-        U32 lastBufId;
-        U32 lastTexId;
-        U32 lastShId;
+        U32 lastVAOId, lastVBOId, lastTexId, lastShdId;
         bool pointSpr;
 
-        KCatchState(KRenderMode Render = KRM_UNSET,
-                    KBlendMode Blend = KB_ALPHA,
-                    U16 LastBufferID  = 0,
-                    U16 LastTextureID = 0,
-                    U16 LastSeaderID  = 0,
+        KCatchState(KBlendMode Blend = KB_ALPHA,
+                    U32 LastVAOID = 0, U32 LastVBOID = 0,
+                    U32 LastTextureID = 0, U32 LastSeaderID = 0,
                     bool PointSprite = false):
-            render(Render),
             blend(Blend),
-            lastBufId(LastBufferID),
+            lastVAOId(LastVAOID),
+            lastVBOId(LastVBOID),
             lastTexId(LastTextureID),
-            lastShId(LastSeaderID),
+            lastShdId(LastSeaderID),
             pointSpr(PointSprite)
         {}
     };

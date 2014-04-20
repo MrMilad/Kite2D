@@ -35,9 +35,8 @@ namespace Kite{
     }
 
     void KFrameBuffer::attachTexture(const KTexture *Texture){
-        // save currently binded buffer then bind our buffer temporary
-        Internal::GLBindGuard bindGuard(Internal::KBG_VBUFFER, _klastBufId);
-        DGL_CALL(glBindFramebuffer(GL_FRAMEBUFFER, _kbufId));
+		// bind buffer
+		bind();
 
         // attach the texture to FBO color attachment point
         DGL_CALL(glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
@@ -48,8 +47,10 @@ namespace Kite{
     }
 
     void KFrameBuffer::bind(){
-        DGL_CALL(glBindFramebuffer(GL_FRAMEBUFFER, _kbufId));
-        _klastBufId = _kbufId;
+        if (_klastBufId != _kbufId){
+            DGL_CALL(glBindFramebuffer(GL_FRAMEBUFFER, _kbufId));
+            _klastBufId = _kbufId;
+        }
     }
 
     void KFrameBuffer::unbind(){

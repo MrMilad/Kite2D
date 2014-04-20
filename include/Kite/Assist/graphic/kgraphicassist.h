@@ -24,5 +24,6 @@
 #include "Kite/Assist/graphic/kvertexvector.h"
 #include "Kite/Assist/graphic/katlas.h"
 #include "Kite/Assist/graphic/kquad.h"
+#include "Kite/Assist/graphic/kbatch.h"
 
 #endif // KGRAPHICASSIST_H

@@ -21,13 +21,12 @@
 #include "Kite/Core/graphic/kgraphicdef.h"
 #include "Kite/Core/graphic/kgraphictypes.h"
 #include "Kite/Core/graphic/kgraphicstructs.h"
-#include "Kite/Core/graphic/kglrender.h"
-#include "Kite/Core/graphic/kgl2drender.h"
+#include "Kite/Core/graphic/krender.h"
 #include "Kite/Core/graphic/kimage.h"
 #include "Kite/Core/graphic/ktexture.h"
+#include "Kite/Core/graphic/kvertexarray.h"
 #include "Kite/Core/graphic/kvertexbuffer.h"
 #include "Kite/Core/graphic/kframebuffer.h"
-#include "Kite/Core/graphic/ktransform.h"
 #include "Kite/Core/graphic/kgraphicutil.h"
 
 #endif // KGRAPHIC_H

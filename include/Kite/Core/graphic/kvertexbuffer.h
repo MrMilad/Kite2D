@@ -25,9 +25,8 @@
 
 namespace Kite{
     class KITE_FUNC_EXPORT KVertexBuffer : KNonCopyable{
-    friend class KGL2DRender;
     public:
-        KVertexBuffer();
+		KVertexBuffer(KBufferTargetTypes TargetType);
         ~KVertexBuffer();
 
         /// create vertex buffer
@@ -69,14 +68,16 @@ namespace Kite{
         inline void setUpdateHandle(KCallVBUpdate *UpdateHandle) {_kupdateHnd = UpdateHandle;}
 
         inline KVertexBufferTypes getType() const {return _kbufType;}
-        inline I64 getLength() const {return _karrLen;}
+        inline I64 getSize() const {return _ksize;}
         inline U32 getID() const {return _kbufId;}
 
     private:
         KVertexBufferTypes _kbufType;
-        I64 _karrLen;
+		KBufferTargetTypes _kbufTarget;
+        I64 _ksize;
         U32 _kbufId;
         KCallVBUpdate *_kupdateHnd;
+		static I32 _ktargets[2];
         static U32 _klastBufId;
     };
 }

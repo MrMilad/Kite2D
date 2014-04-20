@@ -30,20 +30,25 @@ namespace Kite{
         KB_NONE      // Pixel = Source
     };
 
-    enum KTextureEnvMode{
-        KTE_ADD = 0,
-        KTE_MODULATE,
-        KTE_DECAL,
-        KTE_BLEND,
-        KTE_REPLACE,
-        KTE_COMBINE
-    };
+//    enum KTextureEnvMode{
+//        KTE_ADD = 0,
+//        KTE_MODULATE,
+//        KTE_DECAL,
+//        KTE_BLEND,
+//        KTE_REPLACE,
+//        KTE_COMBINE
+//    };
 
     enum KVertexBufferTypes{
         KVB_STATIC = 0,
         KVB_DYNAMIC,
         KVB_STREAM
     };
+
+	enum KBufferTargetTypes{
+		KBT_INDEX = 0,
+		KBT_VERTEX
+	};
 
     enum KMapAccessTypes{
         KMA_READ = 0,
@@ -65,10 +70,10 @@ namespace Kite{
         KGP_TRIANGLES_ADJACENCY
     };
 
-    enum KFilteringDrawTypes{
-        KFD_ALIASED,
-        KFD_SMOOTH
-    };
+//    enum KFilteringDrawTypes{
+//        KFD_ALIASED,
+//        KFD_SMOOTH
+//    };
 
     /* Colors */
     enum KColors{
@@ -127,12 +132,12 @@ namespace Kite{
     };
 
 
-    enum KFontCharSetTypes{
-        KFC_ANSI,
-        KFC_ARABIC,
-        KFC_HEBREW,
-        KFC_AUTO
-    };
+//    enum KFontCharSetTypes{
+//        KFC_ANSI,
+//        KFC_ARABIC,
+//        KFC_HEBREW,
+//        KFC_AUTO
+//    };
 
     enum KTextureFilterTypes{
         KTF_NEAREST = 0,
@@ -151,8 +156,24 @@ namespace Kite{
         KS_FRAGMENT
     };
 
-    enum KShaderTextureTypes{
-        KCT_CURRENT = 0
+//    enum KShaderTextureTypes{
+//        KST_CURRENT = 0
+//    };
+
+    enum KAttributeCountTypes{
+        KAC_1COMPONENT = 1,
+        KAC_2COMPONENT = 2,
+        KAC_3COMPONENT = 3,
+        KAC_4COMPONENT = 4,
+    };
+
+    enum KAttributeTypeTypes{
+        KAT_BYTE = 0,
+        KAT_UNSIGNED_BYTE,
+        KAT_SHORT,
+        KAT_UNSIGNED_SHORT,
+        KAT_FIXED,
+        KAT_FLOAT
     };
 
     namespace Internal{
@@ -161,12 +182,6 @@ namespace Kite{
         KBG_TEXTURE, // texture
         KBG_VBUFFER, // vertex buffer
         KGB_PBUFFER  // frame buffer
-    };
-
-    enum KRenderMode{
-        KRM_VBO,
-        KRM_VARRAY,
-        KRM_UNSET
     };
     }
 

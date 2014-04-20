@@ -19,7 +19,7 @@
 #define KDRAWABLE_H
 
 #include "Kite/Core/system/ksystemdef.h"
-#include "Kite/Core/graphic/kgl2drender.h"
+#include "Kite/Core/graphic/krender.h"
 
 namespace Kite{
     class KITE_FUNC_EXPORT KDrawable{
@@ -29,7 +29,7 @@ namespace Kite{
         {}
         virtual ~KDrawable(){}
 
-        virtual void draw(KGL2DRender &Renderer) = 0;
+        virtual void draw(KRender &Renderer) = 0;
         inline void setVisible(bool Visible) {_kvisible = Visible;}
         inline bool getVisible() const {return _kvisible;}
 

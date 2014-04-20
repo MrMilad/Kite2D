@@ -33,11 +33,11 @@ namespace Kite{
 
         /// set pre vertex buffer (CPU side buffer)
         /// use pre buffer for edit and update vertex data
-        inline void setPreVBuffer(KVertexVector *PreVertexBuffer) {_kpreVBuffer = PreVertexBuffer;}
+        inline void setPreVBuffer(KVertexVector<T> *PreVertexBuffer) {_kpreVBuffer = PreVertexBuffer;}
 
         /// set orginal vertex buffer (GPU side buffer)
         /// use in draw operation
-        inline void setVBuffer(const KVertexBuffer *VertexBuffer) {_kvbuffer = VertexBuffer;}
+        inline void setVBuffer(const KVertexBuffer<T> *VertexBuffer) {_kvbuffer = VertexBuffer;}
 
         /// push the vertex to the pre vertex buffer (CPU side buffer)
         virtual void pushVertex() = 0;

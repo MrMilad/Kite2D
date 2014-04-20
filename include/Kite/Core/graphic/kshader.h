@@ -23,7 +23,7 @@
 #include "Kite/Core/graphic/kgraphictypes.h"
 #include "Kite/Core/graphic/kgraphicstructs.h"
 #include "Kite/Core/graphic/ktexture.h"
-#include "Kite/Core/graphic/ktransform.h"
+#include "Kite/Core/math/ktransform.h"
 #include <map>
 #include <vector>
 #include <string>
@@ -81,10 +81,12 @@ namespace Kite{
         /// bind the shader
         void bind() const;
 
+        void unbind();
+
         /// unbind currently shader
         static void unbindShader();
 
-        inline U32 getID() const {return _kprogram;}
+        inline U32 getID() const {return _kprogId;}
         static const std::string getShaderVersion();
 
     private:
@@ -92,9 +94,10 @@ namespace Kite{
         bool _createShader(const char *ShaderCod, KShaderTypes ShaderType);
         void _fillTextureUnits() const;
 
-        U32 _kprogram;
+        U32 _kprogId;
         std::map<I32, const KTexture *> _ktextureTable;
         I32 _kcurrentTexture;
+        static U32 _klastProgId;
     };
 }
 

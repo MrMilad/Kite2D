@@ -19,7 +19,7 @@
 #define KMOUSE_H
 
 #include "Kite/Core/system/ksystemdef.h"
-#include "Kite/Core/system/kvector2.h"
+#include "Kite/Core/math/kvector2.h"
 #include "Kite/Core/input/kinputtypes.h"
 
 namespace Kite{

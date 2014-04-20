@@ -67,8 +67,10 @@ namespace Kite{
 
     void KTexture::bind() const{
         // bind texture
-        DGL_CALL(glBindTexture(GL_TEXTURE_2D, _ktexId));
-        _klastTexId = _ktexId;
+        if (_klastTexId != _ktexId){
+            DGL_CALL(glBindTexture(GL_TEXTURE_2D, _ktexId));
+            _klastTexId = _ktexId;
+        }
     }
 
     void KTexture::unbind(){

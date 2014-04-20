@@ -21,11 +21,13 @@
 
 namespace Kite{
 
-    KVertexVector::KVertexVector():
+    template <class T>
+    KVertexVector<T>::KVertexVector():
         _klock(false)
     {}
 
-    KVertexVector::~KVertexVector(){}
+    template <class T>
+    KVertexVector<T>::~KVertexVector(){}
 
 //    void KVertexVector::addVertex(const std::vector<KVertex> &Vertex, std::vector<U32> &Index){
 //        // just in case
@@ -49,7 +51,9 @@ namespace Kite{
 //        }
 //    }
 
-    void KVertexVector::addVertex(const std::vector<KVBPack1> &Vertex, KVector2U32 &Range){
+
+    template <class T>
+    void KVertexVector<T>::addVertex(const std::vector<T> &Vertex, KVector2U32 &Range){
         if (!_klock){
             // store position of last elemnt
             U32 lastPos = (U32)_kdata.size();
@@ -85,7 +89,9 @@ namespace Kite{
 //        }
 //    }
 
-    void KVertexVector::updateVertex(const std::vector<KVBPack1> &NewVertex, const KVector2U32 &Range){
+
+    template <class T>
+    void KVertexVector<T>::updateVertex(const std::vector<T> &NewVertex, const KVector2U32 &Range){
         if (_kdata.empty() || Range.y > NewVertex.size()){
             KDEBUG_PRINT("buffer is empty or lenght is greater than vertex size.");
             return;
@@ -97,17 +103,22 @@ namespace Kite{
         }
 
         // set iterator to end of range (source)
-        std::vector<KVBPack1>::const_iterator itEnd = NewVertex.begin();
+        typename std::vector<T>::const_iterator itEnd = NewVertex.begin();
         std::advance(itEnd, Range.y);
 
         // set iterator to start of range (dest)
-        std::vector<KVBPack1>::iterator itDest = _kdata.begin();
+        typename std::vector<T>::iterator itDest = _kdata.begin();
         std::advance(itDest, Range.x);
 
         // update data
         std::copy(NewVertex.begin(), itEnd, itDest);
     }
 
-
+    template <class T>
+    void KVertexVector<T>::clear(){
+        if (!_klock){
+            _kdata.clear();
+        }
+    }
 
 }

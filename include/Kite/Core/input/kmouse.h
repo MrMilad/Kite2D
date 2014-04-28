@@ -26,7 +26,7 @@ namespace Kite{
     class KITE_FUNC_EXPORT KMouse{
     public:
         /// set window handle
-        inline static void setWindowHandle(KWindowHandle Window) {_kwinHandle = Window;}
+		static void setWindowHandle(KWindowHandle Window);
 
         /// returns the last reported state of a mouse button
         static KButtonStateTypes getButtonState(KMouseButtonTypes Button);

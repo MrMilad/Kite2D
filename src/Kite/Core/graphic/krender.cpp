@@ -98,9 +98,9 @@ namespace Kite{
 
     void KRender::setViewport(const KRectI32 &Viewport){
         _kviewport = Viewport;
-        DGL_CALL(glViewport(_kviewport.x,
-                            _kviewport.y,
-                            _kviewport.width,
-                            _kviewport.height));
+        DGL_CALL(glViewport(_kviewport.left,
+                            _kviewport.bottom,
+                            _kviewport.right,
+                            _kviewport.top));
     }
 }

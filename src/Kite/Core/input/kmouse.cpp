@@ -21,7 +21,11 @@
 namespace Kite{
     KWindowHandle KMouse::_kwinHandle = 0;
 
-    Kite::KButtonStateTypes KMouse::getButtonState(KMouseButtonTypes Button){
+	void KMouse::setWindowHandle(KWindowHandle Window){
+		_kwinHandle = Window; 
+	}
+
+    KButtonStateTypes KMouse::getButtonState(KMouseButtonTypes Button){
         return (KButtonStateTypes)glfwGetMouseButton((GLFWwindow *)_kwinHandle, Button);
     }
 

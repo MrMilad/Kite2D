@@ -16,7 +16,8 @@
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 #include "Kite/Assist/graphic/kbatch.h"
-#include "Kite/Core/math/kvector4.h"
+#include "Kite/Core/math/kvector3.h"
+#include "kite/Assist/graphic/kcamera.h"
 
 namespace Kite{
     KBatch::KBatch(const std::vector<KQuad> &Quads):
@@ -32,7 +33,8 @@ namespace Kite{
 
         // using KVBPack5 for position (stream) buffer
 		KVBPack5 pos[4];
-		_kposArray.reserve(_kquads->size() * 4);
+        std::vector<KVBPack5> posArray;
+        posArray.reserve(_kquads->size() * 4);
 
 		// initialize index
 		U16 *index = new U16[_kquads->size() * 6];
@@ -49,49 +51,48 @@ namespace Kite{
 
         // initialize position and uv/color arrays
         for (U32 i = 0; i < _kquads->size(); i++){
-            const KQuadAttrib *temp = _kquads->at(i).getQuadAttribute();
-            const F32 *mat = _kquads->at(i).getTransform().getMatrix();
+            const KQuad *temp = &_kquads->at(i);
 
             // buttom left
 			// position
-			pos[0].x = temp->buttomLeft.x;
-			pos[0].y = temp->buttomLeft.y;
+            pos[0].x = temp->getQuadAttribute()->bottomLeft.x;
+            pos[0].y = temp->getQuadAttribute()->bottomLeft.y;
 			//uv
-			uvc[0].u = temp->buttomLeftUV.x;
-			uvc[0].v = temp->buttomLeftUV.y;
+            uvc[0].u = temp->getQuadAttribute()->bottomLeftUV.x;
+            uvc[0].v = temp->getQuadAttribute()->topRightUV.y;
 
             // top left
 			// position
-			pos[1].x = temp->buttomLeft.x;
-			pos[1].y = temp->topRight.y;
+            pos[1].x = temp->getQuadAttribute()->bottomLeft.x;
+            pos[1].y = temp->getQuadAttribute()->topRight.y;
 			//uv
-			uvc[1].u = temp->buttomLeftUV.x;
-			uvc[1].v = temp->topRightUV.y;
+            uvc[1].u = temp->getQuadAttribute()->bottomLeftUV.x;
+            uvc[1].v = temp->getQuadAttribute()->bottomLeftUV.y;
 
 			// buttom right
 			// position
-			pos[2].x = temp->topRight.x;
-			pos[2].y = temp->buttomLeft.y;
+            pos[2].x = temp->getQuadAttribute()->topRight.x;
+            pos[2].y = temp->getQuadAttribute()->bottomLeft.y;
 			//uv
-			uvc[2].u = temp->topRightUV.x;
-			uvc[2].v = temp->buttomLeftUV.y;
+            uvc[2].u = temp->getQuadAttribute()->topRightUV.x;
+            uvc[2].v = temp->getQuadAttribute()->topRightUV.y;
 
             // top right
 			// position
-			pos[3].x = temp->topRight.x;
-			pos[3].y = temp->topRight.y;
+            pos[3].x = temp->getQuadAttribute()->topRight.x;
+            pos[3].y = temp->getQuadAttribute()->topRight.y;
 			//uv
-			uvc[3].u = temp->topRightUV.x;
-			uvc[3].v = temp->topRightUV.y;
+            uvc[3].u = temp->getQuadAttribute()->topRightUV.x;
+            uvc[3].v = temp->getQuadAttribute()->bottomLeftUV.y;
 
             // color
-			uvc[0].r = uvc[1].r = uvc[2].r = uvc[3].r = temp->color.r / 255.0f;
-			uvc[0].g = uvc[1].g = uvc[2].g = uvc[3].g = temp->color.g / 255.0f;
-			uvc[0].b = uvc[1].b = uvc[2].b = uvc[3].b = temp->color.b / 255.0f;
-			uvc[0].a = uvc[1].a = uvc[2].a = uvc[3].a = temp->color.a / 255.0f;
+            uvc[0].r = uvc[1].r = uvc[2].r = uvc[3].r = temp->getQuadAttribute()->color.r / 255.0f;
+            uvc[0].g = uvc[1].g = uvc[2].g = uvc[3].g = temp->getQuadAttribute()->color.g / 255.0f;
+            uvc[0].b = uvc[1].b = uvc[2].b = uvc[3].b = temp->getQuadAttribute()->color.b / 255.0f;
+            uvc[0].a = uvc[1].a = uvc[2].a = uvc[3].a = temp->getQuadAttribute()->color.a / 255.0f;
 
             // copy position data to position array
-			_kposArray.insert(_kposArray.end(), pos, pos + 4);
+            posArray.insert(posArray.end(), pos, pos + 4);
 
             // copy uv and color data to uv/color array
             uvcArray.insert(uvcArray.end(), uvc, uvc + 4);
@@ -107,7 +108,7 @@ namespace Kite{
 
         // position buffer
         _kvboXY.bind();
-		_kvboXY.fill(&_kposArray[0], sizeof(KVBPack5)* _kposArray.size(), KVB_STREAM);
+		_kvboXY.fill(&posArray[0], sizeof(KVBPack5)* posArray.size(), KVB_STREAM);
         _kvao.enableAttribute(0);
         _kvao.setAttribute(0, KAC_2COMPONENT, KAT_FLOAT, false, sizeof(KVBPack5), KBUFFER_OFFSET(0));
 		_kvboXY.setUpdateHandle(_update);
@@ -128,69 +129,90 @@ namespace Kite{
 
     void KBatch::update(){
         // update position buffer
-        _kvboXY.update(0, _kquads->size() * sizeof(KVBPack5) * 4, true, (void *)this);
+		update(0, _kquads->size());
     }
+
+	void KBatch::update(U32 FirstIndex, U32 Size){
+		KDEBUG_ASSERT_T(FirstIndex + Size <= _kquads->size());
+		// update position buffer
+		_kvboXY.update(FirstIndex * sizeof(KVBPack5) * 4, Size * sizeof(KVBPack5)* 4, false, (void *)this);
+	}
 
     void KBatch::draw(KRender &Renderer){
-		// bind shader
-		if (_kshader)
-			_kshader->bind();
-
-		// bind texture
-		if (_ktexture)
-			_ktexture->bind();
-        
-		// bind our vao
-        _kvao.bind();
-
-		//U16 ind[] = { 0, 1, 2, 2, 1 ,3};
-		//Renderer.draw(6, ind, KGP_TRIANGLES);
-		Renderer.draw(_kquads->size() * 6, (U16 *)0, KGP_TRIANGLES);
-		//Renderer.draw(0, 3, KGP_TRIANGLES);
+		draw(Renderer, 0, _kquads->size());
     }
 
-    void KBatch::_update(void *Data, I64 DataSize, void *Sender){
+	void KBatch::draw(KRender &Renderer, U32 FirstIndex, U32 Size){
+		if (_kvisible){
+			// bind shader
+			if (_kshader)
+				_kshader->bind();
+
+			// bind texture
+			if (_ktexture)
+				_ktexture->bind();
+
+			// bind our vao
+			_kvao.bind();
+
+			KDEBUG_ASSERT_T(FirstIndex + Size <= _kquads->size());
+			Renderer.draw(Size * 6, (U16 *)(sizeof(U16) * 6 * FirstIndex), KGP_TRIANGLES);
+		}
+	}
+
+    void KBatch::_update(void *Data, U32 Offset, U32 DataSize, void *Sender){
         KBatch *obj = (KBatch *)Sender;
-		const F32 *mat = 0;
+		const F32 *mmat = 0;
+		const F32 *pmat = 0;
 		KVBPack5 *pos = (KVBPack5 *)Data;
-		KVector4F32 vec(0,0,0,1);
+		KVector3F32 vec(0,0,1);
 		U32 pind;
 
+		// projection matrix
+		pmat = obj->getCamera().getMatrix().getArray();
+
         // update data
-        for (U32 i = 0; i < obj->_kquads->size(); i++){
-			// retrieve a pointer to matrix data
-            mat = obj->_kquads->at(i).getTransform().getMatrix();
+		U32 index = Offset / sizeof(KVBPack5) / 4;
+		U32 size = DataSize / sizeof(KVBPack5) / 4;
+		for (U32 i = 0; i < size; i++){
+			const KQuadAttrib *temp = obj->_kquads->at(index + i).getQuadAttribute();
+			// model-view matrix
+			mmat = obj->_kquads->at(index + i).getMatrix().getArray();
 
 			// pos index
 			pind = i * 4;
 
 			// vertex 1
-			vec.x = obj->_kposArray[pind].x;
-			vec.y = obj->_kposArray[pind].y;
-			vec = vec * mat;
-			pos[pind].x = vec.x;
-			pos[pind].y = vec.y;
+			vec.x = temp->bottomLeft.x;
+			vec.y = temp->bottomLeft.y;
+            vec = vec * mmat;
+			vec = vec * pmat;
+            pos[pind].x = vec.x;
+            pos[pind].y = vec.y;
 
 			// vertex 2
-			vec.x = obj->_kposArray[pind + 1].x;
-			vec.y = obj->_kposArray[pind + 1].y;
-			vec = vec * mat;
-			pos[pind + 1].x = vec.x;
-			pos[pind + 1].y = vec.y;
+			vec.x = temp->bottomLeft.x;
+			vec.y = temp->topRight.y;
+			vec = vec * mmat;
+			vec = vec * pmat;
+            pos[pind + 1].x = vec.x;
+            pos[pind + 1].y = vec.y;
 
 			// vertex 3
-			vec.x = obj->_kposArray[pind + 2].x;
-			vec.y = obj->_kposArray[pind + 2].y;
-			vec = vec * mat;
-			pos[pind + 2].x = vec.x;
-			pos[pind + 2].y = vec.y;
+			vec.x = temp->topRight.x;
+			vec.y = temp->bottomLeft.y;
+			vec = vec * mmat;
+			vec = vec * pmat;
+            pos[pind + 2].x = vec.x;
+            pos[pind + 2].y = vec.y;
 
-			// vertex 3
-			vec.x = obj->_kposArray[pind + 3].x;
-			vec.y = obj->_kposArray[pind + 3].y;
-			vec = vec * mat;
-			pos[pind + 3].x = vec.x;
-			pos[pind + 3].y = vec.y;
+			// vertex 4
+			vec.x = temp->topRight.x;
+			vec.y = temp->topRight.y;
+			vec = vec * mmat;
+			vec = vec * pmat;
+            pos[pind + 3].x = vec.x;
+            pos[pind + 3].y = vec.y;
         }
     }
 }

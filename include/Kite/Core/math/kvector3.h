@@ -72,6 +72,19 @@ namespace Kite {
         return KVector3<T>(right.x * left, right.y * left, right.z * left);
     }
 
+    /// matrix 3x3 by 3x1
+	/// shrinked for 2D purpose
+    template <typename T>
+    static inline KVector3<T> operator*(const KVector3<T> left, const T *right){
+        /*return KVector3<T>( left.x * right[0] + left.y * right[1] + left.z * right[2],
+                            left.x * right[3] + left.y * right[4] + left.z * right[5],
+                            left.x * right[6] + left.y * right[7] + left.z * right[8]);*/
+
+		return KVector3<T>(left.x * right[0] + left.y * right[1] + left.z * right[2],
+							left.x * right[3] + left.y * right[4] + left.z * right[5],
+							1);
+    }
+
     template <typename T>
     static inline KVector3<T>& operator*=(KVector3<T>& left, T right){
         left.x *= right;

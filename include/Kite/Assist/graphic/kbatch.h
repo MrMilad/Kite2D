@@ -41,14 +41,15 @@ namespace Kite{
 
         /// update model-view matrix
         void update();
+		void update(U32 FirstIndex, U32 Size);
 
         /// draw all quads
         void draw(KRender &Renderer);
+		void draw(KRender &Renderer, U32 FirstIndex, U32 Size);
 
     private:
-        static void _update(void *Data, I64 DataSize, void *Sender);
+        static void _update(void *Data, U32 Offset, U32 DataSize, void *Sender);
         const std::vector<KQuad> *_kquads;
-		std::vector<KVBPack5> _kposArray;
         KVertexArray _kvao;
 		KVertexBuffer _kvboIndx;	/// static index
 		KVertexBuffer _kvboXY;		/// stream xy (position)

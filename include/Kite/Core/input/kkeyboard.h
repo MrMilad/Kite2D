@@ -25,7 +25,7 @@ namespace Kite{
     class KITE_FUNC_EXPORT KKeyboard{
     public:
         /// set window handle
-        inline static void setWindowHandle(KWindowHandle Window) {_kwinHandle = Window;}
+		static void setWindowHandle(KWindowHandle Window);
 
         /// returns the last state reported for the specified key
         static KButtonStateTypes getButtonState(KKeyboardKeyTypes Button);

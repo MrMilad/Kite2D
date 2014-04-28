@@ -16,75 +16,63 @@
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 #include "Kite/Assist/graphic/kcamera.h"
+#include <cmath>
 
 namespace Kite{
     KCamera::KCamera():
-        _kviewport(0, 0, 1, 1),
         _kcenter(0, 0),
         _krotation(0.0f),
         _kzoom(1.0f),
-        _kneedUpdateIn(true)
+        _kneedUpdate(true),
+		_kmatrix()
     {}
 
-	KCamera::KCamera(const KRectI32 &Viewport) :
-		_kviewport(Viewport),
-		_kcenter(0.0f, 0.0f),
+	KCamera::KCamera(const KRectF32 &Viewport) :
 		_krotation(0.0f),
 		_kzoom(1.0f),
-		_kneedUpdateIn(true)
-	{}
+		_kneedUpdate(true),
+		_kmatrix()
+	{
+		setViewport(Viewport);
+	}
 
-/*    const KTransform &KCamera::getTransform() const{
-//        // recompute the matrix if needed
-//        if (_kneedUpdateTr){
-//            // rotation components
-//            F32 angle  = _krotation * KMATH_PIsub180;
-//            F32 cosx = (F32)(std::cos(angle));
-//            F32 sinx   = (F32)(std::sin(angle));
-//            F32 tx     = -_kcenter.x * cosx - _kcenter.y * sinx + _kcenter.x;
-//            F32 ty     =  _kcenter.x * sinx - _kcenter.y * cosx + _kcenter.y;
+	void KCamera::setViewport(const KRectF32 &Viewport){
+		_kcenter.x = (Viewport.left + Viewport.right) / 2.0f;
+		_kcenter.y = (Viewport.top + Viewport.bottom) / 2.0f;
+		_ksize.x = Viewport.right - Viewport.left;
+		_ksize.y = Viewport.top - Viewport.bottom;
+	}
 
-//            // projection components
-//            F32 a =  2.f / _ksize.x;
-//            F32 b = -2.f / _ksize.y;
-//            F32 c = -a * _kcenter.x;
-//            F32 d = -b * _kcenter.y;
+    const KMatrix3 &KCamera::getMatrix() const{
+        // recompute the matrix if needed
+        if (_kneedUpdate){
+            // rotation components
+            F32 angle	= _krotation * KMATH_PIsub180;
+            F32 cosx	= (F32)(std::cos(angle));
+            F32 sinx	= (F32)(std::sin(angle));
+			//F32 tx = -(_kviewport.right + _kviewport.left) / (_kviewport.right - _kviewport.left);
+			//F32 ty = -(_kviewport.top + _kviewport.bottom) / (_kviewport.top - _kviewport.bottom);
+			F32 tx = -_kcenter.x * cosx - _kcenter.y * sinx + _kcenter.x;
+			F32 ty = _kcenter.x * sinx - _kcenter.y * cosx + _kcenter.y;
 
-//            // rebuild the projection matrix
-//            _ktransform = KTransform( a * cosx, a * sinx,   a * tx + c,
-//                                    -b * sinx,   b * cosx, b * ty + d,
-//                                     0.0f,        0.0f,        1.0f);
-//            _kneedUpdateTr = false;
-//        }
+           // projection components
+           F32 a = 2.f / (_ksize.x / _kzoom);
+           F32 b = 2.f / (_ksize.y / _kzoom);
+		   F32 c = -a * _kcenter.x;
+		   F32 d = -b * _kcenter.y;
 
-//        return _ktransform;
-//    }*/
+            // rebuild the projection matrix
+           _kmatrix = KMatrix3( a * cosx,	a * sinx,   a * tx + c,
+                                -b * sinx,  b * cosx,	b * ty + d,
+                                0.0f,       0.0f,       1.0f);
 
-    KTransform KCamera::getInverseTransform() const{
-        if (_kneedUpdateIn){
-            _kneedUpdateIn = false;
-            return (_ktransformIn = _ktransform.getGeneralInverse());
+		   /*_kmatrix = KMatrix3(	a,		0.0f,	tx,
+								0.0f,	b,		ty,
+								0.0f,	0.0f,	1.0f);*/
+
+            _kneedUpdate = false;
         }
-        return _ktransformIn;
-    }
 
-    void KCamera::setRotation(F32 Angle){
-        _ktransform.rotate(Angle, _kcenter);
-        _kneedUpdateIn = true;
-    }
-
-    void KCamera::setZoom(F32 Factor){
-        _ktransform.scale(KVector2F32(Factor, Factor), _kcenter);
-        _kneedUpdateIn = true;
-    }
-
-    KVector2F32 KCamera::convertPoint(const KVector2I32 &Point){
-        // convert from viewport to homogeneous coordinates
-        KVector2F32 coordinates;
-        coordinates.x = -1.f + 2.f * (Point.x - _kviewport.x) / _kviewport.width;
-        coordinates.y = 1.f  - 2.f * (Point.y - _kviewport.y)  / _kviewport.height;
-
-        // transform by the inverse of the view matrix
-        return getInverseTransform().transformPoint(KVector2F32(coordinates.x, coordinates.y));
+		return _kmatrix;
     }
 }

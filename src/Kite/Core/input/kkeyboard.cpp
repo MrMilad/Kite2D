@@ -21,6 +21,10 @@
 namespace Kite{
     KWindowHandle KKeyboard::_kwinHandle = 0;
 
+	void KKeyboard::setWindowHandle(KWindowHandle Window){
+		_kwinHandle = Window; 
+	}
+
     KButtonStateTypes KKeyboard::getButtonState(Kite::KKeyboardKeyTypes Button){
         return (KButtonStateTypes)glfwGetKey((GLFWwindow *)_kwinHandle, Button);
     }

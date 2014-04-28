@@ -20,20 +20,25 @@
 
 #include "Kite/Core/system/ksystemdef.h"
 #include "Kite/Core/graphic/krender.h"
+#include "Kite/Assist/graphic/kcamera.h"
 
 namespace Kite{
     class KITE_FUNC_EXPORT KDrawable{
     public:
-        KDrawable():
-            _kvisible(true)
-        {}
-        virtual ~KDrawable(){}
+		KDrawable();
+		virtual ~KDrawable();
 
         virtual void draw(KRender &Renderer) = 0;
+
+		inline void setCamera(const KCamera &Camera) { _kcam = &Camera; }
+		inline const KCamera &getCamera() const { return *_kcam; }
+
         inline void setVisible(bool Visible) {_kvisible = Visible;}
         inline bool getVisible() const {return _kvisible;}
 
     protected:
+		const KCamera *_kcam;
+		static const KCamera _kdefcam;
         bool _kvisible;
     };
 }

@@ -69,8 +69,8 @@ namespace Kite{
         /// to a normalized vec4(1.0, 0.5, 0.0, 1.0) in the shader
         void setParam(I16 Location, const KColor& Color) const;
 
-        /// pass 4x4 matrix
-        void setParam(I16 Location, const KTransform& Transform) const;
+        /// pass 3x3 matrix
+        //void setParam(I16 Location, const KTransform& Transform) const;
 
         /// pass texture
         void setParam(I16 Location, const KTexture& Texture);

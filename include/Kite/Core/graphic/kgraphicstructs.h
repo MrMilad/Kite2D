@@ -118,10 +118,10 @@ namespace Kite{
 
     template <typename T>
     struct KRect{
-        T x, y, width, height;
+		T left, right, bottom, top;
 
-        KRect(T XPos = 0, T YPos = 0, T Width = 0, T Heigt = 0):
-            x(XPos), y(YPos), width(Width), height(Heigt)
+		KRect(T Left = 0, T Right = 0, T Bottom = 0, T Top = 0) :
+			left(Left), right(Right), bottom(Bottom), top(Top)
         {}
     };
 
@@ -139,28 +139,28 @@ namespace Kite{
         U8 minor;
     };
 
-    typedef void (KCallVBUpdate)(void *Data, I64 DataSize, void *Sender);
+    typedef void (KCallVBUpdate)(void *Data, U32 Offset, U32 DataSize, void *Sender);
 
     struct KQuadAttrib{
-        KVector2F32 buttomLeft;
+        KVector2F32 bottomLeft;
         KVector2F32 topRight;
         KColor color;
-        KVector2F32 buttomLeftUV;
+        KVector2F32 bottomLeftUV;
         KVector2F32 topRightUV;
 
         KQuadAttrib():
-            buttomLeft(-1.0, -1.0),
+            bottomLeft(-1.0, -1.0),
             topRight(0.0,0.0),
             color(),
-            buttomLeftUV(0,0),
+            bottomLeftUV(0,0),
             topRightUV(1,1)
         {}
 
-        KQuadAttrib(const KVector2F32 &ButtomLeft, const KVector2F32 &TopRight, const KColor &Color,
-                     const KVector2F32 &ButtomLeftUV, const KVector2F32 &TopRightUV):
-            buttomLeft(ButtomLeft), topRight(TopRight),
+        KQuadAttrib(const KVector2F32 &BottomLeft, const KVector2F32 &TopRight, const KColor &Color,
+                     const KVector2F32 &BottomLeftUV, const KVector2F32 &TopRightUV):
+            bottomLeft(BottomLeft), topRight(TopRight),
             color(Color),
-            buttomLeftUV(ButtomLeftUV), topRightUV(TopRightUV)
+            bottomLeftUV(BottomLeftUV), topRightUV(TopRightUV)
         {}
     };
 

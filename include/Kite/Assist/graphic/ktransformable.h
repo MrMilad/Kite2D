@@ -20,7 +20,7 @@
 
 #include "Kite/Core/system/ksystemdef.h"
 #include "Kite/Core/math/kvector2.h"
-#include "Kite/Core/math/ktransform.h"
+#include "Kite/Core/math/kmatrix3.h"
 
 namespace Kite{
     class KITE_FUNC_EXPORT KTransformable{
@@ -62,14 +62,14 @@ namespace Kite{
         inline const KVector2F32 &getCenter() const {return _kcenter;}
 
         /// combining the position/rotation/scale/center
-        const KTransform &getTransform() const;
+        const KMatrix3 &getMatrix() const;
 
     private:
         KVector2F32 _kposition;
         F32 _krotation;
         KVector2F32 _kscale;
         KVector2F32 _kcenter;
-        mutable KTransform _ktransform;
+        mutable KMatrix3 _kmatrix;
         mutable bool _kneedUpdate;
     };
 }

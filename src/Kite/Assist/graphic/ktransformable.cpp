@@ -25,7 +25,7 @@ namespace Kite{
         _krotation(0),
         _kscale(1,1),
         _kcenter(0,0),
-        _ktransform(),
+        _kmatrix(),
         _kneedUpdate(true)
     {}
 
@@ -41,6 +41,8 @@ namespace Kite{
     }
 
     void KTransformable::setRotation(F32 Angle){
+		if (Angle > 360 || Angle < -360)
+			Angle = (int)Angle % 360;
         _krotation = Angle;
         _kneedUpdate = true;
     }
@@ -64,10 +66,9 @@ namespace Kite{
         _kneedUpdate = true;
     }
 
-    const KTransform &KTransformable::getTransform() const{
+    const KMatrix3 &KTransformable::getMatrix() const{
         // calculate
-        if (_kneedUpdate)
-        {
+        if (_kneedUpdate){
             F32 angle  = -_krotation * KMATH_PIsub180; // 3.14 \ 180;
             F32 cosine = (float)(std::cos(angle));
             F32 sine   = (float)(std::sin(angle));
@@ -78,12 +79,12 @@ namespace Kite{
             F32 tx     = -_kcenter.x * sxc - _kcenter.y * sys + _kposition.x;
             F32 ty     =  _kcenter.x * sxs - _kcenter.y * syc + _kposition.y;
 
-            _ktransform = KTransform( sxc, sys, tx,
-                                    -sxs, syc, ty,
-                                     0.f, 0.f, 1.f);
+            _kmatrix = KMatrix3(sxc, sys, tx,
+                                -sxs, syc, ty,
+                                0.f, 0.f, 1.f);
             _kneedUpdate = false;
         }
 
-        return _ktransform;
+        return _kmatrix;
     }
 }

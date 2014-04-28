@@ -67,7 +67,7 @@ namespace Kite{
 			void *dataPtr = DGL_CALL(glMapBuffer(_ktargets[_kbufTarget], GL_WRITE_ONLY_ARB));
 
             // call update handle
-            (*_kupdateHnd)(dataPtr, _ksize, Sender);
+            (*_kupdateHnd)(dataPtr, 0, _ksize, Sender);
 
             // unmap buffer
 			DGL_CALL(glUnmapBuffer(_ktargets[_kbufTarget]));
@@ -77,7 +77,7 @@ namespace Kite{
         }
     }
 
-    void KVertexBuffer::update(Kite::I64 Offset, I64 Size, bool Discarded, void *Sender){
+    void KVertexBuffer::update(U32 Offset, U32 Size, bool Discarded, void *Sender){
         // check update handle and buffer
         if (_kupdateHnd && _kbufId > 0 ){
 
@@ -97,10 +97,10 @@ namespace Kite{
 			void *dataPtr = glMapBufferRange(_ktargets[_kbufTarget], (GLintptr)Offset, (GLsizeiptr)Size, acc);
 
             // call update handle
-            (*_kupdateHnd)(dataPtr, Size, Sender);
+            (*_kupdateHnd)(dataPtr, Offset, Size, Sender);
 
             // unmap buffer
-			DGL_CALL(glFlushMappedBufferRange(_ktargets[_kbufTarget], (GLintptr)Offset, (GLsizeiptr)Size));
+			//DGL_CALL(glFlushMappedBufferRange(_ktargets[_kbufTarget], (GLintptr)Offset, (GLsizeiptr)Size)); // error prone!
 
 			// unmap buffer
 			DGL_CALL(glUnmapBuffer(_ktargets[_kbufTarget]));
@@ -110,7 +110,7 @@ namespace Kite{
         }
     }
 
-    void KVertexBuffer::update(U64 Offset, U64 Size, const void *Data){
+    void KVertexBuffer::update(U32 Offset, U32 Size, const void *Data){
         if (_kbufId > 0){
 
 			// bind buffer

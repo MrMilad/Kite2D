@@ -165,12 +165,6 @@ namespace Kite{
         setParam(Location, Color.r / 255.f, Color.g / 255.f, Color.b / 255.f, Color.a / 255.f);
     }
 
-    void KShader::setParam(Kite::I16 Location, const KTransform& Transform) const{
-        if (_kprogId && Location >= 0){
-            DGL_CALL(glUniformMatrix4fvARB(Location, 1, GL_FALSE, Transform.getMatrix()));
-        }
-    }
-
     void KShader::setParam(Kite::I16 Location, const KTexture& Texture){
         if (_kprogId && Location >= 0){
             // store the location -> texture mapping

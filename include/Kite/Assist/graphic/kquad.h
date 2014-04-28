@@ -27,14 +27,16 @@
 namespace Kite{
     class KITE_FUNC_EXPORT KQuad : public KTransformable{
     public:
-        KQuad(){}
-        KQuad(const KQuadAttrib &QuadAttribute):
-            _kquadattr(QuadAttribute)
-        {}
+		KQuad() :
+			_kquadattr()
+		{}
+
+		KQuad(const KQuadAttrib &QuadAttribute) :
+			_kquadattr(QuadAttribute)
+		{}
 
         inline void setQuadAttribute(const KQuadAttrib &Attribute) {_kquadattr = Attribute;}
         inline const KQuadAttrib *getQuadAttribute() const {return &_kquadattr;}
-
     private:
         KQuadAttrib _kquadattr;
     };

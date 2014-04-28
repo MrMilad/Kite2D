@@ -18,9 +18,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef KMATH_H
 #define KMATH_H
 
+#include "Kite/Core/math/kmatrix3.h"
 #include "Kite/Core/math/kvector2.h"
 #include "Kite/Core/math/kvector3.h"
-#include "Kite/Core/math/kvector4.h"
 #include "Kite/Core/math/ktransform.h"
 
 #endif

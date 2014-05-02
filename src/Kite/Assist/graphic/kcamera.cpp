@@ -57,7 +57,7 @@ namespace Kite{
 
            // projection components
            F32 a = 2.f / (_ksize.x / _kzoom);
-           F32 b = 2.f / (_ksize.y / _kzoom);
+           F32 b = -2.f / (_ksize.y / _kzoom);
 		   F32 c = -a * _kcenter.x;
 		   F32 d = -b * _kcenter.y;
 

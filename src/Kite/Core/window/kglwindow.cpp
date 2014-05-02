@@ -101,7 +101,7 @@ namespace Kite{
             glfwSetInputMode((GLFWwindow *)_kwindow, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
 
         // swap interval (vsync)
-        glfwSwapInterval(_kwinstate.swapInterlal);
+        glfwSwapInterval(_kwinstate.swapInterval);
     }
 
     void KGLWindow::open(KWindowState &WindowState){

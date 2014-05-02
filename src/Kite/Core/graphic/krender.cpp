@@ -28,23 +28,23 @@ namespace Kite{
                                     GL_LINES_ADJACENCY, GL_TRIANGLE_STRIP_ADJACENCY,
                                     GL_TRIANGLES_ADJACENCY};
 
-    KRender::KRender(const Kite::KRectI32 &Viewport):
-        _kviewport(Viewport),
-        _kgeoType(KGP_TRIANGLES)
-    {
-        Internal::initeGLEW();
+    KRectU32 KRender::_kviewport;
 
-        DGL_CALL(glDisable(GL_DEPTH_TEST));
-
-        // enable blend
-        DGL_CALL(glEnable(GL_BLEND));
-        DGL_CALL(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
-
-        // initialize viewport
-        setViewport(_kviewport);
-    }
+    KRender::KRender(){}
 
     KRender::~KRender(){}
+
+    bool KRender::inite(){
+        bool ret = Internal::initeGLEW();
+        if (ret){
+            DGL_CALL(glDisable(GL_DEPTH_TEST));
+
+            // enable blend
+            DGL_CALL(glEnable(GL_BLEND));
+            DGL_CALL(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
+        }
+        return ret;
+    }
 
     void KRender::clear(){
         DGL_CALL(glClear(GL_COLOR_BUFFER_BIT));
@@ -71,36 +71,25 @@ namespace Kite{
         DGL_CALL(glDrawElementsInstanced(geoTypes[Primitive], Count, GL_UNSIGNED_SHORT, Indices, InstanceCount));
     }
     void KRender::setClearColor(const KColor &Color){
-        DGL_CALL(glClearColor((GLclampf)((F32)Color.r / 255.0f),
-                              (GLclampf)((F32)Color.g / 255.0f),
-                              (GLclampf)((F32)Color.b / 255.0f),
-                              (GLclampf)((F32)Color.a / 255.0f)));
+        DGL_CALL(glClearColor((GLclampf)(Color.r),
+                              (GLclampf)(Color.g),
+                              (GLclampf)(Color.b),
+                              (GLclampf)(Color.a)));
     }
 
-    void KRender::setLPSize(KGeoPrimitiveTypes Type, F32 Size){
-        switch (Type){
-        // line
-        case KGP_LINES:
-            DGL_CALL(glLineWidth(Size));
-            break;
-
-        // point
-        case KGP_POINTS:
-            DGL_CALL(glPointSize(Size));
-            break;
-
-        // invalid ...
-        default:
-            KDEBUG_PRINT("invalid type");
-            break;
-        }
+	void KRender::setPointSize(F32 Size){
+        DGL_CALL(glPointSize(Size));
     }
 
-    void KRender::setViewport(const KRectI32 &Viewport){
+    void KRender::setViewport(const KRectU32 &Viewport){
         _kviewport = Viewport;
         DGL_CALL(glViewport(_kviewport.left,
                             _kviewport.bottom,
                             _kviewport.right,
                             _kviewport.top));
+    }
+
+    const KRectU32 &KRender::getViewport(){
+        return _kviewport;
     }
 }

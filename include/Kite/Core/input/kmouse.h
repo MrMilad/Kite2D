@@ -28,6 +28,9 @@ namespace Kite{
         /// set window handle
 		static void setWindowHandle(KWindowHandle Window);
 
+		/// set visibility of mouse pointer
+		static void setMouseVisible(bool Visible);
+
         /// returns the last reported state of a mouse button
         static KButtonStateTypes getButtonState(KMouseButtonTypes Button);
 

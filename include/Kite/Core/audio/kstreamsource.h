@@ -23,6 +23,9 @@
 #include "Kite/Core/system/kthread.h"
 #include <string>
 
+namespace std{
+	class thread;
+}
 namespace Kite{
 namespace Internal{
 class SoundIO;
@@ -47,7 +50,7 @@ class SoundIO;
         void loader(); // fill buffers immediately (thread task)
         void fillFirst4Buffer();
         Internal::SoundIO *_kreader;
-        KThread *_kthread;
+        std::thread *_kthread;
         U32 _kbuffers[4];
         I8 *_kdata;
         bool _kloop;

@@ -19,19 +19,19 @@
 #define KBATCH_H
 
 #include "Kite/Core/system/ksystemdef.h"
+#include "Kite/Core/graphic/kgraphicstructs.h"
 #include "Kite/Core/graphic/kshader.h"
 #include "Kite/Core/graphic/ktexture.h"
 #include "Kite/Core/graphic/kvertexarray.h"
 #include "Kite/Core/graphic/kvertexbuffer.h"
 #include "Kite/Assist/graphic/kdrawable.h"
-#include "Kite/Assist/graphic/kvertexvector.h"
-#include "Kite/Assist/graphic/kquad.h"
+#include "Kite/Assist/graphic/kbatchobject.h"
 #include <vector>
 
 namespace Kite{
     class KITE_FUNC_EXPORT KBatch : public KDrawable{
     public:
-        KBatch(const std::vector<KQuad> &Quads);
+        KBatch(const std::vector<KBatchObject *> &Objects, const KBatchConfig Config);
 
         inline void setShader(const KShader *Shader) {_kshader = Shader;}
         inline const KShader *getShader() const {return _kshader;}
@@ -39,23 +39,44 @@ namespace Kite{
         inline void setTexture(const KTexture *Texture) {_ktexture = Texture;}
         inline const KTexture *getTexture() const {return _ktexture;}
 
-        /// update model-view matrix
-        void update();
-		void update(U32 FirstIndex, U32 Size);
+		inline void setGeoType(KGeoPrimitiveTypes GeoType) { _kgtype = GeoType; }
+		inline KGeoPrimitiveTypes getGeoType() const { return _kgtype; }
+
+        U32 getSize() const;
+
+        /// update positions
+        void updatePosition();
+		void updatePosition(U32 FirstIndex, U32 Size);
+
+		/// update uv
+		void updateUV();
+		void updateUV(U32 FirstIndex, U32 Size);
+
+		/// update color
+		void updateColor();
+		void updateColor(U32 FirstIndex, U32 Size);
 
         /// draw all quads
-        void draw(KRender &Renderer);
-		void draw(KRender &Renderer, U32 FirstIndex, U32 Size);
+        void draw();
+
+		// draw a part of quads
+        void draw(U32 FirstIndex, U32 Size);
 
     private:
-        static void _update(void *Data, U32 Offset, U32 DataSize, void *Sender);
-        const std::vector<KQuad> *_kquads;
+        static void _updatePos(void *Data, U32 Offset, U32 DataSize, void *Sender);
+		static void _updateUV(void *Data, U32 Offset, U32 DataSize, void *Sender);
+		static void _updateCol(void *Data, U32 Offset, U32 DataSize, void *Sender);
+        const std::vector<KBatchObject *> *_kobjects;
         KVertexArray _kvao;
-		KVertexBuffer _kvboIndx;	/// static index
-		KVertexBuffer _kvboXY;		/// stream xy (position)
-        KVertexBuffer _kvboUVC;		/// static uv (texture uv) , rgba (color)
+		KVertexBuffer _kvboXY;		/// xy (position)
+        KVertexBuffer _kvboUV;		/// uv (texture uv)
+		KVertexBuffer _kvboCol;		/// rgba (color)
+        std::vector<U32> _koffset;
+		KVector2U32 _krange;
+        KBatchConfig _kconfig;
         const KShader *_kshader;
         const KTexture *_ktexture;
+		KGeoPrimitiveTypes _kgtype;
     };
 }
 

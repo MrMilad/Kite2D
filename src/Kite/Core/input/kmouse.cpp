@@ -25,21 +25,35 @@ namespace Kite{
 		_kwinHandle = Window; 
 	}
 
+	void KMouse::setMouseVisible(bool Visible){
+		KDEBUG_ASSERT_T(_kwinHandle);
+		if (Visible){
+			glfwSetInputMode((GLFWwindow *)_kwinHandle, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+		}
+		else{
+			glfwSetInputMode((GLFWwindow *)_kwinHandle, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
+		}
+	}
+
     KButtonStateTypes KMouse::getButtonState(KMouseButtonTypes Button){
+		KDEBUG_ASSERT_T(_kwinHandle);
         return (KButtonStateTypes)glfwGetMouseButton((GLFWwindow *)_kwinHandle, Button);
     }
 
     KVector2F64 KMouse::getPosition(){
+		KDEBUG_ASSERT_T(_kwinHandle);
         KVector2F64 pos;
-        glfwGetCursorPos((GLFWwindow *)_kwinHandle, &pos.x, &pos.y);
+		glfwGetCursorPos((GLFWwindow *)_kwinHandle, &pos.x, &pos.y);
         return pos;
     }
 
     void KMouse::setPosition(const KVector2F64 &Position){
+		KDEBUG_ASSERT_T(_kwinHandle);
         glfwSetCursorPos((GLFWwindow *)_kwinHandle, Position.x, Position.y);
     }
 
     void KMouse::registerCallback(void *Callback, KMouseCallbackTypes CallbackType){
+		KDEBUG_ASSERT_T(_kwinHandle);
         switch (CallbackType){
         case KMC_MBUTTON:
             glfwSetMouseButtonCallback((GLFWwindow *)_kwinHandle, (GLFWmousebuttonfun) Callback);
@@ -60,6 +74,7 @@ namespace Kite{
     }
 
     void KMouse::unregisterCallback(Kite::KMouseCallbackTypes CallbackType){
+		KDEBUG_ASSERT_T(_kwinHandle);
         switch (CallbackType){
         case KMC_ALL:
             glfwSetMouseButtonCallback((GLFWwindow *)_kwinHandle, 0);

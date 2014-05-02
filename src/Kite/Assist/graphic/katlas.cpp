@@ -50,11 +50,13 @@ namespace Kite{
 
                         // read atlas objects
                         rsize = fread(objArr, sizeof(KAtlasObject), header.objCount, file);
-                            if (rsize == header.objCount){
-                                Objects.assign(objArr, objArr + header.objCount);
-                                fclose(file);
-                                return true;
-                            }
+                        if (rsize == header.objCount){
+                            Objects.assign(objArr, objArr + header.objCount);
+                            fclose(file);
+                            return true;
+                        }
+
+                        delete[] objArr;
                     }
                 }
             }

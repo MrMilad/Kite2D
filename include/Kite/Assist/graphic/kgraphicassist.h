@@ -25,5 +25,7 @@
 #include "Kite/Assist/graphic/katlas.h"
 #include "Kite/Assist/graphic/kquad.h"
 #include "Kite/Assist/graphic/kbatch.h"
+#include "Kite/Assist/graphic/ktext.h"
+#include "Kite/Assist/graphic/kline.h"
 
 #endif // KGRAPHICASSIST_H

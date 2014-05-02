@@ -25,39 +25,41 @@
 
 namespace Kite{
     struct KColor{
-        U8 r,g,b,a;
-
-        KColor(U8 R = 255, U8 G = 255, U8 B = 255, U8 A = 255):
-            r(R), g(G), b(B), a(A)
-        {}
-
-        static inline U64 getColorHexCode(const KColor &Color){
-            U64 hexCod = (Color.r << 24) | (Color.g << 16) | (Color.b << 8) | Color.a;
-            return hexCod;
-        }
-
-        static inline void setHexCodeToKColor(KColor &Color, UL32 HexCode){
-			Color.r = (U8)((HexCode >> 16) & 0xFF);  // Extract the RR byte
-			Color.g = (U8)((HexCode >> 8) & 0xFF);   // Extract the GG byte
-			Color.b = (U8)((HexCode)& 0xFF);        // Extract the BB byte
-        }
-    };
-
-    /// position, texture, color
-    struct KVBPack1{
-        F32 x,y;
-        F32 u,v;
         F32 r,g,b,a;
 
-        KVBPack1(F32 X = -1.0, F32 Y = -1.0, F32 U = 0.0, F32 V = 0.0
-                , F32 R = 0.0, F32 G = 0.0, F32 B = 0.0, F32 A = 1.0):
-            x(X), y(Y), u(U), v(V),
-            r(R), g(G), b(B), a(A)
+		KColor(F32 R = 255, F32 G = 255, F32 B = 255, F32 A = 255) :
+            r(R/255.0f), g(G/255.0f), b(B/255.0f), a(A/255.0f)
+        {}
+    };
+
+	/*static inline U64 getColorHexCode(const KColor &Color){
+		U64 hexCod = (Color.r << 24) | (Color.g << 16) | (Color.b << 8) | Color.a;
+		return hexCod;
+	}
+
+	static inline void setHexCodeToKColor(KColor &Color, UL32 HexCode){
+		Color.r = (U8)((HexCode >> 16) & 0xFF);  // Extract the RR byte
+		Color.g = (U8)((HexCode >> 8) & 0xFF);   // Extract the GG byte
+		Color.b = (U8)((HexCode)& 0xFF);        // Extract the BB byte
+	}*/
+
+    /// position, texture, color
+    struct KVertex{
+        KVector2F32 pos;
+        KVector2F32 uv;
+        KColor color;
+
+        KVertex():
+            pos(), uv(), color()
+        {}
+
+        KVertex(KVector2F32 Pos, KVector2F32 UV, KColor Color):
+            pos(Pos), uv(UV), color(Color)
         {}
     };
 
     /// position, texture
-    struct KVBPack2{
+    /*struct KVBPack2{
         F32 x,y;
         F32 u,v;
 
@@ -97,16 +99,19 @@ namespace Kite{
         KVBPack5(F32 X = -1.0, F32 Y = -1.0):
             x(X), y(Y)
         {}
-    };
+    };*/
 
     struct KAtlasObject{
         U32 id;
-        F32 u,v; // texture position
-        U32 w,h; // size
+		F32 blu, blv; // bottom left texture position (-1 to 1)
+		F32 tru, trv; // top right texture position (-1 to 1)
+        F32 w,h; // size (in pixel)
 
-        KAtlasObject(U32 ID = 0, F32 U = 0, F32 V = 0, U32 W = 0, U32 H = 0):
+		KAtlasObject(U32 ID = 0, F32 BLU = 0, F32 BLV = 0,
+					F32 TRU = 0, F32 TRV = 0, F32 W = 0, F32 H = 0) :
             id(ID),
-            u(U), v(V),
+			blu(BLU), blv(BLV),
+			tru(TRU), trv(TRV),
             w(W), h(H)
         {}
     };
@@ -171,6 +176,14 @@ namespace Kite{
         U32 life;
         U32 size;
         U8 r, g, b, a;
+    };
+
+    struct KBatchConfig{
+        KVertexBufferTypes position, uv, color;
+        KBatchConfig(KVertexBufferTypes Position = KVB_STATIC, KVertexBufferTypes UV = KVB_STATIC,
+                     KVertexBufferTypes Color = KVB_STATIC):
+            position(Position), uv(UV), color(Color)
+        {}
     };
 
     namespace Internal{

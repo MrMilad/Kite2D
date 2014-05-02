@@ -26,7 +26,7 @@
 namespace Kite{
     struct KWindowState{
         std::string title;
-        U8 oglMajor, oglMinor, swapInterlal;
+        U8 oglMajor, oglMinor, swapInterval;
         U32 width, height;
         I32 xpos, ypos;
         bool showCursor, fullscreen, border, resizable;
@@ -40,7 +40,7 @@ namespace Kite{
                      bool Border = true, bool Resizable = false):
             title(Title),
             oglMajor(OGLMajorVer), oglMinor(OGLMinorVer),
-            swapInterlal(SwapInterval),
+            swapInterval(SwapInterval),
             width(Width), height(Height),
             xpos(XPosition), ypos(YPosition),
             showCursor(ShowCursor), fullscreen(Fullscreen),

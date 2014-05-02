@@ -26,42 +26,41 @@
 namespace Kite{
     class KITE_FUNC_EXPORT KRender{
     public:
-        KRender(const KRectI32 &Viewport);
-        ~KRender();
+        /// initialize
+        static bool inite();
 
         /// clear the scene
-        void clear();
+        static void clear();
 
         /// draw (range)
-        void draw(U32 FirstIndex, U32 Size, KGeoPrimitiveTypes Primitive);
+        static void draw(U32 FirstIndex, U32 Size, KGeoPrimitiveTypes Primitive);
 
         /// draw instanced (range)
-        void draw(U32 FirstIndex, U32 Size, KGeoPrimitiveTypes Primitive, U32 InstanceCount);
+        static void draw(U32 FirstIndex, U32 Size, KGeoPrimitiveTypes Primitive, U32 InstanceCount);
 
         /// draw (index)
-        void draw(U32 Count, const U16 *Indices, KGeoPrimitiveTypes Primitive);
+        static void draw(U32 Count, const U16 *Indices, KGeoPrimitiveTypes Primitive);
 
         /// draw instanced (index)
-        void draw(U32 Count, const U16 *Indices, KGeoPrimitiveTypes Primitive, U32 InstanceCount);
+        static void draw(U32 Count, const U16 *Indices, KGeoPrimitiveTypes Primitive, U32 InstanceCount);
 
         /// clear color
-        void setClearColor(const KColor &Color);
+        static void setClearColor(const KColor &Color);
 
-        /// set line/point options (size/smooth)
+        /// set line/point option (size)
         /// only KGP_POINTS and KGP_LINES is valid for type
-        void setLPSize(KGeoPrimitiveTypes Type, F32 Size);
+        static void setPointSize(F32 Size);
 
         /// viewport
-        void setViewport(const KRectI32 &Viewport);
-        inline KRectI32 getViewport() const {return _kviewport;}
+        static void setViewport(const KRectU32 &Viewport);
+        static const KRectU32 &getViewport();
 
 //        void setBlendMode(KBlendMode BlendMode);
-
-
     private:
+        KRender();
+        ~KRender();
         static const U32 geoTypes[11];
-        KRectI32 _kviewport;
-        KGeoPrimitiveTypes _kgeoType;
+        static KRectU32 _kviewport;
     };
 }
 

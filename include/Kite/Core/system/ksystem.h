@@ -23,8 +23,6 @@
 #include "Kite/core/system/ksystemstructs.h"
 #include "Kite/core/system/knoncopyable.h"
 #include "Kite/core/system/ksystemutil.h"
-#include "Kite/core/system/kmutex.h"
-#include "Kite/core/system/kthread.h"
 #include "Kite/core/system/ktimer.h"
 
 #endif // KSYSTEM_H

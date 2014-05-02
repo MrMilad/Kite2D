@@ -38,8 +38,8 @@ namespace Kite{
     // functor base
     struct KThreadFunc
     {
-        virtual ~KThreadFunc() {}
-        virtual void start() {}
+		virtual ~KThreadFunc() {}
+		virtual void start() = 0;
     };
 
     // a functor with no argument

@@ -19,7 +19,6 @@
 #define KDRAWABLE_H
 
 #include "Kite/Core/system/ksystemdef.h"
-#include "Kite/Core/graphic/krender.h"
 #include "Kite/Assist/graphic/kcamera.h"
 
 namespace Kite{
@@ -28,7 +27,7 @@ namespace Kite{
 		KDrawable();
 		virtual ~KDrawable();
 
-        virtual void draw(KRender &Renderer) = 0;
+        virtual void draw() = 0;
 
 		inline void setCamera(const KCamera &Camera) { _kcam = &Camera; }
 		inline const KCamera &getCamera() const { return *_kcam; }

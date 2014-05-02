@@ -20,11 +20,12 @@
 #include "src/Kite/core/audio/alcall.h"
 #include "src/Kite/Core/audio/soundio.h"
 #include <cstdlib>
+#include <thread>
 
 namespace Kite{
     KStreamSource::KStreamSource():
         _kreader(new Internal::SoundIO),
-        _kthread(new KThread(&Kite::KStreamSource::loader, this)),
+        _kthread(0),
         _kdata(0),
         _kloop(false),
         _KuserStop(false)
@@ -41,7 +42,10 @@ namespace Kite{
 
     KStreamSource::~KStreamSource(){
         stop();
-        delete _kthread;
+		if (_kthread){
+			_kthread->join();
+			delete _kthread;
+		}
         delete _kreader;
         delete[] _kdata;
         DAL_CALL(alSourcei(_kID, AL_BUFFER, 0));
@@ -53,7 +57,11 @@ namespace Kite{
         if (getState() != KSS_PLAYING){
             DAL_CALL(alSourcePlay(_kID));
             _KuserStop = false;
-            _kthread->lunch();
+			if (_kthread){
+				_kthread->detach();
+				delete _kthread;
+			}
+			_kthread = new std::thread(&Kite::KStreamSource::loader, this);
         }
     }
 

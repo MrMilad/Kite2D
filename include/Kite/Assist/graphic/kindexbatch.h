@@ -15,8 +15,8 @@
  You should have received a copy of the GNU General Public License
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#ifndef KBATCH_H
-#define KBATCH_H
+#ifndef KINDEXBATCH_H
+#define KINDEXBATCH_H
 
 #include "Kite/Core/system/ksystemdef.h"
 #include "Kite/Core/graphic/kgraphicstructs.h"
@@ -25,59 +25,61 @@
 #include "Kite/Core/graphic/kvertexarray.h"
 #include "Kite/Core/graphic/kvertexbuffer.h"
 #include "Kite/Assist/graphic/kdrawable.h"
-#include "Kite/Assist/graphic/kbatchobject.h"
+#include "Kite/Assist/graphic/kindexbatchobject.h"
 #include <vector>
 
 namespace Kite{
-    class KITE_FUNC_EXPORT KBatch : public KDrawable{
-    public:
-        KBatch(const std::vector<KBatchObject *> &Objects, const KBatchConfig Config);
+	class KITE_FUNC_EXPORT KIndexBatch : public KDrawable{
+	public:
+		KIndexBatch(const std::vector<KIndexBatchObject *> &Objects, const KBatchConfig Config);
 
-        inline void setShader(const KShader *Shader) {_kshader = Shader;}
-        inline const KShader *getShader() const {return _kshader;}
+		inline void setShader(const KShader *Shader) { _kshader = Shader; }
+		inline const KShader *getShader() const { return _kshader; }
 
-        inline void setTexture(const KTexture *Texture) {_ktexture = Texture;}
-        inline const KTexture *getTexture() const {return _ktexture;}
+		inline void setTexture(const KTexture *Texture) { _ktexture = Texture; }
+		inline const KTexture *getTexture() const { return _ktexture; }
 
 		inline void setGeoType(KGeoPrimitiveTypes GeoType) { _kgtype = GeoType; }
 		inline KGeoPrimitiveTypes getGeoType() const { return _kgtype; }
 
-        U32 getSize() const;
+		U32 getSize() const;
 
-        /// update positions
-        void updatePosition();
+		/// update positions
+		void updatePosition();
 		void updatePosition(U32 FirstIndex, U32 Size);
 
-        /// update uv
+		/// update uv
 		void updateUV();
 		void updateUV(U32 FirstIndex, U32 Size);
 
-        /// update colors
+		/// update colors
 		void updateColor();
 		void updateColor(U32 FirstIndex, U32 Size);
 
-        /// draw all objects
-        void draw();
+		/// draw all objects
+		void draw();
 
-        /// draw a part of objects
-        void draw(U32 FirstIndex, U32 Size);
+		/// draw a part of objects
+		void draw(U32 FirstIndex, U32 Size);
 
-    private:
-        static void _updatePos(void *Data, U32 Offset, U32 DataSize, void *Sender);
+	private:
+		static void _updatePos(void *Data, U32 Offset, U32 DataSize, void *Sender);
 		static void _updateUV(void *Data, U32 Offset, U32 DataSize, void *Sender);
 		static void _updateCol(void *Data, U32 Offset, U32 DataSize, void *Sender);
-        const std::vector<KBatchObject *> *_kobjects;
-        KVertexArray _kvao;
+		const std::vector<KIndexBatchObject *> *_kobjects;
+		KVertexArray _kvao;
+		KVertexBuffer _kvboInd;		/// index
 		KVertexBuffer _kvboXY;		/// xy (position)
-        KVertexBuffer _kvboUV;		/// uv (texture uv)
+		KVertexBuffer _kvboUV;		/// uv (texture uv)
 		KVertexBuffer _kvboCol;		/// rgba (color)
-        std::vector<U32> _koffset;
+		std::vector<U32> _kvoffset;	/// vertex offset
+		std::vector<U32> _kioffset;	/// index offset
 		KVector2U32 _krange;
-        KBatchConfig _kconfig;
-        const KShader *_kshader;
-        const KTexture *_ktexture;
+		KBatchConfig _kconfig;
+		const KShader *_kshader;
+		const KTexture *_ktexture;
 		KGeoPrimitiveTypes _kgtype;
-    };
+	};
 }
 
-#endif // KBATCH_H
+#endif // KINDEXBATCH_H

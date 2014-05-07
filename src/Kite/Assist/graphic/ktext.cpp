@@ -15,7 +15,7 @@
  You should have received a copy of the GNU General Public License
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#include "Kite/Assist/graphic/ktext.h"
+/*#include "Kite/Assist/graphic/ktext.h"
 
 namespace Kite{
 	KText::KText(const std::vector<KAtlasObject> &Font) :
@@ -74,4 +74,4 @@ namespace Kite{
         }
         return _kquads;
     }
-}
+}*/

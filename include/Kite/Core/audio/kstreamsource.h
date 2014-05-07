@@ -20,7 +20,6 @@
 
 #include "Kite/Core/system/ksystemdef.h"
 #include "Kite/Core/audio/ksoundsource.h"
-#include "Kite/Core/system/kthread.h"
 #include <string>
 
 namespace std{

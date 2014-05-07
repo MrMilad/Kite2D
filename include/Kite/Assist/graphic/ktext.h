@@ -25,7 +25,7 @@
 #include <vector>
 #include <cstring>
 
-namespace Kite{
+/*namespace Kite{
     class KITE_FUNC_EXPORT KText{
 	public:
         KText(const std::vector<KAtlasObject> &Font);
@@ -55,6 +55,6 @@ namespace Kite{
 		F32 _kwidth;
         bool _kneedUpdate;
     };
-}
+}*/
 
 #endif // KTEXT_H

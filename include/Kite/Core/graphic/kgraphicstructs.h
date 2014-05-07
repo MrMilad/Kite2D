@@ -146,14 +146,14 @@ namespace Kite{
 
     typedef void (KCallVBUpdate)(void *Data, U32 Offset, U32 DataSize, void *Sender);
 
-    struct KQuadAttrib{
+    /*struct KQuadAttribute{
         KVector2F32 bottomLeft;
         KVector2F32 topRight;
         KColor color;
         KVector2F32 bottomLeftUV;
         KVector2F32 topRightUV;
 
-        KQuadAttrib():
+		KQuadAttribute() :
             bottomLeft(-1.0, -1.0),
             topRight(0.0,0.0),
             color(),
@@ -161,13 +161,13 @@ namespace Kite{
             topRightUV(1,1)
         {}
 
-        KQuadAttrib(const KVector2F32 &BottomLeft, const KVector2F32 &TopRight, const KColor &Color,
+		KQuadAttribute(const KVector2F32 &BottomLeft, const KVector2F32 &TopRight, const KColor &Color,
                      const KVector2F32 &BottomLeftUV, const KVector2F32 &TopRightUV):
             bottomLeft(BottomLeft), topRight(TopRight),
             color(Color),
             bottomLeftUV(BottomLeftUV), topRightUV(TopRightUV)
         {}
-    };
+    };*/
 
     struct KParticle{
         I32 x, y;

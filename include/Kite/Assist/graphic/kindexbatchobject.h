@@ -15,37 +15,41 @@
  You should have received a copy of the GNU General Public License
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#ifndef KQUAD_H
-#define KQUAD_H
+#ifndef KINDEXBATCHOBJECT_H
+#define KINDEXBATCHOBJECT_H
 
 #include "Kite/Core/system/ksystemdef.h"
 #include "Kite/Core/graphic/kgraphicstructs.h"
-#include "Kite/Core/math/kvector2.h"
-#include "Kite/Assist/graphic/ktransformable.h"
-#include "kite/Assist/graphic/kindexbatchobject.h"
 
 namespace Kite{
-    class KITE_FUNC_EXPORT KQuad : public KTransformable, public KIndexBatchObject{
+    class KITE_FUNC_EXPORT KIndexBatchObject{
     public:
-		KQuad();
-		KQuad(const KRectF32 &Dimension, const KRectF32 &UV, const KColor &Color);
+        KIndexBatchObject(U32 VertexSize, U32 IndexSize):
+            _kvsize(VertexSize),
+            _kisize(IndexSize),
+            _kvertex(new KVertex[VertexSize]),
+            _kindex(new U16[IndexSize])
+        {}
 
-		void setDimension(const KRectF32 &Dimension);
-		inline const KRectF32 &getDimension() const { return _kdim; }
+        ~KIndexBatchObject(){
+            delete[] _kvertex;
+            delete[] _kindex;
+        }
 
-		void setUV(const KRectF32 &UV);
-		inline const KRectF32 &getUV() const { return _kuv; }
+        virtual const KVertex *getVertex() const = 0;
+        inline const U16 *getIndex() const {return _kindex;}
 
-		void setColor(const KColor &Color);
-		inline const KColor &getColor() const { return _kcolor; }
+        inline U32 getVertexSize() const { return _kvsize; }
+        inline U32 getIndexSize() const { return _kisize; }
 
-		const KVertex *getVertex() const;
+    protected:
+        mutable KVertex *_kvertex;
+        U16 *_kindex;
 
     private:
-		KRectF32 _kdim;
-		KRectF32 _kuv;
-		KColor _kcolor;
+        const U32 _kvsize;
+        const U32 _kisize;
     };
 }
 
-#endif // KQUAD_H
+#endif // KINDEXBATCHOBJECT_H

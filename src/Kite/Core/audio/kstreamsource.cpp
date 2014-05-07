@@ -21,6 +21,7 @@
 #include "src/Kite/Core/audio/soundio.h"
 #include <cstdlib>
 #include <thread>
+#include <chrono>
 
 namespace Kite{
     KStreamSource::KStreamSource():
@@ -113,7 +114,7 @@ namespace Kite{
 
         while(true){
             // reduse extra CPU usage
-            Kite::sleep(20);
+			std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
             // Request the number of OpenAL Buffers have been processed (played) on the Source
             ALint bufProcCount = 0;

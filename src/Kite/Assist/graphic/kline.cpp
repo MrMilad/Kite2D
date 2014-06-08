@@ -30,14 +30,26 @@ namespace Kite{
 		_kstart(Start),
 		_kend(End),
 		_kcolor(Color)
-	{}
+	{
+		setStart(Start);
+		setEnd(End);
+		setColor(Color);
+	}
 
 	KLine::~KLine(){}
 
-	const KVertex *KLine::getVertex() const{
-		_kvertex[0].pos = _kstart * getMatrix().getArray();
-		_kvertex[1].pos = _kend * getMatrix().getArray();
-		_kvertex[0].color = _kvertex[1].color = _kcolor;
-		return _kvertex;
+	void KLine::setStart(const KVector2F32 &Start){
+		_kvertex[0].pos = Start;
+		_kstart = Start;
+	}
+
+	void KLine::setEnd(const KVector2F32 &End){
+		_kvertex[1].pos = End;
+		_kend = End;
+	}
+
+	void KLine::setColor(const KColor &Color){
+		_kvertex[0].color = _kvertex[1].color = Color;
+		_kcolor = Color;
 	}
 }

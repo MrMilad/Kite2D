@@ -20,41 +20,40 @@
 
 #include "Kite/Core/system/ksystemdef.h"
 #include "Kite/Core/graphic/kgraphicstructs.h"
-#include "Kite/Core/math/kvector2.h"
-#include "Kite/Assist/graphic/kquad.h"
-#include <vector>
+#include "Kite/Assist/graphic/kindexbatchobject.h"
 #include <cstring>
+#include <vector>
 
-/*namespace Kite{
-    class KITE_FUNC_EXPORT KText{
+namespace Kite{
+    class KITE_FUNC_EXPORT KText : public KIndexBatchObject{
 	public:
-        KText(const std::vector<KAtlasObject> &Font);
-        ~KText();
+		KText(U32 MaxSize);
+		KText(const std::string &Text, const std::vector<KAtlasObject> &Font, const KColor &Color);
 
-        inline void setFont(const std::vector<KAtlasObject> &Font) {_kfont = &Font; _kneedUpdate = true;}
-
+		void setFont(const std::vector<KAtlasObject> &Font);
         inline const std::vector<KAtlasObject> &getFont() const {return *_kfont;}
 
-        inline void setText(const std::string &Text) {_ktext = Text; _kneedUpdate = true;}
-
+		void setText(const std::string &Text);
         inline const std::string &getText() const {return _ktext;}
 
-		void setPositon(const KVector2F32 &Position);
+		void setMiddleSpace(U32 Size);
+		inline U32 getMiddleSpace() const { return _kmid; }
 
-		inline const KVector2F32 &getPosition() const { return _kposition; }
+		void setColor(const KColor &Color);
+		inline const KColor &getColor() const { return _kcolor; }
 
 		inline F32 getWidth() const { return _kwidth; }
 
-        const std::vector<KQuad> &getQuads();
-
     private:
+		void _fillIndex();
+		void _reshape();
         const std::vector<KAtlasObject> *_kfont;
-        std::vector<KQuad> _kquads;
         std::string _ktext;
-        KVector2F32 _kposition;
 		F32 _kwidth;
-        bool _kneedUpdate;
+		U32 _ksize;
+		U32 _kmid;
+		KColor _kcolor;
     };
-}*/
+}
 
 #endif // KTEXT_H

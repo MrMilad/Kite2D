@@ -20,25 +20,22 @@
 
 #include "Kite/Core/system/ksystemdef.h"
 #include "Kite/Assist/graphic/kbatchobject.h"
-#include "Kite/Assist/graphic/ktransformable.h"
 
 namespace Kite{
-    class KITE_FUNC_EXPORT KLine :public KTransformable, public KBatchObject{
+    class KITE_FUNC_EXPORT KLine : public KBatchObject{
     public:
         KLine();
         KLine(const KVector2F32 &Start, const KVector2F32 &End, const KColor &Color);
         ~KLine();
 
-		inline void setStart(const KVector2F32 &Start) { _kstart = Start; }
+		void setStart(const KVector2F32 &Start);
 		inline const KVector2F32 &getStart() const { return _kstart; }
 
-		inline void setEnd(const KVector2F32 &End) { _kend = End; }
+		void setEnd(const KVector2F32 &End);
 		inline const KVector2F32 &getEnd() const { return _kend; }
 
-		inline void setColor(const KColor &color) { _kcolor = color; }
+		void setColor(const KColor &Color);
 		inline const KColor &getColor() const { return _kcolor; }
-
-		const KVertex *getVertex() const;
 
 	private:
 		KVector2F32 _kstart;

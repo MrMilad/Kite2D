@@ -81,6 +81,15 @@ namespace Kite{
         DGL_CALL(glPointSize(Size));
     }
 
+	void KRender::setWireframe(bool Wireframe){
+		if (Wireframe){
+			DGL_CALL(glPolygonMode(GL_FRONT_AND_BACK, GL_LINE));
+		}
+		else{
+			DGL_CALL(glPolygonMode(GL_FRONT_AND_BACK, GL_FILL));
+		}
+	}
+
     void KRender::setViewport(const KRectU32 &Viewport){
         _kviewport = Viewport;
         DGL_CALL(glViewport(_kviewport.left,

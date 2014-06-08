@@ -51,6 +51,9 @@ namespace Kite{
         /// only KGP_POINTS and KGP_LINES is valid for type
         static void setPointSize(F32 Size);
 
+		/// render in wireframe mode
+		static void setWireframe(bool Wireframe);
+
         /// viewport
         static void setViewport(const KRectU32 &Viewport);
         static const KRectU32 &getViewport();

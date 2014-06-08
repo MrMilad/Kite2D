@@ -15,12 +15,11 @@
  You should have received a copy of the GNU General Public License
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#include "Kite/Assist/graphic/katlas.h"
+#include "Kite/Assist/graphic/katlasio.h"
 #include <cstdio>
-#include <cstring>
 
 namespace Kite{
-    bool KAtlas::loadFile(const std::string &FileName, std::vector<KAtlasObject> &Objects){
+    bool KAtlasIO::loadFile(const std::string &FileName, std::vector<KAtlasObject> &Objects){
         // just in case
         Objects.clear();
 
@@ -70,7 +69,7 @@ namespace Kite{
 
 //    }
 
-    void KAtlas::saveFile(const std::string &FileName, const std::vector<KAtlasObject> &Objects){
+	void KAtlasIO::saveFile(const std::string &FileName, const std::vector<KAtlasObject> &Objects){
         if (Objects.empty())
             return;
 

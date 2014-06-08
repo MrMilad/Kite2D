@@ -15,8 +15,8 @@
  You should have received a copy of the GNU General Public License
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#ifndef KATLAS_H
-#define KATLAS_H
+#ifndef KATLASIO_H
+#define KATLASIO_H
 
 #include "Kite/Core/system/ksystemdef.h"
 #include "Kite/Core/graphic/kgraphicstructs.h"
@@ -24,7 +24,7 @@
 #include <vector>
 
 namespace Kite{
-    class KITE_FUNC_EXPORT KAtlas{
+    class KITE_FUNC_EXPORT KAtlasIO{
     public:
 
         /// load atlas file
@@ -36,4 +36,4 @@ namespace Kite{
     };
 }
 
-#endif // KATLAS_H
+#endif // KATLASIO_H

@@ -22,6 +22,7 @@
 #include "Kite/Core/graphic/kgraphictypes.h"
 #include "Kite/Core/math/kvector2.h"
 #include "Kite/Core/system/ksystemdef.h"
+#include <vector>
 
 namespace Kite{
     struct KColor{
@@ -101,26 +102,6 @@ namespace Kite{
         {}
     };*/
 
-    struct KAtlasObject{
-        U32 id;
-		F32 blu, blv; // bottom left texture position (-1 to 1)
-		F32 tru, trv; // top right texture position (-1 to 1)
-        F32 w,h; // size (in pixel)
-
-		KAtlasObject(U32 ID = 0, F32 BLU = 0, F32 BLV = 0,
-					F32 TRU = 0, F32 TRV = 0, F32 W = 0, F32 H = 0) :
-            id(ID),
-			blu(BLU), blv(BLV),
-			tru(TRU), trv(TRV),
-            w(W), h(H)
-        {}
-    };
-
-    struct KAtlasHeader{
-        char format[7]; // = {'k', 'a', 't', 'l', 'a', 's', '\0'};
-        U32 objCount;
-    };
-
     template <typename T>
     struct KRect{
 		T left, right, bottom, top;
@@ -138,6 +119,56 @@ namespace Kite{
     typedef KRect<I32> KRectI32;
     typedef KRect<F32> KRectF32;
     typedef KRect<F64> KRectF64;
+
+	struct KAtlasObject{
+		U32 id;
+		F32 blu, blv; // bottom left texture position (-1 to 1)
+		F32 tru, trv; // top right texture position (-1 to 1)
+		F32 w, h; // size (in pixel)
+
+		KAtlasObject(U32 ID = 0, F32 BLU = 0, F32 BLV = 0,
+			F32 TRU = 0, F32 TRV = 0, F32 W = 0, F32 H = 0) :
+			id(ID),
+			blu(BLU), blv(BLV),
+			tru(TRU), trv(TRV),
+			w(W), h(H)
+		{}
+	};
+
+	struct KAtlasHeader{
+		char format[7]; // = {'k', 'a', 't', 'l', 'a', 's', '\0'}; // file format
+		U32 objCount; // number of atlas objects stored in the file
+	};
+
+	struct KAnimeState{
+		KVector2F32 translate; // per frame
+		KVector2F32 scale; // per frame
+		F32 rotate; // per frame
+		U32 uv; // per frame (index of atlas object)
+		KAnimeState(KVector2F32 Translate, KVector2F32 Scale,
+			F32 Rotate = 0.0f, U32 UV = 0) :
+			translate(Translate), scale(Scale), 
+			rotate(Rotate), uv(UV)
+		{}
+		KAnimeState() :
+			translate(), scale(),
+			rotate(0.0f), uv(0)
+		{}
+	};
+
+	struct KAnimeHeader{
+		char format[7]; // = {'k', 'a', 'n', 'i', 'm', 'e', '\0'}; // file format
+		U8 animeCount; // number of animations stored in the file
+		// U16 *jointCount; // = U16 jointCount[animeCount]; // number of joints per animation.
+		// U16 *frameCount; // = U16 frameCount[animeCount]; // number of frames per animation.
+		// KAnimeState *states;	// = KAnimeState states[size of total frames]; // animations states
+	};
+
+	struct KAnimeObject{
+		U16 joints;							// number of joints
+		U16 frames;							// number of frames
+		std::vector<KAnimeState> states;	// joint states
+	};
 
     struct KOGLVersion{
         U8 major;

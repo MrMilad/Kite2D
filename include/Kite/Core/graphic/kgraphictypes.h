@@ -176,6 +176,17 @@ namespace Kite{
         KAT_FLOAT
     };
 
+	enum KAnimationStateTypes{
+		KAS_PLAY,
+		KAS_PAUSE,
+		KAS_STOP
+	};
+
+	enum KAnimationPlayTypes{
+		KAP_FOREWARD,
+		KAP_BACKWARD
+	};
+
     namespace Internal{
     enum KGLBindGuardTypes{
         KBG_NONE = 0,

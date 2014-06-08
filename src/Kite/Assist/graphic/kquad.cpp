@@ -24,13 +24,7 @@ namespace Kite{
 		_kuv(0.0f, 1.0f, 0.0f, 1.0f),
 		_kcolor()
 	{
-		_kindex[0] = 0;
-		_kindex[1] = 1;
-		_kindex[2] = 2;
-		_kindex[3] = 2;
-		_kindex[4] = 1;
-		_kindex[5] = 3;
-
+		_fillIndex();
 		setDimension(_kdim);
 		setUV(_kuv);
 		setColor(_kcolor);
@@ -42,16 +36,19 @@ namespace Kite{
 		_kuv(UV),
 		_kcolor(Color)
 	{
+		_fillIndex();
+		setDimension(_kdim);
+		setUV(_kuv);
+		setColor(_kcolor);
+	}
+
+	void KQuad::_fillIndex(){
 		_kindex[0] = 0;
 		_kindex[1] = 1;
 		_kindex[2] = 2;
 		_kindex[3] = 2;
 		_kindex[4] = 1;
 		_kindex[5] = 3;
-
-		setDimension(_kdim);
-		setUV(_kuv);
-		setColor(_kcolor);
 	}
 
 	void KQuad::setDimension(const KRectF32 &Dimension){
@@ -75,11 +72,9 @@ namespace Kite{
 		_kcolor = Color;
 	}
 
-	const KVertex *KQuad::getVertex() const{
-		_kvertex[0].pos = KVector2F32(_kdim.left, _kdim.bottom) * getMatrix().getArray();
-		_kvertex[1].pos = KVector2F32(_kdim.left, _kdim.top) * getMatrix().getArray();
-		_kvertex[2].pos = KVector2F32(_kdim.right, _kdim.bottom) * getMatrix().getArray();
-		_kvertex[3].pos = KVector2F32(_kdim.top, _kdim.right) * getMatrix().getArray();
-		return _kvertex;
+	void KQuad::_getJointsState(const KAnimeState *States, U32 Count, U16 Frame){
+		setRotation(States[0].rotate);
+		setScale(States[0].scale);
+		setPosition(States[0].translate);
 	}
 }

@@ -29,6 +29,7 @@ to ease the development of games.
 + Based on modern OpenGL v3.3
 + Easy to use VAO, VBO, PBO, Shader and Texture classes
 + 2D transformation class
++ 2D Skeletal and sprite-sheet animation system
 + Support PNG, BMP, TGA image file formats
 + 2D sprite batch rendering and instancing
 + 2D\3D audio options (pitch, pan, ...)

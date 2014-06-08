@@ -18,7 +18,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ---------------------[ Overview ]---------------------
 
 Kite2D is a free open-source multi-platform 2-dimensional Game Framework
-written in C++ by Milad Rasaneh and published under the LGPL license.
+written in C++ by Milad Rasaneh and published under the GPL license.
 
 Kite2D provides a simple interface to the various components of your PC,
 to ease the development of games.

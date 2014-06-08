@@ -20,9 +20,10 @@
 
 #include "Kite/Core/system/ksystemdef.h"
 #include "Kite/Core/graphic/kgraphicstructs.h"
+#include "Kite/Assist/graphic/ktransformable.h"
 
 namespace Kite{
-    class KITE_FUNC_EXPORT KIndexBatchObject{
+    class KITE_FUNC_EXPORT KIndexBatchObject : public KTransformable{
     public:
         KIndexBatchObject(U32 VertexSize, U32 IndexSize):
             _kvsize(VertexSize),
@@ -36,19 +37,22 @@ namespace Kite{
             delete[] _kindex;
         }
 
-        virtual const KVertex *getVertex() const = 0;
+		inline const KVertex *getVertex() const { return _kvertex; }
         inline const U16 *getIndex() const {return _kindex;}
 
         inline U32 getVertexSize() const { return _kvsize; }
         inline U32 getIndexSize() const { return _kisize; }
 
     protected:
-        mutable KVertex *_kvertex;
+		/// resize only before batching
+		inline void resizeVertex(U32 VertexSize){ delete[] _kvertex, _kvertex = new KVertex[VertexSize]; _kvsize = VertexSize; }
+		inline void resizeIndex(U32 IndexSize){ delete[] _kindex, _kindex = new U16[IndexSize]; _kisize = IndexSize; }
+        KVertex *_kvertex;
         U16 *_kindex;
 
     private:
-        const U32 _kvsize;
-        const U32 _kisize;
+        U32 _kvsize;
+        U32 _kisize;
     };
 }
 

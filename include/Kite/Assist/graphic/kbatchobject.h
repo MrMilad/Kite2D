@@ -20,9 +20,10 @@
 
 #include "Kite/Core/system/ksystemdef.h"
 #include "Kite/Core/graphic/kgraphicstructs.h"
+#include "Kite/Assist/graphic/ktransformable.h"
 
 namespace Kite{
-    class KITE_FUNC_EXPORT KBatchObject{
+    class KITE_FUNC_EXPORT KBatchObject : public KTransformable{
     public:
 		KBatchObject(U32 VertexSize):
 			_kvsize(VertexSize),
@@ -33,12 +34,12 @@ namespace Kite{
 			delete[] _kvertex;
 		}
 
-		virtual const KVertex *getVertex() const = 0;
+		inline const KVertex *getVertex() const { return _kvertex; }
 
 		inline U32 getVertexSize() const { return _kvsize; }
 
 	protected:
-		mutable KVertex *_kvertex;
+		KVertex *_kvertex;
 
 	private:
 		U32 _kvsize;

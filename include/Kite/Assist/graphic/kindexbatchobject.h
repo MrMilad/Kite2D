@@ -25,17 +25,8 @@
 namespace Kite{
     class KITE_FUNC_EXPORT KIndexBatchObject : public KTransformable{
     public:
-        KIndexBatchObject(U32 VertexSize, U32 IndexSize):
-            _kvsize(VertexSize),
-            _kisize(IndexSize),
-            _kvertex(new KVertex[VertexSize]),
-            _kindex(new U16[IndexSize])
-        {}
-
-        ~KIndexBatchObject(){
-            delete[] _kvertex;
-            delete[] _kindex;
-        }
+		KIndexBatchObject(U32 VertexSize, U32 IndexSize);
+		~KIndexBatchObject();
 
 		inline const KVertex *getVertex() const { return _kvertex; }
         inline const U16 *getIndex() const {return _kindex;}
@@ -44,15 +35,15 @@ namespace Kite{
         inline U32 getIndexSize() const { return _kisize; }
 
     protected:
-		/// resize only before batching
-		inline void resizeVertex(U32 VertexSize){ delete[] _kvertex, _kvertex = new KVertex[VertexSize]; _kvsize = VertexSize; }
-		inline void resizeIndex(U32 IndexSize){ delete[] _kindex, _kindex = new U16[IndexSize]; _kisize = IndexSize; }
+		/// resize only before batching (not safe)
+		//inline void resizeVertex(U32 VertexSize){ delete[] _kvertex, _kvertex = new KVertex[VertexSize]; _kvsize = VertexSize; }
+		//inline void resizeIndex(U32 IndexSize){ delete[] _kindex, _kindex = new U16[IndexSize]; _kisize = IndexSize; }
         KVertex *_kvertex;
         U16 *_kindex;
 
     private:
-        U32 _kvsize;
-        U32 _kisize;
+        const U32 _kvsize;
+        const U32 _kisize;
     };
 }
 

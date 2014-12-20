@@ -30,7 +30,7 @@ namespace Internal{
 }
 }
 
-// OpenGL debug macro
+// OpenAL debug macro
 #if defined(KITE_DEV_DEBUG)
     #define DAL_CALL(call) call; KDEBUG_ASSERT_T(Kite::Internal::checkLastALErr())
 #else

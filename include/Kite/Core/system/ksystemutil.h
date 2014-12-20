@@ -35,7 +35,7 @@ namespace Kite{
 	KITE_FUNC_EXPORT extern U32 getCurrentTimeHours();
 
 	/// Power
-	KITE_FUNC_EXPORT extern KPowerState getPowerState();
+	//KITE_FUNC_EXPORT extern KPowerState getPowerState();
 
 	/// CPU
 	KITE_FUNC_EXPORT extern const KCPUInfo *getCPUInfo();

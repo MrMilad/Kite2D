@@ -192,7 +192,7 @@ namespace Kite{
         KBG_NONE = 0,
         KBG_TEXTURE, // texture
         KBG_VBUFFER, // vertex buffer
-        KGB_PBUFFER  // frame buffer
+        KBG_PBUFFER  // frame buffer
     };
     }
 

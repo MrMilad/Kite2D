@@ -25,24 +25,17 @@
 
 namespace Kite{
 namespace Internal{
-    class ImageIO : KNonCopyable{
+    class ImageIO{
     public:
-        static ImageIO *CreateInstance();
-        static void DestroyInstance();
-
-        void readFromFile(const std::string &FileName, std::vector<U8> &Pixels, KVector2U32 &Size);
-        void readFromMemory(const void *Data, std::size_t DataSize,
+        static void readFromFile(const std::string &FileName, std::vector<U8> &Pixels, KVector2U32 &Size);
+		static void readFromMemory(const void *Data, std::size_t DataSize,
                             std::vector<U8> &Pixels, KVector2U32 &Size);
 
-        void writeToFile(const std::string &FileName, const std::vector<U8> &Pixels,
+        static void writeToFile(const std::string &FileName, const std::vector<U8> &Pixels,
                          const KVector2U32& Size);
-    private:
-        ImageIO();
-        ~ImageIO();
 
         // convert a string to lower case
-        void toLower(std::string &str);
-        static ImageIO *_kinstance;
+        static void toLower(std::string &str);
     };
 }
 }

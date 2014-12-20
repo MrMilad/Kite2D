@@ -44,6 +44,18 @@ namespace Kite{
 
 	void KAnime::updateAnimation(){
 		if (_kanime){
+			// stopped
+			if (_kstate == KAS_STOP){
+				// foreward
+				if (_kpstate == KAP_FOREWARD){
+					_kframe = 0;
+				}
+				// backward
+				else if (_kpstate == KAP_BACKWARD){
+					_kframe = _kanime->frames - 1;
+				}
+			}
+
 			// process current frame
 			_getJointsState(&_kanime->states[_kframe * _kanime->joints], _kanime->joints, _kframe);
 
@@ -72,16 +84,6 @@ namespace Kite{
 					}
 				}
 
-			}// stopped
-			else if (_kstate == KAS_STOP){
-				// foreward
-				if (_kpstate == KAP_FOREWARD){
-					_kframe = 0;
-				}
-				// backward
-				else if (_kpstate == KAP_FOREWARD){
-					_kframe = _kanime->frames - 1;
-				}
 			}
 			// paused
 			// do nothing

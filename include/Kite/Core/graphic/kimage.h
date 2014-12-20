@@ -26,7 +26,7 @@
 #include <vector>
 
 namespace Kite{
-    class KITE_FUNC_EXPORT KImage{
+    class KITE_FUNC_EXPORT KImage : KNonCopyable{
     public:
         KImage();
         ~KImage();

@@ -101,7 +101,7 @@ namespace Internal{
         case KBG_VBUFFER:
             DGL_CALL(glBindBuffer(GL_ARRAY_BUFFER_ARB, _kglobject));
             break;
-        case KGB_PBUFFER:
+        case KBG_PBUFFER:
             DGL_CALL(glBindFramebuffer(GL_FRAMEBUFFER, _kglobject));
             break;
         default:

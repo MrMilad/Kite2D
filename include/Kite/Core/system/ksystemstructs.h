@@ -21,7 +21,7 @@
 #include "Kite/core/system/ksystemtypes.h"
 
 namespace Kite{
-    struct KPowerState{
+    /*struct KPowerState{
             KPowerStateTypes powerType;
             KBatteryStateTypes batteryTypes;
             U16 batteryLife;
@@ -33,7 +33,7 @@ namespace Kite{
                 batteryTypes(BatteryTypes),
                 batteryLife(BatteryLife)
             {}
-    };
+    };*/
 
     // functor base
     struct KThreadFunc

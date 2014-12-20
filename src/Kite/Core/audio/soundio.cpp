@@ -37,7 +37,7 @@ namespace Internal{
             return _kformat->openFile(FileName);
             break;
         default:
-            KDEBUG_PRINT("invalid file type");
+            KDEBUG_PRINT("invalid or not supportd file type");
             break;
         }
 		return false;

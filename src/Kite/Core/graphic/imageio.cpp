@@ -25,22 +25,6 @@
 
 namespace Kite{
 namespace Internal{
-    ImageIO::ImageIO(){}
-    ImageIO::~ImageIO(){}
-
-    ImageIO *ImageIO::_kinstance = 0;
-    ImageIO *ImageIO::CreateInstance(){
-        if (_kinstance == 0)
-            _kinstance = new ImageIO();
-
-        return _kinstance;
-    }
-
-    void ImageIO::DestroyInstance(){
-        delete _kinstance;
-        _kinstance = 0;
-    }
-
     void ImageIO::readFromFile(const std::string &FileName, std::vector<U8> &Pixels, KVector2U32 &Size){
         // we need an empty array
         Pixels.clear();

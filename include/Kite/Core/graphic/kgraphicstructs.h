@@ -201,12 +201,12 @@ namespace Kite{
     };*/
 
     struct KParticle{
-        I32 x, y;
+		KVector2F32 pos;
+		KColor color;
         I32 angle;
         I32 speed;
         U32 life;
         U32 size;
-        U8 r, g, b, a;
     };
 
     struct KBatchConfig{

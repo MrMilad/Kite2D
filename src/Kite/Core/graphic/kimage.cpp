@@ -71,15 +71,15 @@ namespace Kite{
     }
 
     void KImage::loadFile(const std::string &FileName){
-        return Internal::ImageIO::CreateInstance()->readFromFile(FileName, _kpixels, _ksize);
+		return Internal::ImageIO::readFromFile(FileName, _kpixels, _ksize);
     }
 
     void KImage::loadMemory(const void *Data, std::size_t Size){
-        return Internal::ImageIO::CreateInstance()->readFromMemory(Data, Size, _kpixels, _ksize);
+		return Internal::ImageIO::readFromMemory(Data, Size, _kpixels, _ksize);
     }
 
     void KImage::save(const std::string &FileName){
-        return Internal::ImageIO::CreateInstance()->writeToFile(FileName, _kpixels, _ksize);
+		return Internal::ImageIO::writeToFile(FileName, _kpixels, _ksize);
     }
 
     void KImage::makeColorMask(const KColor& Color, U8 Alpha){

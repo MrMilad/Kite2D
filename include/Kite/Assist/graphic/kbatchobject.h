@@ -25,14 +25,8 @@
 namespace Kite{
     class KITE_FUNC_EXPORT KBatchObject : public KTransformable{
     public:
-		KBatchObject(U32 VertexSize):
-			_kvsize(VertexSize),
-			_kvertex(new KVertex[VertexSize])
-		{}
-
-		~KBatchObject(){
-			delete[] _kvertex;
-		}
+		KBatchObject(U32 VertexSize);
+		~KBatchObject();
 
 		inline const KVertex *getVertex() const { return _kvertex; }
 
@@ -42,7 +36,7 @@ namespace Kite{
 		KVertex *_kvertex;
 
 	private:
-		U32 _kvsize;
+		const U32 _kvsize;
     };
 }
 

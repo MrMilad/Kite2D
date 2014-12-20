@@ -28,12 +28,12 @@ enum KPowerStateTypes{
 };
 
 /* Battery State */
-enum KBatteryStateTypes{
+/*enum KBatteryStateTypes{
     KBS_USING,
     KBS_CHARGING,
     KBS_NOBATTERY,
     KBS_UNKNOWN
-};
+};*/
 
 enum KSeqIOAccTypes{
     KSIOA_READ,

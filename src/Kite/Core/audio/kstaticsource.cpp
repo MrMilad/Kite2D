@@ -20,7 +20,8 @@
 
 namespace Kite{
     void KStaticSource::play(){
-        DAL_CALL(alSourcePlay(_kID));
+		if (getState() != KSS_PLAYING)
+			DAL_CALL(alSourcePlay(_kID));
     }
 
     void KStaticSource::pause(){

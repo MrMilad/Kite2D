@@ -79,10 +79,10 @@ namespace Kite{
 				_kvertex[ind + 3].pos = KVector2F32(width + atemp->w, atemp->h);
 
 				// uv
-				_kvertex[ind].uv = KVector2F32(atemp->blu, atemp->blv);
-				_kvertex[ind + 1].uv = KVector2F32(atemp->blu, atemp->trv);
-				_kvertex[ind + 2].uv = KVector2F32(atemp->tru, atemp->blv);
-				_kvertex[ind + 3].uv = KVector2F32(atemp->tru, atemp->trv);
+				_kvertex[ind].uv = KVector2F32(atemp->blu, atemp->trv);
+				_kvertex[ind + 1].uv = KVector2F32(atemp->blu, atemp->blv);
+				_kvertex[ind + 2].uv = KVector2F32(atemp->tru, atemp->trv);
+				_kvertex[ind + 3].uv = KVector2F32(atemp->tru, atemp->blv);
 
 				width += atemp->w + _kmid;
 			}

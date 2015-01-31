@@ -34,22 +34,28 @@ namespace Kite{
 
 		/// default: 0.0, 0.0
 		inline void setCenter(const KVector2F32 Center) { _kcenter = Center; _kneedUpdate = true; }
+		inline const KVector2F32 &getCenter() const { return _kcenter; }
 
 		/// default: 0.0
 		inline void setRotation(F32 Angle) { _krotation = Angle; _kneedUpdate = true; }
+		inline F32 getRotation() const { return _krotation; }
 
 		/// default: 1.0
 		inline void setZoom(F32 Factor) { _kzoom = Factor; _kneedUpdate = true; }
-        inline const KVector2F32 &getCenter() const {return _kcenter;}
-        inline F32 getRotation() const {return _krotation;}
-        inline F32 getZoom() const {return _kzoom;}
+		inline F32 getZoom() const { return _kzoom; }
 
+		// flip screen coordinate
+		inline void flipY() { _kflipy = _kflipy * -1; _kneedUpdate = true; } // flip y coordinate in Microsoft Windows OS
+		inline void flipX() { _kflipx = _kflipx * -1; _kneedUpdate = true; }
+        
 		const KMatrix3 &getMatrix() const;
     private:
 		KVector2F32 _ksize;
         KVector2F32 _kcenter;
         F32 _krotation;
         F32 _kzoom;
+		F32 _kflipy;
+		F32 _kflipx;
 		mutable bool _kneedUpdate;
         mutable KMatrix3 _kmatrix;
     };

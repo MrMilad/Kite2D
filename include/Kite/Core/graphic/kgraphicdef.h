@@ -68,5 +68,8 @@ namespace Kite{
 /// e.g s = 10, b = 40 , result = 0.5
 #define KCINT_TO_F_SIZE(s, b)       ((2 / (float)b) * s)
 
+/// convert mouse position (y) from microsoft windows to opengl
+#define KCYMOUSE(y, h)			(h - y)
+
 }
 #endif // KGRAPHICDEF_H

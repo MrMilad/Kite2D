@@ -23,6 +23,8 @@ namespace Kite{
         _kcenter(0, 0),
         _krotation(0.0f),
         _kzoom(1.0f),
+		_kflipy(1.0f),
+		_kflipx(1.0f),
         _kneedUpdate(true),
 		_kmatrix()
     {}
@@ -30,6 +32,8 @@ namespace Kite{
 	KCamera::KCamera(const KRectF32 &Viewport) :
 		_krotation(0.0f),
 		_kzoom(1.0f),
+		_kflipy(1.0f),
+		_kflipx(1.0f),
 		_kneedUpdate(true),
 		_kmatrix()
 	{
@@ -57,7 +61,7 @@ namespace Kite{
 
            // projection components
            F32 a = 2.f / (_ksize.x / _kzoom);
-           F32 b = -2.f / (_ksize.y / _kzoom);
+           F32 b = (2.f * _kflipy) / (_ksize.y / _kzoom); // -2.f for microsoft windows coordinate system
 		   F32 c = -a * _kcenter.x;
 		   F32 d = -b * _kcenter.y;
 

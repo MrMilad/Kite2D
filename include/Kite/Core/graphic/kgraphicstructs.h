@@ -15,8 +15,8 @@
  You should have received a copy of the GNU General Public License
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#ifndef KRENDERSTRUCTS_H
-#define KRENDERSTRUCTS_H
+#ifndef KGRAPHICSTRUCTS_H
+#define KGRAPHICSTRUCTS_H
 
 #include "Kite/Core/system/ksystemtypes.h"
 #include "Kite/Core/graphic/kgraphictypes.h"
@@ -110,6 +110,18 @@ namespace Kite{
 			left(Left), right(Right), bottom(Bottom), top(Top)
         {}
     };
+
+	template <typename T>
+	inline KRect<T> operator+(const KRect<T>& left, const KVector2<T>& right){
+		return KRect<T>(left.left + right.x, left.right + right.x,
+			left.bottom + right.y, left.top + right.y);
+	}
+
+	template <typename T>
+	inline KRect<T> operator-(const KRect<T>& left, const KVector2<T>& right){
+		return KRect<T>(left.left - right.x, left.right - right.x,
+			left.bottom - right.y, left.top - right.y);
+	}
 
     typedef KRect<U8>  KRectU8;
     typedef KRect<U16> KRectU16;
@@ -239,4 +251,4 @@ namespace Kite{
     }
 }
 
-#endif // KRENDERSTRUCTS_H
+#endif // KGRAPHICSTRUCTS_H

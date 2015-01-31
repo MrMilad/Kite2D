@@ -52,18 +52,18 @@ namespace Kite{
 	}
 
 	void KQuad::setDimension(const KRectF32 &Dimension){
-		_kvertex[0].pos = KVector2F32(Dimension.left, Dimension.top);
-		_kvertex[1].pos = KVector2F32(Dimension.left, Dimension.bottom);
-		_kvertex[2].pos = KVector2F32(Dimension.right, Dimension.top);
-		_kvertex[3].pos = KVector2F32(Dimension.right, Dimension.bottom);
+		_kvertex[0].pos = KVector2F32(Dimension.left, Dimension.bottom);
+		_kvertex[1].pos = KVector2F32(Dimension.left, Dimension.top);
+		_kvertex[2].pos = KVector2F32(Dimension.right, Dimension.bottom);
+		_kvertex[3].pos = KVector2F32(Dimension.right, Dimension.top);
 		_kdim = Dimension;
 	}
 
 	void KQuad::setUV(const KRectF32 &UV){
-		_kvertex[0].uv = KVector2F32(UV.left, UV.top);
-		_kvertex[1].uv = KVector2F32(UV.left, UV.bottom);
-		_kvertex[2].uv = KVector2F32(UV.right, UV.top);
-		_kvertex[3].uv = KVector2F32(UV.right, UV.bottom);
+		_kvertex[0].uv = KVector2F32(UV.left, UV.bottom);
+		_kvertex[1].uv = KVector2F32(UV.left, UV.top);
+		_kvertex[2].uv = KVector2F32(UV.right, UV.bottom);
+		_kvertex[3].uv = KVector2F32(UV.right, UV.top);
 		_kuv = UV;
 	}
 

@@ -17,6 +17,7 @@
 */
 #include "Kite/Assist/graphic/kindexbatch.h"
 #include "Kite/Core/graphic/krender.h"
+#include "Kite/Core/graphic/kgraphicdef.h"
 
 namespace Kite{
 	KIndexBatch::KIndexBatch(const std::vector<KIndexBatchObject *> &Objects,

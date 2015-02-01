@@ -19,7 +19,8 @@
 #define KTRANSFORMABLE_H
 
 #include "Kite/Core/system/ksystemdef.h"
-#include "Kite/Core/math/kvector2.h"
+#include "Kite/Core/math/kmathdef.h"
+#include "Kite/Core/math/kmathstructs.h"
 #include "Kite/Core/math/kmatrix3.h"
 
 namespace Kite{

@@ -17,6 +17,7 @@
 */
 #include "Kite/Assist/graphic/kbatch.h"
 #include "Kite/Core/graphic/krender.h"
+#include "Kite/Core/graphic/kgraphicdef.h"
 
 namespace Kite{
 	KBatch::KBatch(const std::vector<KBatchObject *> &Objects,

@@ -20,10 +20,10 @@
 
 #include <string>
 #include "Kite/core/system/ksystemdef.h"
+#include "Kite/Core/math/kmathstructs.h"
 #include "Kite/core/window/kwindowtypes.h"
 #include "Kite/core/window/kwindowstructs.h"
 #include "Kite/core/system/knoncopyable.h"
-#include "Kite/Core/math/kvector2.h"
 
 namespace Kite{
     class KITE_FUNC_EXPORT KGLWindow : KNonCopyable{

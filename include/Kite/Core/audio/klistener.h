@@ -19,7 +19,7 @@
 #define KLISTENER_H
 
 #include "Kite/Core/system/ksystemdef.h"
-#include "Kite/Core/math/kvector3.h"
+#include "Kite/Core/math/kmathstructs.h"
 
 namespace Kite{
     class KITE_FUNC_EXPORT KListener{

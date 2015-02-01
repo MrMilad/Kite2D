@@ -15,15 +15,14 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#ifndef KPOINTINPOLY_H
-#define KPOINTINPOLY_H
+#ifndef KGEOMETRIC_H
+#define KGEOMETRIC_H
 
 #include "Kite/Core/system/ksystemdef.h"
-#include "Kite/core/graphic/kgraphicstructs.h"
-#include "Kite/Core/math/kvector2.h"
+#include "Kite/Core/math/kmathstructs.h"
 
 namespace Kite{
-	class KITE_FUNC_EXPORT KPointInPoly{
+	class KITE_FUNC_EXPORT KGeometric{
 	public:
 		static bool isPointInBox(const KRectF32 &Box, const KVector2F32 &HitPoint);
 		static bool isPointInCircle(const KVector2F32 &Center, F32 Radius, const KVector2F32 &HitPoint);
@@ -35,9 +34,10 @@ namespace Kite{
 		// bounding box rectangles
 		static KRectF32 getBoundingBox(const KRectF32 *Rects, U32 Size);
 
-		// bounding box cycles
-		static KRectF32 getBoundingBox(const KVector2F32 *Centers, const F32 *Radiuses, U32 Size);
+		// bounding box cycles (cycles with same radius)
+		static KRectF32 getBoundingBox(const KVector2F32 *Centers, F32 Radius, U32 Size);
+
 	};
 }
 
-#endif // KPOINTINPOLY_H
+#endif // KGEOMETRIC_H

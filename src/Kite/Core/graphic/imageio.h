@@ -19,7 +19,7 @@
 #define IMAGEIO_H
 
 #include "Kite/core/system/knoncopyable.h"
-#include "Kite/core/math/kvector2.h"
+#include "Kite/Core/math/kmathstructs.h"
 #include <string>
 #include <vector>
 

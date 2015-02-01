@@ -15,14 +15,13 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#ifndef KMATH_H
-#define KMATH_H
+#ifndef KMATHTYPES_H
+#define KMATHTYPES_H
 
-#include "Kite/Core/math/kmathdef.h"
-#include "Kite/Core/math/kmathtypes.h"
-#include "Kite/Core/math/kmathstructs.h"
-#include "Kite/Core/math/kgeometric.h"
-#include "Kite/Core/math/kmatrix3.h"
-#include "Kite/Core/math/ktransform.h"
+enum KOrientationTypes{
+	KO_CLOCKWISE = 0,
+	KO_CCLOCKWISE,
+	KO_COLLINEAR
+};
 
-#endif // KMATH_H
+#endif // KMATHTYPES_H

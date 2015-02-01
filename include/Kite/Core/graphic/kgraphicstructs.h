@@ -20,7 +20,7 @@
 
 #include "Kite/Core/system/ksystemtypes.h"
 #include "Kite/Core/graphic/kgraphictypes.h"
-#include "Kite/Core/math/kvector2.h"
+#include "Kite/Core/math/kmathstructs.h"
 #include "Kite/Core/system/ksystemdef.h"
 #include <vector>
 
@@ -101,36 +101,6 @@ namespace Kite{
             x(X), y(Y)
         {}
     };*/
-
-    template <typename T>
-    struct KRect{
-		T left, right, bottom, top;
-
-		KRect(T Left = 0, T Right = 0, T Bottom = 0, T Top = 0) :
-			left(Left), right(Right), bottom(Bottom), top(Top)
-        {}
-    };
-
-	template <typename T>
-	inline KRect<T> operator+(const KRect<T>& left, const KVector2<T>& right){
-		return KRect<T>(left.left + right.x, left.right + right.x,
-			left.bottom + right.y, left.top + right.y);
-	}
-
-	template <typename T>
-	inline KRect<T> operator-(const KRect<T>& left, const KVector2<T>& right){
-		return KRect<T>(left.left - right.x, left.right - right.x,
-			left.bottom - right.y, left.top - right.y);
-	}
-
-    typedef KRect<U8>  KRectU8;
-    typedef KRect<U16> KRectU16;
-    typedef KRect<U32> KRectU32;
-    typedef KRect<I8>  KRectI8;
-    typedef KRect<I16> KRectI16;
-    typedef KRect<I32> KRectI32;
-    typedef KRect<F32> KRectF32;
-    typedef KRect<F64> KRectF64;
 
 	struct KAtlasObject{
 		U32 id;

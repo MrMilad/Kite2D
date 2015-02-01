@@ -19,7 +19,7 @@
 #define KSOUNDSOURCE_H
 
 #include "Kite/Core/system/ksystemdef.h"
-#include "Kite/Core/math/kvector3.h"
+#include "Kite/Core/math/kmathstructs.h"
 #include "Kite/Core/audio/kaudiotypes.h"
 
 namespace Kite{

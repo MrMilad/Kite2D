@@ -16,6 +16,7 @@
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 #include "Kite/Assist/graphic/kcamera.h"
+#include "Kite/Core/math/kmathdef.h"
 #include <cmath>
 
 namespace Kite{

@@ -15,14 +15,18 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#ifndef KMATH_H
-#define KMATH_H
+#ifndef KMATHDEF_H
+#define KMATHDEF_H
 
-#include "Kite/Core/math/kmathdef.h"
-#include "Kite/Core/math/kmathtypes.h"
-#include "Kite/Core/math/kmathstructs.h"
-#include "Kite/Core/math/kgeometric.h"
-#include "Kite/Core/math/kmatrix3.h"
-#include "Kite/Core/math/ktransform.h"
+// Common math constants
+#define KMATH_PI	3.14159265358979323846f
+#define KMATH_PI_2	1.57079632679489661923f
+#define KMATH_PI_4	0.785398163397448309616f
 
-#endif // KMATH_H
+#define KMATH_PIsub45  0.06981317008f
+#define KMATH_PIsub90  0.03490658504f
+#define KMATH_PIsub180 0.01745329252f
+#define KMATH_PIsub240 0.01308996939f
+#define KMATH_PIsub360 0.00872664626f
+
+#endif // KMATHDEF_H

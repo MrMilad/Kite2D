@@ -20,7 +20,7 @@
 
 #include "Kite/Core/system/ksystemdef.h"
 #include "Kite/Core/system/knoncopyable.h"
-#include "Kite/Core/math/kvector2.h"
+#include "Kite/Core/math/kmathstructs.h"
 #include "Kite/Core/graphic/kgraphictypes.h"
 #include "Kite/Core/graphic/kgraphicstructs.h"
 #include "Kite/Core/graphic/kimage.h"

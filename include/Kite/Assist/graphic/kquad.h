@@ -20,7 +20,7 @@
 
 #include "Kite/Core/system/ksystemdef.h"
 #include "Kite/Core/graphic/kgraphicstructs.h"
-#include "Kite/Core/math/kvector2.h"
+#include "Kite/Core/math/kmathstructs.h"
 #include "kite/Assist/graphic/kindexbatchobject.h"
 #include "kite/Assist/graphic/kanime.h"
 

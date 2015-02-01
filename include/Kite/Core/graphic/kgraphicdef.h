@@ -20,17 +20,6 @@
 
 namespace Kite{
 
-// Common math constants
-#define KMATH_PI	3.14159265358979323846f
-#define KMATH_PI_2	1.57079632679489661923f
-#define KMATH_PI_4	0.785398163397448309616f
-
-#define KMATH_PIsub45  0.06981317008f
-#define KMATH_PIsub90  0.03490658504f
-#define KMATH_PIsub180 0.01745329252f
-#define KMATH_PIsub240 0.01308996939f
-#define KMATH_PIsub360 0.00872664626f
-
 /// Hardware color macros
 #define ARGB(a,r,g,b)	((DWORD(a)<<24) + (DWORD(r)<<16) + (DWORD(g)<<8) + DWORD(b))
 #define GETA(col)		((col)>>24)

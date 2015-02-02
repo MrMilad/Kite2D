@@ -19,27 +19,33 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace Kite{
 	KQuad::KQuad() :
-		KIndexBatchObject(4, 6),
-		_kdim(0.0f, 1.0f, 0.0f, 1.0f),
-		_kuv(0.0f, 1.0f, 0.0f, 1.0f),
-		_kcolor()
+		KIndexBatchObject(4, 6)
 	{
 		_fillIndex();
-		setDimension(_kdim);
-		setUV(_kuv);
-		setColor(_kcolor);
+		setDimension(KRect2F32());
+		setUV(KRectF32(0.0f, 1.0f, 0.0f, 1.0f));
+		setColor(KColor());
 	}
 
 	KQuad::KQuad(const KRectF32 &Dimension, const KRectF32 &UV, const KColor &Color):
-		KIndexBatchObject(4, 6),
-		_kdim(Dimension),
-		_kuv(UV),
-		_kcolor(Color)
+		KIndexBatchObject(4, 6)
 	{
 		_fillIndex();
-		setDimension(_kdim);
-		setUV(_kuv);
-		setColor(_kcolor);
+		setDimension(KRect2F32(KVector2F32(Dimension.left, Dimension.bottom),
+			KVector2F32(Dimension.left, Dimension.top),
+			KVector2F32(Dimension.right, Dimension.bottom),
+			KVector2F32(Dimension.right, Dimension.top)));
+		setUV(UV);
+		setColor(Color);
+	}
+
+	KQuad::KQuad(const KRect2F32 &Dimension, const KRectF32 &UV, const KColor &Color):
+		KIndexBatchObject(4, 6)
+	{
+		_fillIndex();
+		setDimension(Dimension);
+		setUV(UV);
+		setColor(Color);
 	}
 
 	void KQuad::_fillIndex(){
@@ -51,12 +57,19 @@ namespace Kite{
 		_kindex[5] = 3;
 	}
 
-	void KQuad::setDimension(const KRectF32 &Dimension){
-		_kvertex[0].pos = KVector2F32(Dimension.left, Dimension.bottom);
-		_kvertex[1].pos = KVector2F32(Dimension.left, Dimension.top);
-		_kvertex[2].pos = KVector2F32(Dimension.right, Dimension.bottom);
-		_kvertex[3].pos = KVector2F32(Dimension.right, Dimension.top);
+	void KQuad::setDimension(const KRect2F32 &Dimension){
+		_kvertex[0].pos = Dimension.leftBottom;
+		_kvertex[1].pos = Dimension.leftTop;
+		_kvertex[2].pos = Dimension.rightBottom;
+		_kvertex[3].pos = Dimension.rightTop;
 		_kdim = Dimension;
+	}
+
+	void KQuad::setDimension(const KRectF32 &Dimension){
+		setDimension(KRect2F32(KVector2F32(Dimension.left, Dimension.bottom),
+			KVector2F32(Dimension.left, Dimension.top),
+			KVector2F32(Dimension.right, Dimension.bottom),
+			KVector2F32(Dimension.right, Dimension.top)));
 	}
 
 	void KQuad::setUV(const KRectF32 &UV){

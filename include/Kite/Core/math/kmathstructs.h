@@ -326,6 +326,29 @@ namespace Kite{
 	typedef KRect<F32> KRectF32;
 	typedef KRect<F64> KRectF64;
 
+
+	// KRect2 Template
+	template <typename T>
+	struct KRect2{
+		KVector2<T> leftBottom, leftTop, rightBottom, rightTop;
+
+		KRect2() :
+			leftBottom(0, 0), leftTop(0, 0), rightBottom(0, 0), rightTop(0, 0)
+		{}
+
+		KRect2(KVector2<T> LeftBottom, KVector2<T> LeftTop, KVector2<T> RightBottom, KVector2<T> RightTop) :
+			leftBottom(LeftBottom), leftTop(LeftTop), rightBottom(RightBottom), rightTop(RightTop)
+		{}
+	};
+
+	typedef KRect2<U8>  KRect2U8;
+	typedef KRect2<U16> KRect2U16;
+	typedef KRect2<U32> KRect2U32;
+	typedef KRect2<I8>  KRect2I8;
+	typedef KRect2<I16> KRect2I16;
+	typedef KRect2<I32> KRect2I32;
+	typedef KRect2<F32> KRect2F32;
+	typedef KRect2<F64> KRect2F64;
 }
 
 #endif // KMATHSTRUCTS_H

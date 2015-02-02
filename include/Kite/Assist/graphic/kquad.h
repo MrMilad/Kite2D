@@ -29,9 +29,11 @@ namespace Kite{
     public:
 		KQuad();
 		KQuad(const KRectF32 &Dimension, const KRectF32 &UV, const KColor &Color);
+		KQuad(const KRect2F32 &Dimension, const KRectF32 &UV, const KColor &Color);
 
+		void setDimension(const KRect2F32 &Dimension);
 		void setDimension(const KRectF32 &Dimension);
-		inline const KRectF32 &getDimension() const { return _kdim; }
+		inline const KRect2F32 &getDimension() const { return _kdim; }
 
 		void setUV(const KRectF32 &UV);
 		inline const KRectF32 &getUV() const { return _kuv; }
@@ -44,7 +46,7 @@ namespace Kite{
 
     private:
 		void _fillIndex();
-		KRectF32 _kdim;
+		KRect2F32 _kdim;
 		KRectF32 _kuv;
 		KColor _kcolor;
     };

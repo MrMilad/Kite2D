@@ -92,4 +92,69 @@ namespace Kite{
 
 		return KRectF32(minX - Radius, maxX + Radius, minY - Radius, maxY + Radius);
 	}
+
+	KOrientationTypes KGeometric::getOrientation(const KVector2F32 &PointA, const KVector2F32 &PointB, const KVector2F32 &PointC){
+		F32 area2 = (PointB.x - PointA.x)*(PointC.y - PointA.y) - (PointB.y - PointA.y)*(PointC.x - PointA.x);
+		if (area2 < 0) return KO_CLOCKWISE;
+		else if (area2 > 0) return KO_CCLOCKWISE;
+		return KO_COLLINEAR;
+	}
+
+	U32 KGeometric::getConvexHull(const KVector2F32 *Points, U32 Size, KVector2F32 *ConvexHull){
+		// initialize a deque D[] from bottom to top so that the
+		// 1st three vertices of P[] are a ccw triangle
+		KVector2F32* D = new KVector2F32[2 * Size + 1];
+		int bot = Size - 2, top = bot + 3;    // initial bottom and top deque indices
+		D[bot] = D[top] = Points[2];        // 3rd vertex is at both bot and top
+		if (getOrientation(Points[0], Points[1], Points[2]) > 0) {
+			D[bot + 1] = Points[0];
+			D[bot + 2] = Points[1];           // ccw vertices are: 2,0,1,2
+		}
+		else {
+			D[bot + 1] = Points[1];
+			D[bot + 2] = Points[0];           // ccw vertices are: 2,1,0,2
+		}
+
+		// compute the hull on the deque D[]
+		for (int i = 3; i < Size; i++) {   // process the rest of vertices
+			// test if next vertex is inside the deque hull
+			if ((getOrientation(D[bot], D[bot + 1], Points[i]) > 0) &&
+				(getOrientation(D[top - 1], D[top], Points[i]) > 0))
+				continue;         // skip an interior vertex
+
+			// incrementally add an exterior vertex to the deque hull
+			// get the rightmost tangent at the deque bot
+			while (getOrientation(D[bot], D[bot + 1], Points[i]) <= 0)
+				++bot;                 // remove bot of deque
+			D[--bot] = Points[i];           // insert Points[i] at bot of deque
+
+			// get the leftmost tangent at the deque top
+			while (getOrientation(D[top - 1], D[top], Points[i]) <= 0)
+				--top;                 // pop top of deque
+			D[++top] = Points[i];           // push Points[i] onto top of deque
+		}
+
+		// transcribe deque D[] to the output hull array ConvexHull[]
+		int count;        // hull vertex counter
+		for (count = 0; count <= (top - bot); count)
+			ConvexHull[count] = D[bot + count];
+
+		delete D;
+		return count - 1;
+	}
+
+	bool KGeometric::isIntersect(const KVector2F32 &Line1Start, const KVector2F32 &Line1End,
+		const KVector2F32 &Line2Start, const KVector2F32 &Line2End){
+		U32 test1, test2;
+		test1 = getOrientation(Line1Start, Line1End, Line2Start) * getOrientation(Line1Start, Line1End, Line2End);
+		test2 = getOrientation(Line2Start, Line2End, Line1Start) * getOrientation(Line2Start, Line2End, Line1End);
+		return (test1 <= 0) && (test2 <= 0);
+	}
+
+	bool  KGeometric::isIntersect(const KVector2F32 &Center1, F32 Radius1, const KVector2F32 &Center2, F32 Radius2){
+		if (distance(Center1, Center2) <= (Radius1 + Radius2)){
+			return true;
+		}
+		return false;
+	}
 }

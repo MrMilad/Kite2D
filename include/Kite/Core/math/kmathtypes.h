@@ -19,9 +19,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define KMATHTYPES_H
 
 enum KOrientationTypes{
-	KO_CLOCKWISE = 0,
-	KO_CCLOCKWISE,
-	KO_COLLINEAR
+	KO_COLLINEAR = 0,
+	KO_CLOCKWISE = -1,
+	KO_CCLOCKWISE = 1
 };
 
 #endif // KMATHTYPES_H

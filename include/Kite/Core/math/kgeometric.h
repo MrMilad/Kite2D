@@ -20,6 +20,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "Kite/Core/system/ksystemdef.h"
 #include "Kite/Core/math/kmathstructs.h"
+#include "Kite/Core/math/kmathtypes.h"
 
 namespace Kite{
 	class KITE_FUNC_EXPORT KGeometric{
@@ -28,7 +29,7 @@ namespace Kite{
 		static bool isPointInCircle(const KVector2F32 &Center, F32 Radius, const KVector2F32 &HitPoint);
 		static bool isPointInPoly(const KVector2F32 *Points, U32 Size, const KVector2F32 &HitPoint);
 
-		// bonding box points
+		// bounding box points
 		static KRectF32 getBoundingBox(const KVector2F32 *Points, U32 Size);
 
 		// bounding box rectangles
@@ -36,6 +37,23 @@ namespace Kite{
 
 		// bounding box cycles (cycles with same radius)
 		static KRectF32 getBoundingBox(const KVector2F32 *Centers, F32 Radius, U32 Size);
+
+		// get orientation of 3 points
+		static KOrientationTypes getOrientation(const KVector2F32 &PointA, const KVector2F32 &PointB, const KVector2F32 &PointC);
+
+		// get convex hull
+		//  Points = an (unsorted) array of 2D points
+		//  Size = the number of points in Points[]
+		//  Output: ConvexHull = an array of the convex hull vertices (max is Size)
+		//  Return: the number of points in ConvexHull
+		static U32 getConvexHull(const KVector2F32 *Points, U32 Size, KVector2F32 *ConvexHull);
+
+		// line intersect
+		static bool isIntersect(const KVector2F32 &Line1Start, const KVector2F32 &Line1End,
+			const KVector2F32 &Line2Start, const KVector2F32 &Line2End);
+
+		// cyrcle intersect
+		static bool isIntersect(const KVector2F32 &Center1, F32 Radius1, const KVector2F32 &Center2, F32 Radius2);
 
 	};
 }

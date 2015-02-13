@@ -20,10 +20,14 @@
 #include "src/Kite/Core/window/fwcall.h"
 
 namespace Kite{
+	KTimer::KTimer():
+		_kscale(1.0f),
+		_kdelta(0.0)
+	{
+		// initialize glfw
+		Internal::initeGLFW();
+	}
     void KTimer::start(){
-        // initialize glfw
-        Internal::initeGLFW();
-
         // get current time
         _kdelta = glfwGetTime();
     }
@@ -33,9 +37,13 @@ namespace Kite{
         _kdelta = end - _kdelta;
     }
 
-    F64 KTimer::getElapsedTimeInSec(){
+    F64 KTimer::getElapsedSec(){
         return (glfwGetTime() - _kdelta);
     }
+
+	F64 KTimer::getScaledElapsedSec(){
+		return ((glfwGetTime() - _kdelta) * _kscale);
+	}
 
     void KTimer::resetAllTimers(){
         glfwSetTime(0.0);

@@ -19,7 +19,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "Kite/core/math/kgeometric.h"
 
 namespace Kite{
-	bool KGeometric::isPointInBox(const KRectF32 &Box, const KVector2F32 &HitPoint){
+	bool KGeometric::isPointIn(const KRectF32 &Box, const KVector2F32 &HitPoint){
 		if (Box.left <= HitPoint.x && Box.bottom <= HitPoint.y
 			&& (Box.right) >= HitPoint.x && (Box.top) >= HitPoint.y){
 			return true;
@@ -27,21 +27,39 @@ namespace Kite{
 		return false;
 	}
 
-	bool KGeometric::isPointInCircle(const KVector2F32 &Center, F32 Radius, const KVector2F32 &HitPoint){
+	bool KGeometric::isPointIn(const KRect2F32 &Box, const KVector2F32 &HitPoint){
+		U32 i, j;
+		KVector2F32 Points[4];
+		bool c = false;
+		Points[0] = Box.leftBottom;
+		Points[1] = Box.leftTop;
+		Points[2] = Box.rightTop;
+		Points[3] = Box.rightBottom;
+
+		for (i = 0, j = 4 - 1; i < 4; j = i++) {
+			if (((Points[i].y > HitPoint.y) != (Points[j].y > HitPoint.y)) &&
+				(HitPoint.x < (Points[j].x - Points[i].x) * (HitPoint.y - Points[i].y) / (Points[j].y - Points[i].y) + Points[i].x))
+				c = !c;
+		}
+		return c;
+	}
+
+	bool KGeometric::isPointIn(const KVector2F32 &Center, F32 Radius, const KVector2F32 &HitPoint){
 		if (distance(Center, HitPoint) <= Radius){
 			return true;
 		}
 		return false;
 	}
 
-	bool KGeometric::isPointInPoly(const KVector2F32 *Points, U32 Size, const KVector2F32 &HitPoint){
+	bool KGeometric::isPointIn(const KVector2F32 *Points, U32 Size, const KVector2F32 &HitPoint){
 		U32 i, j;
+		bool c = false;
 		for (i = 0, j = Size - 1; i < Size; j = i++) {
 			if (((Points[i].y > HitPoint.y) != (Points[j].y > HitPoint.y)) &&
 				(HitPoint.x < (Points[j].x - Points[i].x) * (HitPoint.y - Points[i].y) / (Points[j].y - Points[i].y) + Points[i].x))
-				return true;
+				c = !c;
 		}
-		return false;
+		return c;
 	}
 
 	KRectF32 KGeometric::getBoundingBox(const KVector2F32 *Points, U32 Size){

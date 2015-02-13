@@ -25,9 +25,17 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 namespace Kite{
 	class KITE_FUNC_EXPORT KGeometric{
 	public:
-		static bool isPointInBox(const KRectF32 &Box, const KVector2F32 &HitPoint);
-		static bool isPointInCircle(const KVector2F32 &Center, F32 Radius, const KVector2F32 &HitPoint);
-		static bool isPointInPoly(const KVector2F32 *Points, U32 Size, const KVector2F32 &HitPoint);
+		// box (rectangle)
+		static bool isPointIn(const KRectF32 &Box, const KVector2F32 &HitPoint);
+
+		// box (quad)
+		static bool isPointIn(const KRect2F32 &Box, const KVector2F32 &HitPoint);
+
+		// cyrcle
+		static bool isPointIn(const KVector2F32 &Center, F32 Radius, const KVector2F32 &HitPoint);
+
+		// polygon
+		static bool isPointIn(const KVector2F32 *Points, U32 Size, const KVector2F32 &HitPoint);
 
 		// bounding box points
 		static KRectF32 getBoundingBox(const KVector2F32 *Points, U32 Size);

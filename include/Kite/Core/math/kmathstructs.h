@@ -341,6 +341,18 @@ namespace Kite{
 		{}
 	};
 
+	template <typename T>
+	inline KRect2<T> operator+(const KRect2<T>& left, const KVector2<T>& right){
+		return KRect2<T>(left.leftBottom + right, left.leftTop + right,
+			left.rightBottom + right, left.rightTop + right);
+	}
+
+	template <typename T>
+	inline KRect2<T> operator-(const KRect2<T>& left, const KVector2<T>& right){
+		return KRect2<T>(left.leftBottom - right, left.leftTop - right,
+			left.rightBottom - right, left.rightTop - right);
+	}
+
 	typedef KRect2<U8>  KRect2U8;
 	typedef KRect2<U16> KRect2U16;
 	typedef KRect2<U32> KRect2U32;

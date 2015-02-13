@@ -39,4 +39,5 @@ to ease the development of games.
 + Support mouse, keyboard, joystick
 + easy window creation and handling
 + fast and basic 2D physique functions (hit-testing, bounding box, ...)
++ full support of isometric game
 + ...

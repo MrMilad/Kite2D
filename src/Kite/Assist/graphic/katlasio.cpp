@@ -29,12 +29,12 @@ namespace Kite{
         if (file != NULL){
 
             // read header
-            KAtlasHeader header;
+            KArrayHeader header;
             size_t rsize;
 
             // set read pointer to begin of file
             fseek(file, 0, SEEK_SET);
-            rsize = fread(&header, sizeof(KAtlasHeader), 1, file);
+			rsize = fread(&header, sizeof(KArrayHeader), 1, file);
 
             if (rsize == 1){
 
@@ -75,7 +75,7 @@ namespace Kite{
 
         FILE *file = fopen(FileName.c_str(), "w");
 
-        KAtlasHeader header;
+		KArrayHeader header;
         header.format[0] = 'k';
         header.format[1] = 'a';
         header.format[2] = 't';
@@ -86,7 +86,7 @@ namespace Kite{
 
         header.objCount = (U32)Objects.size();
 
-        fwrite(&header, sizeof(KAtlasHeader), 1, file);
+		fwrite(&header, sizeof(KArrayHeader), 1, file);
 
         fwrite(&Objects[0], sizeof(KAtlasObject), Objects.size(), file);
         fclose(file);

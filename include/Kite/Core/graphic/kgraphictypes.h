@@ -187,6 +187,19 @@ namespace Kite{
 		KAP_BACKWARD
 	};
 
+	enum KTileMapTypes{
+		KTM_ISOMETRIC
+	};
+
+	// isometric tile
+	enum KTileBitmapTypes : U8{
+		KTB_CENTER,
+		KTB_BOTTOM_LEFT,
+		KTB_BOTTOM_RIGHT,
+		KTB_TOP_LEFT,
+		KTB_TOP_RIGHT
+	};
+
     namespace Internal{
     enum KGLBindGuardTypes{
         KBG_NONE = 0,

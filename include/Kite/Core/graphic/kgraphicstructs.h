@@ -117,9 +117,10 @@ namespace Kite{
 		{}
 	};
 
-	struct KAtlasHeader{
-		char format[7]; // = {'k', 'a', 't', 'l', 'a', 's', '\0'}; // file format
-		U32 objCount; // number of atlas objects stored in the file
+	// common array-based file header
+	struct KArrayHeader{
+		char format[7]; // eg: {'k', 'a', 't', 'l', 'a', 's', '\0'}; // file format
+		U32 objCount; // array size (index)
 	};
 
 	struct KAnimeState{
@@ -198,6 +199,22 @@ namespace Kite{
             position(Position), uv(UV), color(Color)
         {}
     };
+
+	struct KTileMapInfo{
+		KTileMapTypes mapType;
+		KVector2F32 tileSize; // x = width, y = height
+		KVector2U32 mapSize; // x = number of tiles in row, y = number of tiles in column
+	};
+
+	// isometric tile structure for drawing purpose
+	struct KIsometricTile{
+		U32 textureId; // texture id (atlas id)
+		U32 baseSpace; // space between texture and ground(y = 0)
+		U32 height; // height of tile
+		U16 leftExtraUnit; // extera weight from left (merged tile)
+		U16 rightExtraUnit; // extera weight from right (merged tile)
+		bool stacked; // is stacked (stakced tile will draw on previous tile)
+	};
 
     namespace Internal{
     struct KCatchState{

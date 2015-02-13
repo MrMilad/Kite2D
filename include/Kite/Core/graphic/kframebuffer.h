@@ -37,7 +37,7 @@ namespace Kite{
         void unbind();
 
         /// unbind currently frame buffer
-        static void unbindVertexBuffer();
+        static void unbindFrameBuffer();
 
     private:
         U32 _kbufId;

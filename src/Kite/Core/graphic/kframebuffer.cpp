@@ -60,7 +60,7 @@ namespace Kite{
         }
     }
 
-    void KFrameBuffer::unbindVertexBuffer(){
+    void KFrameBuffer::unbindFrameBuffer(){
         DGL_CALL(glBindFramebuffer(GL_FRAMEBUFFER, 0));
         _klastBufId = 0;
     }

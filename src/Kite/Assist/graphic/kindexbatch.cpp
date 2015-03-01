@@ -208,14 +208,14 @@ namespace Kite{
 
 	void KIndexBatch::_updatePos(void *Data, U32 Offset, U32 DataSize, void *Sender){
 		KIndexBatch *obj = (KIndexBatch *)Sender;
-		const F32 *pmat = 0;
-		const F32 *mmat = 0;
+		const KTransform *pmat;
+		const KTransform *mmat;
 		KVector2F32 *pos = (KVector2F32 *)Data;
 		const KIndexBatchObject *otmp;
 		const KVertex *vtmp;
 
 		// projection matrix
-		pmat = obj->getCamera().getMatrix().getArray();
+		pmat = obj->getCamera().getTransform();
 
 		// retrieve index, size and offset
 		U32 index = obj->_krange.x;
@@ -224,13 +224,13 @@ namespace Kite{
 
 		for (U32 i = 0; i < size; i++){
 			otmp = obj->_kobjects->at(index + i);
-			mmat = otmp->getMatrix().getArray();
+			mmat = otmp->getTransform();
 			for (U32 j = 0; j < otmp->getVertexSize(); j++){
 				vtmp = &otmp->getVertex()[j];
 
-				// multiply model-matrix with projection-matrix (camera)
+				// multiply model-matrix (object) with projection-matrix (camera)
 				// then update position
-				pos[ofst + j] = (vtmp->pos * mmat) * pmat;
+				pos[ofst + j] = pmat->transformPoint(mmat->transformPoint(vtmp->pos));
 			}
 
 			// move offset to next object

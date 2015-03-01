@@ -187,6 +187,12 @@ namespace Kite{
 		KAP_BACKWARD
 	};
 
+	enum KAnimationUpdateTypes{
+		KAU_SKELETAL,
+		KAU_SPRITE,
+		KAU_BOTH
+	};
+
 	enum KTileMapTypes{
 		KTM_ISOMETRIC
 	};

@@ -42,7 +42,9 @@ namespace Kite{
 		inline const KColor &getColor() const { return _kcolor; }
 
 	protected:
-		void _getJointsState(const KAnimeState *States, U32 Count, U16 Frame);
+
+		// animation callback
+		void _getJointsState(const KAnimeState *States);
 
     private:
 		void _fillIndex();

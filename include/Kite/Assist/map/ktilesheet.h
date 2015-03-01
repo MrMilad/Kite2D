@@ -24,6 +24,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace Kite{
 	class KITE_FUNC_EXPORT KTileSheet{
+	public:
 		KTileSheet(const KTileMapInfo &MapInfo);
 
 		// set bitmap array for isometric mouse coordinate detection
@@ -46,6 +47,7 @@ namespace Kite{
 		KRect2F32 getTileDimension(U32 TileID);
 		KRect2F32 getTileDimension(const KVector2F32 &Position);
 
+	private:
 		KTileMapInfo _kmapInfo;
 	};
 }

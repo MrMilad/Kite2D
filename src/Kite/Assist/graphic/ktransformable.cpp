@@ -25,7 +25,7 @@ namespace Kite{
         _krotation(0.0f),
         _kscale(1,1),
         _kcenter(0,0),
-        _kmatrix(),
+		_ktransform(KMatrix3()), // unit matrix
         _kneedUpdate(true)
     {}
 
@@ -66,25 +66,25 @@ namespace Kite{
         _kneedUpdate = true;
     }
 
-    const KMatrix3 &KTransformable::getMatrix() const{
-        // calculate
-        if (_kneedUpdate){
-            F32 angle  = -_krotation * KMATH_PIsub180; // 3.14 \ 180;
-            F32 cosine = (float)(std::cos(angle));
-            F32 sine   = (float)(std::sin(angle));
-            F32 sxc    = _kscale.x * cosine;
-            F32 syc    = _kscale.y * cosine;
-            F32 sxs    = _kscale.x * sine;
-            F32 sys    = _kscale.y * sine;
-            F32 tx     = -_kcenter.x * sxc - _kcenter.y * sys + _kposition.x;
-            F32 ty     =  _kcenter.x * sxs - _kcenter.y * syc + _kposition.y;
+	const KTransform *KTransformable::getTransform() const{
+		// calculate
+		if (_kneedUpdate){
+			F32 angle = -_krotation * KMATH_PIsub180; // 3.14 \ 180;
+			F32 cosine = (float)(std::cos(angle));
+			F32 sine = (float)(std::sin(angle));
+			F32 sxc = _kscale.x * cosine;
+			F32 syc = _kscale.y * cosine;
+			F32 sxs = _kscale.x * sine;
+			F32 sys = _kscale.y * sine;
+			F32 tx = -_kcenter.x * sxc - _kcenter.y * sys + _kposition.x;
+			F32 ty = _kcenter.x * sxs - _kcenter.y * syc + _kposition.y;
 
-            _kmatrix = KMatrix3(sxc, sys, tx,
-                                -sxs, syc, ty,
-                                0.f, 0.f, 1.f);
-            _kneedUpdate = false;
-        }
+			_ktransform = KTransform(KMatrix3(sxc, sys, tx,
+				-sxs, syc, ty,
+				0.f, 0.f, 1.f));
+			_kneedUpdate = false;
+		}
 
-        return _kmatrix;
-    }
+		return &_ktransform;
+	}
 }

@@ -19,22 +19,75 @@
 #include <cmath>
 
 namespace Kite{
-    void KTransform::translate(Kite::KVector2F32 &Point, const Kite::KVector2F32 &Translate){
-        Point.x += Translate.x;
-        Point.y += Translate.y;
-    }
+	KTransform::KTransform() :
+		_kmatrix(KMatrix3())
+	{}
 
-    void KTransform::rotate(KVector2F32 &Point, F32 Angle){
-            F32 radx = Angle * KMATH_PIsub180;
-            F32 cosx = std::cos(radx);
-            F32 sinx = std::sin(radx);
+	KTransform::KTransform(const KMatrix3 &Matrix) :
+		_kmatrix(Matrix)
+	{}
 
-            Point.x = Point.x * cosx - Point.y * sinx;
-            Point.y = Point.x * sinx + Point.y * cosx;
-    }
+	KVector2F32 KTransform::transformPoint(const KVector2F32 &Point) const{
+		return KVector2F32(Point.x * _kmatrix[0] + Point.y * _kmatrix[1] + 1 * _kmatrix[2],
+			Point.x * _kmatrix[3] + Point.y * _kmatrix[4] + 1 * _kmatrix[5]);
+	}
 
-    void KTransform::scale(KVector2F32 &Point, Kite::KVector2F32 Factors){
-        Point.x *= Factors.x;
-        Point.y *= Factors.y;
-    }
+	KRect2F32 KTransform::transformQuad(const KRect2F32 &Quad) const{
+		// transform all 4 points
+		const KVector2F32 points[] =
+		{
+			transformPoint(Quad.leftBottom),
+			transformPoint(Quad.leftTop),
+			transformPoint(Quad.rightBottom),
+			transformPoint(Quad.rightTop)
+		};
+
+		return KRect2F32(points[0], points[1], points[2], points[3]);
+	}
+
+	KTransform &KTransform::combine(const KTransform &Transform){
+		_kmatrix *= (*Transform.getMatrix());
+		return *this;
+	}
+
+	KTransform &KTransform::translate(const KVector2F32 &Offset){
+		// build matrix
+		KMatrix3 mat(1, 0, Offset.x,
+					0, 1, Offset.y,
+					0, 0, 1);
+
+		// combine
+		_kmatrix *= mat;
+		
+		return *this;
+	}
+
+	KTransform &KTransform::rotate(F32 Angle, const KVector2F32 &Center){
+		// calculate
+		F32 rad = Angle * KMATH_PIsub180;
+		F32 cos = std::cos(rad);
+		F32 sin = std::sin(rad);
+
+		// build matrix
+		KMatrix3 mat(cos, -sin, Center.x * (1 - cos) + Center.y * sin,
+			sin, cos, Center.y * (1 - cos) - Center.x * sin,
+			0, 0, 1);
+
+		// combine
+		_kmatrix *= mat;
+
+		return *this;
+	}
+
+	KTransform &KTransform::scale(const KVector2F32 &ScaleFactor, const KVector2F32 &Center){
+		// build matrix
+		KMatrix3 mat(ScaleFactor.x, 0, Center.x * (1 - ScaleFactor.x),
+			0, ScaleFactor.y, Center.y * (1 - ScaleFactor.y),
+			0, 0, 1);
+
+		// combine
+		_kmatrix *= mat;
+
+		return *this;
+	}
 }

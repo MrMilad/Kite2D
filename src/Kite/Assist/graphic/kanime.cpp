@@ -20,6 +20,7 @@
 namespace Kite{
 	KAnime::KAnime() :
 		_kanime(0),
+		_katlas(0),
 		_kloop(true),
 		_kreset(false),
 		_kstate(KAS_STOP),
@@ -27,8 +28,9 @@ namespace Kite{
 		_kframe(0)
 	{}
 
-	KAnime::KAnime(const KAnimeObject *Animation) :
+	KAnime::KAnime(const KAnimeObject *Animation, const std::vector<KAtlasObject> *SpriteSheet) :
 		_kanime(Animation),
+		_katlas(SpriteSheet),
 		_kloop(true),
 		_kreset(false),
 		_kstate(KAS_STOP),
@@ -57,7 +59,8 @@ namespace Kite{
 			}
 
 			// process current frame
-			_getJointsState(&_kanime->states[_kframe * _kanime->joints], _kanime->joints, _kframe);
+			// animation callback
+			_getJointsState(&_kanime->states[_kframe * _kanime->joints]);
 
 			// calculate next frame
 			// playing

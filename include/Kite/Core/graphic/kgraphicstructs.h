@@ -104,8 +104,8 @@ namespace Kite{
 
 	struct KAtlasObject{
 		U32 id;
-		F32 blu, blv; // bottom left texture position (-1 to 1)
-		F32 tru, trv; // top right texture position (-1 to 1)
+		F32 blu, blv; // bottom left texture position (0 to 1)
+		F32 tru, trv; // top right texture position (0 to 1)
 		F32 w, h; // size (in pixel)
 
 		KAtlasObject(U32 ID = 0, F32 BLU = 0, F32 BLV = 0,

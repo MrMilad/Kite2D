@@ -21,6 +21,7 @@
 #include "Kite/Core/system/ksystemdef.h"
 #include "Kite/Core/math/kmathdef.h"
 #include "Kite/Core/math/kmathstructs.h"
+#include "Kite/Core/math/ktransform.h"
 #include "Kite/Core/math/kmatrix3.h"
 
 namespace Kite{
@@ -62,15 +63,15 @@ namespace Kite{
         void setCenter(const KVector2F32 &Center);
         inline const KVector2F32 &getCenter() const {return _kcenter;}
 
-        /// combining the position/rotation/scale/center
-        const KMatrix3 &getMatrix() const;
+		/// combining the position/rotation/scale/center
+		const KTransform *getTransform() const;
 
     private:
         KVector2F32 _kposition;
         F32 _krotation;
         KVector2F32 _kscale;
         KVector2F32 _kcenter;
-        mutable KMatrix3 _kmatrix;
+        mutable KTransform _ktransform;
         mutable bool _kneedUpdate;
     };
 }

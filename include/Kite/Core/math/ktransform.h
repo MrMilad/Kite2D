@@ -26,9 +26,35 @@
 namespace Kite{
     class KITE_FUNC_EXPORT KTransform{
     public:
-        static void translate(KVector2F32 &Point, const KVector2F32 &Translate);
-        static void rotate(KVector2F32 &Point, F32 Angle);
-        static void scale(KVector2F32 &Point, KVector2F32 Factors);
+		/// construct a transform (unit matrix)
+		KTransform();
+
+		/// construct a transform from a 3x3 matrix
+		KTransform(const KMatrix3 &Matrix);
+
+		/// return the transform as a 3x3 matrix
+		inline const KMatrix3 *getMatrix() const { return &_kmatrix; }
+
+		/// transform a 2D point
+		KVector2F32 transformPoint(const KVector2F32 &Point) const;
+
+		/// transform a rectangle
+		KRect2F32 transformQuad(const KRect2F32 &Quad) const;
+
+		/// combine the current transform with another one
+		KTransform &combine(const KTransform &Transform);
+
+		/// combine the current transform with a translation
+		KTransform &translate(const KVector2F32 &Offset);
+
+		/// combine the current transform with a rotation
+		KTransform &rotate(F32 Angle, const KVector2F32 &Center);
+
+		/// combine the current transform with a scaling
+		KTransform &scale(const KVector2F32 &ScaleFactor, const KVector2F32 &Center);
+
+	private:
+		KMatrix3 _kmatrix; // 3x3 matrix defining the transformation
     }; // class
 }
 

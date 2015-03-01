@@ -29,10 +29,13 @@ namespace Kite{
 	class KITE_FUNC_EXPORT KAnime{
 	public:
 		KAnime();
-		KAnime(const KAnimeObject *Animation);
+		KAnime(const KAnimeObject *Animation, const std::vector<KAtlasObject> *SpriteSheet);
 
 		inline void setAnimation(const KAnimeObject *Animation) { _kanime = Animation; _kreset = true; }
 		inline const KAnimeObject *getAnimation() const { return _kanime; }
+
+		inline void setSpriteSheet(const std::vector<KAtlasObject> *SpriteSheet) { _katlas = SpriteSheet; }
+		inline const std::vector<KAtlasObject> *getSpriteSheet() const { return _katlas; }
 
 		inline void setAnimationLoop(bool Loop) { _kloop = Loop; }
 		inline bool getAnimationLoop() const { return _kloop; }
@@ -51,10 +54,11 @@ namespace Kite{
 		void updateAnimation();
 
 	protected:
-		virtual void _getJointsState(const KAnimeState *States, U32 Count, U16 Frame) = 0;
+		virtual void _getJointsState(const KAnimeState *States) = 0;
 
 	private:
 		const KAnimeObject *_kanime;
+		const std::vector<KAtlasObject> *_katlas;
 		bool _kloop;
 		bool _kreset;
 		KAnimationStateTypes _kstate;

@@ -19,9 +19,10 @@
 #define KCAMERA_H
 
 #include "Kite/Core/system/ksystemdef.h"
-#include "Kite/Core/math/kmatrix3.h"
 #include "Kite/Core/math/kmathstructs.h"
+#include "Kite/Core/math/ktransform.h"
 #include "Kite/Core/graphic/kgraphicstructs.h"
+
 
 namespace Kite{
     class KITE_FUNC_EXPORT KCamera{
@@ -50,7 +51,7 @@ namespace Kite{
 		inline void flipY() { _kflipy = _kflipy * -1; _kneedUpdate = true; } // (Micro$oft window system)
 		inline void flipX() { _kflipx = _kflipx * -1; _kneedUpdate = true; }
         
-		const KMatrix3 &getMatrix() const;
+		const KTransform *getTransform() const;
     private:
 		KVector2F32 _ksize;
         KVector2F32 _kcenter;
@@ -59,7 +60,7 @@ namespace Kite{
 		F32 _kflipy;
 		F32 _kflipx;
 		mutable bool _kneedUpdate;
-        mutable KMatrix3 _kmatrix;
+        mutable KTransform _ktransform;
     };
 }
 #endif // KCAMERA_H

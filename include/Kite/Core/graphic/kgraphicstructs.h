@@ -217,22 +217,46 @@ namespace Kite{
 	};
 
     namespace Internal{
-    struct KCatchState{
-        /// need fix
-        KBlendMode blend;
-        U32 lastVAOId, lastVBOId, lastTexId, lastShdId;
-        bool pointSpr;
+		struct KCatchDraw{
+			U32 objIndex, lastTexId, lastShdId;
+			KGeoPrimitiveTypes lastGeo;
 
-        KCatchState(KBlendMode Blend = KB_ALPHA,
-                    U32 LastVAOID = 0, U32 LastVBOID = 0,
-                    U32 LastTextureID = 0, U32 LastSeaderID = 0,
-                    bool PointSprite = false):
-            blend(Blend),
-            lastVAOId(LastVAOID),
-            lastVBOId(LastVBOID),
-            lastTexId(LastTextureID),
-            lastShdId(LastSeaderID),
-            pointSpr(PointSprite)
+			KCatchDraw(U32 ObjectIndex = 0, U32 LastTextureID = 0, U32 LastSeaderID = 0,
+				KGeoPrimitiveTypes GeoType = KGP_TRIANGLES) :
+				objIndex(ObjectIndex),
+				lastTexId(LastTextureID),
+				lastShdId(LastSeaderID),
+				lastGeo(GeoType)
+			{}
+
+			inline bool operator==(const KCatchDraw& rhs){
+				if (rhs.lastTexId == lastTexId &&
+					rhs.lastShdId == lastShdId &&
+					rhs.lastGeo == lastGeo)
+					return true;
+
+				return false;
+			}
+
+			inline bool operator!=(const KCatchDraw& rhs){ return !(*this == rhs); }
+		};
+
+		struct KCatchState{
+			/// need fix
+			KBlendMode blend;
+			U32 lastVAOId, lastVBOId, lastTexId, lastShdId;
+			bool pointSpr;
+
+			KCatchState(KBlendMode Blend = KB_ALPHA,
+						U32 LastVAOID = 0, U32 LastVBOID = 0,
+						U32 LastTextureID = 0, U32 LastSeaderID = 0,
+						bool PointSprite = false):
+				blend(Blend),
+				lastVAOId(LastVAOID),
+				lastVBOId(LastVBOID),
+				lastTexId(LastTextureID),
+				lastShdId(LastSeaderID),
+				pointSpr(PointSprite)
         {}
     };
     }

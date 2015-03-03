@@ -27,10 +27,7 @@ namespace Kite{
 		_kvboUV(KBT_VERTEX),
 		_kvboCol(KBT_VERTEX),
 		_krange(0,0),
-		_kconfig(Config),
-		_ktexture(0),
-		_kshader(0),
-		_kgtype(KGP_POINTS)
+		_kconfig(Config)
     {
 
 		KDEBUG_ASSERT_T(!Objects.empty());
@@ -158,24 +155,67 @@ namespace Kite{
     }
 
     void KBatch::draw(U32 FirstIndex, U32 Size){
-		if (_kvisible){
-			// bind shader
-			if (_kshader)
-				_kshader->bind();
+		Internal::KCatchDraw currentCatch;
+		Internal::KCatchDraw lastCatch;
 
-			// bind texture
-			if (_ktexture)
-				_ktexture->bind();
+		KDEBUG_ASSERT_T(FirstIndex + Size <= _kobjects->size());
 
+		if (_kvisible && _kobjects->size() > 0){
 			// bind our vao
 			_kvao.bind();
 
-            KDEBUG_ASSERT_T(FirstIndex + Size <= _kobjects->size());
+			U32 iter = FirstIndex, groupIndex = FirstIndex, groupSize = 0;
+			bool completed = false;
 
-			// calculate size
-			U32 size = _koffset[FirstIndex + Size] - _koffset[FirstIndex];
+			// fill catch with first object in array
+			lastCatch.objIndex = FirstIndex;
+			if (_kobjects->at(FirstIndex)->getTexture())
+				lastCatch.lastTexId = _kobjects->at(FirstIndex)->getTexture()->getID();
+			if (_kobjects->at(FirstIndex)->getShader())
+				lastCatch.lastShdId = _kobjects->at(FirstIndex)->getShader()->getID();
+			lastCatch.lastGeo = _kobjects->at(FirstIndex)->getGeoType();
 
-			KRender::draw(_koffset[FirstIndex], size, _kgtype);
+			while (!completed){
+
+				// iterate over all objects and draw same objects with one draw call
+				for (iter; iter < (FirstIndex + Size); iter++){
+					currentCatch.objIndex = iter;
+					if (_kobjects->at(iter)->getTexture())
+						currentCatch.lastTexId = _kobjects->at(iter)->getTexture()->getID();
+					if (_kobjects->at(iter)->getShader())
+						currentCatch.lastShdId = _kobjects->at(iter)->getShader()->getID();
+					currentCatch.lastGeo = _kobjects->at(iter)->getGeoType();
+					if (lastCatch == currentCatch){
+						++groupSize;
+						continue;
+					}
+					break;
+				}
+
+				// draw same object(s) in group
+				// bind shader
+				if (_kobjects->at(lastCatch.objIndex)->getShader())
+					_kobjects->at(lastCatch.objIndex)->getShader()->bind();
+
+				// bind texture
+				if (_kobjects->at(lastCatch.objIndex)->getTexture())
+					_kobjects->at(lastCatch.objIndex)->getTexture()->bind();
+
+				// calculate vertex size
+				U32 vertexSize = _koffset[groupIndex + groupSize] - _koffset[groupIndex];
+
+				// draw objects
+				KRender::draw(_koffset[groupIndex], vertexSize, lastCatch.lastGeo);
+
+				// reset catch
+				lastCatch = currentCatch;
+				groupSize = 0;
+				groupIndex = iter;
+
+				// draw completed
+				if (iter >= (FirstIndex + Size))
+					completed = true;
+			}
 		}
 	}
 
@@ -197,7 +237,7 @@ namespace Kite{
 
 		for (U32 i = 0; i < size; i++){
             otmp = obj->_kobjects->at(index + i);
-			mmat = otmp->getTransform();
+			mmat = &otmp->getModelViewTransform();
 			for (U32 j = 0; j < otmp->getVertexSize(); j++){
 				vtmp = &otmp->getVertex()[j];
 

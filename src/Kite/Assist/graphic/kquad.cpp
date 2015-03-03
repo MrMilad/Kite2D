@@ -96,4 +96,8 @@ namespace Kite{
 			}
 		}
 	}
+
+	const KTransform &KQuad::getModelViewTransform() const{
+		return *getTransform();
+	}
 }

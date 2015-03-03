@@ -20,8 +20,6 @@
 
 #include "Kite/Core/system/ksystemdef.h"
 #include "Kite/Core/graphic/kgraphicstructs.h"
-#include "Kite/Core/graphic/kshader.h"
-#include "Kite/Core/graphic/ktexture.h"
 #include "Kite/Core/graphic/kvertexarray.h"
 #include "Kite/Core/graphic/kvertexbuffer.h"
 #include "Kite/Assist/graphic/kdrawable.h"
@@ -32,15 +30,6 @@ namespace Kite{
     class KITE_FUNC_EXPORT KBatch : public KDrawable{
     public:
         KBatch(const std::vector<KBatchObject *> &Objects, const KBatchConfig Config);
-
-        inline void setShader(const KShader *Shader) {_kshader = Shader;}
-        inline const KShader *getShader() const {return _kshader;}
-
-        inline void setTexture(const KTexture *Texture) {_ktexture = Texture;}
-        inline const KTexture *getTexture() const {return _ktexture;}
-
-		inline void setGeoType(KGeoPrimitiveTypes GeoType) { _kgtype = GeoType; }
-		inline KGeoPrimitiveTypes getGeoType() const { return _kgtype; }
 
         U32 getSize() const;
 
@@ -60,6 +49,7 @@ namespace Kite{
         void draw();
 
         /// draw a part of objects
+		/// draw(0, 1) = draw first object 
         void draw(U32 FirstIndex, U32 Size);
 
     private:
@@ -74,9 +64,6 @@ namespace Kite{
         std::vector<U32> _koffset;
 		KVector2U32 _krange;
         KBatchConfig _kconfig;
-        const KShader *_kshader;
-        const KTexture *_ktexture;
-		KGeoPrimitiveTypes _kgtype;
     };
 }
 

@@ -23,7 +23,10 @@ namespace Kite{
 		_kvsize(VertexSize),
 		_kisize(IndexSize),
 		_kvertex(new KVertex[VertexSize]),
-		_kindex(new U16[IndexSize])
+		_kindex(new U16[IndexSize]),
+		_ktexture(0),
+		_kshader(0),
+		_kgtype(KGP_POINTS)
 	{}
 
 	KIndexBatchObject::~KIndexBatchObject(){

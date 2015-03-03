@@ -21,11 +21,12 @@
 #include "Kite/Core/system/ksystemdef.h"
 #include "Kite/Core/graphic/kgraphicstructs.h"
 #include "Kite/Core/math/kmathstructs.h"
+#include "Kite/Assist/graphic/ktransformable.h"
 #include "kite/Assist/graphic/kindexbatchobject.h"
 #include "kite/Assist/graphic/kanime.h"
 
 namespace Kite{
-    class KITE_FUNC_EXPORT KQuad : public KIndexBatchObject, public KAnime{
+    class KITE_FUNC_EXPORT KQuad : public KIndexBatchObject, public KAnime, public KTransformable{
     public:
 		KQuad();
 		KQuad(const KRectF32 &Dimension, const KRectF32 &UV, const KColor &Color);
@@ -42,9 +43,11 @@ namespace Kite{
 		inline const KColor &getColor() const { return _kcolor; }
 
 	protected:
-
 		// animation callback
 		void _getJointsState(const KAnimeState *States);
+
+		// model-view matrix callback
+		const KTransform &getModelViewTransform() const;
 
     private:
 		void _fillIndex();

@@ -20,23 +20,41 @@
 
 #include "Kite/Core/system/ksystemdef.h"
 #include "Kite/Core/graphic/kgraphicstructs.h"
+#include "Kite/Core/graphic/kshader.h"
+#include "Kite/Core/graphic/ktexture.h"
 #include "Kite/Assist/graphic/ktransformable.h"
 
 namespace Kite{
-    class KITE_FUNC_EXPORT KBatchObject : public KTransformable{
+    class KITE_FUNC_EXPORT KBatchObject{
+		friend  class KBatch;
     public:
 		KBatchObject(U32 VertexSize);
 		~KBatchObject();
 
 		inline const KVertex *getVertex() const { return _kvertex; }
 
+		inline void setShader(const KShader *Shader) { _kshader = Shader; }
+		inline const KShader *getShader() const { return _kshader; }
+
+		inline void setTexture(const KTexture *Texture) { _ktexture = Texture; }
+		inline const KTexture *getTexture() const { return _ktexture; }
+
+		inline void setGeoType(KGeoPrimitiveTypes GeoType) { _kgtype = GeoType; }
+		inline KGeoPrimitiveTypes getGeoType() const { return _kgtype; }
+
 		inline U32 getVertexSize() const { return _kvsize; }
 
 	protected:
 		KVertex *_kvertex;
 
+		// return model-view teansform
+		virtual const KTransform &getModelViewTransform() const = 0;
+
 	private:
 		const U32 _kvsize;
+		const KShader *_kshader;
+		const KTexture *_ktexture;
+		KGeoPrimitiveTypes _kgtype;
     };
 }
 

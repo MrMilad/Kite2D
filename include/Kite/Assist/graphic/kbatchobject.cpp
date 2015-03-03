@@ -20,7 +20,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 namespace Kite{
 	KBatchObject::KBatchObject(U32 VertexSize) :
 		_kvsize(VertexSize),
-		_kvertex(new KVertex[VertexSize])
+		_kvertex(new KVertex[VertexSize]),
+		_kshader(0),
+		_ktexture(0),
+		_kgtype(KGP_POINTS)
 	{}
 
 	KBatchObject::~KBatchObject(){

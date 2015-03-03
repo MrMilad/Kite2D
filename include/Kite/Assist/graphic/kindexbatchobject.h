@@ -20,16 +20,28 @@
 
 #include "Kite/Core/system/ksystemdef.h"
 #include "Kite/Core/graphic/kgraphicstructs.h"
-#include "Kite/Assist/graphic/ktransformable.h"
+#include "Kite/Core/graphic/kshader.h"
+#include "Kite/Core/graphic/ktexture.h"
+#include "Kite/Core/math/ktransform.h"
 
 namespace Kite{
-    class KITE_FUNC_EXPORT KIndexBatchObject : public KTransformable{
+    class KITE_FUNC_EXPORT KIndexBatchObject{
+		friend class KIndexBatch;
     public:
 		KIndexBatchObject(U32 VertexSize, U32 IndexSize);
 		~KIndexBatchObject();
 
 		inline const KVertex *getVertex() const { return _kvertex; }
         inline const U16 *getIndex() const {return _kindex;}
+
+		inline void setShader(const KShader *Shader) { _kshader = Shader; }
+		inline const KShader *getShader() const { return _kshader; }
+
+		inline void setTexture(const KTexture *Texture) { _ktexture = Texture; }
+		inline const KTexture *getTexture() const { return _ktexture; }
+
+		inline void setGeoType(KGeoPrimitiveTypes GeoType) { _kgtype = GeoType; }
+		inline KGeoPrimitiveTypes getGeoType() const { return _kgtype; }
 
         inline U32 getVertexSize() const { return _kvsize; }
         inline U32 getIndexSize() const { return _kisize; }
@@ -41,9 +53,15 @@ namespace Kite{
         KVertex *_kvertex;
         U16 *_kindex;
 
+		// return model-view teansform
+		virtual const KTransform &getModelViewTransform() const = 0;
+
     private:
         const U32 _kvsize;
         const U32 _kisize;
+		const KShader *_kshader;
+		const KTexture *_ktexture;
+		KGeoPrimitiveTypes _kgtype;
     };
 }
 

@@ -24,5 +24,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "Kite/Core/math/kgeometric.h"
 #include "Kite/Core/math/kmatrix3.h"
 #include "Kite/Core/math/ktransform.h"
+#include "Kite/Core/math/ktween.h"
 
 #endif // KMATH_H

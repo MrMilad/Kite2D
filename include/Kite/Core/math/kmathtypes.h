@@ -18,10 +18,21 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef KMATHTYPES_H
 #define KMATHTYPES_H
 
-enum KOrientationTypes{
-	KO_COLLINEAR = 0,
-	KO_CLOCKWISE = -1,
-	KO_CCLOCKWISE = 1
-};
+#include "Kite/Core/system/ksystemdef.h"
+
+namespace Kite{
+	enum KOrientationTypes{
+		KO_COLLINEAR = 0,
+		KO_CLOCKWISE = -1,
+		KO_CCLOCKWISE = 1
+	};
+
+	enum KInterpolationTypes{
+		KIN_LINEAR,
+		KIN_QUADRATICIN,
+		KIN_QUADRATICOUT
+	};
+}
+
 
 #endif // KMATHTYPES_H

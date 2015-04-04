@@ -66,6 +66,22 @@ namespace Kite{
 			Time /= Duration;
 			return -(End - Start) / 2 * (cos(KMATH_PI * Time) - 1) + Start;
 		}
+
+		static inline F32 exponentialIn(F32 Time, F32 Start, F32 End, F32 Duration){
+			return (Time == 0) ? Start : (End - Start) * pow(2, 10 * (Time / Duration - 1)) + Start;
+		}
+
+		static inline F32 exponentialOut(F32 Time, F32 Start, F32 End, F32 Duration){
+			return (Time == Duration) ? Start + (End - Start) : (End - Start) * (-pow(2, -10 * Time / Duration) + 1) + Start;
+		}
+
+		static inline F32 exponentialInOut(F32 Time, F32 Start, F32 End, F32 Duration){
+			if (Time == 0) return Start;
+			if (Time == Duration) return Start + (End - Start);
+			if ((Time /= Duration / 2) < 1) return (End - Start) / 2 * pow(2, 10 * (Time - 1)) + Start;
+			return (End - Start) / 2 * (-pow(2, -10 * --Time) + 2) + Start;
+
+		}
 	};
 }
 

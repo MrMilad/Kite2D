@@ -32,7 +32,6 @@ namespace Kite{
 
 			// first check for pbm format
 			char pbm[4];
-			size_t rsize;
 
 			// set read pointer to begin of file
 			fseek(file, 0, SEEK_SET);

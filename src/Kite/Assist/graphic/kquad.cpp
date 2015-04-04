@@ -85,18 +85,6 @@ namespace Kite{
 		_kcolor = Color;
 	}
 
-	void KQuad::_getJointsState(const KAnimeState *States){
-		setRotation(States[0].rotate);
-		setScale(States[0].scale);
-		setPosition(States[0].translate);
-		if (getSpriteSheet()){
-			if (getSpriteSheet()->size() > States->uv){
-				const KAtlasObject uv = getSpriteSheet()->at(States->uv);
-				setUV(KRectF32(uv.blu, uv.tru, uv.blv, uv.trv));
-			}
-		}
-	}
-
 	const KTransform &KQuad::getModelViewTransform() const{
 		return *getTransform();
 	}

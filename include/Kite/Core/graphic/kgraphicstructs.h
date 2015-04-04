@@ -20,7 +20,7 @@
 
 #include "Kite/Core/system/ksystemtypes.h"
 #include "Kite/Core/graphic/kgraphictypes.h"
-#include "Kite/Core/math/kmathstructs.h"
+#include "Kite/Core/math/kmath.h"
 #include "Kite/Core/system/ksystemdef.h"
 #include <vector>
 
@@ -102,13 +102,13 @@ namespace Kite{
         {}
     };*/
 
-	struct KAtlasObject{
+	struct KAtlas{
 		U32 id;
 		F32 blu, blv; // bottom left texture position (0 to 1)
 		F32 tru, trv; // top right texture position (0 to 1)
 		F32 w, h; // size (in pixel)
 
-		KAtlasObject(U32 ID = 0, F32 BLU = 0, F32 BLV = 0,
+		KAtlas(U32 ID = 0, F32 BLU = 0, F32 BLV = 0,
 			F32 TRU = 0, F32 TRV = 0, F32 W = 0, F32 H = 0) :
 			id(ID),
 			blu(BLU), blv(BLV),
@@ -117,41 +117,48 @@ namespace Kite{
 		{}
 	};
 
+	typedef std::vector<KAtlas> KAtlasObjects;
+
 	// common array-based file header
 	struct KArrayHeader{
 		char format[7]; // eg: {'k', 'a', 't', 'l', 'a', 's', '\0'}; // file format
 		U32 objCount; // array size (index)
 	};
 
-	struct KAnimeState{
-		KVector2F32 translate; // per frame
-		KVector2F32 scale; // per frame
-		F32 rotate; // per frame
-		U32 uv; // per frame (index of atlas object)
-		KAnimeState(KVector2F32 Translate, KVector2F32 Scale,
-			F32 Rotate = 0.0f, U32 UV = 0) :
-			translate(Translate), scale(Scale), 
-			rotate(Rotate), uv(UV)
-		{}
-		KAnimeState() :
-			translate(), scale(),
-			rotate(0.0f), uv(0)
-		{}
+	// key based animation
+	// anime state
+	struct KAnimeValue{
+		KTransform transform;
+		KColor color;
+		KRectF32 uv;
 	};
 
-	struct KAnimeHeader{
-		char format[7]; // = {'k', 'a', 'n', 'i', 'm', 'e', '\0'}; // file format
-		U8 animeCount; // number of animations stored in the file
-		// U16 *jointCount; // = U16 jointCount[animeCount]; // number of joints per animation.
-		// U16 *frameCount; // = U16 frameCount[animeCount]; // number of frames per animation.
-		// KAnimeState *states;	// = KAnimeState states[size of total frames]; // animations states
-	};
+	// key state
+	struct KAnimeKey{
+		U32 time; // key time (in millisecons)
+		KVector2F32 pos;
+		KVector2F32 scale;
+		F32 rotate;
+		KVector2F32 center; // center of rotate
+		U32 uv; // texture uv (atlas id)
+		KColor color;
+		KInterpolationTypes pinterp, sinterp, rintero; // interpolation types (pos, scale, rotate)
 
-	struct KAnimeObject{
-		U16 joints;							// number of joints
-		U16 frames;							// number of frames
-		std::vector<KAnimeState> states;	// joint states
+		KAnimeKey(U32 Time, KVector2F32 Pos, KVector2F32 Scale,
+			F32 Rotate, KVector2F32 Center, U32 UV, KColor Color, 
+			KInterpolationTypes PInterplation, KInterpolationTypes SInterplation, KInterpolationTypes RInterplation) :
+			time(Time), pos(Pos), scale(Scale),
+			rotate(Rotate), center(Center), uv(UV), color(Color),
+			pinterp(PInterplation), sinterp(SInterplation), rintero(RInterplation)
+		{}
+
+		KAnimeKey() :
+			time(0), pos(), scale(),
+			rotate(0.0f), center(), uv(0), color(),
+			pinterp(KIN_LINEAR), sinterp(KIN_LINEAR), rintero(KIN_LINEAR)
+		{}
 	};
+	typedef std::vector<KAnimeKey> KAnimeObjects;
 
     struct KOGLVersion{
         U8 major;

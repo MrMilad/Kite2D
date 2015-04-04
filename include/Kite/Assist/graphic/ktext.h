@@ -22,16 +22,15 @@
 #include "Kite/Core/graphic/kgraphicstructs.h"
 #include "Kite/Assist/graphic/kindexbatchobject.h"
 #include <cstring>
-#include <vector>
 
 namespace Kite{
     class KITE_FUNC_EXPORT KText : public KIndexBatchObject{
 	public:
 		KText(U32 MaxSize);
-		KText(const std::string &Text, const std::vector<KAtlasObject> &Font, const KColor &Color);
+		KText(const std::string &Text, const KAtlasObjects &Font, const KColor &Color);
 
-		void setFont(const std::vector<KAtlasObject> &Font);
-        inline const std::vector<KAtlasObject> &getFont() const {return *_kfont;}
+		void setFont(const KAtlasObjects &Font);
+        inline const KAtlasObjects &getFont() const {return *_kfont;}
 
 		void setText(const std::string &Text);
         inline const std::string &getText() const {return _ktext;}
@@ -47,7 +46,7 @@ namespace Kite{
     private:
 		void _fillIndex();
 		void _reshape();
-        const std::vector<KAtlasObject> *_kfont;
+        const KAtlasObjects *_kfont;
         std::string _ktext;
 		F32 _kwidth;
 		U32 _ksize;

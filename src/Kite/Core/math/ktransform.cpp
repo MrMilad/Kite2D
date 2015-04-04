@@ -20,7 +20,7 @@
 
 namespace Kite{
 	KTransform::KTransform() :
-		_kmatrix(KMatrix3())
+		_kmatrix()
 	{}
 
 	KTransform::KTransform(const KMatrix3 &Matrix) :

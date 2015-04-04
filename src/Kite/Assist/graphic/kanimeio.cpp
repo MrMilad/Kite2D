@@ -19,88 +19,64 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <cstdio>
 
 namespace Kite{
-	bool KAnimeIO::loadFile(const std::string &FileName, std::vector<KAnimeObject *> &Objects){
+	bool KAnimeIO::loadFile(const std::string &FileName, KAnimeObjects &Objects){
+		// just in case
 		Objects.clear();
 
-		KAnimeState *stateArray = 0;
-		U16 *jointArray = 0;
-		U16 *frameArray = 0;
 		bool ret = false;
 
 		// open file
-		FILE *file = fopen(FileName.c_str(), "rb");
+		FILE *file = fopen(FileName.c_str(), "r");
 
 		if (file != NULL){
+
+			// read header
+			KArrayHeader header;
+			size_t rsize;
+
 			// set read pointer to begin of file
 			fseek(file, 0, SEEK_SET);
 
 			// read header
-			KAnimeHeader header;
-			size_t rsize;
-			rsize = fread(&header, sizeof(KAnimeHeader), 1, file);
+			rsize = fread(&header, sizeof(KArrayHeader), 1, file);
 			if (rsize == 1){
 
 				// check file format
 				if (strcmp(header.format, "kanime\0") == 0){
 
-					// allocate enough size for animations
-					Objects.reserve(header.animeCount);
+					// check size of keys objects
+					if (header.objCount > 0){
 
-					// read joints array
-					jointArray = new U16[header.animeCount];
-					rsize = fread(jointArray, sizeof(U16), header.animeCount, file);
-					if (rsize == header.animeCount){
+						// temp key
+						KAnimeKey temp;
 
-						// read frames array
-						frameArray = new U16[header.animeCount];
-						rsize = fread(frameArray, sizeof(U16), header.animeCount, file);
-						if (rsize == header.animeCount){
-
-							// read states array
-							for (U32 i = 0; i < header.animeCount; i++){
-								KAnimeObject *obj = new KAnimeObject;
-								obj->frames = frameArray[i];
-								obj->joints = jointArray[i];
-								obj->states.resize(obj->frames * obj->joints);
-								rsize = fread(&obj->states[0], sizeof(KAnimeState), obj->states.size(), file);
-								if (rsize == obj->states.size()){
-									Objects.push_back(obj);
-									ret = true;
-								}
-								else{
-									ret = false;
-									delete obj;
-									break;
-								}
-							}
-							
+						// read keys one bye one
+						for (U32 i = 0; i < header.objCount; i++){
+							rsize = fread(&temp, sizeof(KAnimeKey), 1, file);
+							Objects.push_back(temp);
 						}
+						ret = true;
 					}
-
 				}
 			}
 		}
 
-		// cleanup
 		fclose(file);
-		delete[] jointArray;
-		delete[] frameArray;
-		delete[] stateArray;
-
 		return ret;
 	}
 
-	void KAnimeIO::saveFile(const std::string &FileName, const std::vector<KAnimeObject *> &Objects){
+	bool KAnimeIO::saveFile(const std::string &FileName, const KAnimeObjects &Objects){
 		if (Objects.empty())
-			return;
+			return false;
+
+		bool ret = false;
 
 		// open file
 		FILE *file = fopen(FileName.c_str(), "wb");
 		if (file != NULL){
 
 			// inite header
-			KAnimeHeader header;
-			// format
+			KArrayHeader header;
 			header.format[0] = 'k';
 			header.format[1] = 'a';
 			header.format[2] = 'n';
@@ -108,38 +84,29 @@ namespace Kite{
 			header.format[4] = 'm';
 			header.format[5] = 'e';
 			header.format[6] = '\0';
-			// count
-			header.animeCount = Objects.size();
-			// write header to file
-			fwrite(&header, sizeof(KAnimeHeader), 1, file);
+			header.objCount = Objects.size();
 
-			// write joint count array
+			// write header
+			fwrite(&header, sizeof(KArrayHeader), 1, file);
+
+			// write keys array 
 			for (U32 i = 0; i < Objects.size(); i++){
-				fwrite(&Objects.at(i)->joints, sizeof(U16), 1, file);
+				fwrite(&Objects.at(i), sizeof(KAnimeKey), 1, file);
 			}
 
-			// write frame count array
-			for (U32 i = 0; i < Objects.size(); i++){
-				fwrite(&Objects.at(i)->frames, sizeof(U16), 1, file);
-			}
-
-			// write all state to file
-			for (U32 i = 0; i < Objects.size(); i++){
-				U32 stateSize = Objects.at(i)->frames * Objects.at(0)->joints;
-				fwrite(&Objects.at(i)->states[0], sizeof(KAnimeState), stateSize, file);
-			}
-			
+			ret = true;
 		}
 
 		// cleanup
 		fclose(file);
+		return ret;
 	}
 
-	void KAnimeIO::deleteObject(std::vector<KAnimeObject *> &Objects){
+	/*void KAnimeIO::deleteObject(std::vector<KAnimeKey *> &Objects){
 		for (U32 i = 0; i < Objects.size(); i++){
 			delete Objects[i];
 			Objects[i] = 0;
 		}
 		Objects.clear();
-	}
+	}*/
 }

@@ -15,19 +15,22 @@
  You should have received a copy of the GNU General Public License
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#ifndef KGRAPHICASSIST_H
-#define KGRAPHICASSIST_H
-
-#include "Kite/Assist/graphic/kdrawable.h"
-#include "Kite/Assist/graphic/ktransformable.h"
-#include "Kite/Assist/graphic/kcamera.h"
-#include "Kite/Assist/graphic/katlasio.h"
-#include "Kite/Assist/graphic/kanimeio.h"
 #include "Kite/Assist/graphic/kanimecontroller.h"
-#include "Kite/Assist/graphic/kquad.h"
-#include "Kite/Assist/graphic/kbatch.h"
-#include "Kite/Assist/graphic/kindexbatch.h"
-#include "Kite/Assist/graphic/ktext.h"
-#include "Kite/Assist/graphic/kline.h"
 
-#endif // KGRAPHICASSIST_H
+namespace Kite{
+	KAnimeController::KAnimeController(){
+
+	}
+
+	KAnimeController::KAnimeController(const KAnimeObjects *Animation, const KAtlasObjects *SpriteSheet){
+
+	}
+
+	void KAnimeController::setFrame(F32 Time){
+
+	}
+
+	void KAnimeController::update(F32 Delta){
+
+	}
+}

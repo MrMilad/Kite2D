@@ -29,7 +29,7 @@ namespace Kite{
 		_fillIndex();
 	}
 
-	KText::KText(const std::string &Text, const std::vector<KAtlasObject> &Font, const KColor &Color) :
+	KText::KText(const std::string &Text, const KAtlasObjects &Font, const KColor &Color) :
 		KIndexBatchObject(Text.size() * 4, Text.size() * 6),
 		_kfont(&Font),
 		_ktext(Text),
@@ -59,7 +59,7 @@ namespace Kite{
 
 	void KText::_reshape(){
 		if (_kfont && !_ktext.empty()){
-			const KAtlasObject *atemp;
+			const KAtlas *atemp;
 			U32 ind = 0;
 			F32 width = 0;
 			char ascii;
@@ -67,7 +67,7 @@ namespace Kite{
 			for (U32 i = 0; i < _ksize; i++){
 				// retrieve character from atlas
 				ascii = _ktext[i];
-				atemp = &KAtlasObject(0, 0, 0, 0, 0, 0, 0);
+				atemp = &KAtlas(0, 0, 0, 0, 0, 0, 0);
 				if (ascii != '\0')
 					atemp = &_kfont->at(ascii - 32);
 
@@ -89,7 +89,7 @@ namespace Kite{
 		}
 	}
 
-	void KText::setFont(const std::vector<KAtlasObject> &Font){
+	void KText::setFont(const KAtlasObjects &Font){
 		_kfont = &Font;
 		_reshape();
 	}

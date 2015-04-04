@@ -28,11 +28,11 @@ namespace Kite{
     public:
 
         /// load atlas file
-        static bool loadFile(const std::string &FileName, std::vector<KAtlasObject> &Objects);
+        static bool loadFile(const std::string &FileName, KAtlasObjects &Objects);
         //bool loadMemory(const void *Data);
 
         /// save atlas file
-        static void saveFile(const std::string &FileName, const std::vector<KAtlasObject> &Objects);
+		static bool saveFile(const std::string &FileName, const KAtlasObjects &Objects);
     };
 }
 

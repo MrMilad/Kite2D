@@ -19,76 +19,90 @@
 #include <cstdio>
 
 namespace Kite{
-    bool KAtlasIO::loadFile(const std::string &FileName, std::vector<KAtlasObject> &Objects){
-        // just in case
-        Objects.clear();
+    bool KAtlasIO::loadFile(const std::string &FileName, KAtlasObjects &Objects){
+		// just in case
+		Objects.clear();
 
-        // open file
-        FILE *file = fopen(FileName.c_str(), "r");
+		bool ret = false;
 
-        if (file != NULL){
+		// open file
+		FILE *file = fopen(FileName.c_str(), "r");
 
-            // read header
-            KArrayHeader header;
-            size_t rsize;
+		if (file != NULL){
 
-            // set read pointer to begin of file
-            fseek(file, 0, SEEK_SET);
+			// read header
+			KArrayHeader header;
+			size_t rsize;
+
+			// set read pointer to begin of file
+			fseek(file, 0, SEEK_SET);
+
+			// read header
 			rsize = fread(&header, sizeof(KArrayHeader), 1, file);
+			if (rsize == 1){
 
-            if (rsize == 1){
+				// check file format
+				if (strcmp(header.format, "katlas\0") == 0){
 
-                // check file format
-                if (strcmp(header.format, "katlas\0") == 0){
+					// check size of atlas objects
+					if (header.objCount > 0){
 
-                    // check size of atlas objects
-                    if (header.objCount > 0){
+						// temp object
+						KAtlas temp;
 
-                        // allocate enough size
-                        KAtlasObject *objArr = new KAtlasObject[header.objCount];
+						// read objects one bye one
+						for (U32 i = 0; i < header.objCount; i++){
+							rsize = fread(&temp, sizeof(KAtlas), 1, file);
+							Objects.push_back(temp);
+						}
+						ret = true;
+					}
+				}
+			}
+		}
 
-                        // read atlas objects
-                        rsize = fread(objArr, sizeof(KAtlasObject), header.objCount, file);
-                        if (rsize == header.objCount){
-                            Objects.assign(objArr, objArr + header.objCount);
-                            fclose(file);
-                            return true;
-                        }
-
-                        delete[] objArr;
-                    }
-                }
-            }
-        }
-
-        fclose(file);
-        return false;
+		fclose(file);
+		return ret;
     }
 
 //    bool KAtlas::loadMemory(const void *Data){
 
 //    }
 
-	void KAtlasIO::saveFile(const std::string &FileName, const std::vector<KAtlasObject> &Objects){
-        if (Objects.empty())
-            return;
+	bool KAtlasIO::saveFile(const std::string &FileName, const KAtlasObjects &Objects){
+		if (Objects.empty())
+			return false;
 
-        FILE *file = fopen(FileName.c_str(), "w");
+		bool ret = false;
 
-		KArrayHeader header;
-        header.format[0] = 'k';
-        header.format[1] = 'a';
-        header.format[2] = 't';
-        header.format[3] = 'l';
-        header.format[4] = 'a';
-        header.format[5] = 's';
-        header.format[6] = '\0';
+		// open file
+		FILE *file = fopen(FileName.c_str(), "wb");
+		if (file != NULL){
 
-        header.objCount = (U32)Objects.size();
+			// inite header
+			KArrayHeader header;
+			header.format[0] = 'k';
+			header.format[1] = 'a';
+			header.format[2] = 't';
+			header.format[3] = 'l';
+			header.format[4] = 'a';
+			header.format[5] = 's';
+			header.format[6] = '\0';
+			header.objCount = Objects.size();
 
-		fwrite(&header, sizeof(KArrayHeader), 1, file);
+			// write header
+			fwrite(&header, sizeof(KArrayHeader), 1, file);
 
-        fwrite(&Objects[0], sizeof(KAtlasObject), Objects.size(), file);
-        fclose(file);
+			// write objects array 
+			for (U32 i = 0; i < Objects.size(); i++){
+				fwrite(&Objects.at(i), sizeof(KAtlas), 1, file);
+			}
+
+			ret = true;
+		}
+
+		// cleanup
+		fclose(file);
+		return ret;
     }
 }

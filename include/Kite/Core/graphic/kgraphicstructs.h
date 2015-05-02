@@ -158,7 +158,7 @@ namespace Kite{
 			pinterp(KIN_LINEAR), sinterp(KIN_LINEAR), rintero(KIN_LINEAR)
 		{}
 	};
-	typedef std::vector<KAnimeKey> KAnimeObjects;
+	typedef std::vector<KAnimeKey> KAnimeClip;
 
     struct KOGLVersion{
         U8 major;

@@ -18,19 +18,5 @@
 #include "Kite/Assist/graphic/kanimecontroller.h"
 
 namespace Kite{
-	KAnimeController::KAnimeController(){
 
-	}
-
-	KAnimeController::KAnimeController(const KAnimeObjects *Animation, const KAtlasObjects *SpriteSheet){
-
-	}
-
-	void KAnimeController::setFrame(F32 Time){
-
-	}
-
-	void KAnimeController::update(F32 Delta){
-
-	}
 }

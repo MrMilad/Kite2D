@@ -15,22 +15,34 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#ifndef KANIMEIO_H
-#define KANIMEIO_H
+#ifndef KANIMEOBJECT_H
+#define KANIMEOBJECT_H
 
 #include "Kite/Core/system/ksystemdef.h"
 #include "Kite/Core/graphic/kgraphicstructs.h"
-#include <cstring>
-#include <vector>
+#include "Kite/Core/graphic/kgraphictypes.h"
+#include "Kite/Core/math/kmathstructs.h"
+#include "Kite/Core/math/ktransform.h"
 
 namespace Kite{
-	class KITE_FUNC_EXPORT KAnimeIO{
-	public:
-		static bool loadFile(const std::string &FileName, KAnimeClip &Objects);
-		// static KAnimeObject *loadMemory(const void *Data);
+	class KITE_FUNC_EXPORT KAnimeObject{
+		friend class KAnimeController;
+	protected:
+		// color
+		inline const KColor &getAnimeColor() const { return _kcolor; }
 
-		static bool saveFile(const std::string &FileName, const KAnimeClip &Objects);
+		// UV
+		inline const KRect2F32 &getAnimeUV() const { return _kuv; }
+
+		// transform
+		inline const KTransform &getAnimeTransform() const { return _ktransform; }
+
+		virtual void animeUpdate(bool ColorChanged, bool UVChanged, bool TransformChanged) = 0;
+	private:
+		KColor _kcolor;
+		KRect2F32 _kuv;
+		KTransform _ktransform;
 	};
 }
 
-#endif // KANIMEIO_H
+#endif // KANIMEOBJECT_H

@@ -19,10 +19,6 @@
 #define KGRAPHICTYPES_H
 namespace Kite{
 
-    enum KRendererFlags{
-        KITE2D_FIXED_2D = 0
-    };
-
     enum KBlendMode{
         KB_ALPHA,    // Pixel = Source * Source.a + Dest * (1 - Source.a)
         KB_ADD,      // Pixel = Source + Dest
@@ -176,21 +172,20 @@ namespace Kite{
         KAT_FLOAT
     };
 
-	enum KAnimationStateTypes{
+	enum KAnimeStateTypes{
 		KAS_PLAY,
 		KAS_PAUSE,
 		KAS_STOP
 	};
 
-	enum KAnimationPlayTypes{
+	enum KAnimePlayTypes{
 		KAP_FOREWARD,
 		KAP_BACKWARD
 	};
 
-	enum KAnimationUpdateTypes{
-		KAU_SKELETAL,
-		KAU_SPRITE,
-		KAU_BOTH
+	enum KAnimeCallbackTypes{
+		KAC_ATTACHED, // when attach to AnimeController list
+		KAC_DETACHED // when detach from AnimeController list
 	};
 
 	enum KTileMapTypes{

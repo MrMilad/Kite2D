@@ -52,4 +52,8 @@ namespace Kite{
 		_kvertex[0].color = _kvertex[1].color = Color;
 		_kcolor = Color;
 	}
+
+	const KTransform &KLine::getModelViewTransform() const{
+		return *getTransform();
+	}
 }

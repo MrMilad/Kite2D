@@ -121,7 +121,7 @@ namespace Kite{
 		_kvao.unbindVertexArray();
 	}
 
-		U32 KIndexBatch::getSize() const{
+	U32 KIndexBatch::getSize() const{
 		U32 size = _kvoffset.size();
 		if (size == 0){
 			return 0;
@@ -132,11 +132,11 @@ namespace Kite{
 		return _kvoffset[size - 1];
 	}
 
-		void KIndexBatch::updatePosition(){
+	void KIndexBatch::updatePosition(){
 		updatePosition(0, _kobjects->size());
 	}
 
-		void KIndexBatch::updatePosition(U32 FirstIndex, U32 Size){
+	void KIndexBatch::updatePosition(U32 FirstIndex, U32 Size){
 		KDEBUG_ASSERT_T(FirstIndex + Size <= _kobjects->size());
 
 		_krange.x = FirstIndex;
@@ -147,11 +147,11 @@ namespace Kite{
 			sizeof(KVector2F32)* size, false, (void *)this);
 	}
 
-		void KIndexBatch::updateUV(){
+	void KIndexBatch::updateUV(){
 		updateUV(0, _kobjects->size());
 	}
 
-		void KIndexBatch::updateUV(U32 FirstIndex, U32 Size){
+	void KIndexBatch::updateUV(U32 FirstIndex, U32 Size){
 		KDEBUG_ASSERT_T(FirstIndex + Size <= _kobjects->size());
 
 		_krange.x = FirstIndex;
@@ -162,11 +162,11 @@ namespace Kite{
 			sizeof(KVector2F32)* size, false, (void *)this);
 	}
 
-		void KIndexBatch::updateColor(){
+	void KIndexBatch::updateColor(){
 		updateColor(0, _kobjects->size());
 	}
 
-		void KIndexBatch::updateColor(U32 FirstIndex, U32 Size){
+	void KIndexBatch::updateColor(U32 FirstIndex, U32 Size){
 		KDEBUG_ASSERT_T(FirstIndex + Size <= _kobjects->size());
 
 		_krange.x = FirstIndex;

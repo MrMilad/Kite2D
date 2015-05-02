@@ -113,4 +113,8 @@ namespace Kite{
 			_kvertex[ind].color = _kvertex[ind + 1].color = _kvertex[ind + 2].color = _kvertex[ind + 3].color = Color;
 		}
 	}
+
+	const KTransform &KText::getModelViewTransform() const{
+		return *getTransform();
+	}
 }

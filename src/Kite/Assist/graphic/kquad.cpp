@@ -85,7 +85,12 @@ namespace Kite{
 		_kcolor = Color;
 	}
 
-	const KTransform &KQuad::getModelViewTransform() const{
+	const KTransform & KQuad::getModelViewTransform() const{
 		return *getTransform();
 	}
+
+	void KQuad::animeUpdate(bool ColorChanged, bool UVChanged, bool TransformChanged){
+
+	}
+
 }

@@ -20,9 +20,10 @@
 
 #include "Kite/Core/system/ksystemdef.h"
 #include "Kite/Assist/graphic/kbatchobject.h"
+#include "Kite/Assist/graphic/ktransformable.h"
 
 namespace Kite{
-    class KITE_FUNC_EXPORT KLine : public KBatchObject{
+    class KITE_FUNC_EXPORT KLine : public KBatchObject, public KTransformable{
     public:
         KLine();
         KLine(const KVector2F32 &Start, const KVector2F32 &End, const KColor &Color);
@@ -36,6 +37,9 @@ namespace Kite{
 
 		void setColor(const KColor &Color);
 		inline const KColor &getColor() const { return _kcolor; }
+
+	protected:
+		const KTransform &getModelViewTransform() const;
 
 	private:
 		KVector2F32 _kstart;

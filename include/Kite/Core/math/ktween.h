@@ -24,7 +24,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <cmath>
 
 namespace Kite{
-	class KTween{
+	class KITE_FUNC_EXPORT KTween{
 	public:
 		// Time = current time
 		// Start = start point

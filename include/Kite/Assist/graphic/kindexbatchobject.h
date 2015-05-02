@@ -22,7 +22,7 @@
 #include "Kite/Core/graphic/kgraphicstructs.h"
 #include "Kite/Core/graphic/kshader.h"
 #include "Kite/Core/graphic/ktexture.h"
-#include "Kite/Core/math/ktransform.h"
+#include "Kite/core/math/ktransform.h"
 
 namespace Kite{
     class KITE_FUNC_EXPORT KIndexBatchObject{

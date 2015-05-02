@@ -21,10 +21,11 @@
 #include "Kite/Core/system/ksystemdef.h"
 #include "Kite/Core/graphic/kgraphicstructs.h"
 #include "Kite/Assist/graphic/kindexbatchobject.h"
+#include "Kite/Assist/graphic/ktransformable.h"
 #include <cstring>
 
 namespace Kite{
-    class KITE_FUNC_EXPORT KText : public KIndexBatchObject{
+    class KITE_FUNC_EXPORT KText : public KIndexBatchObject, public KTransformable{
 	public:
 		KText(U32 MaxSize);
 		KText(const std::string &Text, const KAtlasObjects &Font, const KColor &Color);
@@ -42,6 +43,9 @@ namespace Kite{
 		inline const KColor &getColor() const { return _kcolor; }
 
 		inline F32 getWidth() const { return _kwidth; }
+
+	protected:
+		const KTransform &getModelViewTransform() const;
 
     private:
 		void _fillIndex();

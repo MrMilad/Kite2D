@@ -22,20 +22,21 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "Kite/Core/graphic/kgraphicstructs.h"
 #include "Kite/Core/graphic/kgraphictypes.h"
 #include "Kite/Assist/graphic/kanimeobject.h"
-#include <list>
+#include <deque>
 
 namespace Kite{
 	class KITE_FUNC_EXPORT KAnimeController{
 	public:
 		KAnimeController();
-		KAnimeController(KAnimeObject *Object, const KAnimeClip *AnimationClip, const KAtlasObjects *SpriteSheet);
+		KAnimeController(KAnimeObject *Object, const std::vector<KAnimeKey> *AnimationClip, const KAtlasObjects *SpriteSheet);
 
 		// add object to list
 		// all object in the list Will be animated in parallel
-		U32 addObject(KAnimeObject *Object);
+		// return -1 on error
+		I32 addObject(KAnimeObject *Object);
 
 		// get object
-		inline const KAnimeObject *getObject(U32 ObjectID) const;
+		const KAnimeObject *getObject(U32 ObjectID) const;
 
 		// delete object from list
 		void deleteObject(U32 ObjectID);
@@ -44,10 +45,10 @@ namespace Kite{
 		void clear();
 
 		// set animation clip
-		void setClip(const KAnimeClip *AnimationClip);
+		void setClip(const std::vector<KAnimeKey> *AnimationClip);
 
 		// get animation clip
-		inline const KAnimeClip *getClip() const { return _kclip; }
+		inline const std::vector<KAnimeKey> *getClip() const { return _kclip; }
 
 		// set sprite sheet
 		// pass 0 if there is no sprite sheet
@@ -69,19 +70,19 @@ namespace Kite{
 		inline U16 getLoopCounter() const { return _klcounter; }
 
 		// set animation state (play, pause, stop)
-		inline void setState(KAnimationStateTypes State) { _kstype = State; }
+		inline void setState(KAnimeStateTypes State) { _kstype = State; }
 
 		// get animation state (play, pause, stop)
-		inline KAnimationStateTypes getState() const { return _kstype; }
+		inline KAnimeStateTypes getState() const { return _kstype; }
 
 		// set animation play state (FOREWARD, BACKWARD)
-		inline void setPlayState(KAnimationPlayTypes PlayState) { _kptype = PlayState; }
+		inline void setPlayState(KAnimePlayTypes PlayState) { _kptype = PlayState; }
 
 		// get animation play state (FOREWARD, BACKWARD)
-		inline KAnimationPlayTypes getPlayState() const { return _kptype; }
+		inline KAnimePlayTypes getPlayState() const { return _kptype; }
 
 		// in seconds
-		inline F32 setCurrentTime(F32 Time) { _ktime = Time; }
+		inline void setCurrentTime(F32 Time) { _ktime = Time; }
 
 		// in seconds
 		inline F32 getCurrentTime() const { return _ktime; }
@@ -90,14 +91,15 @@ namespace Kite{
 		void update(F32 Delta);
 
 	private:
-		const KAnimeClip *_kclip;
+		const std::vector<KAnimeKey> *_kclip;
 		const KAtlasObjects *_katlas;
 		F32 _ktime;
 		U16 _klcounter;
 		bool _kloop;
 		KAnimeStateTypes _kstype;
 		KAnimePlayTypes _kptype;
-		std::list<KAnimeObject *> _klist;
+		std::deque<KAnimeObject *> _klist;
+		KAnimeValue _kvalue;
 	};
 }
 

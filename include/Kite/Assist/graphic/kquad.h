@@ -47,13 +47,14 @@ namespace Kite{
 		const KTransform &getModelViewTransform() const;
 
 		// from KAnimeObject (input/recive)
-		void animeUpdate(bool ColorChanged, bool UVChanged, bool TransformChanged);
+		void animeUpdate(const KAnimeValue *AnimatedValue);
 
     private:
 		void _fillIndex();
 		KRect2F32 _kdim;
 		KRectF32 _kuv;
 		KColor _kcolor;
+		KTransform _kmodelView;
     };
 }
 

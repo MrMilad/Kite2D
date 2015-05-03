@@ -86,11 +86,29 @@ namespace Kite{
 	}
 
 	const KTransform & KQuad::getModelViewTransform() const{
-		return *getTransform();
+		return *this->getTransform();
 	}
 
-	void KQuad::animeUpdate(bool ColorChanged, bool UVChanged, bool TransformChanged){
+	void KQuad::animeUpdate(const KAnimeValue *AnimatedValue){
+		// animate transform
+		if (AnimatedValue->transformChannel){
+			KVector2F32 tempCenter = *getCenter();
+			setCenter(AnimatedValue->center);
+			if (AnimatedValue->schange == KAV_SET) setScale(AnimatedValue->scale); else scale(AnimatedValue->scale);
+			if (AnimatedValue->rchange == KAV_SET) setRotation(AnimatedValue->rotate); else rotate(AnimatedValue->rotate);
+			if (AnimatedValue->pchange == KAV_SET) setPosition(AnimatedValue->position); else move(AnimatedValue->position);
+			setCenter(tempCenter);
+		}
 
+		// animate color
+		if (AnimatedValue->colorChannel){
+			setColor(AnimatedValue->color);
+		}
+
+		// animate UV
+		if (AnimatedValue->uvChannel){
+			setUV(AnimatedValue->uv);
+		}
 	}
 
 }

@@ -29,19 +29,7 @@ namespace Kite{
 		friend class KAnimeController;
 	protected:
 		// color
-		inline const KColor &getAnimeColor() const { return _kcolor; }
-
-		// UV
-		inline const KRect2F32 &getAnimeUV() const { return _kuv; }
-
-		// transform
-		inline const KTransform &getAnimeTransform() const { return _ktransform; }
-
-		virtual void animeUpdate(bool ColorChanged, bool UVChanged, bool TransformChanged) = 0;
-	private:
-		KColor _kcolor;
-		KRect2F32 _kuv;
-		KTransform _ktransform;
+		virtual void animeUpdate(const KAnimeValue *AnimatedValue) = 0;
 	};
 }
 

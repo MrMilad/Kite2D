@@ -128,37 +128,44 @@ namespace Kite{
 	// key based animation
 	// anime state
 	struct KAnimeValue{
-		KTransform transform;
+		KVector2F32 position;
+		KVector2F32 scale;
+		F32 rotate;
+		KVector2F32 center;
 		KColor color;
 		KRectF32 uv;
+		bool transformChannel, uvChannel, colorChannel;
+		KAnimeValueChangeTypes pchange, schange, rchange;
+
+		KAnimeValue() :
+			position(), scale(1.0f, 1.0f), rotate(0), center(),
+			color(), uv(),
+			transformChannel(false), uvChannel(false), colorChannel(false),
+			pchange(KAV_SET), schange(KAV_SET), rchange(KAV_SET)
+		{}
 	};
 
 	// key state
 	struct KAnimeKey{
-		U32 time; // key time (in millisecons)
+		F32 time; // key time (in millisecons)
 		KVector2F32 pos;
 		KVector2F32 scale;
 		F32 rotate;
 		KVector2F32 center; // center of rotate
 		U32 uv; // texture uv (atlas id)
 		KColor color;
-		KInterpolationTypes pinterp, sinterp, rintero; // interpolation types (pos, scale, rotate)
-
-		KAnimeKey(U32 Time, KVector2F32 Pos, KVector2F32 Scale,
-			F32 Rotate, KVector2F32 Center, U32 UV, KColor Color, 
-			KInterpolationTypes PInterplation, KInterpolationTypes SInterplation, KInterpolationTypes RInterplation) :
-			time(Time), pos(Pos), scale(Scale),
-			rotate(Rotate), center(Center), uv(UV), color(Color),
-			pinterp(PInterplation), sinterp(SInterplation), rintero(RInterplation)
-		{}
+		KInterpolationTypes pinterp, sinterp, rinterp; // interpolation types (pos, scale, rotate)
+		KAnimeValueChangeTypes pchange, schange, rchange; // how to use animated values
+		bool trchannel, colchannel, uvchannel; // we have 3 channel (transform, color and uv) 
 
 		KAnimeKey() :
-			time(0), pos(), scale(),
+			time(0), pos(), scale(1.0f, 1.0f),
 			rotate(0.0f), center(), uv(0), color(),
-			pinterp(KIN_LINEAR), sinterp(KIN_LINEAR), rintero(KIN_LINEAR)
+			pinterp(KIN_LINEAR), sinterp(KIN_LINEAR), rinterp(KIN_LINEAR),
+			pchange(KAV_SET), schange(KAV_SET), rchange(KAV_SET),
+			trchannel(false), colchannel(false), uvchannel(false)
 		{}
 	};
-	typedef std::vector<KAnimeKey> KAnimeClip;
 
     struct KOGLVersion{
         U8 major;

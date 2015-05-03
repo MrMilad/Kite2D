@@ -183,6 +183,11 @@ namespace Kite{
 		KAP_BACKWARD
 	};
 
+	enum KAnimeValueChangeTypes{
+		KAV_SET, // override current valu(s)
+		KAV_APPEND // append to current value(s)
+	};
+
 	enum KAnimeCallbackTypes{
 		KAC_ATTACHED, // when attach to AnimeController list
 		KAC_DETACHED // when detach from AnimeController list

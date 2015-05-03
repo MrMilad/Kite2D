@@ -33,7 +33,7 @@ namespace Kite{
         /// completely restore the previous position
         /// default (0, 0)
         void setPosition(const KVector2F32& Position);
-        inline const KVector2F32 &getPosition() const {return _kposition;}
+        inline const KVector2F32 *getPosition() const {return &_kposition;}
 
         /// move object
         /// adds to the current position
@@ -52,7 +52,7 @@ namespace Kite{
         /// completely restore the previous scale
         /// default (1, 1)
         void setScale(const KVector2F32 &Scale);
-        inline const KVector2F32 &getScale() const {return _kscale;}
+        inline const KVector2F32 *getScale() const {return &_kscale;}
 
         /// multiplies the current scale
         void scale(const KVector2F32 &Scale);
@@ -61,7 +61,7 @@ namespace Kite{
         /// relative to the top-left
         /// default (0, 0)
         void setCenter(const KVector2F32 &Center);
-        inline const KVector2F32 &getCenter() const {return _kcenter;}
+        inline const KVector2F32 *getCenter() const {return &_kcenter;}
 
 		/// combining the position/rotation/scale/center
 		const KTransform *getTransform() const;

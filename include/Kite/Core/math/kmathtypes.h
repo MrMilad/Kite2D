@@ -28,7 +28,7 @@ namespace Kite{
 	};
 
 	enum KInterpolationTypes{
-		KIN_LINEAR,
+		KIN_LINEAR = 0,
 		KIN_QUADRATICIN,
 		KIN_QUADRATICOUT,
 		KIN_QUADRATICINOUT,

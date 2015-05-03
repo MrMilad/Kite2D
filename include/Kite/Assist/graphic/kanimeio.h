@@ -26,10 +26,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 namespace Kite{
 	class KITE_FUNC_EXPORT KAnimeIO{
 	public:
-		static bool loadFile(const std::string &FileName, KAnimeClip &Objects);
+		static bool loadFile(const std::string &FileName, std::vector<KAnimeKey> &Objects);
 		// static KAnimeObject *loadMemory(const void *Data);
 
-		static bool saveFile(const std::string &FileName, const KAnimeClip &Objects);
+		static bool saveFile(const std::string &FileName, const std::vector<KAnimeKey> &Objects);
 	};
 }
 

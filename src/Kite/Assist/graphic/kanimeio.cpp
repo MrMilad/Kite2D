@@ -19,7 +19,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <cstdio>
 
 namespace Kite{
-	bool KAnimeIO::loadFile(const std::string &FileName, KAnimeClip &Objects){
+	bool KAnimeIO::loadFile(const std::string &FileName, std::vector<KAnimeKey> &Objects){
 		// just in case
 		Objects.clear();
 
@@ -65,7 +65,7 @@ namespace Kite{
 		return ret;
 	}
 
-	bool KAnimeIO::saveFile(const std::string &FileName, const KAnimeClip &Objects){
+	bool KAnimeIO::saveFile(const std::string &FileName, const std::vector<KAnimeKey> &Objects){
 		if (Objects.empty())
 			return false;
 

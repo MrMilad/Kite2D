@@ -63,6 +63,11 @@ namespace Kite{
 		// cyrcle intersect
 		static bool isIntersect(const KVector2F32 &Center1, F32 Radius1, const KVector2F32 &Center2, F32 Radius2);
 
+		// get intersect point between 2 line
+		// output: IntersectPoint
+		static bool getIntersectPoint(const KVector2F32 &Line1Start, const KVector2F32 &Line1End,
+			const KVector2F32 &Line2Start, const KVector2F32 &Line2End, KVector2F32 &IntersectPoint);
+
 	};
 }
 

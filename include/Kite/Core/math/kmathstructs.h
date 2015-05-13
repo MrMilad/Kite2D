@@ -146,6 +146,11 @@ namespace Kite{
 		return (v1.x*v2.x + v1.y*v2.y);
 	}
 
+	template <typename T>
+	static inline T perpDot(const KVector2<T> &v1, const KVector2<T> &v2){
+		return (v1.y * v2.x) - (v1.x * v2.y);
+	}
+
 	// calculate normal angle of the Vector
 	template <typename T>
 	static inline KVector2<T> normal(const KVector2<T> &v){

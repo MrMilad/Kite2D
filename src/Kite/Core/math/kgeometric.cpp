@@ -175,4 +175,38 @@ namespace Kite{
 		}
 		return false;
 	}
+
+	bool KGeometric::getIntersectPoint(const KVector2F32 &Line1Start, const KVector2F32 &Line1End,
+		const KVector2F32 &Line2Start, const KVector2F32 &Line2End, KVector2F32 &IntersectPoint){
+		KVector2F32 a(Line1End - Line1Start);
+		KVector2F32 b(Line2End - Line2Start);
+
+		F32 f = perpDot(a, b);
+		if (!f)      // lines are parallel
+			return false;
+
+		KVector2F32 c(Line2End - Line1End);
+		F32 aa = perpDot(a, c);
+		F32 bb = perpDot(b, c);
+
+		if (f < 0)
+		{
+			if (aa > 0)     return false;
+			if (bb > 0)     return false;
+			if (aa < f)     return false;
+			if (bb < f)     return false;
+		}
+		else
+		{
+			if (aa < 0)     return false;
+			if (bb < 0)     return false;
+			if (aa > f)     return false;
+			if (bb > f)     return false;
+		}
+
+		F32 out = 1.0 - (aa / f);
+		IntersectPoint = ((Line2End - Line2Start) * out) + Line2Start;
+		return true;
+	}
+
 }

@@ -28,6 +28,7 @@ namespace Kite{
 		virtual ~KDrawable();
 
         virtual void draw() = 0;
+		virtual void draw(U32 FirstIndex, U32 Size) = 0;
 
 		inline void setCamera(const KCamera &Camera) { _kcam = &Camera; }
 		inline const KCamera &getCamera() const { return *_kcam; }

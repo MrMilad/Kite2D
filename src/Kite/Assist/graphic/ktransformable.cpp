@@ -42,7 +42,7 @@ namespace Kite{
 
     void KTransformable::setRotation(F32 Angle){
 		if (Angle > 360.000f || Angle < -360.000f)
-			Angle = (U32)Angle % 360;
+			Angle = fmod(Angle, 360);
         _krotation = Angle;
         _kneedUpdate = true;
     }

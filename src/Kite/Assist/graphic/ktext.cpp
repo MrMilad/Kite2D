@@ -29,7 +29,7 @@ namespace Kite{
 		_fillIndex();
 	}
 
-	KText::KText(const std::string &Text, const KAtlasObjects &Font, const KColor &Color) :
+	KText::KText(const std::string &Text, const std::vector<KAtlas> &Font, const KColor &Color) :
 		KIndexBatchObject(Text.size() * 4, Text.size() * 6),
 		_kfont(&Font),
 		_ktext(Text),
@@ -89,7 +89,7 @@ namespace Kite{
 		}
 	}
 
-	void KText::setFont(const KAtlasObjects &Font){
+	void KText::setFont(const std::vector<KAtlas> &Font){
 		_kfont = &Font;
 		_reshape();
 	}
@@ -116,5 +116,27 @@ namespace Kite{
 
 	const KTransform &KText::getModelViewTransform() const{
 		return *getTransform();
+	}
+
+	void KText::animeUpdate(const KAnimeValue *AnimatedValue){
+		// center
+		setCenter(AnimatedValue->center);
+
+		// scale
+		if (AnimatedValue->scaleChannel)
+		if (AnimatedValue->schange == KAV_SET) setScale(AnimatedValue->scale); else scale(AnimatedValue->scale);
+
+		// rotate
+		if (AnimatedValue->rotateChannel)
+		if (AnimatedValue->rchange == KAV_SET) setRotation(AnimatedValue->rotate); else rotate(AnimatedValue->rotate);
+
+		// translate
+		if (AnimatedValue->trChannel)
+		if (AnimatedValue->tchange == KAV_SET) setPosition(AnimatedValue->translate); else move(AnimatedValue->translate);
+
+		// animate color
+		if (AnimatedValue->colorChannel){
+			setColor(AnimatedValue->color);
+		}
 	}
 }

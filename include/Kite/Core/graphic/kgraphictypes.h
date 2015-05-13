@@ -72,7 +72,7 @@ namespace Kite{
 //    };
 
     /* Colors */
-    enum KColors{
+    enum KColorTypes{
         KC_BLACK = 0x000000,           KC_WHITE = 0xFFFFFF,
         KC_RED = 0xff0000,             KC_YELLOW = 0xffff00,
         KC_BLUE = 0x0000ff,            KC_GREEN = 0x00ff00,
@@ -178,14 +178,14 @@ namespace Kite{
 		KAS_STOP
 	};
 
-	enum KAnimePlayTypes{
+	/*enum KAnimePlayTypes{
 		KAP_FOREWARD,
 		KAP_BACKWARD
-	};
+	};*/
 
 	enum KAnimeValueChangeTypes{
-		KAV_SET, // override current valu(s)
-		KAV_APPEND // append to current value(s)
+		KAV_SET, // override current value(s)
+		KAV_APPEND // append to current value(s) (recomended: use + and - value(s) when using KAV_APPEND)
 	};
 
 	enum KAnimeCallbackTypes{
@@ -197,7 +197,7 @@ namespace Kite{
 		KTM_ISOMETRIC
 	};
 
-	// isometric tile
+	// isometric tile (mouse detection)
 	enum KTileBitmapTypes : U8{
 		KTB_CENTER,
 		KTB_BOTTOM_LEFT,
@@ -205,6 +205,9 @@ namespace Kite{
 		KTB_TOP_LEFT,
 		KTB_TOP_RIGHT
 	};
+
+	typedef void(*KCallAnimeTrigger)(void *Parameter);
+	typedef void(*KCallAnimeStatechange)(void *Parameter);
 
     namespace Internal{
     enum KGLBindGuardTypes{

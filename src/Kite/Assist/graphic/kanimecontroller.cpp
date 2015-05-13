@@ -17,30 +17,31 @@
 */
 #include "Kite/Assist/graphic/kanimecontroller.h"
 #include "Kite/Core/math/ktween.h"
+#include <cmath>
 
 namespace Kite{
 	KAnimeController::KAnimeController():
 		_kclip(0),
 		_katlas(0),
 		_ktime(0),
-		_klcounter(0),
 		_kloop(false),
 		_kstype(KAS_STOP),
-		_kptype(KAP_FOREWARD),
-		_kvalue()
+		_kvalue(),
+		_kcurrentKey(0)
 	{}
 
 	KAnimeController::KAnimeController(KAnimeObject *Object,
-		const std::vector<KAnimeKey> *AnimationClip, const KAtlasObjects *SpriteSheet) :
-		_kclip(AnimationClip),
+		const std::vector<KAnimeKey> *AnimationClip, const std::vector<KAtlas> *SpriteSheet) :
 		_katlas(SpriteSheet),
 		_ktime(0),
-		_klcounter(0),
 		_kloop(false),
 		_kstype(KAS_STOP),
-		_kptype(KAP_FOREWARD),
-		_kvalue()
-	{}
+		_kvalue(),
+		_kcurrentKey(0)
+	{
+		addObject(Object);
+		setClip(AnimationClip);
+	}
 
 	I32 KAnimeController::addObject(KAnimeObject *Object){
 		if (Object){
@@ -65,7 +66,7 @@ namespace Kite{
 		_klist.erase(_klist.begin() + ObjectID);
 	}
 
-	void KAnimeController::clear(){
+	void KAnimeController::deleteAllObjects(){
 		_klist.clear();
 	}
 
@@ -74,11 +75,50 @@ namespace Kite{
 
 		if (AnimationClip)
 		if (!AnimationClip->empty()){
-			// check clip channels
-			_kvalue.transformChannel = AnimationClip->at(0).trchannel;
-			_kvalue.colorChannel = AnimationClip->at(0).colchannel;
-			_kvalue.uvChannel = AnimationClip->at(0).uvchannel;
+			_kcurrentKey = 0;
+			_ktime = 0;
 		}
+	}
+
+	void KAnimeController::setCurrentTime(F32 Time){
+		if (!_kclip)
+			return;
+
+		if (Time > _kclip->back().time || Time < 0)
+			return;
+
+		_ktime = Time;
+		keyLookup();
+	}
+
+	F32 KAnimeController::getTotalTime() const{
+		if (_kclip)
+		if (!_kclip->empty())
+			return _kclip->back().time;
+
+		return 0;
+	}
+
+	void KAnimeController::setCurrentKey(U32 KeyIndex){
+		if (!_kclip)
+			return;
+
+		if (KeyIndex >= _kclip->size())
+			return;
+
+		_kcurrentKey = KeyIndex;
+		_ktime = _kclip->at(KeyIndex).time;
+	}
+
+	void KAnimeController::addTimeTrigger(KCallAnimeTrigger Functor, void *Sender, F32 StartTime, F32 Duration){
+		if (!Functor || StartTime < 0)
+			return;
+
+		_kttrig.push_back(Internal::KAnimeTimeTrigger(StartTime, StartTime + Duration, Functor, false, Sender));
+	}
+
+	void KAnimeController::deleteAllTriggers(){
+		_kttrig.clear();
 	}
 
 	void KAnimeController::update(F32 Delta){
@@ -88,31 +128,135 @@ namespace Kite{
 		if (_kclip->empty())
 			return;
 
+		// check animation state
+		if (_kstype == KAS_STOP)  {	_ktime = 0; _kcurrentKey = 0; return; }
+		if (_kstype == KAS_PAUSE) { return; }
+
+		bool needStop = false;
+		bool needInterpolate = true;
+
 		// map KTween functions into fucntion pointers
 		static F32(*tweenFunction[])(F32, F32, F32, F32) = { KTween::linear, KTween::quadraticIn,
 			KTween::quadraticOut, KTween::quadraticInOut, KTween::sinusoidalIn,
 			KTween::sinusoidalOut, KTween::sinusoidalInOut, KTween::exponentialIn,
 			KTween::exponentialOut, KTween::exponentialInOut };
 
-		// check clip channels
-		KInterpolationTypes type;
-		const KAnimeKey *key1 = &_kclip->at(0);
-		const KAnimeKey *key2 = &_kclip->at(1);
-		type = key1->rinterp;
+		// time calibration
+		if (_kloop){
+			// out of range time (before 0 or after total duration)
+			if ((_ktime + Delta) >= _kclip->back().time) { _ktime = fmod(_ktime + Delta, _kclip->back().time); }
+			else if ((_ktime + Delta) <= 0) { _ktime = _kclip->back().time - fmod(abs(_ktime + Delta) + _kclip->back().time, _kclip->back().time); }
+			// in range time
+			else { _ktime += Delta; }
+		}else{
+			// out of range time (before 0 or after total duration)
+			if ((_ktime + Delta) >= _kclip->back().time) { _ktime = _kclip->back().time; needStop = true; needInterpolate = false; }
+			else if ((_ktime + Delta) <= 0) { _ktime = 0; needStop = true; needInterpolate = false; }
+			// in range time
+			else { _ktime += Delta; }
+		}
 
-		_kvalue.rotate = tweenFunction[type](Delta, key1->rotate, key2->rotate, key2->time - key1->time);
-		_kvalue.rchange = key1->rchange;
+		// find appropriate key
+		keyLookup();
 
-		_kvalue.scale.x = tweenFunction[type](Delta, key1->scale.x, key2->scale.x, key2->time - key1->time);
-		_kvalue.scale.y = tweenFunction[type](Delta, key1->scale.y, key2->scale.y, key2->time - key1->time);
+		const KAnimeKey *key1 = &_kclip->at(_kcurrentKey);
+		if (needInterpolate){
+			const KAnimeKey *key2 = 0;
+			KInterpolationTypes type;
+			key2 = &_kclip->at(_kcurrentKey + 1);
+
+			// transform
+			type = key1->tinterp;
+			_kvalue.translate.x = tweenFunction[type](_ktime, key1->translate.x, key2->translate.x, key2->time - key1->time);
+			_kvalue.translate.y = tweenFunction[type](_ktime, key1->translate.y, key2->translate.y, key2->time - key1->time);
+			type = key1->sinterp;
+			_kvalue.scale.x = tweenFunction[type](_ktime, key1->scale.x, key2->scale.x, key2->time - key1->time);
+			_kvalue.scale.y = tweenFunction[type](_ktime, key1->scale.y, key2->scale.y, key2->time - key1->time);
+			type = key1->rinterp;
+			_kvalue.rotate = tweenFunction[type](_ktime, key1->rotate, key2->rotate, key2->time - key1->time);
+
+			// color
+			type = key1->cinterp;
+			_kvalue.color.a = tweenFunction[type](_ktime, key1->color.a, key2->color.a, key2->time - key1->time);
+			_kvalue.color.r = tweenFunction[type](_ktime, key1->color.r, key2->color.r, key2->time - key1->time);
+			_kvalue.color.g = tweenFunction[type](_ktime, key1->color.g, key2->color.g, key2->time - key1->time);
+			_kvalue.color.b = tweenFunction[type](_ktime, key1->color.b, key2->color.b, key2->time - key1->time);
+		}else{
+			key1 = &_kclip->at(_kcurrentKey);
+			_kvalue.translate = key1->translate;
+			_kvalue.scale = key1->scale;
+			_kvalue.rotate = key1->rotate;
+			_kvalue.color = key1->color;
+		}
+
+		// uv
+		if (_katlas)
+		if (_katlas->size() > key1->uv){
+			const KAtlas *atlas = &_katlas->at(_kcurrentKey);
+			_kvalue.uv = KRectF32(atlas->blu, atlas->tru, atlas->trv, atlas->blv);
+		}
+
+		// other values
+		_kvalue.center = key1->center;
+		_kvalue.tchange = key1->tchange;
 		_kvalue.schange = key1->schange;
-
-		_kvalue.position.x = tweenFunction[type](Delta, key1->pos.x, key2->pos.x, key2->time - key1->time);
-		_kvalue.position.y = tweenFunction[type](Delta, key1->pos.y, key2->pos.y, key2->time - key1->time);
-		_kvalue.pchange = key1->pchange;
+		_kvalue.rchange = key1->rchange;
+		_kvalue.trChannel = key1->tchannel;
+		_kvalue.scaleChannel = key1->schannel;
+		_kvalue.rotateChannel = key1->rchannel;
+		_kvalue.colorChannel = key1->cchannel;
+		_kvalue.uvChannel = key1->uvchannel;
 
 		for (U32 i = 0; i < _klist.size(); i++){
 			_klist[i]->animeUpdate(&_kvalue);
+		}
+
+		// check for triggers
+		triggerLookup();
+
+		if (needStop)
+			this->setState(KAS_STOP);
+	}
+
+	void KAnimeController::triggerLookup(){
+		if (_kttrig.empty())
+			return;
+
+		for (U32 i = 0; i < _kttrig.size(); i++){
+			if (_kttrig[i].start <= _ktime && _kttrig[i].end >= _ktime){
+				if (!_kttrig[i].called){
+					_kttrig[i].func(_kttrig[i].sender);
+					_kttrig[i].called = true;
+				}
+			}
+			else{
+				_kttrig[i].called = false;
+			}
+		}
+	}
+
+	void KAnimeController::keyLookup(){
+		if (!_kclip)
+			return;
+
+		if (_kclip->empty()){
+			_kcurrentKey = 0;
+			_ktime = 0;
+			return;
+		}
+
+		// first step, we check last key in our clip
+		if (_ktime == _kclip->back().time){
+			_kcurrentKey = _kclip->size() - 1;
+			return;
+		}
+
+		// then we check all keys from 0 to last - 1
+		for (U32 i = 0; i < _kclip->size() - 1; i++){
+			if (_kclip->at(i).time <= _ktime && _kclip->at(i + 1).time > _ktime){
+				_kcurrentKey = i;
+				return;
+			}
 		}
 	}
 

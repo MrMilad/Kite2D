@@ -22,10 +22,11 @@
 #include "Kite/Core/math/kmathstructs.h"
 #include "Kite/Core/math/ktransform.h"
 #include "Kite/Core/graphic/kgraphicstructs.h"
+#include "kite/Assist/graphic/kanimeobject.h"
 
 
 namespace Kite{
-    class KITE_FUNC_EXPORT KCamera{
+	class KITE_FUNC_EXPORT KCamera : public KAnimeObject{
     public:
         KCamera();
         KCamera(const KRectF32 &Viewport);
@@ -35,13 +36,12 @@ namespace Kite{
 		/// default: 0.0, 0.0
 		inline void setCenter(const KVector2F32 &Center) { _kcenter = Center; _kneedUpdate = true; }
 		inline const KVector2F32 &getCenter() const { return _kcenter; }
-
-		/// default: 0.0, 0.0
-		inline void move(const KVector2F32 &Move){ setCenter(_kcenter + Move); }
+		inline void move(const KVector2F32 &Move){ _kcenter += Move;  _kneedUpdate = true; }
 
 		/// default: 0.0
 		inline void setRotation(F32 Angle) { _krotation = Angle; _kneedUpdate = true; }
 		inline F32 getRotation() const { return _krotation; }
+		inline void rotate(F32 Angle) {_krotation += Angle;  _kneedUpdate = true; }
 
 		/// default: 1.0
 		inline void setZoom(F32 Factor) { _kzoom = Factor; _kneedUpdate = true; }
@@ -52,6 +52,11 @@ namespace Kite{
 		inline void flipX() { _kflipx = _kflipx * -1; _kneedUpdate = true; }
         
 		const KTransform *getTransform() const;
+
+	protected:
+		// from KAnimeObject (input/recive)
+		void animeUpdate(const KAnimeValue *AnimatedValue);
+
     private:
 		KVector2F32 _ksize;
         KVector2F32 _kcenter;

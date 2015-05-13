@@ -80,4 +80,15 @@ namespace Kite{
 
 		return &_ktransform;
 	}
+
+	void KCamera::animeUpdate(const KAnimeValue *AnimatedValue){
+		// rotate
+		if (AnimatedValue->rotateChannel)
+		if (AnimatedValue->rchange == KAV_SET) setRotation(AnimatedValue->rotate); else rotate(AnimatedValue->rotate);
+
+		// translate
+		if (AnimatedValue->trChannel)
+		if (AnimatedValue->tchange == KAV_SET) setCenter(AnimatedValue->translate); else move(AnimatedValue->translate);
+	}
+
 }

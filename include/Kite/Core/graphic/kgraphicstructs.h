@@ -31,18 +31,13 @@ namespace Kite{
 		KColor(F32 R = 255, F32 G = 255, F32 B = 255, F32 A = 255) :
             r(R/255.0f), g(G/255.0f), b(B/255.0f), a(A/255.0f)
         {}
-    };
 
-	/*static inline U64 getColorHexCode(const KColor &Color){
-		U64 hexCod = (Color.r << 24) | (Color.g << 16) | (Color.b << 8) | Color.a;
-		return hexCod;
-	}
-
-	static inline void setHexCodeToKColor(KColor &Color, UL32 HexCode){
-		Color.r = (U8)((HexCode >> 16) & 0xFF);  // Extract the RR byte
-		Color.g = (U8)((HexCode >> 8) & 0xFF);   // Extract the GG byte
-		Color.b = (U8)((HexCode)& 0xFF);        // Extract the BB byte
-	}*/
+		KColor(KColorTypes HexCode){
+			r = ((U8)((HexCode >> 16) & 0xFF)) / 255.0f;
+			g = ((U8)((HexCode >> 8) & 0xFF)) / 255.0f;
+			b = ((U8)((HexCode)& 0xFF)) / 255.0f;
+		}
+	};
 
     /// position, texture, color
     struct KVertex{
@@ -117,8 +112,6 @@ namespace Kite{
 		{}
 	};
 
-	typedef std::vector<KAtlas> KAtlasObjects;
-
 	// common array-based file header
 	struct KArrayHeader{
 		char format[7]; // eg: {'k', 'a', 't', 'l', 'a', 's', '\0'}; // file format
@@ -128,42 +121,44 @@ namespace Kite{
 	// key based animation
 	// anime state
 	struct KAnimeValue{
-		KVector2F32 position;
+		KVector2F32 translate;
 		KVector2F32 scale;
 		F32 rotate;
 		KVector2F32 center;
 		KColor color;
 		KRectF32 uv;
-		bool transformChannel, uvChannel, colorChannel;
-		KAnimeValueChangeTypes pchange, schange, rchange;
+		bool trChannel, scaleChannel, rotateChannel, uvChannel, colorChannel;
+		KAnimeValueChangeTypes tchange, schange, rchange;
 
 		KAnimeValue() :
-			position(), scale(1.0f, 1.0f), rotate(0), center(),
+			translate(), scale(1.0f, 1.0f), rotate(0), center(),
 			color(), uv(),
-			transformChannel(false), uvChannel(false), colorChannel(false),
-			pchange(KAV_SET), schange(KAV_SET), rchange(KAV_SET)
+			trChannel(false), scaleChannel(false), rotateChannel(false),
+			uvChannel(false), colorChannel(false),
+			tchange(KAV_SET), schange(KAV_SET), rchange(KAV_SET)
 		{}
 	};
 
 	// key state
 	struct KAnimeKey{
 		F32 time; // key time (in millisecons)
-		KVector2F32 pos;
+		KVector2F32 translate;
 		KVector2F32 scale;
 		F32 rotate;
-		KVector2F32 center; // center of rotate
+		KVector2F32 center; // center of all transformation
 		U32 uv; // texture uv (atlas id)
 		KColor color;
-		KInterpolationTypes pinterp, sinterp, rinterp; // interpolation types (pos, scale, rotate)
-		KAnimeValueChangeTypes pchange, schange, rchange; // how to use animated values
-		bool trchannel, colchannel, uvchannel; // we have 3 channel (transform, color and uv) 
-
+		KInterpolationTypes tinterp, sinterp, rinterp, cinterp; // interpolation types (pos, scale, rotate, color)
+		KAnimeValueChangeTypes tchange, schange, rchange; // how to use animated values
+		bool tchannel, schannel, rchannel, cchannel, uvchannel; // we have 5 channel (position, scale, rotate, color and uv) 
+																// each channel disable/enable related value
 		KAnimeKey() :
-			time(0), pos(), scale(1.0f, 1.0f),
+			time(0), translate(), scale(1.0f, 1.0f),
 			rotate(0.0f), center(), uv(0), color(),
-			pinterp(KIN_LINEAR), sinterp(KIN_LINEAR), rinterp(KIN_LINEAR),
-			pchange(KAV_SET), schange(KAV_SET), rchange(KAV_SET),
-			trchannel(false), colchannel(false), uvchannel(false)
+			tinterp(KIN_LINEAR), sinterp(KIN_LINEAR), rinterp(KIN_LINEAR), cinterp(KIN_LINEAR),
+			tchange(KAV_SET), schange(KAV_SET), rchange(KAV_SET),
+			tchannel(false), schannel(false), rchannel(false),
+			cchannel(false), uvchannel(false)
 		{}
 	};
 
@@ -231,6 +226,19 @@ namespace Kite{
 	};
 
     namespace Internal{
+		struct KAnimeTimeTrigger{
+			F32 start;
+			F32 end;
+			KCallAnimeTrigger func;
+			bool called;
+			void *sender;
+
+			KAnimeTimeTrigger(F32 Start = 0, F32 End = 0,
+				KCallAnimeTrigger Functor = 0, bool Called = false, void *Sender = 0) :
+				start(Start), end(End), func(Functor), called(Called), sender(Sender)
+			{}
+		};
+
 		struct KCatchDraw{
 			U32 objIndex, lastTexId, lastShdId;
 			KGeoPrimitiveTypes lastGeo;

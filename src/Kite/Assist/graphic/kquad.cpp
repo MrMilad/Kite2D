@@ -90,15 +90,20 @@ namespace Kite{
 	}
 
 	void KQuad::animeUpdate(const KAnimeValue *AnimatedValue){
-		// animate transform
-		if (AnimatedValue->transformChannel){
-			KVector2F32 tempCenter = *getCenter();
-			setCenter(AnimatedValue->center);
-			if (AnimatedValue->schange == KAV_SET) setScale(AnimatedValue->scale); else scale(AnimatedValue->scale);
-			if (AnimatedValue->rchange == KAV_SET) setRotation(AnimatedValue->rotate); else rotate(AnimatedValue->rotate);
-			if (AnimatedValue->pchange == KAV_SET) setPosition(AnimatedValue->position); else move(AnimatedValue->position);
-			setCenter(tempCenter);
-		}
+		// center
+		setCenter(AnimatedValue->center);
+
+		// scale
+		if (AnimatedValue->scaleChannel)
+		if (AnimatedValue->schange == KAV_SET) setScale(AnimatedValue->scale); else scale(AnimatedValue->scale);
+
+		// rotate
+		if (AnimatedValue->rotateChannel)
+		if (AnimatedValue->rchange == KAV_SET) setRotation(AnimatedValue->rotate); else rotate(AnimatedValue->rotate);
+
+		// translate
+		if (AnimatedValue->trChannel)
+		if (AnimatedValue->tchange == KAV_SET) setPosition(AnimatedValue->translate); else move(AnimatedValue->translate);
 
 		// animate color
 		if (AnimatedValue->colorChannel){

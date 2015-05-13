@@ -28,7 +28,7 @@ namespace Kite{
 	class KITE_FUNC_EXPORT KAnimeController{
 	public:
 		KAnimeController();
-		KAnimeController(KAnimeObject *Object, const std::vector<KAnimeKey> *AnimationClip, const KAtlasObjects *SpriteSheet);
+		KAnimeController(KAnimeObject *Object, const std::vector<KAnimeKey> *AnimationClip, const std::vector<KAtlas> *SpriteSheet);
 
 		// add object to list
 		// all object in the list Will be animated in parallel
@@ -41,8 +41,8 @@ namespace Kite{
 		// delete object from list
 		void deleteObject(U32 ObjectID);
 
-		// clear list
-		void clear();
+		// clear object list
+		void deleteAllObjects();
 
 		// set animation clip
 		void setClip(const std::vector<KAnimeKey> *AnimationClip);
@@ -52,22 +52,17 @@ namespace Kite{
 
 		// set sprite sheet
 		// pass 0 if there is no sprite sheet
-		inline void setSpriteSheet(const KAtlasObjects *SpriteSheet) { _katlas = SpriteSheet; }
+		inline void setSpriteSheet(const std::vector<KAtlas> *SpriteSheet) { _katlas = SpriteSheet; }
 
 		// get sprite sheet
-		inline const KAtlasObjects *getSpriteSheet() const { return _katlas; }
+		inline const std::vector<KAtlas> *getSpriteSheet() const { return _katlas; }
 
 		// set animation loop
+		// loop apply at any direction (foreward and backwrad)
 		inline void setLoop(bool Loop) { _kloop = Loop; }
 
 		// get animation loop
 		inline bool getLoop() const { return _kloop; }
-
-		// set loop counter
-		inline void setLoopCounter(U16 Counter) { _klcounter = Counter; }
-
-		// get loop counter
-		inline U16 getLoopCounter() const { return _klcounter; }
 
 		// set animation state (play, pause, stop)
 		inline void setState(KAnimeStateTypes State) { _kstype = State; }
@@ -75,31 +70,46 @@ namespace Kite{
 		// get animation state (play, pause, stop)
 		inline KAnimeStateTypes getState() const { return _kstype; }
 
-		// set animation play state (FOREWARD, BACKWARD)
-		inline void setPlayState(KAnimePlayTypes PlayState) { _kptype = PlayState; }
-
-		// get animation play state (FOREWARD, BACKWARD)
-		inline KAnimePlayTypes getPlayState() const { return _kptype; }
-
 		// in seconds
-		inline void setCurrentTime(F32 Time) { _ktime = Time; }
+		// Time must be in range (0 to last key time)
+		void setCurrentTime(F32 Time);
 
 		// in seconds
 		inline F32 getCurrentTime() const { return _ktime; }
+
+		F32 getTotalTime() const;
+
+		// set current key
+		// KeyIndex must be in range (0 to clip size - 1) 
+		void setCurrentKey(U32 KeyIndex);
+
+		// get current key
+		inline U32 getCurrentKey() const { return _kcurrentKey; }
+
+		// add a time trigger (if StartTime <= current time <= StartTime + Duration) then trigger
+		// The function will be executed only once in their duration
+		// time count as second
+		// avoid heavy work in the functor
+		void addTimeTrigger(KCallAnimeTrigger Functor, void *Sender, F32 StartTime, F32 Duration);
+
+		// delete all triggers
+		void deleteAllTriggers();
 
 		// update animation state
 		void update(F32 Delta);
 
 	private:
+		void triggerLookup(); // lookup triggers
+		void keyLookup(); // lookup keys and find appropriate key (depend of time)
 		const std::vector<KAnimeKey> *_kclip;
-		const KAtlasObjects *_katlas;
+		const std::vector<KAtlas> *_katlas;
+		std::vector<Internal::KAnimeTimeTrigger> _kttrig;
 		F32 _ktime;
-		U16 _klcounter;
 		bool _kloop;
 		KAnimeStateTypes _kstype;
-		KAnimePlayTypes _kptype;
 		std::deque<KAnimeObject *> _klist;
 		KAnimeValue _kvalue;
+		U32 _kcurrentKey;
 	};
 }
 

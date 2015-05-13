@@ -19,7 +19,7 @@
 #include <cstdio>
 
 namespace Kite{
-    bool KAtlasIO::loadFile(const std::string &FileName, KAtlasObjects &Objects){
+    bool KAtlasIO::loadFile(const std::string &FileName, std::vector<KAtlas> &Objects){
 		// just in case
 		Objects.clear();
 
@@ -69,7 +69,7 @@ namespace Kite{
 
 //    }
 
-	bool KAtlasIO::saveFile(const std::string &FileName, const KAtlasObjects &Objects){
+	bool KAtlasIO::saveFile(const std::string &FileName, const std::vector<KAtlas> &Objects){
 		if (Objects.empty())
 			return false;
 

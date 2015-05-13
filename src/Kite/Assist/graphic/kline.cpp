@@ -56,4 +56,26 @@ namespace Kite{
 	const KTransform &KLine::getModelViewTransform() const{
 		return *getTransform();
 	}
+
+	void KLine::animeUpdate(const KAnimeValue *AnimatedValue){
+		// center
+		setCenter(AnimatedValue->center);
+
+		// scale
+		if (AnimatedValue->scaleChannel)
+		if (AnimatedValue->schange == KAV_SET) setScale(AnimatedValue->scale); else scale(AnimatedValue->scale);
+
+		// rotate
+		if (AnimatedValue->rotateChannel)
+		if (AnimatedValue->rchange == KAV_SET) setRotation(AnimatedValue->rotate); else rotate(AnimatedValue->rotate);
+
+		// translate
+		if (AnimatedValue->trChannel)
+		if (AnimatedValue->tchange == KAV_SET) setPosition(AnimatedValue->translate); else move(AnimatedValue->translate);
+
+		// animate color
+		if (AnimatedValue->colorChannel){
+			setColor(AnimatedValue->color);
+		}
+	}
 }

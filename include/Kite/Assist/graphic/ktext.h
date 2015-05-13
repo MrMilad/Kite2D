@@ -22,16 +22,17 @@
 #include "Kite/Core/graphic/kgraphicstructs.h"
 #include "Kite/Assist/graphic/kindexbatchobject.h"
 #include "Kite/Assist/graphic/ktransformable.h"
+#include "kite/Assist/graphic/kanimeobject.h"
 #include <cstring>
 
 namespace Kite{
-    class KITE_FUNC_EXPORT KText : public KIndexBatchObject, public KTransformable{
+    class KITE_FUNC_EXPORT KText : public KIndexBatchObject, public KTransformable, public KAnimeObject{
 	public:
 		KText(U32 MaxSize);
-		KText(const std::string &Text, const KAtlasObjects &Font, const KColor &Color);
+		KText(const std::string &Text, const std::vector<KAtlas> &Font, const KColor &Color);
 
-		void setFont(const KAtlasObjects &Font);
-        inline const KAtlasObjects &getFont() const {return *_kfont;}
+		void setFont(const std::vector<KAtlas> &Font);
+        inline const std::vector<KAtlas> &getFont() const {return *_kfont;}
 
 		void setText(const std::string &Text);
         inline const std::string &getText() const {return _ktext;}
@@ -45,12 +46,16 @@ namespace Kite{
 		inline F32 getWidth() const { return _kwidth; }
 
 	protected:
+		// from KIndexBatchObject (output/send)
 		const KTransform &getModelViewTransform() const;
+
+		// from KAnimeObject (input/recive)
+		void animeUpdate(const KAnimeValue *AnimatedValue);
 
     private:
 		void _fillIndex();
 		void _reshape();
-        const KAtlasObjects *_kfont;
+        const std::vector<KAtlas> *_kfont;
         std::string _ktext;
 		F32 _kwidth;
 		U32 _ksize;

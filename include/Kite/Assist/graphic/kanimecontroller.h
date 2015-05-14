@@ -22,7 +22,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "Kite/Core/graphic/kgraphicstructs.h"
 #include "Kite/Core/graphic/kgraphictypes.h"
 #include "Kite/Assist/graphic/kanimeobject.h"
-#include <deque>
+#include <vector>
 
 namespace Kite{
 	class KITE_FUNC_EXPORT KAnimeController{
@@ -33,13 +33,7 @@ namespace Kite{
 		// add object to list
 		// all object in the list Will be animated in parallel
 		// return -1 on error
-		I32 addObject(KAnimeObject *Object);
-
-		// get object
-		const KAnimeObject *getObject(U32 ObjectID) const;
-
-		// delete object from list
-		void deleteObject(U32 ObjectID);
+		void addObject(KAnimeObject *Object);
 
 		// clear object list
 		void deleteAllObjects();
@@ -107,7 +101,7 @@ namespace Kite{
 		F32 _ktime;
 		bool _kloop;
 		KAnimeStateTypes _kstype;
-		std::deque<KAnimeObject *> _klist;
+		std::vector<KAnimeObject *> _klist;
 		KAnimeValue _kvalue;
 		U32 _kcurrentKey;
 	};

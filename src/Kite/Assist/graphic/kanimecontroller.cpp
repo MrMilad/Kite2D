@@ -43,27 +43,10 @@ namespace Kite{
 		setClip(AnimationClip);
 	}
 
-	I32 KAnimeController::addObject(KAnimeObject *Object){
+	void KAnimeController::addObject(KAnimeObject *Object){
 		if (Object){
 			_klist.push_back(Object);
-			return _klist.size() - 1;
 		}
-
-		return -1;
-	}
-
-	const KAnimeObject *KAnimeController::getObject(U32 ObjectID) const{
-		if (ObjectID >= _klist.size() || _klist.empty())
-			return 0;
-
-		return _klist[ObjectID];
-	}
-
-	void KAnimeController::deleteObject(U32 ObjectID){
-		if (ObjectID >= _klist.size() || _klist.empty())
-			return;
-
-		_klist.erase(_klist.begin() + ObjectID);
 	}
 
 	void KAnimeController::deleteAllObjects(){
@@ -167,20 +150,21 @@ namespace Kite{
 
 			// transform
 			type = key1->tinterp;
-			_kvalue.translate.x = tweenFunction[type](_ktime, key1->translate.x, key2->translate.x, key2->time - key1->time);
-			_kvalue.translate.y = tweenFunction[type](_ktime, key1->translate.y, key2->translate.y, key2->time - key1->time);
+			_kvalue.translate.x = tweenFunction[type](_ktime - key1->time, key1->translate.x, key2->translate.x, key2->time - key1->time);
+			_kvalue.translate.y = tweenFunction[type](_ktime - key1->time, key1->translate.y, key2->translate.y, key2->time - key1->time);
 			type = key1->sinterp;
-			_kvalue.scale.x = tweenFunction[type](_ktime, key1->scale.x, key2->scale.x, key2->time - key1->time);
-			_kvalue.scale.y = tweenFunction[type](_ktime, key1->scale.y, key2->scale.y, key2->time - key1->time);
+			_kvalue.scale.x = tweenFunction[type](_ktime - key1->time, key1->scale.x, key2->scale.x, key2->time - key1->time);
+			_kvalue.scale.y = tweenFunction[type](_ktime - key1->time, key1->scale.y, key2->scale.y, key2->time - key1->time);
 			type = key1->rinterp;
-			_kvalue.rotate = tweenFunction[type](_ktime, key1->rotate, key2->rotate, key2->time - key1->time);
+			_kvalue.rotate = tweenFunction[type](_ktime - key1->time, key1->rotate, key2->rotate, key2->time - key1->time);
 
 			// color
 			type = key1->cinterp;
-			_kvalue.color.a = tweenFunction[type](_ktime, key1->color.a, key2->color.a, key2->time - key1->time);
-			_kvalue.color.r = tweenFunction[type](_ktime, key1->color.r, key2->color.r, key2->time - key1->time);
-			_kvalue.color.g = tweenFunction[type](_ktime, key1->color.g, key2->color.g, key2->time - key1->time);
-			_kvalue.color.b = tweenFunction[type](_ktime, key1->color.b, key2->color.b, key2->time - key1->time);
+			_kvalue.color.a = tweenFunction[type](_ktime - key1->time, key1->color.a, key2->color.a, key2->time - key1->time);
+			_kvalue.color.r = tweenFunction[type](_ktime - key1->time, key1->color.r, key2->color.r, key2->time - key1->time);
+			_kvalue.color.g = tweenFunction[type](_ktime - key1->time, key1->color.g, key2->color.g, key2->time - key1->time);
+			_kvalue.color.b = tweenFunction[type](_ktime - key1->time, key1->color.b, key2->color.b, key2->time - key1->time);
+
 		}else{
 			key1 = &_kclip->at(_kcurrentKey);
 			_kvalue.translate = key1->translate;

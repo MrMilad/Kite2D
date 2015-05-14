@@ -24,6 +24,7 @@
 #include "Kite/Assist/graphic/katlasio.h"
 #include "Kite/Assist/graphic/kanimeio.h"
 #include "Kite/Assist/graphic/kanimeobject.h"
+#include "Kite/Assist/graphic/kanimecontrollergroup.h"
 #include "Kite/Assist/graphic/kanimecontroller.h"
 #include "Kite/Assist/graphic/kquad.h"
 #include "Kite/Assist/graphic/kbatch.h"

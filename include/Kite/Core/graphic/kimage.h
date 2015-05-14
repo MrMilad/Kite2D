@@ -18,15 +18,15 @@
 #ifndef KIMAGE_H
 #define KIMAGE_H
 
-#include "Kite/Core/system/knoncopyable.h"
 #include "Kite/Core/system/ksystemdef.h"
+#include "Kite/Core/system/kresources.h"
 #include "Kite/Core/math/kmathstructs.h"
 #include "Kite/Core/graphic/kgraphicstructs.h"
 #include <string>
 #include <vector>
 
 namespace Kite{
-    class KITE_FUNC_EXPORT KImage : KNonCopyable{
+    class KITE_FUNC_EXPORT KImage : public KResources{
     public:
         KImage();
         ~KImage();
@@ -51,6 +51,10 @@ namespace Kite{
         KColor getPixel(KVector2U32 Position) const;
         inline KVector2U32 getSize() const {return _ksize;}
 		inline const U8 *getPixelsData() const { if (!_kpixels.empty()) return &_kpixels[0]; return 0; }
+
+		// get size in byte
+		U64 resourcesGetSize() const;
+
     private:
         std::vector<U8> _kpixels;
         KVector2U32 _ksize;

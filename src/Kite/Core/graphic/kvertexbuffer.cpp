@@ -22,6 +22,7 @@ namespace Kite{
 	I32 KVertexBuffer::_ktargets[] = { GL_ELEMENT_ARRAY_BUFFER, GL_ARRAY_BUFFER };
     U32 KVertexBuffer::_klastBufId = 0;
 	KVertexBuffer::KVertexBuffer(KBufferTargetTypes TargetType) :
+		KResources(KRT_VBO),
         _kbufType(KVB_STATIC),
 		_kbufTarget(TargetType),
         _ksize(0),
@@ -142,5 +143,9 @@ namespace Kite{
 		DGL_CALL(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0));
         _klastBufId = 0;
     }
+
+	U64 KVertexBuffer::resourcesGetSize() const{
+		return _ksize;
+	}
 
 }

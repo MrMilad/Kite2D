@@ -19,12 +19,12 @@
 #define KVERTEXBUFFER_H
 
 #include "Kite/Core/system/ksystemdef.h"
-#include "Kite/Core/system/knoncopyable.h"
+#include "Kite/core/system/kresources.h"
 #include "Kite/Core/graphic/kgraphicstructs.h"
 #include "Kite/Core/graphic/kgraphictypes.h"
 
 namespace Kite{
-    class KITE_FUNC_EXPORT KVertexBuffer : KNonCopyable{
+    class KITE_FUNC_EXPORT KVertexBuffer : public KResources{
     public:
 		KVertexBuffer(KBufferTargetTypes TargetType);
         ~KVertexBuffer();
@@ -68,8 +68,9 @@ namespace Kite{
         inline void setUpdateHandle(KCallVBUpdate *UpdateHandle) {_kupdateHnd = UpdateHandle;}
 
         inline KVertexBufferTypes getType() const {return _kbufType;}
-        inline U32 getSize() const {return _ksize;}
-        inline U32 getID() const {return _kbufId;}
+		inline U32 getID() const { return _kbufId; }
+
+		U64 resourcesGetSize() const;
 
     private:
         KVertexBufferTypes _kbufType;

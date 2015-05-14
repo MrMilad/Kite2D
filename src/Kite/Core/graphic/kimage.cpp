@@ -21,6 +21,7 @@
 
 namespace Kite{
     KImage::KImage():
+		KResources(KRT_IMAGE),
         _ksize(0,0)
     {}
 
@@ -143,5 +144,9 @@ namespace Kite{
         const U8* pixel = &_kpixels[(Position.x + Position.y * _ksize.x) * 4];
         return KColor(pixel[0], pixel[1], pixel[2], pixel[3]);
     }
+
+	U64 KImage::resourcesGetSize() const{
+		return _kpixels.size();
+	}
 
 }

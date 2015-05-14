@@ -24,6 +24,7 @@
 
 namespace Kite{
     KSoundBuffer::KSoundBuffer():
+		KResources(KRT_AUDIO),
         _ksampleRate(0),
         _kchannelCount(0),
         _kbitsPerSample(0),
@@ -68,5 +69,12 @@ namespace Kite{
 		delete[] Data;
         Data = NULL;
     }
+
+	U64 KSoundBuffer::resourcesGetSize() const{
+		if (_ksize > 0)
+			return _ksize;
+
+		return 0;
+	}
 
 }

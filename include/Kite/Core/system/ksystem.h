@@ -22,6 +22,7 @@
 #include "Kite/Core/system/ksystemtypes.h"
 #include "Kite/core/system/ksystemstructs.h"
 #include "Kite/core/system/knoncopyable.h"
+#include "Kite/core/system/kresources.h"
 #include "Kite/core/system/ksystemutil.h"
 #include "Kite/core/system/ktimer.h"
 

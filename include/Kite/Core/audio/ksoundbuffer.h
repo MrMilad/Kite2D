@@ -19,11 +19,12 @@
 #define KSOUNDBUFFER_H
 
 #include "Kite/Core/system/ksystemdef.h"
+#include "Kite/Core/system/kresources.h"
 #include "Kite/Core/audio/kaudiotypes.h"
 #include <string>
 
 namespace Kite{
-    class KITE_FUNC_EXPORT KSoundBuffer{
+    class KITE_FUNC_EXPORT KSoundBuffer : public KResources{
     public:
         KSoundBuffer();
         ~KSoundBuffer();
@@ -37,6 +38,8 @@ namespace Kite{
         inline U16 getBitsPerSample() const {return _kbitsPerSample;}
         inline I32 getSize() const {return _ksize;}
         inline U32 getID() const {return _kID;}
+
+		U64 resourcesGetSize() const;
 
     private:
         I64 _ksampleRate;

@@ -23,7 +23,9 @@ namespace Kite{
 		_kstart(0.0f, 0.0f),
 		_kend(0.0f, 0.0f),
 		_kcolor()
-	{}
+	{
+		setGeoType(KGP_LINES);
+	}
 
 	KLine::KLine(const KVector2F32 &Start, const KVector2F32 &End, const KColor &Color) :
 		KBatchObject(2),
@@ -34,6 +36,7 @@ namespace Kite{
 		setStart(Start);
 		setEnd(End);
 		setColor(Color);
+		setGeoType(KGP_LINES);
 	}
 
 	KLine::~KLine(){}

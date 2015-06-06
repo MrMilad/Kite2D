@@ -18,12 +18,18 @@
 #ifndef KGRAPHIC_H
 #define KGRAPHIC_H
 
+/*! \file kgraphic.h 
+	\brief All core graphic header files.
+*/
+
 #include "Kite/Core/graphic/kgraphicdef.h"
 #include "Kite/Core/graphic/kgraphictypes.h"
 #include "Kite/Core/graphic/kgraphicstructs.h"
 #include "Kite/Core/graphic/krender.h"
 #include "Kite/Core/graphic/kimage.h"
 #include "Kite/Core/graphic/ktexture.h"
+#include "Kite/Core/graphic/ktextureresource.h"
+#include "Kite/Core/graphic/ktexturemanager.h"
 #include "Kite/Core/graphic/kshader.h"
 #include "Kite/Core/graphic/kvertexarray.h"
 #include "Kite/Core/graphic/kvertexbuffer.h"

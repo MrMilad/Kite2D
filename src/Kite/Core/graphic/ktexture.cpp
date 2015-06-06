@@ -20,8 +20,8 @@
 
 namespace Kite{
     U32 Kite::KTexture::_klastTexId = 0;
-    KTexture::KTexture():
-		KResources(KRT_TEXTURE),
+	KTexture::KTexture() :
+		KTextureResource(this),
         _ktexId(0),
         _kfilter(KTF_LINEAR),
         _kwrap(KTW_CLAMP_TO_EDGE),
@@ -150,7 +150,7 @@ namespace Kite{
         Instance._kfilter = Filter;
     }
 
-	U64 KTexture::resourcesGetSize() const{
+	U64 KTexture::resGetSize() const{
 		return _ksize.x * _ksize.y * 4;
 	}
 

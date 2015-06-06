@@ -17,13 +17,21 @@
 */
 #ifndef KGRAPHICTYPES_H
 #define KGRAPHICTYPES_H
-namespace Kite{
 
-    enum KBlendMode{
-        KB_ALPHA,    // Pixel = Source * Source.a + Dest * (1 - Source.a)
-        KB_ADD,      // Pixel = Source + Dest
-        KB_MULTIPLY, // Pixel = Source * Dest
-        KB_NONE      // Pixel = Source
+/*! \file kgraphictypes.h
+	\brief All core graphic types.
+*/
+
+/*! \namespace Kite
+	\brief Public namespace.
+*/
+namespace Kite{
+	//! Pixel blend
+    enum KBlendTypes{
+        KB_ALPHA,    //!< Pixel = Source * Source.a + Dest * (1 - Source.a)
+        KB_ADD,      //!< Pixel = Source + Dest
+        KB_MULTIPLY, //!< Pixel = Source * Dest
+        KB_NONE      //!< Pixel = Source
     };
 
 //    enum KTextureEnvMode{
@@ -35,23 +43,34 @@ namespace Kite{
 //        KTE_COMBINE
 //    };
 
+	/*! \enum KVertexBufferTypes
+		\brief Performance hint for VBO to provide how the buffer object is going to be used.
+	*/
     enum KVertexBufferTypes{
-        KVB_STATIC = 0,
-        KVB_DYNAMIC,
-        KVB_STREAM
+        KVB_STATIC = 0,	//!< The data in VBO will not be changed (specified once and used many times)
+        KVB_DYNAMIC,	//!< The data in VBO will be changed frequently (specified and used repeatedly)
+        KVB_STREAM		//!< The data in VBO will be changed every frame (specified once and used once)
     };
 
+	/*! \enum KBufferTargetTypes
+		\brief Buffer types.
+	*/
 	enum KBufferTargetTypes{
-		KBT_INDEX = 0,
-		KBT_VERTEX
+		KBT_INDEX = 0,	//!< Index buffer
+		KBT_VERTEX		//!< Vertex buffer
 	};
 
+	/*! \enum KMapAccessTypes
+	*/
     enum KMapAccessTypes{
-        KMA_READ = 0,
-        KMA_WRITE,
-        KMA_RW
+        KMA_READ = 0,	//!< Reading access
+        KMA_WRITE,		//!< Writing access
+        KMA_RW			//!< Reading/writing access
     };
 
+	/*! \enum KGeoPrimitiveTypes
+		\brief Primitive types
+	*/
     enum KGeoPrimitiveTypes{
         KGP_POINTS = 0,
         KGP_LINES,
@@ -71,7 +90,9 @@ namespace Kite{
 //        KFD_SMOOTH
 //    };
 
-    /* Colors */
+	/*! \enum KColorTypes
+		\brief Hex colors code
+	*/
     enum KColorTypes{
         KC_BLACK = 0x000000,           KC_WHITE = 0xFFFFFF,
         KC_RED = 0xff0000,             KC_YELLOW = 0xffff00,
@@ -113,7 +134,7 @@ namespace Kite{
         KC_GRAY = 0x808080
     };
 
-    enum KColorComponent{
+    /*enum KColorComponent{
         KCC_R = 0,
         KCC_G = 1,
         KCC_B = 2,
@@ -125,7 +146,7 @@ namespace Kite{
         KRC_Y = 1,
         KRC_W = 2,
         KRC_H = 3
-    };
+    };*/
 
 
 //    enum KFontCharSetTypes{
@@ -135,27 +156,39 @@ namespace Kite{
 //        KFC_AUTO
 //    };
 
+	/*! \enum KTextureFilterTypes
+		\brief Magnification texture filtering options
+	*/
     enum KTextureFilterTypes{
-        KTF_NEAREST = 0,
-        KTF_LINEAR
+		KTF_NEAREST,	//!< Select the texel nearest the texture coordinate
+        KTF_LINEAR		//!< Perform a weighted linear blend between the nearest adjacent samples
     };
 
+	/*! \enum KTextureWrapTypes
+		\brief The possible heuristic when a texture coordinate is not within the [0, 1] range
+	*/
     enum KTextureWrapTypes{
-        KTW_REPEAT = 0,
-        KTW_MIRRORED_REPEAT,
-        KTW_CLAMP_TO_EDGE,
-        //KTW_CLAMP_TO_BORDER // border not supported (see KTexture::create())
+		KTW_REPEAT,				//!< The texture coordinate wraps around the texture
+        KTW_MIRRORED_REPEAT,	//!< The texture coordinate wraps around like a mirror
+        KTW_CLAMP_TO_EDGE		//!< The texture coordinate is clamped to the [0, 1] range
+     // KTW_CLAMP_TO_BORDER		// border not supported (see KTexture::create())
     };
 
+	/*! \enum KShaderTypes
+		\brief OpenGL shader types
+	*/
     enum KShaderTypes{
-        KS_VERTEX,
-        KS_FRAGMENT
+        KS_VERTEX,	//!< Vertex shader
+        KS_FRAGMENT	//!< Fragment shader
     };
 
 //    enum KShaderTextureTypes{
 //        KST_CURRENT = 0
 //    };
 
+	/*! \enum KAttributeCountTypes
+		\brief Specifies the number of components per generic vertex attribute. (Internally use)
+	*/
     enum KAttributeCountTypes{
         KAC_1COMPONENT = 1,
         KAC_2COMPONENT = 2,
@@ -163,6 +196,9 @@ namespace Kite{
         KAC_4COMPONENT = 4,
     };
 
+	/*! \enum KAttributeTypeTypes
+		\brief Specifies the data type of each component in the array. (Internally use)
+	*/
     enum KAttributeTypeTypes{
         KAT_BYTE = 0,
         KAT_UNSIGNED_BYTE,
@@ -172,10 +208,13 @@ namespace Kite{
         KAT_FLOAT
     };
 
+	/*! \enum KAnimeStateTypes
+		\brief Current state of a animation controller
+	*/
 	enum KAnimeStateTypes{
-		KAS_PLAY,
-		KAS_PAUSE,
-		KAS_STOP
+		KAS_PLAY,	//!< Play
+		KAS_PAUSE,	//!< Pause
+		KAS_STOP	//!< Stop
 	};
 
 	/*enum KAnimePlayTypes{
@@ -183,21 +222,29 @@ namespace Kite{
 		KAP_BACKWARD
 	};*/
 
+	/*! \enum KAnimeValueChangeTypes
+		\brief Property animation methodes
+	*/
 	enum KAnimeValueChangeTypes{
-		KAV_SET, // override current value(s)
-		KAV_APPEND // append to current value(s) (recomended: use + and - value(s) when using KAV_APPEND)
+		KAV_SET,	//!< override current value(s)
+		KAV_APPEND	//!< append to current value(s) (recomended: use + and - value(s) when using KAV_APPEND)
 	};
 
-	enum KAnimeCallbackTypes{
-		KAC_ATTACHED, // when attach to AnimeController list
-		KAC_DETACHED // when detach from AnimeController list
-	};
+	/*enum KAnimeCallbackTypes{
+		KAC_ATTACHED,	//!< When attach to AnimeController list
+		KAC_DETACHED	//!< When detach from AnimeController list
+	};*/
 
+	/*! \enum KTileMapTypes
+		\brief Types of tile-based maps
+	*/
 	enum KTileMapTypes{
-		KTM_ISOMETRIC
+		KTM_ISOMETRIC	//!< Isometric map
 	};
 
-	// isometric tile (mouse detection)
+	/*! \enum KTileBitmapTypes
+		\brief Isometric tiles - mouse detection (Internally use)
+	*/
 	enum KTileBitmapTypes : U8{
 		KTB_CENTER,
 		KTB_BOTTOM_LEFT,
@@ -206,16 +253,35 @@ namespace Kite{
 		KTB_TOP_RIGHT
 	};
 
+	/*! \typedef KCallVBUpdate
+		\brief Function handle for mapping and updating VBO buffers
+	*/
+	typedef void (KCallVBUpdate)(void *Data, U32 Offset, U32 DataSize, void *Sender);
+
+	/*! \typedef KCallAnimeTrigger
+		\brief Function handle for animation triggers
+	*/
 	typedef void(*KCallAnimeTrigger)(void *Parameter);
+
+	/*! \typedef KCallAnimeStatechange
+		\brief Function handle for animation states
+	*/
 	typedef void(*KCallAnimeStatechange)(void *Parameter);
 
+	/*! \namespace Kite::Internal
+		\brief Private namespace.
+	*/
     namespace Internal{
-    enum KGLBindGuardTypes{
-        KBG_NONE = 0,
-        KBG_TEXTURE, // texture
-        KBG_VBUFFER, // vertex buffer
-        KBG_PBUFFER  // frame buffer
-    };
+
+		/*! \enum KGLBindGuardTypes
+			\brief (Internal use)
+		*/
+		enum KGLBindGuardTypes{
+			KBG_NONE = 0,	//!< None
+			KBG_TEXTURE,	//!< Texture
+			KBG_VBUFFER,	//!< Vertex buffer
+			KBG_PBUFFER		//!< Frame buffer
+		};
     }
 
 }

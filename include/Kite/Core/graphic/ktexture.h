@@ -19,14 +19,14 @@
 #define KTEXTURE_H
 
 #include "Kite/Core/system/ksystemdef.h"
-#include "Kite/core/system/kresources.h"
 #include "Kite/Core/math/kmathstructs.h"
 #include "Kite/Core/graphic/kgraphictypes.h"
 #include "Kite/Core/graphic/kgraphicstructs.h"
+#include "Kite/Core/graphic/ktextureresource.h"
 #include "Kite/Core/graphic/kimage.h"
 
 namespace Kite{
-    class KITE_FUNC_EXPORT KTexture : public KResources{
+    class KITE_FUNC_EXPORT KTexture : public KTextureResource{
     public:
         KTexture();
         ~KTexture();
@@ -53,12 +53,12 @@ namespace Kite{
 
         inline KTextureFilterTypes getFilter() const {return _kfilter;}
         inline KTextureWrapTypes getWrap() const {return _kwrap;}
-        inline U32 getID() const {return _ktexId;}
+        inline U32 getGLID() const {return _ktexId;}
 
         void setFilter(KTextureFilterTypes Filter);
         void setWrap(KTextureWrapTypes Wrap);
 
-		U64 resourcesGetSize() const;
+		U64 resGetSize() const;
 
     private:
         static void _create(const U8 *Data, const KVector2U32 &Size,

@@ -18,20 +18,44 @@
 #ifndef KGRAPHICSTRUCTS_H
 #define KGRAPHICSTRUCTS_H
 
+/*! \file kgraphicstructs.h
+	\brief All core graphic structs.
+*/
+
 #include "Kite/Core/system/ksystemtypes.h"
 #include "Kite/Core/graphic/kgraphictypes.h"
 #include "Kite/Core/math/kmath.h"
 #include "Kite/Core/system/ksystemdef.h"
 #include <vector>
 
+/*! \namespace Kite
+	\brief Public namespace.
+*/
 namespace Kite{
+	//! Utility struct for manipulating RGBAs color.
+	/*! 
+		KColor is a simple color struct composed of 4 components: r, g, b, a (opacity)
+		each component is an float in the range [0, 255]
+	*/
     struct KColor{
-        F32 r,g,b,a;
+		F32 r;	//!< Red component
+		F32 g;	//!< Green component
+		F32 b;	//!< Blue component
+		F32 a;	//!< Alpha component (opacity)
 
+		//! Construct the color from its 4 RGBA components.
+		/*!
+			Default value is (255, 255, 255, 255)
+		*/
 		KColor(F32 R = 255, F32 G = 255, F32 B = 255, F32 A = 255) :
             r(R/255.0f), g(G/255.0f), b(B/255.0f), a(A/255.0f)
         {}
 
+		//! Construct the color from a hexadecimal color code.
+		/*!
+			A large number of color codes defined in KColorTypes 
+			However, the hexadecimal code can be passed directly
+		*/
 		KColor(KColorTypes HexCode){
 			r = ((U8)((HexCode >> 16) & 0xFF)) / 255.0f;
 			g = ((U8)((HexCode >> 8) & 0xFF)) / 255.0f;
@@ -39,70 +63,42 @@ namespace Kite{
 		}
 	};
 
-    /// position, texture, color
+	//! Utility struct for manipulating vertex attributes.
+	/*!
+		KVertex is a struct to store the vertex attributes in RAM
+		in order to prepare for graphics memory
+	*/
     struct KVertex{
-        KVector2F32 pos;
-        KVector2F32 uv;
-        KColor color;
+		KVector2F32 pos;	//!< Position
+		KVector2F32 uv;		//!< Texture UV
+		KColor color;		//!< Color
 
+
+		//! Default constructors
         KVertex():
             pos(), uv(), color()
         {}
 
+		//! Construct the vertex from its 3 attributes.
         KVertex(KVector2F32 Pos, KVector2F32 UV, KColor Color):
             pos(Pos), uv(UV), color(Color)
         {}
     };
 
-    /// position, texture
-    /*struct KVBPack2{
-        F32 x,y;
-        F32 u,v;
-
-        KVBPack2(F32 X = -1.0, F32 Y = -1.0, F32 U = 0.0, F32 V = 0.0):
-            x(X), y(Y), u(U), v(V)
-        {}
-    };
-
-    /// position, color
-    struct KVBPack3{
-        F32 x,y;
-        F32 r,g,b,a;
-
-        KVBPack3(F32 X = -1.0, F32 Y = -1.0,
-                 F32 R = 0.0, F32 G = 0.0, F32 B = 0.0, F32 A = 1.0):
-            x(X), y(Y),
-            r(R), g(G), b(B), a(A)
-        {}
-    };
-
-	// uv, color
-	struct KVBPack4{
-		F32 u,v;
-		F32 r,g,b,a;
-
-		KVBPack4(F32 U = 0.0f, F32 V = 0.0f,
-				 F32 R = 0.0, F32 G = 0.0, F32 B = 0.0, F32 A = 1.0) :
-			u(U), v(V),
-			r(R), g(G), b(B), a(A)
-		{}
-	};
-
-    /// position (Point)
-    struct KVBPack5{
-        F32 x,y;
-
-        KVBPack5(F32 X = -1.0, F32 Y = -1.0):
-            x(X), y(Y)
-        {}
-    };*/
-
+	//! Utility struct for representing a atlas object.
+	/*!
+		KAtlas is a simple and compact struct for managing objects in atlas textures.
+	*/
 	struct KAtlas{
-		U32 id;
-		F32 blu, blv; // bottom left texture position (0 to 1)
-		F32 tru, trv; // top right texture position (0 to 1)
-		F32 w, h; // size (in pixel)
+		U32 id;		//!< Unique ID
+		F32 blu;	//!< Bottom-left U texture position with range [0, 1]
+		F32 blv;	//!< Bottom-left V texture position with range [0, 1]
+		F32 tru;	//!< Top-right U texture position with range [0, 1]
+		F32 trv;	//!< Top-right V texture position with range [0, 1]
+		F32 w;		//!< Width in pixel
+		F32 h;		//!< Height in pixel
 
+		//! Construct the atlas object from its attributes.
 		KAtlas(U32 ID = 0, F32 BLU = 0, F32 BLV = 0,
 			F32 TRU = 0, F32 TRV = 0, F32 W = 0, F32 H = 0) :
 			id(ID),
@@ -112,24 +108,28 @@ namespace Kite{
 		{}
 	};
 
-	// common array-based file header
-	struct KArrayHeader{
-		char format[7]; // eg: {'k', 'a', 't', 'l', 'a', 's', '\0'}; // file format
-		U32 objCount; // array size (index)
-	};
-
-	// key based animation
-	// anime state
+	//! State of a key in key-based animations for user classes.
+	/*!
+		Each channel disable/enable related value.
+		each state-change mode, determine how to change values. (add or discard)
+	*/
 	struct KAnimeValue{
-		KVector2F32 translate;
-		KVector2F32 scale;
-		F32 rotate;
-		KVector2F32 center;
-		KColor color;
-		KRectF32 uv;
-		bool trChannel, scaleChannel, rotateChannel, uvChannel, colorChannel;
-		KAnimeValueChangeTypes tchange, schange, rchange;
+		KVector2F32 translate;	//!< Translate state
+		KVector2F32 scale;		//!< Scale state
+		F32 rotate;				//!< Rotate state
+		KVector2F32 center;		//!< Origin state
+		KColor color;			//!< Color state
+		KRectF32 uv;			//!< UV state
+		bool trChannel;			//!< Translate channel state
+		bool scaleChannel;		//!< Scale channel state
+		bool rotateChannel;		//!< Rotate channel state
+		bool uvChannel;			//!< UV channel state
+		bool colorChannel;		//!< Color channel state
+		KAnimeValueChangeTypes tchange;	//!< Translate state-change mode
+		KAnimeValueChangeTypes schange;	//!< Scale state-change mode
+		KAnimeValueChangeTypes rchange;	//!< Rotate state-change mode
 
+		//! Default constructors
 		KAnimeValue() :
 			translate(), scale(1.0f, 1.0f), rotate(0), center(),
 			color(), uv(),
@@ -139,70 +139,69 @@ namespace Kite{
 		{}
 	};
 
-	// key state
+	//! State of a key in key-based animations with extra options for animation controller classes.
+	/*!
+		Each channel disable/enable related value.
+		each state-change mode, determine how to change values. (add or discard)
+	*/
 	struct KAnimeKey{
-		F32 time; // key time (in millisecons)
-		KVector2F32 translate;
-		KVector2F32 scale;
-		F32 rotate;
-		KVector2F32 center; // center of all transformation
-		U32 uv; // texture uv (atlas id)
-		KColor color;
-		KInterpolationTypes tinterp, sinterp, rinterp, cinterp; // interpolation types (pos, scale, rotate, color)
-		KAnimeValueChangeTypes tchange, schange, rchange; // how to use animated values
-		bool tchannel, schannel, rchannel, cchannel, uvchannel; // we have 5 channel (position, scale, rotate, color and uv) 
-																// each channel disable/enable related value
+		F32 time;				//!< Time in milliseconds
+		KVector2F32 translate;	//!< Translate state
+		KVector2F32 scale;		//!< Scale state
+		F32 rotate;				//!< Rotate state
+		KVector2F32 center;		//!< Origin state
+		U32 uv;					//!< UV state
+		KColor color;			//!< Color state
+		bool trChannel;			//!< Translate channel state
+		bool scaleChannel;		//!< Scale channel state
+		bool rotateChannel;		//!< Rotate channel state
+		bool uvChannel;			//!< UV channel state
+		bool colorChannel;		//!< Color channel state
+		KAnimeValueChangeTypes tchange;	//!< Translate state-change mode
+		KAnimeValueChangeTypes schange;	//!< Scale state-change mode
+		KAnimeValueChangeTypes rchange;	//!< Rotate state-change mode
+		KInterpolationTypes tinterp;	//!< Translate interpolation type
+		KInterpolationTypes sinterp;	//!< Scale interpolation type
+		KInterpolationTypes rinterp;	//!< Rotate interpolation type
+		KInterpolationTypes cinterp;	//!< Origin interpolation type
+
+		//! Default constructors
 		KAnimeKey() :
 			time(0), translate(), scale(1.0f, 1.0f),
 			rotate(0.0f), center(), uv(0), color(),
 			tinterp(KIN_LINEAR), sinterp(KIN_LINEAR), rinterp(KIN_LINEAR), cinterp(KIN_LINEAR),
 			tchange(KAV_SET), schange(KAV_SET), rchange(KAV_SET),
-			tchannel(false), schannel(false), rchannel(false),
-			cchannel(false), uvchannel(false)
+			trChannel(false), scaleChannel(false), rotateChannel(false),
+			uvChannel(false), colorChannel(false)
 		{}
 	};
 
+	//! OpenGL vecrsion holder
     struct KOGLVersion{
-        U8 major;
-        U8 minor;
+        U8 major;	//!< OpenGL major version
+        U8 minor;	//!< OpenGL minor version
     };
 
-    typedef void (KCallVBUpdate)(void *Data, U32 Offset, U32 DataSize, void *Sender);
-
-    /*struct KQuadAttribute{
-        KVector2F32 bottomLeft;
-        KVector2F32 topRight;
-        KColor color;
-        KVector2F32 bottomLeftUV;
-        KVector2F32 topRightUV;
-
-		KQuadAttribute() :
-            bottomLeft(-1.0, -1.0),
-            topRight(0.0,0.0),
-            color(),
-            bottomLeftUV(0,0),
-            topRightUV(1,1)
-        {}
-
-		KQuadAttribute(const KVector2F32 &BottomLeft, const KVector2F32 &TopRight, const KColor &Color,
-                     const KVector2F32 &BottomLeftUV, const KVector2F32 &TopRightUV):
-            bottomLeft(BottomLeft), topRight(TopRight),
-            color(Color),
-            bottomLeftUV(BottomLeftUV), topRightUV(TopRightUV)
-        {}
-    };*/
-
+	//! Particle attribute
     struct KParticle{
-		KVector2F32 pos;
-		KColor color;
-        I32 angle;
-        I32 speed;
-        U32 life;
-        U32 size;
+		KVector2F32 pos;	//!< Position
+		KColor color;		//!< Color
+        I32 angle;			//!< Angle
+        I32 speed;			//!< Speed
+        U32 life;			//!< Life
+        U32 size;			//!< Size
     };
 
+	//! Configuration of Batch objects.
+	/*!
+		Specifies how to configure the vertex buffer objects (VBO).
+	*/
     struct KBatchConfig{
-        KVertexBufferTypes position, uv, color;
+		KVertexBufferTypes position;	//!< Position buffer config
+		KVertexBufferTypes uv;			//!< UV buffer config
+		KVertexBufferTypes color;		//!< Color buffer config
+
+		//! Default constructors
         KBatchConfig(KVertexBufferTypes Position = KVB_STATIC, KVertexBufferTypes UV = KVB_STATIC,
                      KVertexBufferTypes Color = KVB_STATIC):
             position(Position), uv(UV), color(Color)
@@ -211,38 +210,47 @@ namespace Kite{
 
 	struct KTileMapInfo{
 		KTileMapTypes mapType;
-		KVector2F32 tileSize; // x = width, y = height
-		KVector2U32 mapSize; // x = number of tiles in row, y = number of tiles in column
+		KVector2F32 tileSize;	//!< x = width, y = height
+		KVector2U32 mapSize;	//!< x = number of tiles in row, y = number of tiles in column
 	};
 
-	// isometric tile structure for drawing purpose
+	//! isometric tile structure for drawing purpose
 	struct KIsometricTile{
-		U32 textureId; // texture id (atlas id)
-		U32 baseSpace; // space between texture and ground(y = 0)
-		U32 height; // height of tile
-		U16 leftExtraUnit; // extera weight from left (merged tile)
-		U16 rightExtraUnit; // extera weight from right (merged tile)
-		bool stacked; // is stacked (stakced tile will draw on previous tile)
+		U32 textureId;		//!< Texture id (atlas id)
+		U32 baseSpace;		//!< Space between texture and ground(y = 0)
+		U32 height;			//!< Height of tile
+		U16 leftExtraUnit;	//!< Extera width from left (merged tile)
+		U16 rightExtraUnit; //!< Extera width from right (merged tile)
+		bool stacked;		//!< Is stacked (stakced tile will draw on previous tile)
 	};
 
+	/*! \namespace Kite::Internal
+		\brief Private namespace.
+	*/
     namespace Internal{
+		//! Animation time trigger. (internally use)
 		struct KAnimeTimeTrigger{
-			F32 start;
-			F32 end;
-			KCallAnimeTrigger func;
-			bool called;
-			void *sender;
+			F32 start;				//!< Start time
+			F32 end;				//!< End time
+			KCallAnimeTrigger func; //!< Callback
+			bool called;			//!< Called once in duration
+			void *sender;			//!< Opaque pointer
 
+			//! Default constructors
 			KAnimeTimeTrigger(F32 Start = 0, F32 End = 0,
 				KCallAnimeTrigger Functor = 0, bool Called = false, void *Sender = 0) :
 				start(Start), end(End), func(Functor), called(Called), sender(Sender)
 			{}
 		};
 
+		//! Catch last OpenGL state. (internally use)
 		struct KCatchDraw{
-			U32 objIndex, lastTexId, lastShdId;
-			KGeoPrimitiveTypes lastGeo;
+			U32 objIndex;	//!< Index of current object
+			U32 lastTexId;	//!< Last used texture id
+			U32 lastShdId;	//!< Last used shader id
+			KGeoPrimitiveTypes lastGeo;	//!< Last used geometric type
 
+			//! Default constructors
 			KCatchDraw(U32 ObjectIndex = 0, U32 LastTextureID = 0, U32 LastSeaderID = 0,
 				KGeoPrimitiveTypes GeoType = KGP_TRIANGLES) :
 				objIndex(ObjectIndex),
@@ -250,7 +258,8 @@ namespace Kite{
 				lastShdId(LastSeaderID),
 				lastGeo(GeoType)
 			{}
-
+			
+			//! Equal operator
 			inline bool operator==(const KCatchDraw& rhs){
 				if (rhs.lastTexId == lastTexId &&
 					rhs.lastShdId == lastShdId &&
@@ -260,27 +269,9 @@ namespace Kite{
 				return false;
 			}
 
+			//! Not equal operator
 			inline bool operator!=(const KCatchDraw& rhs){ return !(*this == rhs); }
 		};
-
-		struct KCatchState{
-			/// need fix
-			KBlendMode blend;
-			U32 lastVAOId, lastVBOId, lastTexId, lastShdId;
-			bool pointSpr;
-
-			KCatchState(KBlendMode Blend = KB_ALPHA,
-						U32 LastVAOID = 0, U32 LastVBOID = 0,
-						U32 LastTextureID = 0, U32 LastSeaderID = 0,
-						bool PointSprite = false):
-				blend(Blend),
-				lastVAOId(LastVAOID),
-				lastVBOId(LastVBOID),
-				lastTexId(LastTextureID),
-				lastShdId(LastSeaderID),
-				pointSpr(PointSprite)
-        {}
-    };
     }
 }
 

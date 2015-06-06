@@ -18,32 +18,23 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "Kite/Assist/graphic/kanimecontrollergroup.h"
 
 namespace Kite{
-	KAnimeControllerGroup::KAnimeControllerGroup():
-		_kloop(false),
-		_kstype(KAS_STOP)
-	{}
-
-	void KAnimeControllerGroup::addController(KAnimeController *Controller){
+	void KAnimeControllerGroup::addObject(KAnimeController *Controller){
 		if (Controller){
 			_klist.push_back(Controller);
-			Controller->setState(_kstype);
-			Controller->setLoop(_kloop);
 		}
 	}
 
-	void KAnimeControllerGroup::deleteAllController(){
+	void KAnimeControllerGroup::removeAllObjects(){
 		_klist.clear();
 	}
 
 	void KAnimeControllerGroup::setLoop(bool Loop){
-		_kloop = Loop;
 		for (U32 i = 0; i < _klist.size(); i++){
 			_klist[i]->setLoop(Loop);
 		}
 	}
 
 	void KAnimeControllerGroup::setState(KAnimeStateTypes State){
-		_kstype = State;
 		for (U32 i = 0; i < _klist.size(); i++){
 			_klist[i]->setState(State);
 		}

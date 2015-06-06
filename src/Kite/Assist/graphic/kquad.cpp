@@ -25,6 +25,7 @@ namespace Kite{
 		setDimension(KRect2F32());
 		setUV(KRectF32(0.0f, 1.0f, 0.0f, 1.0f));
 		setColor(KColor());
+		setGeoType(KGP_TRIANGLES);
 	}
 
 	KQuad::KQuad(const KRectF32 &Dimension, const KRectF32 &UV, const KColor &Color):
@@ -37,6 +38,7 @@ namespace Kite{
 			KVector2F32(Dimension.right, Dimension.top)));
 		setUV(UV);
 		setColor(Color);
+		setGeoType(KGP_TRIANGLES);
 	}
 
 	KQuad::KQuad(const KRect2F32 &Dimension, const KRectF32 &UV, const KColor &Color):
@@ -46,6 +48,7 @@ namespace Kite{
 		setDimension(Dimension);
 		setUV(UV);
 		setColor(Color);
+		setGeoType(KGP_TRIANGLES);
 	}
 
 	void KQuad::_fillIndex(){

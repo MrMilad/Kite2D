@@ -18,24 +18,71 @@
 #ifndef IMAGEIO_H
 #define IMAGEIO_H
 
+/*! \file imageio.h */
+
 #include "Kite/core/system/knoncopyable.h"
 #include "Kite/Core/math/kmathstructs.h"
 #include <string>
 #include <vector>
 
+/*! \namespace Kite
+	\brief Public namespace.
+*/
 namespace Kite{
+
+/*! \namespace Kite::Internal
+	\brief Private namespace.
+*/
 namespace Internal{
+
+	//! The ImageIO class is a low-level class for reading and writing image file formats.
+	/*!
+		This class can read and decode PNG, BMP, TGA formats from a file or memory or a input stream and also write that formats into a file.
+		this is a low-level io class. use KImage instead.
+	*/
     class ImageIO{
     public:
-        static void readFromFile(const std::string &FileName, std::vector<U8> &Pixels, KVector2U32 &Size);
-		static void readFromMemory(const void *Data, std::size_t DataSize,
+		//! Read and decode pixels from a file.
+		/*!
+			\param FileName Address of image file on disk.
+			\param Pixels Pixels storage.
+			\param Size Size of image.
+
+			\return True if loading was successful
+		*/
+        static bool readFromFile(const std::string &FileName, std::vector<U8> &Pixels, KVector2U32 &Size);
+
+		//! Read and decode pixels from a memory block.
+		/*!
+			\param Data Pointer to image data.
+			\param DataSize Size of data.
+			\param Pixels Pixels storage.
+			\param Size Size of image.
+
+			\return True if loading was successful
+		*/
+		static bool readFromMemory(const void *Data, std::size_t DataSize,
                             std::vector<U8> &Pixels, KVector2U32 &Size);
 
-        static void writeToFile(const std::string &FileName, const std::vector<U8> &Pixels,
+		//static void readFromStream();
+
+
+		//! Encode and write pixels from a pixels storage to the file.
+		/*!
+			\param FileName Address of image file on disk.
+			\param Pixels Pixels storage.
+			\param Size Size of image.
+
+			\return True if saving was successful
+		*/
+		static bool writeToFile(const std::string &FileName, const std::vector<U8> &Pixels,
                          const KVector2U32& Size);
 
-        // convert a string to lower case
-        static void toLower(std::string &str);
+		//! Convert a string to lower case. this is a utility function.
+		/*!
+			\param String Input string.
+		*/
+        static void toLower(std::string &String);
     };
 }
 }

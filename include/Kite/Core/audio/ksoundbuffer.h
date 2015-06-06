@@ -32,6 +32,12 @@ namespace Kite{
         /// load sound file
         void loadFile(const std::string &FileName, KAudioFileTypes Format);
 
+		/// load from memory
+		// void loadMemory(const std::string &FileName, KAudioFileTypes Format);
+
+		/// load from stream
+		// void loadstream(const std::string &FileName, KAudioFileTypes Format);
+
         /// file informations
         inline I64 getSampleRate() const {return _ksampleRate;}
         inline U16 getChannelCount() const {return _kchannelCount;}
@@ -39,7 +45,7 @@ namespace Kite{
         inline I32 getSize() const {return _ksize;}
         inline U32 getID() const {return _kID;}
 
-		U64 resourcesGetSize() const;
+		U64 resGetSize() const;
 
     private:
         I64 _ksampleRate;

@@ -89,8 +89,8 @@ namespace Internal{
         return ret;
     }
 
-    GLBindGuard::GLBindGuard(KGLBindGuardTypes type, GLint objectID):
-        _ktypes(type), _kglobject(objectID)
+    GLBindGuard::GLBindGuard(KGLBindGuardTypes Type, GLint ObjectID):
+		_ktypes(Type), _kglobject(ObjectID)
     {}
 
     GLBindGuard::~GLBindGuard(){

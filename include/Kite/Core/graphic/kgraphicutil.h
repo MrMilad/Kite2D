@@ -18,20 +18,27 @@
 #ifndef KGRAPHICUTIL_H
 #define KGRAPHICUTIL_H
 
+/*! \file kgraphicutil.h
+	\brief All core graphic utility functions.
+*/
+
 #include "Kite/Core/system/ksystemdef.h"
 
+/*! \namespace Kite
+	\brief Public namespace.
+*/
 namespace Kite{
 
-	/// return one side of maximum texture size (e.g 1024 = 1024x1024)
+	//! Get maximum texture size (e.g 1024 = 1024x1024)
 	KITE_FUNC_EXPORT extern I32 getMaximumTextureSize();
 
-	/// maximum number of supported texture units
+	//! Get maximum number of supported texture units
 	KITE_FUNC_EXPORT extern I32 getMaximumTextureUnit();
 
-	/// maximum number of supported vertex attributes
+	//! Get maximum number of supported vertex attributes
 	KITE_FUNC_EXPORT extern I32 getMaximumVertexAttrib();
 
-	/// check availability of opengl shader programs
+	//! Check availability of opengl shader programs
 	//KITE_FUNC_EXPORT extern bool isShaderAvailable(); 
 
 }

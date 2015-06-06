@@ -34,8 +34,12 @@ namespace Kite{
 		_kinsptr.erase(_kid);
 	}
 
-	const KResources *KResources::resourcesGetPointer(U64 ID){
-		std::unordered_map<U64, const KResources *>::const_iterator got = _kinsptr.find(ID);
+	U32 KResources::resGetCount(KResourcesTypes Type) {
+		return _kinstances[Type]; 
+	}
+
+	const KResources *KResources::resGetPointer(U64 UniqueID){
+		std::unordered_map<U64, const KResources *>::const_iterator got = _kinsptr.find(UniqueID);
 
 		if (got != _kinsptr.end())
 			return got->second;
@@ -43,19 +47,19 @@ namespace Kite{
 		return 0;
 	}
 
-	U64 KResources::resourcesGetTotalSize(){
+	U64 KResources::resGetTotalSize(){
 		U64 total = 0;
 		for (auto it = _kinsptr.begin(); it != _kinsptr.end(); ++it){
-			total += it->second->resourcesGetSize();
+			total += it->second->resGetSize();
 		}
 		return total;
 	}
 
-	U64 KResources::resourcesGetSize(KResourcesTypes Type){
+	U64 KResources::resGetSize(KResourcesTypes Type){
 		U64 total = 0;
 		for (auto it = _kinsptr.begin(); it != _kinsptr.end(); ++it){
 			if (it->second->_ktype == Type)
-				total += it->second->resourcesGetSize();
+				total += it->second->resGetSize();
 		}
 
 		return total;

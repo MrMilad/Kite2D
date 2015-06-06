@@ -30,24 +30,26 @@ namespace Kite{
 		virtual ~KResources();
 
 		// a unique id per resource
-		inline U64 resourcesGetID() const { return _kid; }
+		inline U64 resGetUniqueID() const { return _kid; }
 
 		// type of resources
-		inline KResourcesTypes resourcesGetType() const { return _ktype; }
+		inline KResourcesTypes resGetType() const { return _ktype; }
 
 		// count instances
-		static inline U32 resourcesGetCount(KResourcesTypes Type) { return _kinstances[Type]; }
+		static U32 resGetCount(KResourcesTypes Type);
 
 		// get resource pointer by id
-		static const KResources *resourcesGetPointer(U64 ID);
+		static const KResources *resGetPointer(U64 UniqueID);
 
 		// size in byte
 		// size of all types
-		static U64 resourcesGetTotalSize();
+		static U64 resGetTotalSize();
+
 		// by type (total size of a type)
-		static U64 resourcesGetSize(KResourcesTypes Type);
+		static U64 resGetSize(KResourcesTypes Type);
+
 		// by instance
-		virtual U64 resourcesGetSize() const = 0;
+		virtual U64 resGetSize() const = 0;
 
 	private:
 		U64 _kid;

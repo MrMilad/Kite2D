@@ -18,6 +18,8 @@
 #ifndef KIMAGE_H
 #define KIMAGE_H
 
+/*! \file kimage.h */
+
 #include "Kite/Core/system/ksystemdef.h"
 #include "Kite/Core/system/kresources.h"
 #include "Kite/Core/math/kmathstructs.h"
@@ -25,39 +27,141 @@
 #include <string>
 #include <vector>
 
+/*! \namespace Kite
+	\brief Public namespace.
+*/
 namespace Kite{
+
+	//! The KImage class is the high-level class for loading/saving	 image files and manipulating image data.
+	/*!
+		This class can create the image with only size and color of pixels,
+		or read and decode PNG, BMP, TGA formats from a file or memory or a input stream and also write that formats into a file.
+	*/
     class KITE_FUNC_EXPORT KImage : public KResources{
     public:
+		//! Constructs an empty image object.
         KImage();
+
+		//! Destroys the image object.
         ~KImage();
 
+		//! Create the image with the specific size and color
+		/*!
+			\param Width Width of the image (in pixels)
+			\param Height Height of the image (in pixels)
+			\param Color Color of the pixels
+		*/
         void create(U32 Width, U32 Height, const KColor &Color);
+
+		//! Create the image with the specific size and color
+		/*!
+			The pixelx array is assumed to contain 32-bits RGBA pixels,
+			and have the given width and height (width * height * 4 = size of array).
+			If not, this is an undefined behaviour.
+			If pixels is null, an empty image is created.
+
+			\param Width Width of the image (in pixels)
+			\param Height Height of the image (in pixels)
+			\param Pixels Array of pixels to copy to the image
+		*/
         void create(U32 Width, U32 Height, const U8 *Pixels);
 
-        /// load from file
-        void loadFile(const std::string &FileName);
+		//! Load the image from a file on disk
+		/*!
+			Supported formats: PNG, BMP, TGA.
+			if this function fails, the image is left unchanged.
 
-        /// load from memory
-        void loadMemory(const void *Data, std::size_t Size);
+			\param FileName Address of the image file on the disk
 
-        /// save to file
-        void save(const std::string &FileName);
+			\return True if loading was successful
+		*/
+        bool loadFile(const std::string &FileName);
 
+		//! Load the image from a memory block
+		/*!
+			Supported formats: PNG, BMP, TGA.
+			if this function fails, the image is left unchanged.
+
+			\param Data Pointer to the file data in memory
+			\param Size Size of the data (in bytes)
+
+			\return True if loading was successful
+		*/
+        bool loadMemory(const void *Data, std::size_t Size);
+
+		//! Load the image to a file on disk
+		/*!
+			Supported formats: PNG, BMP, TGA.
+			if this function fails, the image is left unchanged.
+
+			\param FileName Address of the file on the disk
+
+			\return True if saving was successful
+		*/
+        bool save(const std::string &FileName);
+
+		//! Create a transparency mask from a specified color - key
+		/*!
+			This function sets the alpha value of every pixel matching
+			the given color to alpha (0 by default).
+
+			\param Color Color to make transparent
+			\param Alpha Alpha value to assign to transparent pixels
+		*/
         void makeColorMask(const KColor& Color, U8 Alpha = 0);
+
+		//! Flip the image horizontally (left <-> right)
         void flipH();
+
+		//! Flip the image vertically (top <-> bottom)
         void flipV();
 
+		//! Change the color of a pixel
+		/*!
+			Using out-of-range values will result in
+			an undefined behaviour.
+
+			\param Position Coordinate of pixel
+			\param Color New color of the pixel
+		*/
         void setPixel(KVector2U32 Position, const KColor &Color);
+
+		//! Get the color of a pixel
+		/*!
+			Using out-of-range values will result in
+			an undefined behaviour.
+
+			\param Position Coordinate of pixel
+			\return Color of the color
+		*/
         KColor getPixel(KVector2U32 Position) const;
+
+		//! Get the size of the image
+		/*!
+			\return The size of the image
+		*/
         inline KVector2U32 getSize() const {return _ksize;}
+
+		//! Get a read-only (const) pointer to the array of pixels
+		/*!
+			width * height * 4 = size of the array.
+			the returned pointer may become invalid if you
+			modify the image, so you should never store it for too long.
+			If the image is empty, a null pointer is returned.
+
+			\return Read-only (const) pointer to the array of pixels
+		*/
 		inline const U8 *getPixelsData() const { if (!_kpixels.empty()) return &_kpixels[0]; return 0; }
 
-		// get size in byte
-		U64 resourcesGetSize() const;
+		//! Get size of resource in memory
+		/*!
+			\return Size of resource in bytes
+		*/
+		U64 resGetSize() const;
 
     private:
-        std::vector<U8> _kpixels;
-        KVector2U32 _ksize;
+        std::vector<U8> _kpixels;	//!< Array of pixels
+        KVector2U32 _ksize;			//!< Size of the image
     };
 }
 

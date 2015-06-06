@@ -18,6 +18,7 @@
 #include "Kite/Assist/graphic/kindexbatch.h"
 #include "Kite/Core/graphic/krender.h"
 #include "Kite/Core/graphic/kgraphicdef.h"
+#include "Kite/core/graphic/ktexturemanager.h"
 
 namespace Kite{
 	KIndexBatch::KIndexBatch(const std::vector<KIndexBatchObject *> &Objects,
@@ -197,9 +198,9 @@ namespace Kite{
 			// fill catch with first object in array
 			lastCatch.objIndex = FirstIndex;
 			if (_kobjects->at(FirstIndex)->getTexture())
-				lastCatch.lastTexId = _kobjects->at(FirstIndex)->getTexture()->getID();
+				lastCatch.lastTexId = _kobjects->at(FirstIndex)->getTexture()->getGLID();
 			if (_kobjects->at(FirstIndex)->getShader())
-				lastCatch.lastShdId = _kobjects->at(FirstIndex)->getShader()->getID();
+				lastCatch.lastShdId = _kobjects->at(FirstIndex)->getShader()->getGLID();
 			lastCatch.lastGeo = _kobjects->at(FirstIndex)->getGeoType();
 
 			while (!completed){
@@ -208,9 +209,9 @@ namespace Kite{
 				for (iter; iter < (FirstIndex + Size); iter++){
 					currentCatch.objIndex = iter;
 					if (_kobjects->at(iter)->getTexture())
-						currentCatch.lastTexId = _kobjects->at(iter)->getTexture()->getID();
+						currentCatch.lastTexId = _kobjects->at(iter)->getTexture()->getGLID();
 					if (_kobjects->at(iter)->getShader())
-						currentCatch.lastShdId = _kobjects->at(iter)->getShader()->getID();
+						currentCatch.lastShdId = _kobjects->at(iter)->getShader()->getGLID();
 					currentCatch.lastGeo = _kobjects->at(iter)->getGeoType();
 					if (lastCatch == currentCatch){
 						++groupSize;

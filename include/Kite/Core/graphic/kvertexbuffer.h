@@ -68,9 +68,9 @@ namespace Kite{
         inline void setUpdateHandle(KCallVBUpdate *UpdateHandle) {_kupdateHnd = UpdateHandle;}
 
         inline KVertexBufferTypes getType() const {return _kbufType;}
-		inline U32 getID() const { return _kbufId; }
+		inline U32 getGLID() const { return _kbufId; }
 
-		U64 resourcesGetSize() const;
+		U64 resGetSize() const;
 
     private:
         KVertexBufferTypes _kbufType;

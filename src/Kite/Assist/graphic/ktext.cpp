@@ -27,6 +27,7 @@ namespace Kite{
 		_kcolor()
 	{
 		_fillIndex();
+		setGeoType(KGP_TRIANGLES);
 	}
 
 	KText::KText(const std::string &Text, const std::vector<KAtlas> &Font, const KColor &Color) :
@@ -40,6 +41,7 @@ namespace Kite{
 		_fillIndex();
 		setFont(Font);
 		setColor(Color);
+		setGeoType(KGP_TRIANGLES);
 	}
 
 	void KText::_fillIndex(){

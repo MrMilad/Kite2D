@@ -40,7 +40,7 @@ namespace Kite{
 
         // attach the texture to FBO color attachment point
         DGL_CALL(glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
-                                        GL_TEXTURE_2D, Texture->getID(), 0));
+                                        GL_TEXTURE_2D, Texture->getGLID(), 0));
 
         // check status
         KDEBUG_ASSERT_T(GL_FRAMEBUFFER_COMPLETE != glCheckFramebufferStatus(GL_FRAMEBUFFER));

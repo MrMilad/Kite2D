@@ -17,6 +17,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 #include "Kite/Assist/map/kmapio.h"
+#include "Kite/Core/utility/kutilitystructs.h"
 #include <cstdio>
 
 namespace Kite{

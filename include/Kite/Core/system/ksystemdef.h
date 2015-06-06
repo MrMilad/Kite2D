@@ -32,11 +32,12 @@
 
     /// Little endian
     #define KITE_ENDIAN_LITTLE
+	#define MINIZ_LITTLE_ENDIAN 1
 
 #endif
 
 /// identify the operating system
-#if defined(_WIN32) || defined(__WIN32__)
+#if defined(_WIN32) || defined(__WIN32__) || defined(__WIN64)
 
     /// Windows
     #define KITE_PLATFORM_WINDOWS
@@ -44,10 +45,26 @@
         #define NOMINMAX
     #endif
 
+	/// 32 or 64 bit
+	#if _WIN64
+		#define KITE_ENV_64
+		#define MINIZ_HAS_64BIT_REGISTERS 1
+	#else
+		#define KITE_ENV_32
+	#endif
+
 #elif defined(linux) || defined(__linux)
 
     /// Linux
     #define KITE_PLATFORM_LINUX
+
+	/// 32 or 64 bit
+	#if __x86_64__ || __ppc64__
+		#define KITE_ENV_64
+		#define MINIZ_HAS_64BIT_REGISTERS 1
+	#else
+		#define KITE_ENV_32
+	#endif
 
 #elif defined(__APPLE__) || defined(MACOSX) || defined(macintosh) || defined(Macintosh)
 

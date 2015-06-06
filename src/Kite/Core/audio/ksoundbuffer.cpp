@@ -70,7 +70,7 @@ namespace Kite{
         Data = NULL;
     }
 
-	U64 KSoundBuffer::resourcesGetSize() const{
+	U64 KSoundBuffer::resGetSize() const{
 		if (_ksize > 0)
 			return _ksize;
 

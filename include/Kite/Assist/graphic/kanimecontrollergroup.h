@@ -25,31 +25,21 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 namespace Kite{
 	class KITE_FUNC_EXPORT KAnimeControllerGroup{
 	public:
-		KAnimeControllerGroup();
+		void addObject(KAnimeController *Controller);
 
-		void addController(KAnimeController *Controller);
-
-		void deleteAllController();
+		void removeAllObjects();
 
 		// set group loop
 		// loop apply at any direction (foreward and backwrad)
 		void setLoop(bool Loop);
 
-		// get group loop
-		inline bool getLoop() const { return _kloop; }
-
 		// set group state (play, pause, stop)
 		void setState(KAnimeStateTypes State);
-
-		// get group state (play, pause, stop)
-		inline KAnimeStateTypes getState() const { return _kstype; }
 
 		// update animation state
 		void update(F32 Delta);
 
 	private:
-		bool _kloop;
-		KAnimeStateTypes _kstype;
 		std::vector<KAnimeController *> _klist;
 	};
 }

@@ -98,7 +98,7 @@ namespace Kite{
                             _kviewport.top));
     }
 
-    const KRectU32 &KRender::getViewport(){
-        return _kviewport;
+    const KRectU32 *KRender::getViewport(){
+        return &_kviewport;
     }
 }

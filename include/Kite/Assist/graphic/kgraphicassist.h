@@ -20,9 +20,9 @@
 
 #include "Kite/Assist/graphic/kdrawable.h"
 #include "Kite/Assist/graphic/ktransformable.h"
+#include "Kite/Assist/graphic/ktransformablegroup.h"
 #include "Kite/Assist/graphic/kcamera.h"
-#include "Kite/Assist/graphic/katlasio.h"
-#include "Kite/Assist/graphic/kanimeio.h"
+#include "Kite/Assist/graphic/kflashio.h"
 #include "Kite/Assist/graphic/kanimeobject.h"
 #include "Kite/Assist/graphic/kanimecontrollergroup.h"
 #include "Kite/Assist/graphic/kanimecontroller.h"

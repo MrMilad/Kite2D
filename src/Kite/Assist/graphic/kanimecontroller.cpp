@@ -127,8 +127,8 @@ namespace Kite{
 		// time calibration
 		if (_kloop){
 			// out of range time (before 0 or after total duration)
-			if ((_ktime + Delta) >= _kclip->back().time) { _ktime = fmod(_ktime + Delta, _kclip->back().time); }
-			else if ((_ktime + Delta) <= 0) { _ktime = _kclip->back().time - fmod(abs(_ktime + Delta) + _kclip->back().time, _kclip->back().time); }
+			if ((_ktime + Delta) >= _kclip->back().time) { _ktime = fmodf(_ktime + Delta, _kclip->back().time); }
+			else if ((_ktime + Delta) <= 0) { _ktime = _kclip->back().time - fmodf(abs(_ktime + Delta) + _kclip->back().time, _kclip->back().time); }
 			// in range time
 			else { _ktime += Delta; }
 		}else{
@@ -165,6 +165,12 @@ namespace Kite{
 			_kvalue.color.g = tweenFunction[type](_ktime - key1->time, key1->color.g, key2->color.g, key2->time - key1->time);
 			_kvalue.color.b = tweenFunction[type](_ktime - key1->time, key1->color.b, key2->color.b, key2->time - key1->time);
 
+			_kvalue.trChannel = key2->trChannel;
+			_kvalue.scaleChannel = key2->scaleChannel;
+			_kvalue.rotateChannel = key2->rotateChannel;
+			_kvalue.colorChannel = key2->colorChannel;
+			_kvalue.uvChannel = key2->uvChannel;
+
 		}else{
 			key1 = &_kclip->at(_kcurrentKey);
 			_kvalue.translate = key1->translate;
@@ -185,11 +191,6 @@ namespace Kite{
 		_kvalue.tchange = key1->tchange;
 		_kvalue.schange = key1->schange;
 		_kvalue.rchange = key1->rchange;
-		_kvalue.trChannel = key1->tchannel;
-		_kvalue.scaleChannel = key1->schannel;
-		_kvalue.rotateChannel = key1->rchannel;
-		_kvalue.colorChannel = key1->cchannel;
-		_kvalue.uvChannel = key1->uvchannel;
 
 		for (U32 i = 0; i < _klist.size(); i++){
 			_klist[i]->animeUpdate(&_kvalue);

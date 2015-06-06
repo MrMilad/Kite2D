@@ -56,7 +56,7 @@ namespace Kite{
         /// unbind currently vertex array.
         static void unbindVertexArray();
 
-        inline U32 getID() const {return _karrayId;}
+        inline U32 getGLID() const {return _karrayId;}
 
     private:
         U32 _karrayId;

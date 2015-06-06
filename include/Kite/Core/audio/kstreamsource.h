@@ -45,6 +45,12 @@ class SoundIO;
         /// load sound file
         void loadFile(const std::string &FileName, KAudioFileTypes Types);
 
+		/// load from memory
+		// void loadFile(const std::string &FileName, KAudioFileTypes Format);
+
+		/// load from stream
+		// void loadFile(const std::string &FileName, KAudioFileTypes Format);
+
     private:
         void loader(); // fill buffers immediately (thread task)
         void fillFirst4Buffer();

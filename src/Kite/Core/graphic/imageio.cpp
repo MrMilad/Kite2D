@@ -25,7 +25,7 @@
 
 namespace Kite{
 namespace Internal{
-    void ImageIO::readFromFile(const std::string &FileName, std::vector<U8> &Pixels, KVector2U32 &Size){
+    bool ImageIO::readFromFile(const std::string &FileName, std::vector<U8> &Pixels, KVector2U32 &Size){
         // we need an empty array
         Pixels.clear();
 
@@ -44,13 +44,13 @@ namespace Internal{
 
             // free the loaded pixels (they are now in our own pixel buffer)
             stbi_image_free(pixPtr);
-            return;
+            return true;
         }
         KDEBUG_PRINT("Failed to load image");
-        KDEBUG_BREAK;
+		return false;
     }
 
-    void ImageIO::readFromMemory(const void *Data, std::size_t DataSize,
+    bool ImageIO::readFromMemory(const void *Data, std::size_t DataSize,
                         std::vector<U8> &Pixels, KVector2U32 &Size){
         // check input parameters
         if (Data && DataSize){
@@ -73,15 +73,16 @@ namespace Internal{
 
                 // Free the loaded pixels (they are now in our own pixel buffer)
                 stbi_image_free(pixPtr);
+				return true;
             }
             KDEBUG_PRINT("Failed to read image");
-            KDEBUG_BREAK;
+			return false;
         }
         KDEBUG_PRINT("Failed to read image");
-        KDEBUG_BREAK;
+		return false;
     }
 
-    void ImageIO::writeToFile(const std::string &FileName, const std::vector<U8> &Pixels,
+    bool ImageIO::writeToFile(const std::string &FileName, const std::vector<U8> &Pixels,
                      const KVector2U32 &Size){
         // make sure the image is not empty
         if (!Pixels.empty() && (Size.x > 0) && (Size.y > 0)){
@@ -94,15 +95,15 @@ namespace Internal{
                 if (extension == "bmp"){
                     // BMP format
                     if (stbi_write_bmp(FileName.c_str(), Size.x, Size.y, 4, &Pixels[0]))
-                        return;
+                        return true;
                 }else if (extension == "tga"){
                     // TGA format
                     if (stbi_write_tga(FileName.c_str(), Size.x, Size.y, 4, &Pixels[0]))
-                        return;
+						return true;
                 }else if(extension == "png"){
                     // PNG format
                     if (stbi_write_png(FileName.c_str(), Size.x, Size.y, 4, &Pixels[0], 0))
-                        return;
+						return true;
                 }/*else if (extension == "jpg"){
                     // JPG format
                     if (writeJpg(FileName, Pixels, Size.x, Size.y))
@@ -112,7 +113,7 @@ namespace Internal{
         }
 
         KDEBUG_PRINT("Failed to write image");
-        KDEBUG_BREAK;
+		return false;
     }
 
     // Convert a string to lower case

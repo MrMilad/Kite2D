@@ -103,7 +103,7 @@ namespace Kite{
         return false;
     }
 
-    void KShader::bindAttribute(U16 Index, const std::string Name){
+    void KShader::bindAttribute(U16 Index, const std::string &Name){
         DGL_CALL(glBindAttribLocation(_kprogId, (GLuint)Index, Name.c_str()));
     }
 
@@ -136,28 +136,28 @@ namespace Kite{
         return -1;
     }
 
-    void KShader::setParam(Kite::I16 Location, F32 x) const{
+    void KShader::setParam(Kite::I16 Location, F32 Value) const{
         if (_kprogId && Location >= 0){
             // get parameter location and assign it new values
-            DGL_CALL(glUniform1fARB(Location, x));
+			DGL_CALL(glUniform1fARB(Location, Value));
         }
     }
 
-    void KShader::setParam(Kite::I16 Location, F32 x, F32 y) const{
+	void KShader::setParam(Kite::I16 Location, F32 Value1, F32 Value2) const{
         if (_kprogId && Location >= 0){
-            DGL_CALL(glUniform2fARB(Location, x, y));
+			DGL_CALL(glUniform2fARB(Location, Value1, Value2));
         }
     }
 
-    void KShader::setParam(Kite::I16 Location, F32 x, F32 y, F32 z) const{
+	void KShader::setParam(Kite::I16 Location, F32 Value1, F32 Value2, F32 Value3) const{
         if (_kprogId && Location >= 0){
-            DGL_CALL(glUniform3fARB(Location, x, y, z));
+			DGL_CALL(glUniform3fARB(Location, Value1, Value2, Value3));
         }
     }
 
-    void KShader::setParam(Kite::I16 Location, F32 x, F32 y, F32 z, F32 w) const{
+	void KShader::setParam(Kite::I16 Location, F32 Value1, F32 Value2, F32 Value3, F32 Value4) const{
         if (_kprogId && Location >= 0){
-            DGL_CALL(glUniform4fARB(Location, x, y, z, w));
+			DGL_CALL(glUniform4fARB(Location, Value1, Value2, Value3, Value4));
         }
     }
 

@@ -18,16 +18,26 @@
 #ifndef KAUDIOSTRUCTS_H
 #define KAUDIOSTRUCTS_H
 
+/*! \file kaudiostructs.h */
+
 #include "Kite/Core/system/ksystemdef.h"
 
+/*! \namespace Kite
+	\brief Public namespace.
+*/
 namespace Kite{
-    struct KAudioInfo{
-        U8 channel, bitsPerSample;
-        I32 size;
-        I64 bitRate, sampleRate;
-        F64 totalTime;
-        bool isSeekable;
 
+	//! Utility struct for storing information of sounds data. (Internally use)
+    struct KAudioInfo{
+		U8 channel;					//!< How many channels are contained in the audio data. For example, Stereo 2 channels
+		U8 bitsPerSample;			//!< How many bits per sample
+        I32 size;					//!< Total size of sound track (in bytes)
+		I64 bitRate;				//!< The bit rate of PCM audio data (32, 96, 192, 320, ...)
+		I64 sampleRate;				//!< The sample rate is in samples per second
+        F64 totalTime;				//!< Total time of sound track 
+        bool isSeekable;			//!< Seek is possible
+
+		//! Default constructors
         KAudioInfo(U8 Channel = 0, U8 BitsPerSample = 0,
                    I32 Size = 0, I64 BitRate = 0, I64 SampleRate = 0,
                    F64 TotalTime = 0.0, bool IsSeekable = false):

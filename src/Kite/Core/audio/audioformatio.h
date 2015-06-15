@@ -20,6 +20,7 @@
 
 #include "Kite/Core/system/ksystemdef.h"
 #include "Kite/Core/audio/kaudiostructs.h"
+#include "Kite/Core/system/kinputstream.h"
 
 namespace Kite{
 namespace Internal{
@@ -32,12 +33,14 @@ namespace Internal{
 
         virtual ~AudioFormatIO(){}
 
-        /// open file for reading
+		/// read the PCM data from file on disk
         virtual bool openFile(const char *FileName) = 0;
+
+		/// read the PCM data from input stream
+		virtual bool openFile(KInputStream &InputStream) = 0;
 
         /// read and decode data then fill buffer with data
         /// return: indicates actual number of bytes read
-
         virtual I32 readData(void *Data, I32 Size) = 0;
 
         /// get information of audio file

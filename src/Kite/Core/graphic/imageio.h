@@ -22,6 +22,7 @@
 
 #include "Kite/core/system/knoncopyable.h"
 #include "Kite/Core/math/kmathstructs.h"
+#include "Kite/Core/system/kinputstream.h"
 #include <string>
 #include <vector>
 
@@ -64,8 +65,15 @@ namespace Internal{
 		static bool readFromMemory(const void *Data, std::size_t DataSize,
                             std::vector<U8> &Pixels, KVector2U32 &Size);
 
-		//static void readFromStream();
+		//! Read and decode pixels from input stream.
+		/*!
+			\param Stream Input stream.
+			\param Pixels Pixels storage.
+			\param Size Size of image.
 
+			\return True if loading was successful
+		*/
+		static bool readFromStream(KInputStream &Stream, std::vector<U8> &Pixels, KVector2U32 &Size);
 
 		//! Encode and write pixels from a pixels storage to the file.
 		/*!
@@ -83,6 +91,11 @@ namespace Internal{
 			\param String Input string.
 		*/
         static void toLower(std::string &String);
+
+	private:
+		static int _read(void *user, char *data, int size);   // fill 'data' with 'size' bytes.  return number of bytes actually read 
+		static void _skip(void *user, unsigned n);            // skip the next 'n' bytes
+		static int _eof(void *user);                       // returns nonzero if we are at end of file/data
     };
 }
 }

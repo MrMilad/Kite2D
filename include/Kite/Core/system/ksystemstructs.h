@@ -35,6 +35,25 @@ namespace Kite{
             {}
     };*/
 
+	// Input stream
+	/*struct InputStream{
+		KCallInputStreamRead read;
+		KCallInputStreamSeek seek;
+		KCallInputStreamTell tell;
+		KCallInputStreamIsOpen isOpen;
+		KCallInputStreamEOF endOfFile;
+		KCallInputStreamClose close;
+
+		InputStream():
+			read(0),
+			seek(0),
+			tell(0),
+			isOpen(0),
+			endOfFile(0),
+			close(0)
+		{}
+	};*/
+
     // functor base
     struct KThreadFunc
     {

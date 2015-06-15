@@ -18,7 +18,7 @@
 #ifndef KSHADER_H
 #define KSHADER_H
 
-/*! \file ksahder.h */
+/*! \file kshader.h */
 
 #include "Kite/Core/system/ksystemdef.h"
 #include "Kite/Core/system/knoncopyable.h"
@@ -148,7 +148,8 @@ namespace Kite{
 
 		//! Bind the shader program
 		/*!
-			Do not forget to link the program before bind it
+			Do not forget to link the program before bind it.
+			(automatic handle by internal render system)
 		*/
         void bind() const;
 
@@ -158,13 +159,13 @@ namespace Kite{
 		//! Unbind current shader program
         static void unbindShader();
 
-		//! Get OpenGL ID of shader program
+		//! Get OpenGL ID of the shader program
 		/*!
 			\return OpenGL ID of shader program
 		*/
         inline U32 getGLID() const {return _kprogId;}
 
-		//! Get version of shading language
+		//! Get version of the shading language
 		/*!
 			\return A version or release number for the shading language
 		*/

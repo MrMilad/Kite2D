@@ -18,25 +18,44 @@
 #ifndef KSTATICSOURCE_H
 #define KSTATICSOURCE_H
 
+/*! \file kstaticsource.h */
+
 #include "Kite/Core/system/ksystemdef.h"
 #include "Kite/Core/audio/ksoundsource.h"
 #include "Kite/Core/audio/ksoundbuffer.h"
 
+/*! \namespace Kite
+	\brief Public namespace.
+*/
 namespace Kite{
+
+	//! The KStaticSource class provide the ability to play sound buffers with a variety of options.
+	/*!
+		KStaticSource is perfect for playing short sounds that can fit in memory and require no latency,
+		like foot steps or gun shots.
+	*/
     class KITE_FUNC_EXPORT KStaticSource : public KSoundSource{
     public:
         void play();
         void pause();
         void stop();
 
-        /// default false
         void setLoop(bool Loop);
         bool getLoop();
 
-        /// attach a buffer to the source
+		//! Attach a buffer to the source
+		/*!
+			For a source in the KSS_PLAYING or KSS_PAUSED state, attaching buffer will
+			result in a invalid state. sound buffers can be applied only to sources in the KSS_INTIAL and KSS_STOPPED states.
+
+			\param Buffer Sound buffer
+		*/
         void attachBuffer(const KSoundBuffer &Buffer);
 
-        /// deattach buffer
+		//! Deattach all buffers from the source
+		/*!
+			
+		*/
         void deattachBuffer();
 
         /// set play offset

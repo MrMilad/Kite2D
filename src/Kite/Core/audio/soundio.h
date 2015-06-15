@@ -33,6 +33,9 @@ namespace Internal{
         /// open file for reading
         bool openFile(const char *FileName, KAudioFileTypes FileTypes);
 
+		/// read the PCM data from input stream
+		bool openFile(KInputStream &InputStream, KAudioFileTypes FileTypes);
+
         /// read and decode data then fill buffer with data
         /// return: indicates actual number of bytes read
         I32 readData(void *Data, I32 Size);

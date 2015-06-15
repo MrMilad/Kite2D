@@ -89,25 +89,27 @@ namespace Internal{
         return ret;
     }
 
-    GLBindGuard::GLBindGuard(KGLBindGuardTypes Type, GLint ObjectID):
-		_ktypes(Type), _kglobject(ObjectID)
+	GLBindGuard::GLBindGuard(KGLBindGuardTypes Type, GLint LastObjectID, GLint CurObjectID) :
+		_ktypes(Type), _kglLastObj(LastObjectID), _kglCurObj(CurObjectID)
     {}
 
-    GLBindGuard::~GLBindGuard(){
-        switch (_ktypes){
-        case KBG_TEXTURE:
-            DGL_CALL(glBindTexture(GL_TEXTURE_2D, _kglobject));
-            break;
-        case KBG_VBUFFER:
-            DGL_CALL(glBindBuffer(GL_ARRAY_BUFFER_ARB, _kglobject));
-            break;
-        case KBG_PBUFFER:
-            DGL_CALL(glBindFramebuffer(GL_FRAMEBUFFER, _kglobject));
-            break;
-        default:
-            KDEBUG_PRINT("Invalid types.");
-            break;
-        }
+	GLBindGuard::~GLBindGuard(){
+		if (_kglLastObj != _kglCurObj){
+			switch (_ktypes){
+			case KBG_TEXTURE:
+				DGL_CALL(glBindTexture(GL_TEXTURE_2D, _kglLastObj));
+				break;
+			case KBG_VBUFFER:
+				DGL_CALL(glBindBuffer(GL_ARRAY_BUFFER_ARB, _kglLastObj));
+				break;
+			case KBG_FBUFFER:
+				DGL_CALL(glBindFramebuffer(GL_FRAMEBUFFER, _kglLastObj));
+				break;
+			default:
+				KDEBUG_PRINT("Invalid types.");
+				break;
+			}
+		}
     }
 }
 }

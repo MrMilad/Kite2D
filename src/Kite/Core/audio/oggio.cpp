@@ -72,6 +72,51 @@ namespace Internal{
         return true;
     }
 
+	
+	bool OGGIO::openFile(KInputStream &InputStream){
+		if (_kisOpen){
+			ov_clear(&_koggStream);
+			_kinfo = KAudioInfo();
+			_kreadPos = 0;
+			_kisOpen = false;
+		}
+
+		_kcallb.read_func = _read;
+		_kcallb.seek_func = _seek;
+		_kcallb.tell_func = _tell;
+		_kcallb.close_func = _close;
+
+		// open stream    
+		if (ov_open_callbacks((void *) &InputStream, &_koggStream, NULL, 0, _kcallb) < 0){
+			KDEBUG_PRINT("could not open ogg stream.");
+			return false;
+		}
+
+		// get vorbis info
+		if (!(_koggInfo = ov_info(&_koggStream, -1))){
+			KDEBUG_PRINT("could not retrieve vorbis info.");
+			ov_clear(&_koggStream);
+			return false;
+		}
+
+		_kinfo.channel = _koggInfo->channels;
+		_kinfo.sampleRate = _koggInfo->rate;
+		_kinfo.bitsPerSample = 16;
+		_kinfo.bitRate = ov_bitrate(&_koggStream, -1);
+		_kinfo.size = (I32)(ov_pcm_total(&_koggStream, -1) * sizeof(I16)* _kinfo.channel);
+		_kinfo.totalTime = ov_time_total(&_koggStream, -1);
+
+		if (ov_seekable(&_koggStream) == 0){
+			_kinfo.isSeekable = false;
+		}
+		else{
+			_kinfo.isSeekable = true;
+		}
+
+		_kisOpen = true;
+		return true;
+	}
+
     I32 OGGIO::readData(void *Data, I32 Size){
         // check requested size
         if (Size == 0 || !_kisOpen){
@@ -107,5 +152,25 @@ namespace Internal{
         ov_pcm_seek(&_koggStream, (Offset / sizeof(I32)));
         return true;
     }
+
+	size_t OGGIO::_read(void *ptr, size_t size, size_t nmemb, void *datasource){
+		KInputStream *stream = (KInputStream *)datasource;
+		return stream->read(ptr, size * nmemb) / size;
+	}
+
+	int OGGIO::_seek(void *datasource, ogg_int64_t offset, int whence){
+		KInputStream *stream = (KInputStream *)datasource;
+		return stream->seek(offset, whence);
+	}
+
+	int OGGIO::_close(void *datasource){
+		KInputStream *stream = (KInputStream *)datasource;
+		return stream->close();
+	}
+
+	long OGGIO::_tell(void *datasource){
+		KInputStream *stream = (KInputStream *)datasource;
+		return stream->tell();
+	}
 }
 }

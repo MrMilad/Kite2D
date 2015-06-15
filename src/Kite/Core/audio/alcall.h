@@ -18,24 +18,52 @@
 #ifndef ALCALL_H
 #define ALCALL_H
 
+/*! \file alcall.h */
+
 #include "Kite/core/system/ksystemdef.h"
 #include "AL/al.h"
 #include "AL/alc.h"
 
+/*! \namespace Kite
+	\brief Public namespace.
+*/
 namespace Kite{
-namespace Internal{
-	extern bool initeAL(const char *DeviceName = NULL);
-    extern bool checkLastALErr();
-    extern ALenum getFormat(U16 ChannelCount, U16 BitsPerSample);
-}
-}
 
-// OpenAL debug macro
-#if defined(KITE_DEV_DEBUG)
-    #define DAL_CALL(call) call; KDEBUG_ASSERT_T(Kite::Internal::checkLastALErr())
-#else
-    #define DAL_CALL(call) call;
-#endif
+/*! \namespace Kite::Intrenal
+\brief Private namespace.
+*/
+namespace Internal{
+
+	//! Initialize OpenAL library.
+	/*!
+		\param DeviceName Name of the audio device
+		\return Return false if there is an error.
+	*/
+	extern bool initeAL(const char *DeviceName = NULL);
+
+	//! Cheking any OpenAL error.
+	/*!
+		\return Return false if there is an error.
+	*/
+    extern bool checkLastALErr();
+
+	//! Find best OpanAL audio format (mono/stereo)
+	/*!
+		\return Return false if there is an error.
+	*/
+    extern ALenum getFormat(U16 ChannelCount, U16 BitsPerSample);
+
+	/*! \def DAL_CALL
+		\brief OpenAL debug macro.
+		\param call Any OpenAL function in debug mode
+	*/
+	#if defined(KITE_DEV_DEBUG)
+		#define DAL_CALL(call) call; KDEBUG_ASSERT_T(Kite::Internal::checkLastALErr())
+	#else
+		#define DAL_CALL(call) call;
+	#endif
+}
+}
 
 
 #endif // ALCALL_H

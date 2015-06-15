@@ -28,44 +28,53 @@
 */
 namespace Kite{
 
-	//! The KFrameBuffer class is a low-level class that encapsulate OpenGL framebuffer object (FBO).
+	//! The KFrameBuffer class encapsulate OpenGL framebuffer object (FBO).
 	/*!
 		This class provides features such as render to texture and off-screen rendering.
 	*/
     class KITE_FUNC_EXPORT KFrameBuffer : KNonCopyable{
 	public:
 
-		//! Constructs an framebuffer object (FBO).
+		//! Constructs an frame buffer object (FBO).
         KFrameBuffer();
 
-		//! Destroys the framebuffer object.
+		//! Destructor
         ~KFrameBuffer();
 
 		//! Attach a texture to color buffer. (render to texture)
 		/*!
+			This function is similar to the glFramebufferTexture2D().
+
 			\param Texture Pointer to a initialized texture.
 		*/
         void attachTexture(const KTexture *Texture);
 
 		//! Bind the framebuffer object.
 		/*!
-			This is similar to the glBind*() function call,
-			but avoid calling that gl function several times if our FBO is currently in use.
+			This function is similar to the glBind*(),
+			but avoid calling that gl function several times if our FBO is currently bound.
+			(automatic handle by internal render system)
 		*/
         void bind();
 
 		//! Unbind the framebuffer if it is currently bound.
 		/*!
-			This is similar to the glBind*(0) function call.
+			This function is similar to the glBind*(0).
 			unbind only if our FBO is currently bound.
 		*/
         void unbind();
 
 		//! Unbind current frame buffer.
 		/*!
-			This is similar to the glBind*(0) function call.
+			This function is similar to the glBind*(0).
 		*/
         static void unbindFrameBuffer();
+
+		//! Get OpenGL ID of the frame buffer object
+		/*!
+			\return OpenGL ID of frame buffer object
+		*/
+		inline U32 getGLID() const { return _kbufId; }
 
     private:
         U32 _kbufId;			//!< OpenGL FBO ID

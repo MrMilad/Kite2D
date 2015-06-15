@@ -44,7 +44,7 @@ namespace Kite{
     }
 
     void KStaticSource::attachBuffer(const KSoundBuffer &Buffer){
-        DAL_CALL(alSourcei(_kID, AL_BUFFER, Buffer.getID()));
+        DAL_CALL(alSourcei(_kID, AL_BUFFER, Buffer.getALID()));
     }
 
     void KStaticSource::deattachBuffer(){

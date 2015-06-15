@@ -59,7 +59,7 @@ namespace Internal{
 			\param Type An enum that specifies the type of OpenGL object.
 			\param ObjectID Object ID.
 		*/
-        GLBindGuard(KGLBindGuardTypes Type = KBG_NONE, GLint ObjectID = 0);
+		GLBindGuard(KGLBindGuardTypes Type = KBG_NONE, GLint LastObjectID = 0, GLint CurObjectID = 0);
 
 		//! Destroys the GLBindGuard object.
 		/*!
@@ -69,12 +69,13 @@ namespace Internal{
 
     private:
         KGLBindGuardTypes _ktypes; //!< OpenGL object type
-        GLuint _kglobject; //!< OpenGL object ID
+        GLuint _kglLastObj; //!< OpenGL last object ID
+		GLuint _kglCurObj;	//!< OpenGL current object ID
     };
 
 	/*! \def DGL_CALL
-	\brief OpenGL debug macro.
-	\param call Any OpenGL function in debug mode
+		\brief OpenGL debug macro.
+		\param call Any OpenGL function in debug mode
 	*/
 	#if defined(KITE_DEV_DEBUG)
 	#define DGL_CALL(call) call; KDEBUG_ASSERT_T(Kite::Internal::checkLastGLErr())

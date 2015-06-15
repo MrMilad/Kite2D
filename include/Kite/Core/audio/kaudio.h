@@ -18,6 +18,10 @@
 #ifndef KAUDIO_H
 #define KAUDIO_H
 
+/*! \file kaudio.h 
+	\brief All core audio header files.
+*/
+
 #include "Kite/Core/audio/kaudiotypes.h"
 #include "Kite/Core/audio/kaudiostructs.h"
 #include "Kite/Core/audio/klistener.h"

@@ -46,19 +46,19 @@ namespace Kite{
         _create(Image.getPixelsData(), Image.getSize(), Filter, Wrap, *this);
     }
 
-    void KTexture::update(const KImage &Image, U32 XPos, U32 YPos){
+    void KTexture::update(const KImage &Image, const KVector2U32 &Position){
         if (_ktexId > 0){
 
             // check new image size with texture size
-            KDEBUG_ASSERT_T((XPos + Image.getSize().x) <= _ksize.x);
-            KDEBUG_ASSERT_T((YPos + Image.getSize().y) <= _ksize.y);
+			KDEBUG_ASSERT_T((Position.x + Image.getSize().x) <= _ksize.x);
+			KDEBUG_ASSERT_T((Position.y + Image.getSize().y) <= _ksize.y);
 
-            // save currently binded texture then bind our texture temporary
-            Internal::GLBindGuard guard(Internal::KBG_TEXTURE, _klastTexId);
+            // save currently bound texture then bind our texture temporary
+            Internal::GLBindGuard guard(Internal::KBG_TEXTURE, _klastTexId, _ktexId);
             DGL_CALL(glBindTexture(GL_TEXTURE_2D, _ktexId));
 
             // update pixels
-            DGL_CALL(glTexSubImage2D(GL_TEXTURE_2D, 0, XPos, YPos,
+			DGL_CALL(glTexSubImage2D(GL_TEXTURE_2D, 0, Position.x, Position.y,
                                      Image.getSize().x, Image.getSize().y,
                                      GL_RGBA, GL_UNSIGNED_BYTE, Image.getPixelsData()));
         }else{
@@ -90,8 +90,8 @@ namespace Kite{
         if (_ktexId > 0){
 
             if (Filter != _kfilter){
-                // save currently binded texture then bind our texture temporary
-                Internal::GLBindGuard guard(Internal::KBG_TEXTURE, _klastTexId);
+                // save currently bound texture then bind our texture temporary
+                Internal::GLBindGuard guard(Internal::KBG_TEXTURE, _klastTexId, _ktexId);
                 DGL_CALL(glBindTexture(GL_TEXTURE_2D, _ktexId));
 
                 // set filter type
@@ -109,8 +109,8 @@ namespace Kite{
         if (_ktexId > 0){
 
             if (Wrap != _kwrap){
-                // save currently binded texture then bind our texture temporary
-                Internal::GLBindGuard guard(Internal::KBG_TEXTURE, _klastTexId);
+                // save currently bound texture then bind our texture temporary
+                Internal::GLBindGuard guard(Internal::KBG_TEXTURE, _klastTexId, _ktexId);
                 DGL_CALL(glBindTexture(GL_TEXTURE_2D, _ktexId));
 
                 // setup texture parameters
@@ -128,7 +128,7 @@ namespace Kite{
                         KTextureFilterTypes Filter, KTextureWrapTypes Wrap, KTexture &Instance){
 
         // save currently binded texture then bind our texture temporary
-        Internal::GLBindGuard guard(Internal::KBG_TEXTURE, _klastTexId);
+		Internal::GLBindGuard guard(Internal::KBG_TEXTURE, _klastTexId, Instance._ktexId);
         DGL_CALL(glBindTexture(GL_TEXTURE_2D, Instance._ktexId));
 
         // fill texture with image pixel data

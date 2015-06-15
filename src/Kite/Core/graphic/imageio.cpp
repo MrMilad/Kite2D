@@ -17,9 +17,9 @@
 */
 #include "Kite/core/system/ksystemdef.h"
 #include "src/Kite/core/graphic/imageio.h"
-#include "extlibs/headers/stb_image.h"
 #include <string>
 #include <algorithm>
+#include "extlibs/headers/stb_image.h"
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #include "extlibs/headers/stb_image_write.h"
 
@@ -82,6 +82,37 @@ namespace Internal{
 		return false;
     }
 
+	bool ImageIO::readFromStream(KInputStream &Stream, std::vector<U8> &Pixels, KVector2U32 &Size){
+		// we need an empty array
+		Pixels.clear();
+
+		// set callback
+		static stbi_io_callbacks _kcallb;
+		_kcallb.read = _read;
+		_kcallb.skip = _skip;
+		_kcallb.eof = _eof;
+
+		// read the image data and get a pointer to the pixels in memory
+		I32 width, height, channels;
+		U8* pixPtr = stbi_load_from_callbacks(&_kcallb, (void *) &Stream, &width, &height, &channels, STBI_rgb_alpha);
+
+		if (pixPtr && width && height){
+			// assign the image properties
+			Size.x = width;
+			Size.y = height;
+
+			// copy the loaded pixels data to our pixel buffer
+			Pixels.resize(width * height * 4);
+			memcpy(&Pixels[0], pixPtr, Pixels.size());
+
+			// free the loaded pixels (they are now in our own pixel buffer)
+			stbi_image_free(pixPtr);
+			return true;
+		}
+		KDEBUG_PRINT("Failed to load image");
+		return false;
+	}
+
     bool ImageIO::writeToFile(const std::string &FileName, const std::vector<U8> &Pixels,
                      const KVector2U32 &Size){
         // make sure the image is not empty
@@ -120,5 +151,19 @@ namespace Internal{
     void ImageIO::toLower(std::string &str){
 		std::transform(str.begin(), str.end(), str.begin(), ::tolower);
     }
+
+	int ImageIO::_read(void *user, char *data, int size){
+		KInputStream *stream = (KInputStream *)user;
+		return stream->read(data, size);
+	}
+	void ImageIO::_skip(void *user, unsigned n){
+		KInputStream *stream = (KInputStream *)user;
+		stream->seek(stream->tell() + n, SEEK_CUR);
+	}
+
+	int ImageIO::_eof(void *user){
+		KInputStream *stream = (KInputStream *)user;
+		return stream->eof();
+	}
 }
 }

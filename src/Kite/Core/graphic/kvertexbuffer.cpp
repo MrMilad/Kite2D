@@ -45,7 +45,8 @@ namespace Kite{
         if (Data != 0 && DataSize > 0){
 			static int dataHint[] = { GL_STATIC_DRAW, GL_DYNAMIC_DRAW, GL_STREAM_DRAW };
 
-			// bind buffer
+			// save currently bound buffer then bind our buffer temporary
+			Internal::GLBindGuard guard(Internal::KBG_VBUFFER, _klastBufId);
 			bind();
 
             // fill buffer with vertex data
@@ -61,7 +62,8 @@ namespace Kite{
         // check update handle and buffer
         if (_kupdateHnd && _kbufId > 0){
 
-            // bind buffer
+			// save currently bound buffer then bind our buffer temporary
+			Internal::GLBindGuard guard(Internal::KBG_VBUFFER, _klastBufId, _kbufId);
 			bind();
 
             // map buffer
@@ -82,7 +84,8 @@ namespace Kite{
         // check update handle and buffer
         if (_kupdateHnd && _kbufId > 0 ){
 
-			// bind buffer
+			// save currently bound buffer then bind our buffer temporary
+			Internal::GLBindGuard guard(Internal::KBG_VBUFFER, _klastBufId, _kbufId);
 			bind();
 
             // discarded (streaming purpose only)
@@ -114,7 +117,8 @@ namespace Kite{
     void KVertexBuffer::update(U32 Offset, U32 Size, const void *Data){
         if (_kbufId > 0){
 
-			// bind buffer
+			// save currently bound buffer then bind our buffer temporary
+			Internal::GLBindGuard guard(Internal::KBG_VBUFFER, _klastBufId, _kbufId);
 			bind();
 
             // replace data

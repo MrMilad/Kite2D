@@ -20,15 +20,16 @@
 
 #include "Kite/Core/system/ksystemdef.h"
 #include "Kite/Core/audio/ksoundsource.h"
+#include "Kite/Core/system/kinputstream.h"
 #include <string>
 
 namespace std{
 	class thread;
 }
 namespace Kite{
-namespace Internal{
-class SoundIO;
-}
+	namespace Internal{
+		class SoundIO;
+	}
     class KITE_FUNC_EXPORT KStreamSource : public KSoundSource{
     public:
         KStreamSource();
@@ -38,18 +39,14 @@ class SoundIO;
         void pause();
         void stop();
 
-        /// default false
-        inline void setLoop(bool Loop) {_kloop = Loop;}
-        inline bool getLoop() {return _kloop;}
+		void setLoop(bool Loop);
+		bool getLoop();
 
         /// load sound file
-        void loadFile(const std::string &FileName, KAudioFileTypes Types);
-
-		/// load from memory
-		// void loadFile(const std::string &FileName, KAudioFileTypes Format);
+		bool loadFile(const std::string &FileName, KAudioFileTypes Format);
 
 		/// load from stream
-		// void loadFile(const std::string &FileName, KAudioFileTypes Format);
+		bool loadStream(KInputStream &InputStream, KAudioFileTypes Format);
 
     private:
         void loader(); // fill buffers immediately (thread task)

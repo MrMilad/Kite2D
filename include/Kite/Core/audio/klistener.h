@@ -18,28 +18,68 @@
 #ifndef KLISTENER_H
 #define KLISTENER_H
 
+/*! \file alcall.h */
+
 #include "Kite/Core/system/ksystemdef.h"
 #include "Kite/Core/math/kmathstructs.h"
 
+/*! \namespace Kite
+	\brief Public namespace.
+*/
 namespace Kite{
+
+	//! The KListener class is a wrapper around OpenAL listener for easy accessing and manipulating.
+	/*!
+		There is only one listener which represents where 'you' are, the user.
+		The listener properties along with the source properties determine how the audio sample will be heard.
+		by controlling the listener, the application controls the way the user experiences the virtual world,
+		as the listener defines the position point and orientation, and other parameters that affect the output stream.
+	*/
     class KITE_FUNC_EXPORT KListener{
     public:
 
-        /// master global gain
-        /// default 1
-		/// range 1 to 100
+		//! Set master global gain
+		/*!
+			Range of master gain [1, 100]
+			by default 1
+
+			\param Gain Pointer to image data.
+		*/
         static void setMasterGain(F32 Gain);
+
+		//! Get master global gain
+		/*!
+			\return Master gain
+		*/
         static F32 getMasterGain();
 
-        /// listener position
-        /// pass (-1, 0, 0) or (1, 0, 0) for 2D panning
-        /// default (0, 0, 0)
+		//! Set listener position
+		/*!
+			Pass (-1, 0, 0) or (1, 0, 0) for 2D panning
+			by default (0, 0, 0)
+
+			\param Position Listener position
+		*/
         static void setPosition(const KVector3F32 &Position);
+
+		//! Get listener position
+		/*!
+			\return Listener position
+		*/
         static KVector3F32 getPosition();
 
-        /// listener orientation
-        /// default (0, 0, 0)
+		//! Set listener Orientation
+		/*!
+			by default (0, 0, 0)
+
+			\param Orientation Listener orientation
+		*/
         static void setOrientation(const KVector3F32 &Orientation);
+
+		//! Get listener orientation
+		/*!
+			\return Listener orientation
+		*/
         static KVector3F32 getOrientation();
 
     };

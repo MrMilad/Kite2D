@@ -43,6 +43,20 @@ namespace Internal{
 		return false;
     }
 
+	bool SoundIO::openFile(KInputStream &InputStream, KAudioFileTypes FileTypes){
+		delete _kformat;
+		switch (FileTypes){
+		case KAF_OGG:
+			_kformat = new OGGIO();
+			return _kformat->openFile(InputStream);
+			break;
+		default:
+			KDEBUG_PRINT("invalid or not supportd file type");
+			break;
+		}
+		return false;
+	}
+
     I32 SoundIO::readData(void *Data, I32 Size){
         if (!_kformat){
             KDEBUG_PRINT("open file first");

@@ -26,7 +26,9 @@
 	\brief Public namespace.
 */
 namespace Kite{
-	//! Pixel blend
+	/*! \enum Pixel blend 
+		\brief Blend types
+	*/
     enum KBlendTypes{
         KB_ALPHA,    //!< Pixel = Source * Source.a + Dest * (1 - Source.a)
         KB_ADD,      //!< Pixel = Source + Dest
@@ -60,8 +62,7 @@ namespace Kite{
 		KBT_VERTEX		//!< Vertex buffer
 	};
 
-	/*! \enum KMapAccessTypes
-	*/
+	/*! \enum KMapAccessTypes */
     enum KMapAccessTypes{
         KMA_READ = 0,	//!< Reading access
         KMA_WRITE,		//!< Writing access
@@ -280,7 +281,7 @@ namespace Kite{
 			KBG_NONE = 0,	//!< None
 			KBG_TEXTURE,	//!< Texture
 			KBG_VBUFFER,	//!< Vertex buffer
-			KBG_PBUFFER		//!< Frame buffer
+			KBG_FBUFFER		//!< Frame buffer
 		};
     }
 

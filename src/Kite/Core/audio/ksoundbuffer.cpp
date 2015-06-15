@@ -39,9 +39,10 @@ namespace Kite{
         DAL_CALL(alDeleteBuffers(1, &_kID));
     }
 
-    void KSoundBuffer::loadFile(const std::string &FileName, Kite::KAudioFileTypes Format){
+    bool KSoundBuffer::loadFile(const std::string &FileName, Kite::KAudioFileTypes Format){
         Internal::SoundIO sound;
 		char *Data;
+		bool ret = false;
 
         // open file for reading data
         sound.openFile(FileName.c_str(), Format);
@@ -56,19 +57,71 @@ namespace Kite{
         I64 read;
 		Data = new char[_ksize];
         read = sound.readData((void *)Data, (I32)_ksize);
-        KDEBUG_ASSERT_T(read == _ksize);
+		if (read == _ksize){
 
-        // find best format
-        ALenum format = Internal::getFormat(_kchannelCount, _kbitsPerSample);
-        KDEBUG_ASSERT_T(format != 0);
+			// find best format
+			ALenum format = Internal::getFormat(_kchannelCount, _kbitsPerSample);
+			if (format != 0){
 
-        // fill buffer
-		DAL_CALL(alBufferData(_kID, format, (ALvoid *)Data, (ALsizei)_ksize, (ALsizei)_ksampleRate));
+				// fill buffer
+				DAL_CALL(alBufferData(_kID, format, (ALvoid *)Data, (ALsizei)_ksize, (ALsizei)_ksampleRate));
+				ret = true;
+			}
+			else{
+				KDEBUG_PRINT("Proper audio format not found");
+			}
+		}
+		else{
+			KDEBUG_PRINT("Error in reading sound file");
+		}
 
         // cleanup
 		delete[] Data;
         Data = NULL;
+		return ret;
     }
+
+	bool KSoundBuffer::loadStream(KInputStream &InputStream, Kite::KAudioFileTypes Format){
+		Internal::SoundIO sound;
+		char *Data;
+		bool ret = false;
+
+		// open stream
+		sound.openFile(InputStream, Format);
+
+		// first get file properties
+		_ksize = sound.getInfo().size;
+		_ksampleRate = sound.getInfo().sampleRate;
+		_kchannelCount = sound.getInfo().channel;
+		_kbitsPerSample = sound.getInfo().bitsPerSample;
+
+		// read data from file
+		I64 read;
+		Data = new char[_ksize];
+		read = sound.readData((void *)Data, (I32)_ksize);
+		if (read == _ksize){
+
+			// find best format
+			ALenum format = Internal::getFormat(_kchannelCount, _kbitsPerSample);
+			if (format != 0){
+
+				// fill buffer
+				DAL_CALL(alBufferData(_kID, format, (ALvoid *)Data, (ALsizei)_ksize, (ALsizei)_ksampleRate));
+				ret = true;
+			}
+			else{
+				KDEBUG_PRINT("Proper audio format not found");
+			}
+		}
+		else{
+			KDEBUG_PRINT("Error in reading sound file");
+		}
+
+		// cleanup
+		delete[] Data;
+		Data = NULL;
+		return ret;
+	}
 
 	U64 KSoundBuffer::resGetSize() const{
 		if (_ksize > 0)

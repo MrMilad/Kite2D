@@ -61,5 +61,12 @@ namespace Kite{
 		KRT_OTHER
 	};
 
+	/*typedef U64(*KCallInputStreamRead)(void *Data, U64 DataSize);
+	typedef I32(*KCallInputStreamSeek)(I64 Offset, I32 Origin);
+	typedef I64(*KCallInputStreamTell)();
+	typedef bool(*KCallInputStreamIsOpen)();
+	typedef I32(*KCallInputStreamEOF)();
+	typedef I32(*KCallInputStreamClose)();*/
+
 }
 #endif // KSYSTEMTYPES_H

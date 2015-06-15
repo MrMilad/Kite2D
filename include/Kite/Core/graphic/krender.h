@@ -43,6 +43,8 @@ namespace Kite{
 
 		//! Draw a range of elements in the VBO
 		/*!
+			This function is similar to the glDrawArrays().
+
 			\param FirstIndex Specifies the starting index in the enabled VBO
 			\param Size Specifies the number of indices to be rendered
 			\param Primitive Specifies what kind of primitives to render
@@ -51,6 +53,8 @@ namespace Kite{
 
 		//! Draw multiple instances of a range of elements in the VBO
 		/*!
+			This function is similar to the glDrawArraysInstanced().
+
 			\param FirstIndex Specifies the starting index in the enabled VBO
 			\param Size Specifies the number of indices to be rendered
 			\param Primitive Specifies what kind of primitives to render
@@ -60,6 +64,8 @@ namespace Kite{
 
 		//! Draw indexed range of elements in the VBO
 		/*!
+			This function is similar to the glDrawElements().
+
 			\param Count Specifies the number of elements to be rendered. 
 			\param Indices Specifies a pointer to the location where the indices are stored
 			\param Primitive Specifies what kind of primitives to render
@@ -68,6 +74,8 @@ namespace Kite{
 
 		//! Draw multiple instances of indexed range of elements in the VBO
 		/*!
+			This function is similar to the glDrawElementsInstanced().
+
 			\param Count Specifies the number of elements to be rendered.
 			\param Indices Specifies a pointer to the location where the indices are stored
 			\param Primitive Specifies what kind of primitives to render

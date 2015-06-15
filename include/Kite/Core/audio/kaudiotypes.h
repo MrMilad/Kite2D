@@ -17,20 +17,30 @@
 */
 #ifndef KAUDIOTYPES_H
 #define KAUDIOTYPES_H
+
+/*! \file audiotypes.h */
+
+/*! \namespace Kite
+	\brief Public namespace.
+*/
 namespace Kite{
 
-    /// source State Types
+	/*! \enum KSourceStateTypes
+		\brief States of audo sources
+	*/
     enum KSourceStateTypes{
-        KSS_INTIAL,
-        KSS_PLAYING,
-        KSS_PAUSED,
-        KSS_STOPPED
+        KSS_INTIAL,		//!< Initial state
+        KSS_PLAYING,	//!< Playing
+        KSS_PAUSED,		//!< Paused
+        KSS_STOPPED		//!< Stopped
     };
 
-    /// supported file format
+	/*! \enum KAudioFileTypes
+		\brief Supported file formats
+	*/
     enum KAudioFileTypes{
-        KAF_OGG,
-        KAF_WAV
+        KAF_OGG,	//!< OGG Vorbis
+        KAF_WAV		//!< WAV
     };
 }
 #endif // KAUDIOTYPES_H

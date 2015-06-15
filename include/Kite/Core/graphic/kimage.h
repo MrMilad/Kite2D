@@ -24,6 +24,7 @@
 #include "Kite/Core/system/kresources.h"
 #include "Kite/Core/math/kmathstructs.h"
 #include "Kite/Core/graphic/kgraphicstructs.h"
+#include "Kite/Core/system/kinputstream.h"
 #include <string>
 #include <vector>
 
@@ -32,7 +33,7 @@
 */
 namespace Kite{
 
-	//! The KImage class is the high-level class for loading/saving	 image files and manipulating image data.
+	//! The KImage class allow loading/saving image files and manipulating image data.
 	/*!
 		This class can create the image with only size and color of pixels,
 		or read and decode PNG, BMP, TGA formats from a file or memory or a input stream and also write that formats into a file.
@@ -42,7 +43,7 @@ namespace Kite{
 		//! Constructs an empty image object.
         KImage();
 
-		//! Destroys the image object.
+		//! Destructor
         ~KImage();
 
 		//! Create the image with the specific size and color
@@ -88,6 +89,16 @@ namespace Kite{
 			\return True if loading was successful
 		*/
         bool loadMemory(const void *Data, std::size_t Size);
+
+		//! Read and decode pixels from input stream.
+		/*!
+			\param Stream Input stream.
+			\param Pixels Pixels storage.
+			\param Size Size of image.
+
+			\return True if loading was successful
+		*/
+		bool loadStream(KInputStream &Stream);
 
 		//! Load the image to a file on disk
 		/*!

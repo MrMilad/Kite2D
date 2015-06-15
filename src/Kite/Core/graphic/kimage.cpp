@@ -79,6 +79,10 @@ namespace Kite{
 		return Internal::ImageIO::readFromMemory(Data, Size, _kpixels, _ksize);
     }
 
+	bool KImage::loadStream(KInputStream &Stream){
+		return Internal::ImageIO::readFromStream(Stream, _kpixels, _ksize);
+	}
+
     bool KImage::save(const std::string &FileName){
 		return Internal::ImageIO::writeToFile(FileName, _kpixels, _ksize);
     }

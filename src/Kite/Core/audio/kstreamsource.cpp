@@ -96,17 +96,39 @@ namespace Kite{
         }
     }
 
-    void KStreamSource::loadFile(const std::string &FileName, KAudioFileTypes Types){
+	void KStreamSource::setLoop(bool Loop) {
+		_kloop = Loop; 
+	}
+
+	bool KStreamSource::getLoop() {
+		return _kloop; 
+	}
+
+	bool KStreamSource::loadFile(const std::string &FileName, KAudioFileTypes Format){
         // first we stop the source
         stop();
 
         // open file for reading
-        _kreader->openFile(FileName.c_str(), Types);
+		bool ret = _kreader->openFile(FileName.c_str(), Format);
 
         // fill buffers
         fillFirst4Buffer();
 
+		return ret;
     }
+
+	bool KStreamSource::loadStream(KInputStream &InputStream, KAudioFileTypes Format){
+		// first we stop the source
+		stop();
+
+		// open file for reading
+		bool ret = _kreader->openFile(InputStream, Format);
+
+		// fill buffers
+		fillFirst4Buffer();
+
+		return ret;
+	}
 
     void KStreamSource::loader(){
         ALuint format = Internal::getFormat(_kreader->getInfo().channel, _kreader->getInfo().bitsPerSample);

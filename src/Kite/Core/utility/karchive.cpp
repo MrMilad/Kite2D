@@ -31,8 +31,8 @@ namespace Kite{
 		return _kzipIO->openArchive(ArchiveName);
 	}
 
-	bool KArchive::openArchive(const void *Memory, size_t Size){
-		return _kzipIO->openArchive(Memory, Size);
+	bool KArchive::openArchive(const void *Data, size_t Size){
+		return _kzipIO->openArchive(Data, Size);
 	}
 
 	U32 KArchive::getFilesNumber(){

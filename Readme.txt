@@ -31,13 +31,14 @@ to ease the development of games.
 + 2D transformation class
 + 2D Skeletal and sprite-sheet animation system
 + Support PNG, BMP, TGA image file formats
++ Support ZIP archives
 + 2D sprite batch rendering and instancing
 + 2D\3D audio options (pitch, pan, ...)
 + Support wav, ogg file formats
 + Audio effects (reverb, ...)
 + Audio Streaming
 + Support mouse, keyboard, joystick
-+ easy window creation and handling
-+ fast and basic 2D physique functions (hit-testing, bounding box, ...)
-+ full support of isometric game
++ Easy window creation and handling
++ Fast and basic 2D physique functions (hit-testing, bounding box, ...)
++ Full support of isometric games
 + ...

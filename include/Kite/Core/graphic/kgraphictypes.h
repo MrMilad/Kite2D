@@ -180,7 +180,8 @@ namespace Kite{
 	*/
     enum KShaderTypes{
         KS_VERTEX,	//!< Vertex shader
-        KS_FRAGMENT	//!< Fragment shader
+        KS_FRAGMENT,	//!< Fragment shader
+		KS_GEOMETRY //!< Geometry shader
     };
 
 //    enum KShaderTextureTypes{

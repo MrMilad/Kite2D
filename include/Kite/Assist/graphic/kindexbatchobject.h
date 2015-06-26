@@ -21,7 +21,7 @@
 #include "Kite/Core/system/ksystemdef.h"
 #include "Kite/Core/graphic/kgraphicstructs.h"
 #include "Kite/Core/graphic/ktexture.h"
-#include "Kite/Core/graphic/kshader.h"
+#include "Kite/Core/graphic/kshaderprogram.h"
 #include "Kite/core/math/ktransform.h"
 
 namespace Kite{
@@ -34,8 +34,8 @@ namespace Kite{
 		inline const KVertex *getVertex() const { return _kvertex; }
         inline const U16 *getIndex() const {return _kindex;}
 
-		inline void setShader(const KShader *Shader) { _kshader = Shader; }
-		inline const KShader *getShader() const { return _kshader; }
+		inline void setShader(const KShaderProgram *Shader) { _kshader = Shader; }
+		inline const KShaderProgram *getShader() const { return _kshader; }
 
 		inline void setTexture(const KTexture *Texture) { _ktexture = Texture; }
 		inline const KTexture *getTexture() const { return _ktexture; }
@@ -59,7 +59,7 @@ namespace Kite{
     private:
         const U32 _kvsize;
         const U32 _kisize;
-		const KShader *_kshader;
+		const KShaderProgram *_kshader;
 		const KTexture *_ktexture;
 		KGeoPrimitiveTypes _kgtype;
     };

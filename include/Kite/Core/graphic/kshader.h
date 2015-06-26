@@ -22,12 +22,8 @@
 
 #include "Kite/Core/system/ksystemdef.h"
 #include "Kite/Core/system/knoncopyable.h"
+#include "Kite/Core/system/kinputstream.h"
 #include "Kite/Core/graphic/kgraphictypes.h"
-#include "Kite/Core/graphic/kgraphicstructs.h"
-#include "Kite/Core/graphic/ktexture.h"
-#include "Kite/Core/math/ktransform.h"
-#include <map>
-#include <vector>
 #include <string>
 
 /*! \namespace Kite
@@ -35,7 +31,7 @@
 */
 namespace Kite{
 
-	//! The KShader class allows OpenGL shader programs to be linked and used.
+	//! The KShader class allows OpenGL shader programs to be compiled and get ready for shader program.
 	/*!
 		This class supports shader programs written in the OpenGL Shading Language (GLSL).
 	*/
@@ -45,125 +41,50 @@ namespace Kite{
 		//! Default constructors
 		/*!
 			This constructor creates an invalid shader.
+
+			\param Types type of the shader (vertex or fragment)
 		*/
-        KShader();
+        KShader(KShaderTypes Types);
 
 		//! Destructor
         ~KShader();
 
-		//! Load both the vertex and fragment shaders from files on disk
+		//! Load the shader (vertex or fragment) from the files on disk
 		/*!
-			\param VertexFile Address of the vertex shader file on the disk
-			\param FragmentFile Address of the fragment shader file on the disk
+			\param ShaderFile Address of the shader file on the disk
 
 			\return True if loading was successful
 		*/
-        bool loadFile(const std::string &VertexFile, const std::string &FragmentFile);
+        bool loadFile(const std::string &ShaderFile);
 
-		//! Load both the vertex and fragment shaders from a string
+		//! Load the shader (vertex or fragment) from a string
 		/*!
-			\param VertexCod Source code of vertex sahder
-			\param FragmentCod Source code of fragment sahder
+			\param ShaderCod Source code of the sahder
 
 			\return True if loading was successful
 		*/
-        bool loadMemory(const std::string &VertexCod, const std::string &FragmentCod);
+        bool loadMemory(const std::string &ShaderCod);
 
-		//! Associate a generic vertex attribute index with a named attribute variable
+		//! Load both the vertex and fragment shaders from input stream
 		/*!
-			Bind any attribute befor link()
+			\param Vertex InputStream of the vertex shader
+			\param Fragment InputStream of the fragment shader
 
-			\param Index The index of the generic vertex attribute to be bound.
-			\param Name a null terminated string containing the name of the vertex shader attribute variable to which index is to be bound
+			\return True if loading was successful
 		*/
-        void bindAttribute(U16 Index, const std::string &Name);
+		bool loadStream(KInputStream &ShaderStream);
 
-		//! Link the shader program
+		//! Method to compile a shader and display any problems if compilation fails
 		/*!
-			\return True if linking was successful
+			\return True if compile was successful
 		*/
-        bool link();
+		bool compile();
 
-		//! Get location of the uniform in the shader
+		//! Get OpenGL ID of the shader
 		/*!
-			\return return -1 if failed
+			\return OpenGL ID of the shader
 		*/
-        I16 getUniformLocation(const std::string &ParamName) const;
-
-		//! Set a float parameter of the shader
-		/*!
-			\param Location Location of parameter in the shader
-			\param Value Value to assign
-		*/
-        void setParam(I16 Location, F32 Value) const;
-
-		//! Set a 2x1 vector (vec2 in GLSL) parameter of the shader
-		/*!
-			\param Location Location of parameter in the shader
-			\param Value1 First component of the value to assign
-			\param Value2 Second component of the value to assign
-		*/
-		void setParam(I16 Location, F32 Value1, F32 Value2) const;
-
-		//! Set a 3x1 vector (vec3 in GLSL) parameter of the shader
-		/*!
-			\param Location Location of parameter in the shader
-			\param Value1 First component of the value to assign
-			\param Value1 Second component of the value to assign
-			\param Value3 Third component of the value to assign
-		*/
-		void setParam(I16 Location, F32 Value1, F32 Value2, F32 Value3) const;
-
-		//! Set a 4x1 vector (vec4 in GLSL) parameter of the shader
-		/*!
-			\param Location Location of parameter in the shader
-			\param Value1 First component of the value to assign
-			\param Value1 Second component of the value to assign
-			\param Value3 Third component of the value to assign
-			\param Value4 Fourth component of the value to assign
-		*/
-		void setParam(I16 Location, F32 Value1, F32 Value2, F32 Value3, F32 Value4) const;
-
-		//! Set a color parameter of the shader
-		/*!
-			A KColor will be transformed to a normalized vec4(1.0, 0.5, 0.0, 1.0) in the shader
-			
-			\param Location Location of parameter in the shader
-			\param Color Color to assign
-		*/
-        void setParam(I16 Location, const KColor& Color) const;
-
-        /// pass 3x3 matrix
-        //void setParam(I16 Location, const KTransform& Transform) const;
-
-		//! Set a texture parameter of the shader
-		/*!
-			\param Location Location of parameter in the shader
-			\param Texture Texture to assign
-		*/
-        void setParam(I16 Location, const KTexture& Texture);
-
-        /// pass current texture
-        //void setParam(I16 Location, KShaderTextureTypes Texture);
-
-		//! Bind the shader program
-		/*!
-			Do not forget to link the program before bind it.
-			(automatic handle by internal render system)
-		*/
-        void bind() const;
-
-		//! Unbind the shader program if it is currently bound.
-        void unbind();
-
-		//! Unbind current shader program
-        static void unbindShader();
-
-		//! Get OpenGL ID of the shader program
-		/*!
-			\return OpenGL ID of shader program
-		*/
-        inline U32 getGLID() const {return _kprogId;}
+		inline U32 getGLID() const { return _kglid; }
 
 		//! Get version of the shading language
 		/*!
@@ -172,19 +93,8 @@ namespace Kite{
         static const std::string getShaderVersion();
 
     private:
-		//! Read content of the file
-        void _readFile(const char *FileName, std::vector<char> &data);
-
-		//! Create a shader program (both vertex and fragment)
-        bool _createShader(const char *ShaderCod, KShaderTypes ShaderType);
-
-		//! Fill texture units
-        void _fillTextureUnits() const;
-
-        U32 _kprogId;	//!< ID of shader program
-        std::map<I32, const KTexture *> _ktextureTable;	//!< Texture table
-        I32 _kcurrentTexture;		//!< Current texture 
-        static U32 _klastProgId;	//!< Last id of shader program 
+		KShaderTypes _ktype;
+		U32 _kglid;
     };
 }
 

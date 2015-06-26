@@ -30,6 +30,7 @@
 #include "Kite/Core/graphic/ktexture.h"
 #include "Kite/Core/graphic/ktextureresource.h"
 #include "Kite/Core/graphic/ktexturemanager.h"
+#include "Kite/Core/graphic/kshaderprogram.h"
 #include "Kite/Core/graphic/kshader.h"
 #include "Kite/Core/graphic/kvertexarray.h"
 #include "Kite/Core/graphic/kvertexbuffer.h"

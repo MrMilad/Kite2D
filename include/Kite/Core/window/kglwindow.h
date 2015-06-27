@@ -20,13 +20,13 @@
 
 #include <string>
 #include "Kite/core/system/ksystemdef.h"
+#include "Kite/core/system/kcoreinstance.h"
 #include "Kite/Core/math/kmathstructs.h"
 #include "Kite/core/window/kwindowtypes.h"
 #include "Kite/core/window/kwindowstructs.h"
-#include "Kite/core/system/knoncopyable.h"
 
 namespace Kite{
-    class KITE_FUNC_EXPORT KGLWindow : KNonCopyable{
+    class KITE_FUNC_EXPORT KGLWindow : public KCoreInstance{
     public:
         // window will be created after open() call
         KGLWindow();
@@ -57,6 +57,12 @@ namespace Kite{
         /// window callbacks
         void registerCallback(void *Callback, KWindowCallbackTypes CallbackType);
         void unregisterCallback(KWindowCallbackTypes CallbackType);
+
+		//! Get size of resource in memory
+		/*!
+		\return Size of resource in bytes
+		*/
+		U64 getInstanceSize() const;
 
     private:
         void *_kwindow;

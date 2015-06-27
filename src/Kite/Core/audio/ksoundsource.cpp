@@ -19,7 +19,9 @@
 #include "src/Kite/core/audio/alcall.h"
 
 namespace Kite{
-    KSoundSource::KSoundSource(){
+    KSoundSource::KSoundSource():
+		KCoreInstance(KCI_AUDIOSOURCE)
+	{
 		Internal::initeAL();
         DAL_CALL(alGenSources(1, &_kID));
     }
@@ -106,4 +108,8 @@ namespace Kite{
         }
         return KSS_STOPPED;
     }
+
+	U64 KSoundSource::getInstanceSize() const {
+		return sizeof(KSoundSource);
+	}
 }

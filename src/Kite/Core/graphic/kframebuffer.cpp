@@ -21,6 +21,7 @@
 namespace Kite{
     U32 KFrameBuffer::_klastBufId = 0;
     KFrameBuffer::KFrameBuffer():
+		KCoreInstance(KCI_FBO),
         _kbufId(0)
     {
         // generate framebuffer
@@ -65,4 +66,8 @@ namespace Kite{
         DGL_CALL(glBindFramebuffer(GL_FRAMEBUFFER, 0));
         _klastBufId = 0;
     }
+
+	U64 KFrameBuffer::getInstanceSize() const{
+		return sizeof(KFrameBuffer);
+	}
 }

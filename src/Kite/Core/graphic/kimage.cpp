@@ -21,7 +21,7 @@
 
 namespace Kite{
     KImage::KImage():
-		KResources(KRT_IMAGE),
+		KCoreInstance(KCI_IMAGE),
         _ksize(0,0)
     {}
 
@@ -149,7 +149,7 @@ namespace Kite{
         return KColor(pixel[0], pixel[1], pixel[2], pixel[3]);
     }
 
-	U64 KImage::resGetSize() const{
+	U64 KImage::getInstanceSize() const{
 		return _kpixels.size();
 	}
 

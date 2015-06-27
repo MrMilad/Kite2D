@@ -22,7 +22,9 @@
 
 namespace Kite{
 
-	KShader::KShader(KShaderTypes Types){
+	KShader::KShader(KShaderTypes Types):
+		KCoreInstance(KCI_SHADER)
+	{
 		_ktype = Types;
 		switch (Types){
 		case Kite::KS_VERTEX:
@@ -42,7 +44,7 @@ namespace Kite{
 	}
 
     KShader::~KShader(){
-
+		DGL_CALL(glDeleteShader(_kglid));
     }
 
 	bool KShader::loadFile(const std::string &ShaderFile){
@@ -161,4 +163,8 @@ namespace Kite{
         ver.append((const char*)glGetString(GL_SHADING_LANGUAGE_VERSION));
         return ver;
     }
+
+	U64 KShader::getInstanceSize() const{
+		return sizeof(KShader);
+	}
 }

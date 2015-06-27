@@ -21,7 +21,7 @@
 /*! \file kvertexarray.h */
 
 #include "Kite/Core/system/ksystemdef.h"
-#include "Kite/Core/system/knoncopyable.h"
+#include "Kite/Core/system/kcoreinstance.h"
 #include "Kite/Core/graphic/kgraphictypes.h"
 
 /*! \namespace Kite
@@ -38,7 +38,7 @@ namespace Kite{
 		this allows a very easy and efficient method of switching between OpenGL
 		buffer states for rendering different "objects" in a scene.
 	*/
-    class KITE_FUNC_EXPORT KVertexArray : KNonCopyable{
+    class KITE_FUNC_EXPORT KVertexArray : public KCoreInstance{
     public:
 
 		//! Constructs an vertex array object (VAO).
@@ -112,6 +112,12 @@ namespace Kite{
 			\return OpenGL ID of the vertex array object
 		*/
         inline U32 getGLID() const {return _karrayId;}
+
+		//! Get size of resource in memory
+		/*!
+		\return Size of resource in bytes
+		*/
+		U64 getInstanceSize() const;
 
     private:
         U32 _karrayId;				//!< OpenGL VAO ID

@@ -23,6 +23,7 @@
 #include "Kite/Core/system/ksystemdef.h"
 #include "Kite/Core/math/kmathstructs.h"
 #include "Kite/Core/audio/kaudiotypes.h"
+#include "Kite/Core/system/kcoreinstance.h"
 
 /*! \namespace Kite
 	\brief Public namespace.
@@ -35,7 +36,7 @@ namespace Kite{
 		by controlling a source's attributes the application can modify and parameterize
 		the static sample data provided by the buffer referenced by the source
 	*/
-    class KITE_FUNC_EXPORT KSoundSource{
+    class KITE_FUNC_EXPORT KSoundSource : public KCoreInstance{
     public:
 
 		//! Default constructors
@@ -174,7 +175,13 @@ namespace Kite{
 		/*!
 			\return OpenAL ID of the buffer
 		*/
-        inline U32 getID() const {return _kID;}
+        inline U32 getALID() const {return _kID;}
+
+		//! Get size of instance in memory
+		/*!
+		\return Size of instance in bytes
+		*/
+		U64 getInstanceSize() const;
 
     protected:
         U32 _kID;	//!< Name of the source

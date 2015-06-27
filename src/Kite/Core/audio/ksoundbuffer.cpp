@@ -24,7 +24,7 @@
 
 namespace Kite{
     KSoundBuffer::KSoundBuffer():
-		KResources(KRT_AUDIO),
+		KCoreInstance(KCI_AUDIOBUFFER),
         _ksampleRate(0),
         _kchannelCount(0),
         _kbitsPerSample(0),
@@ -123,7 +123,7 @@ namespace Kite{
 		return ret;
 	}
 
-	U64 KSoundBuffer::resGetSize() const{
+	U64 KSoundBuffer::getInstanceSize() const{
 		if (_ksize > 0)
 			return _ksize;
 

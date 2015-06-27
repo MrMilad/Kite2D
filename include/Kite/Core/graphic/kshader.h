@@ -21,7 +21,7 @@
 /*! \file kshader.h */
 
 #include "Kite/Core/system/ksystemdef.h"
-#include "Kite/Core/system/knoncopyable.h"
+#include "Kite/Core/system/kcoreinstance.h"
 #include "Kite/Core/system/kinputstream.h"
 #include "Kite/Core/graphic/kgraphictypes.h"
 #include <string>
@@ -35,7 +35,7 @@ namespace Kite{
 	/*!
 		This class supports shader programs written in the OpenGL Shading Language (GLSL).
 	*/
-    class KITE_FUNC_EXPORT KShader : KNonCopyable{
+    class KITE_FUNC_EXPORT KShader : public KCoreInstance{
     public:
 
 		//! Default constructors
@@ -91,6 +91,12 @@ namespace Kite{
 			\return A version or release number for the shading language
 		*/
         static const std::string getShaderVersion();
+
+		//! Get size of instance in memory
+		/*!
+		\return Size of instance in bytes
+		*/
+		U64 getInstanceSize() const;
 
     private:
 		KShaderTypes _ktype;

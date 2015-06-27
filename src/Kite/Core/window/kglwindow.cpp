@@ -20,10 +20,12 @@
 
 namespace Kite{
     KGLWindow::KGLWindow():
+		KCoreInstance(KCI_WINDOW),
         _kwindow(0)
     {}
 
     KGLWindow::KGLWindow(KWindowState &WindowState):
+		KCoreInstance(KCI_WINDOW),
         _kwindow(0),
         _kwinstate(WindowState)
     {}
@@ -206,4 +208,8 @@ namespace Kite{
             break;
         }
     }
+
+	U64 KGLWindow::getInstanceSize() const{
+		return sizeof(KGLWindow);
+	}
 }

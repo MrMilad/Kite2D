@@ -21,10 +21,10 @@
 /*! \file ktexture.h */
 
 #include "Kite/Core/system/ksystemdef.h"
+#include "Kite/Core/system/kcoreinstance.h"
 #include "Kite/Core/math/kmathstructs.h"
 #include "Kite/Core/graphic/kgraphictypes.h"
 #include "Kite/Core/graphic/kgraphicstructs.h"
-#include "Kite/Core/graphic/ktextureresource.h"
 #include "Kite/Core/graphic/kimage.h"
 
 /*! \namespace Kite
@@ -36,7 +36,7 @@ namespace Kite{
 	/*!
 		KTexture makes it easy to work with OpenGL textures.
 	*/
-    class KITE_FUNC_EXPORT KTexture : public KTextureResource{
+    class KITE_FUNC_EXPORT KTexture : public KCoreInstance{
     public:
 
 		//! Constructs an blank texture object.
@@ -123,7 +123,7 @@ namespace Kite{
 		/*!
 			\return Size of resource in bytes
 		*/
-		U64 resGetSize() const;
+		U64 getInstanceSize() const;
 
     private:
 		//! Create the texture

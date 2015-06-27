@@ -21,6 +21,7 @@
 /*! \file kframebuffer.h */
 
 #include "Kite/Core/system/ksystemdef.h"
+#include "Kite/Core/system/kcoreinstance.h"
 #include "Kite/Core/graphic/ktexture.h"
 
 /*! \namespace Kite
@@ -32,7 +33,7 @@ namespace Kite{
 	/*!
 		This class provides features such as render to texture and off-screen rendering.
 	*/
-    class KITE_FUNC_EXPORT KFrameBuffer : KNonCopyable{
+    class KITE_FUNC_EXPORT KFrameBuffer : public KCoreInstance{
 	public:
 
 		//! Constructs an frame buffer object (FBO).
@@ -75,6 +76,12 @@ namespace Kite{
 			\return OpenGL ID of frame buffer object
 		*/
 		inline U32 getGLID() const { return _kbufId; }
+
+		//! Get size of instance in memory
+		/*!
+		\return Size of instance in bytes
+		*/
+		U64 getInstanceSize() const;
 
     private:
         U32 _kbufId;			//!< OpenGL FBO ID

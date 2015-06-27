@@ -21,7 +21,7 @@
 /*! \file ksoundbuffer.h */
 
 #include "Kite/Core/system/ksystemdef.h"
-#include "Kite/Core/system/kresources.h"
+#include "Kite/Core/system/kcoreinstance.h"
 #include "Kite/Core/system/kinputstream.h"
 #include "Kite/Core/audio/kaudiotypes.h"
 #include <string>
@@ -41,7 +41,7 @@ namespace Kite{
 		buffers are referenced by sources. a single buffer can be referred to by multiple sources.
 		supported format: OGG
 	*/
-    class KITE_FUNC_EXPORT KSoundBuffer : public KResources{
+    class KITE_FUNC_EXPORT KSoundBuffer : public KCoreInstance{
     public:
 
 		//! Constructs an empty buffer object.
@@ -104,11 +104,11 @@ namespace Kite{
 		*/
         inline U32 getALID() const {return _kID;}
 
-		//! Get size of resource in memory
+		//! Get size of instance in memory
 		/*!
-			\return Size of resource in bytes
+			\return Size of instance in bytes
 		*/
-		U64 resGetSize() const;
+		U64 getInstanceSize() const;
 
     private:
         I64 _ksampleRate;

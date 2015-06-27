@@ -24,6 +24,7 @@ namespace Kite{
 	U32 KShaderProgram::_klastProgId = 0;
 
 	KShaderProgram::KShaderProgram() :
+		KCoreInstance(KCI_SHPROGRAM),
 		_kshaderCount(0)
 	{
 		// Generate a unique Id / handle for the shader program
@@ -137,5 +138,9 @@ namespace Kite{
 		// disable the program
 		DGL_CALL(glUseProgramObjectARB(0));
 		_klastProgId = 0;
+	}
+
+	U64 KShaderProgram::getInstanceSize() const{
+		return sizeof(KShaderProgram);
 	}
 }

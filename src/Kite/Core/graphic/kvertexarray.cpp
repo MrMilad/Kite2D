@@ -21,6 +21,7 @@
 namespace Kite{
     U32 KVertexArray::_klastArrayId = 0;
     KVertexArray::KVertexArray():
+		KCoreInstance(KCI_VAO),
         _karrayId(0)
     {
         DGL_CALL(glGenVertexArrays(1, &_karrayId));
@@ -76,5 +77,9 @@ namespace Kite{
         DGL_CALL(glBindVertexArray(0));
         _klastArrayId = 0;
     }
+
+	U64 KVertexArray::getInstanceSize() const{
+		return sizeof(KVertexArray);
+	}
 }
 

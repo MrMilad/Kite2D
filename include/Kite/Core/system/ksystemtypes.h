@@ -44,21 +44,26 @@ namespace Kite{
 		KSIOA_RWTOEND
 	};
 
-	enum KVectorComponent{
+	enum KVectorComponentTypes{
 		KVC_X = 0,
 		KVC_Y = 1,
 		KVC_Z = 2,
 		KVC_W = 3
 	};
 
-	enum KResourcesTypes{
-		KRT_IMAGE = 0,
-		KRT_TEXTURE,
-		KRT_AUDIO,
-		KRT_VBO,
-		KRT_IBO,
-		KRT_PBO,
-		KRT_OTHER
+	enum KCoreInstanceTypes : U8{
+		KCI_IMAGE = 0,
+		KCI_TEXTURE,
+		KCI_AUDIOBUFFER,
+		KCI_AUDIOSOURCE,
+		KCI_VAO,
+		KCI_VBO,
+		KCI_IBO,
+		KCI_PBO,
+		KCI_FBO,
+		KCI_SHADER,
+		KCI_SHPROGRAM,
+		KCI_WINDOW
 	};
 
 	/*typedef U64(*KCallInputStreamRead)(void *Data, U64 DataSize);

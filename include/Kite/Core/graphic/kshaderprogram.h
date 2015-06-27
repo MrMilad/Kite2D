@@ -21,7 +21,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 /*! \file kshaderprogram.h */
 
 #include "Kite/Core/system/ksystemdef.h"
-#include "Kite/Core/system/knoncopyable.h"
+#include "Kite/Core/system/kcoreinstance.h"
 #include "Kite/Core/graphic/kgraphictypes.h"
 #include "Kite/Core/graphic/kgraphicstructs.h"
 #include "Kite/core/graphic/kshader.h"
@@ -39,7 +39,7 @@ namespace Kite{
 	/*!
 	This class supports shader programs written in the OpenGL Shading Language (GLSL).
 	*/
-	class KShaderProgram : KNonCopyable{
+	class KShaderProgram : public KCoreInstance{
 	public:
 		//! Default constructors
 		/*!
@@ -139,6 +139,12 @@ namespace Kite{
 		\return OpenGL ID of shader program
 		*/
 		inline U32 getGLID() const { return _kprogId; }
+
+		//! Get size of resource in memory
+		/*!
+		\return Size of resource in bytes
+		*/
+		U64 getInstanceSize() const;
 
 	private:
 		U32 _kshaderCount; 

@@ -21,7 +21,7 @@
 /*! \file kvertexbuffer.h */
 
 #include "Kite/Core/system/ksystemdef.h"
-#include "Kite/core/system/kresources.h"
+#include "Kite/core/system/kcoreinstance.h"
 #include "Kite/Core/graphic/kgraphicstructs.h"
 #include "Kite/Core/graphic/kgraphictypes.h"
 
@@ -35,7 +35,7 @@ namespace Kite{
 		Buffer objects are created in the OpenGL server so that the client application 
 		can avoid uploading vertices, indices, texture image data, etc every time they are needed.
 	*/
-    class KITE_FUNC_EXPORT KVertexBuffer : public KResources{
+    class KITE_FUNC_EXPORT KVertexBuffer : public KCoreInstance{
     public:
 
 		//! Constructs an empty vertex buffer object (VBO).
@@ -132,7 +132,7 @@ namespace Kite{
 		/*!
 			\return Size of resource in bytes
 		*/
-		U64 resGetSize() const;
+		U64 getInstanceSize() const;
 
     private:
         KVertexBufferTypes _kbufType;	//!< Storage state of buffer

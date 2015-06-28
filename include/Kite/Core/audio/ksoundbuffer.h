@@ -24,9 +24,8 @@
 
 #include "Kite/Core/system/ksystemdef.h"
 #include "Kite/Core/system/kcoreinstance.h"
-#include "Kite/Core/system/kinputstream.h"
+#include "Kite/Core/system/kresource.h"
 #include "Kite/Core/audio/kaudiotypes.h"
-#include <string>
 
 /*! \namespace Kite
 	\brief Public namespace.
@@ -43,7 +42,7 @@ namespace Kite{
 		buffers are referenced by sources. a single buffer can be referred to by multiple sources.
 		supported format: OGG
 	*/
-    class KITE_FUNC_EXPORT KSoundBuffer : public KCoreInstance{
+    class KITE_FUNC_EXPORT KSoundBuffer : public KCoreInstance, public KResource{
     public:
 
 		//! Constructs an empty buffer object.
@@ -60,7 +59,7 @@ namespace Kite{
 
 			\return True if loading was successful
 		*/
-        bool loadFile(const std::string &FileName, KAudioFileTypes Format);
+        bool loadFile(const std::string &FileName);
 
 		//! Load the sound from input stream
 		/*!
@@ -70,7 +69,18 @@ namespace Kite{
 
 			\return True if loading was successful
 		*/
-		bool loadStream(KInputStream &InputStream, KAudioFileTypes Format);
+		bool loadStream(KInputStream &InputStream);
+
+		//! Load the sound from memory
+		/*!
+			Supported formats: OGG
+
+			\param Data Pointer to the file data in memory
+			\param Size Size of the data (in bytes)
+
+		\return True if loading was successful
+		*/
+		bool loadMemory(const void *Data, std::size_t Size);
 
 		//! Get sample rate of the sound track
 		/*!

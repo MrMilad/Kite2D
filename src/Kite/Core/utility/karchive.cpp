@@ -37,6 +37,10 @@ namespace Kite{
 		return _kzipIO->openArchive(Data, Size);
 	}
 
+	const std::string &KArchive::getArchiveName() const{
+		return _kzipIO->getArchiveName();
+	}
+
 	U32 KArchive::getFilesNumber(){
 		return _kzipIO->getFilesNumber();
 	}
@@ -51,6 +55,10 @@ namespace Kite{
 
 	bool KArchive::openFile(const std::string &FileName){
 		return _kzipIO->openFile(FileName);
+	}
+
+	const std::string &KArchive::getFileName() const{
+		return _kzipIO->getFileName();
 	}
 
 	U64 KArchive::read(void *Data, U64 DataSize){

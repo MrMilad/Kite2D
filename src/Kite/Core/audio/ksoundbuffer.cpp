@@ -18,6 +18,7 @@
     USA
 */
 #include "Kite/core/audio/ksoundbuffer.h"
+#include "Kite/core/system/kmemstream.h"
 #include "src/Kite/core/audio/alcall.h"
 #include "src/Kite/Core/audio/soundio.h"
 #include <vector>
@@ -41,13 +42,13 @@ namespace Kite{
         DAL_CALL(alDeleteBuffers(1, &_kID));
     }
 
-    bool KSoundBuffer::loadFile(const std::string &FileName, Kite::KAudioFileTypes Format){
+    bool KSoundBuffer::loadFile(const std::string &FileName){
         Internal::SoundIO sound;
 		char *Data;
 		bool ret = false;
 
         // open file for reading data
-        sound.openFile(FileName.c_str(), Format);
+        sound.openFile(FileName.c_str(), KAF_OGG);
 
         // first get file properties
         _ksize = sound.getInfo().size;
@@ -83,13 +84,13 @@ namespace Kite{
 		return ret;
     }
 
-	bool KSoundBuffer::loadStream(KInputStream &InputStream, Kite::KAudioFileTypes Format){
+	bool KSoundBuffer::loadStream(KInputStream &InputStream){
 		Internal::SoundIO sound;
 		char *Data;
 		bool ret = false;
 
 		// open stream
-		sound.openFile(InputStream, Format);
+		sound.openFile(InputStream, KAF_OGG);
 
 		// first get file properties
 		_ksize = sound.getInfo().size;
@@ -123,6 +124,11 @@ namespace Kite{
 		delete[] Data;
 		Data = NULL;
 		return ret;
+	}
+
+	bool KSoundBuffer::loadMemory(const void *Data, std::size_t Size){
+		KMemStream temp(Data, Size);
+		return loadStream(temp);
 	}
 
 	U64 KSoundBuffer::getInstanceSize() const{

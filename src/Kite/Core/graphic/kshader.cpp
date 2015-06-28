@@ -90,19 +90,19 @@ namespace Kite{
 		return true;
     }
 
-	bool KShader::loadMemory(const std::string &ShaderFile){
+	bool KShader::loadMemory(const void *Data, std::size_t DataSize){
         // first make sure that we can use shaders
 //        if(!isShaderAvailable()){
 //            KDEBUG_PRINT("shader is not available.")
 //            return false;
 //        }
 
-		if (!ShaderFile.empty()){
+		if (!Data){
 			return false;
         }
 
 		// get the source as a pointer to an array of characters
-		const GLchar *cod = ShaderFile.c_str();
+		const char *cod = (char *)Data;
 
 		// associate the source with the shader id
 		DGL_CALL(glShaderSource(_kglid, 1, &cod, NULL));

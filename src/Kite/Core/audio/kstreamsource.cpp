@@ -31,7 +31,8 @@ namespace Kite{
         _kthread(0),
         _kdata(0),
         _kloop(false),
-        _KuserStop(false)
+        _KuserStop(false),
+		_kmemstream(0)
     {
         // create openal contextand set as current context
 		Internal::initeAL();
@@ -54,6 +55,9 @@ namespace Kite{
         DAL_CALL(alSourcei(_kID, AL_BUFFER, 0));
         DAL_CALL(alDeleteBuffers(4, _kbuffers));
         // source will be deleted in base class destructure
+
+		if (_kmemstream)
+			delete _kmemstream;
     }
 
     void KStreamSource::play(){
@@ -106,12 +110,12 @@ namespace Kite{
 		return _kloop; 
 	}
 
-	bool KStreamSource::loadFile(const std::string &FileName, KAudioFileTypes Format){
+	bool KStreamSource::loadFile(const std::string &FileName){
         // first we stop the source
         stop();
 
         // open file for reading
-		bool ret = _kreader->openFile(FileName.c_str(), Format);
+		bool ret = _kreader->openFile(FileName.c_str(), KAF_OGG);
 
         // fill buffers
         fillFirst4Buffer();
@@ -119,17 +123,29 @@ namespace Kite{
 		return ret;
     }
 
-	bool KStreamSource::loadStream(KInputStream &InputStream, KAudioFileTypes Format){
+	bool KStreamSource::loadStream(KInputStream &InputStream){
 		// first we stop the source
 		stop();
 
 		// open file for reading
-		bool ret = _kreader->openFile(InputStream, Format);
+		bool ret = _kreader->openFile(InputStream, KAF_OGG);
 
 		// fill buffers
 		fillFirst4Buffer();
 
 		return ret;
+	}
+
+	bool KStreamSource::loadMemory(const void *Data, std::size_t Size){
+		// first we stop the source
+		stop();
+
+		if (_kmemstream)
+			delete _kmemstream;
+
+		_kmemstream = new KMemStream(Data, Size);
+
+		return this->loadStream(*_kmemstream);
 	}
 
     void KStreamSource::loader(){

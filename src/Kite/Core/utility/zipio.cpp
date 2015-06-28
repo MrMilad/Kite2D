@@ -42,6 +42,7 @@ namespace Internal{
 	bool ZipIO::openArchive(const std::string &ArchiveName){
 		// first close last opened archive
 		_kready = false;
+		_kaname = "";
 		if (_kisopen){
 			mz_zip_reader_end(&_kzarchive);
 			_kisopen = false;
@@ -56,6 +57,7 @@ namespace Internal{
 			return false;
 
 		_kisopen = true;
+		_kaname = ArchiveName;
 		return true;
 	}
 
@@ -63,6 +65,7 @@ namespace Internal{
 	bool ZipIO::openArchive(const void *Memory, size_t Size){
 		// first close last opened archive
 		_kready = false;
+		_kaname = "";
 		if (_kisopen){
 			mz_zip_reader_end(&_kzarchive);
 			_kisopen = false;
@@ -75,12 +78,14 @@ namespace Internal{
 		mz_bool status = mz_zip_reader_init_mem(&_kzarchive, Memory, Size, 0);
 		if (!status) return false;
 
+		_kaname = "memory-block";
 		_kisopen = true;
 		return true;
 	}
 
 	// open archived file
 	bool ZipIO::openFile(const std::string &FileName){
+		_kfname = "";
 		_kready = false;
 		if (!_kisopen)
 			return false;
@@ -136,6 +141,7 @@ namespace Internal{
 		else if (_kfstat.m_method == 0 && _kfstat.m_uncomp_size == _kfstat.m_comp_size)
 			_kisCmprsd = false;
 
+		_kfname.append(_kfstat.m_filename);
 		_kready = true;
 		return true;
 	}

@@ -70,6 +70,12 @@ namespace Kite{
 		*/
 		bool openArchive(const void *Data, size_t Size);
 
+		//! Get name of the opened archive
+		/*!
+			\return Name of the opened archive
+		*/
+		const std::string &getArchiveName() const;
+
 		//! Get number of the files in the opened archive
 		/*!
 			\return Number of the files
@@ -100,6 +106,12 @@ namespace Kite{
 			\return True if operation was successful
 		*/
 		bool openFile(const std::string &FileName);
+
+		//! Get name of the opened file
+		/*!
+			\return Name of the opened file
+		*/
+		const std::string &getFileName() const;
 
 		//! Read opened file in the archive
 		/*!

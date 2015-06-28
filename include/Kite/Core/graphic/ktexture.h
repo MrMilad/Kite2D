@@ -24,6 +24,7 @@
 
 #include "Kite/Core/system/ksystemdef.h"
 #include "Kite/Core/system/kcoreinstance.h"
+#include "Kite/Core/system/kresource.h"
 #include "Kite/Core/math/kmathstructs.h"
 #include "Kite/Core/graphic/kgraphictypes.h"
 #include "Kite/Core/graphic/kgraphicstructs.h"
@@ -38,7 +39,7 @@ namespace Kite{
 	/*!
 		KTexture makes it easy to work with OpenGL textures.
 	*/
-    class KITE_FUNC_EXPORT KTexture : public KCoreInstance{
+    class KITE_FUNC_EXPORT KTexture : public KCoreInstance, public KResource{
     public:
 
 		//! Constructs an blank texture object.
@@ -64,6 +65,37 @@ namespace Kite{
 			\param Wrap Wrap of texture
 		*/
         void create(const KImage &Image, KTextureFilterTypes Filter, KTextureWrapTypes Wrap);
+
+		//! Load the texture from a file on disk
+		/*!
+		Supported formats: PNG, BMP, TGA.
+
+		\param FileName Address of the image file on the disk
+
+		\return True if loading was successful
+		*/
+		bool loadFile(const std::string &FileName);
+
+		//! Load the texture from a memory block
+		/*!
+		Supported formats: PNG, BMP, TGA.
+
+		\param Data Pointer to the file data in memory
+		\param Size Size of the data (in bytes)
+
+		\return True if loading was successful
+		*/
+		bool loadMemory(const void *Data, std::size_t Size);
+
+		//! Load the texture from input stream.
+		/*!
+		Supported formats: PNG, BMP, TGA.
+
+		\param Stream Input stream.
+
+		\return True if loading was successful
+		*/
+		bool loadStream(KInputStream &Stream);
 
 		//! Update whole or piece of texture with an image
 		/*!

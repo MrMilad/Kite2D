@@ -24,9 +24,9 @@
 
 #include "Kite/Core/system/ksystemdef.h"
 #include "Kite/Core/system/kcoreinstance.h"
+#include "Kite/Core/system/kresource.h"
 #include "Kite/Core/math/kmathstructs.h"
 #include "Kite/Core/graphic/kgraphicstructs.h"
-#include "Kite/Core/system/kinputstream.h"
 #include <string>
 #include <vector>
 
@@ -40,7 +40,7 @@ namespace Kite{
 		This class can create the image with only size and color of pixels,
 		or read and decode PNG, BMP, TGA formats from a file or memory or a input stream and also write that formats into a file.
 	*/
-    class KITE_FUNC_EXPORT KImage : public KCoreInstance{
+    class KITE_FUNC_EXPORT KImage : public KCoreInstance, public KResource{
     public:
 		//! Constructs an empty image object.
         KImage();
@@ -95,8 +95,6 @@ namespace Kite{
 		//! Read and decode pixels from input stream.
 		/*!
 			\param Stream Input stream.
-			\param Pixels Pixels storage.
-			\param Size Size of image.
 
 			\return True if loading was successful
 		*/

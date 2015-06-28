@@ -21,8 +21,9 @@
 #define KSTREAMSOURCE_H
 
 #include "Kite/Core/system/ksystemdef.h"
+#include "Kite/Core/system/kresource.h"
+#include "Kite/Core/system/kmemstream.h"
 #include "Kite/Core/audio/ksoundsource.h"
-#include "Kite/Core/system/kinputstream.h"
 #include <string>
 
 namespace std{
@@ -32,7 +33,7 @@ namespace Kite{
 	namespace Internal{
 		class SoundIO;
 	}
-    class KITE_FUNC_EXPORT KStreamSource : public KSoundSource{
+    class KITE_FUNC_EXPORT KStreamSource : public KSoundSource, public KResource{
     public:
         KStreamSource();
         ~KStreamSource();
@@ -45,10 +46,13 @@ namespace Kite{
 		bool getLoop();
 
         /// load sound file
-		bool loadFile(const std::string &FileName, KAudioFileTypes Format);
+		bool loadFile(const std::string &FileName);
 
 		/// load from stream
-		bool loadStream(KInputStream &InputStream, KAudioFileTypes Format);
+		bool loadStream(KInputStream &InputStream);
+
+		/// load from memory
+		bool loadMemory(const void *Data, std::size_t Size);
 
     private:
         void loader(); // fill buffers immediately (thread task)
@@ -59,6 +63,7 @@ namespace Kite{
         I8 *_kdata;
         bool _kloop;
         bool _KuserStop;
+		KMemStream *_kmemstream;
     };
 }
 

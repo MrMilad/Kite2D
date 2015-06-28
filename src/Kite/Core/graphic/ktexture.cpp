@@ -48,6 +48,36 @@ namespace Kite{
         _create(Image.getPixelsData(), Image.getSize(), Filter, Wrap, *this);
     }
 
+	bool KTexture::loadFile(const std::string &FileName){
+		KImage temp;
+		bool ret = temp.loadFile(FileName);
+		
+		if (ret)
+			_create(temp.getPixelsData(), temp.getSize(), _kfilter, _kwrap, *this);
+
+		return ret;
+	}
+
+	bool KTexture::loadMemory(const void *Data, std::size_t Size){
+		KImage temp;
+		bool ret = temp.loadMemory(Data, Size);
+
+		if (ret)
+			_create(temp.getPixelsData(), temp.getSize(), _kfilter, _kwrap, *this);
+
+		return ret;
+	}
+
+	bool KTexture::loadStream(KInputStream &Stream){
+		KImage temp;
+		bool ret = temp.loadStream(Stream);
+
+		if (ret)
+			_create(temp.getPixelsData(), temp.getSize(), _kfilter, _kwrap, *this);
+
+		return ret;
+	}
+
     void KTexture::update(const KImage &Image, const KVector2U32 &Position){
         if (_ktexId > 0){
 

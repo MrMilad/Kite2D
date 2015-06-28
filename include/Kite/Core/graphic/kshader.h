@@ -24,7 +24,7 @@
 
 #include "Kite/Core/system/ksystemdef.h"
 #include "Kite/Core/system/kcoreinstance.h"
-#include "Kite/Core/system/kinputstream.h"
+#include "Kite/Core/system/kresource.h"
 #include "Kite/Core/graphic/kgraphictypes.h"
 #include <string>
 
@@ -37,7 +37,7 @@ namespace Kite{
 	/*!
 		This class supports shader programs written in the OpenGL Shading Language (GLSL).
 	*/
-    class KITE_FUNC_EXPORT KShader : public KCoreInstance{
+    class KITE_FUNC_EXPORT KShader : public KCoreInstance, public KResource{
     public:
 
 		//! Default constructors
@@ -59,13 +59,13 @@ namespace Kite{
 		*/
         bool loadFile(const std::string &ShaderFile);
 
-		//! Load the shader (vertex or fragment) from a string
+		//! Load the shader (vertex or fragment) from memory
 		/*!
-			\param ShaderCod Source code of the sahder
+			\param ShaderCod Null-terminated (\0) source code of the sahder (in char)
 
 			\return True if loading was successful
 		*/
-        bool loadMemory(const std::string &ShaderCod);
+        bool loadMemory(const void * Data, std::size_t DataSize);
 
 		//! Load both the vertex and fragment shaders from input stream
 		/*!

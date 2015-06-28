@@ -39,6 +39,8 @@ namespace Internal{
 		// open from memory
 		bool openArchive(const void *Memory, size_t Size);
 
+		inline const std::string &getArchiveName() const { return _kaname; }
+
 		// get total number of the files in the archive
 		U32 getFilesNumber();
 
@@ -54,6 +56,8 @@ namespace Internal{
 
 		// open archived file by index
 		bool openFile(U32 FileIndex);
+
+		inline const std::string &getFileName() const { return _kfname; }
 
 		// read a portion of the file (stream - allowed only for uncompressed files in the archive)
 		// read entire file with a single call (allowed for both compressed/uncompressed files in the archive)
@@ -87,6 +91,8 @@ namespace Internal{
 		bool _kisopen;
 		bool _kready;
 		bool _kisCmprsd;
+		std::string _kaname;
+		std::string _kfname;
 	};
 }
 }

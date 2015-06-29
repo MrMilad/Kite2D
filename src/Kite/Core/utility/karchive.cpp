@@ -85,6 +85,10 @@ namespace Kite{
 		return _kzipIO->eof();
 	}
 
+	U64 KArchive::getSize(){
+		return _kzipIO->getStreamSize();
+	}
+
 	I32 KArchive::close(){
 		_kzipIO->closeArchive();
 		return 0;

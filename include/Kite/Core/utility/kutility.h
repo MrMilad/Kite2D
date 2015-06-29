@@ -23,5 +23,15 @@
 #include "Kite/Core/utility/kutilitystructs.h"
 #include "Kite/Core/utility/karchive.h"
 #include "Kite/Core/utility/karrayio.h"
+#include "Kite/core/utility/kstream.h"
+#include "Kite/core/utility/kinputstream.h"
+#include "Kite/core/utility/kfilestream.h"
+#include "Kite/core/utility/kfileinputstream.h"
+#include "Kite/core/utility/karchivestream.h"
+#include "Kite/core/utility/kmeminputstream.h"
+#include "Kite/core/utility/kresource.h"
+#include "Kite/core/utility/kresource.h"
+#include "Kite/core/utility/kresourcemanager.h"
+#include "Kite/core/utility/ktimer.h"
 
 #endif // KUTILITY_H

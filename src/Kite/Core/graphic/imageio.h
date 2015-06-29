@@ -24,7 +24,7 @@
 
 #include "Kite/core/system/knoncopyable.h"
 #include "Kite/Core/math/kmathstructs.h"
-#include "Kite/Core/system/kinputstream.h"
+#include "Kite/Core/utility/kinputstream.h"
 #include <string>
 #include <vector>
 

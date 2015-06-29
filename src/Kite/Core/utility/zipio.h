@@ -76,6 +76,8 @@ namespace Internal{
 
 		I32 eof() const;
 
+		U64 getStreamSize() const;
+
 		void closeArchive();
 
 	private:

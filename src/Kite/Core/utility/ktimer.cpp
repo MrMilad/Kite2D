@@ -17,14 +17,37 @@
     Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
     USA
 */
-#ifndef KSYSTEM_H
-#define KSYSTEM_H
+#include "Kite/core/system/ksystemdef.h"
+#include "Kite/core/utility/ktimer.h"
+#include "src/Kite/Core/window/fwcall.h"
 
-#include "Kite/Core/system/ksystemdef.h"
-#include "Kite/Core/system/ksystemtypes.h"
-#include "Kite/core/system/ksystemstructs.h"
-#include "Kite/core/system/knoncopyable.h"
-#include "Kite/Core/system/kcoreinstance.h"
-#include "Kite/core/system/ksystemutil.h"
+namespace Kite{
+	KTimer::KTimer():
+		_kscale(1.0f),
+		_kdelta(0.0)
+	{
+		// initialize glfw
+		Internal::initeGLFW();
+	}
+    void KTimer::start(){
+        // get current time
+        _kdelta = glfwGetTime();
+    }
 
-#endif // KSYSTEM_H
+    void KTimer::stop(){
+        F64 end = glfwGetTime();
+        _kdelta = end - _kdelta;
+    }
+
+    F64 KTimer::getElapsedSec(){
+        return (glfwGetTime() - _kdelta);
+    }
+
+	F64 KTimer::getScaledElapsedSec(){
+		return ((glfwGetTime() - _kdelta) * _kscale);
+	}
+
+    void KTimer::resetAllTimers(){
+        glfwSetTime(0.0);
+    }
+}

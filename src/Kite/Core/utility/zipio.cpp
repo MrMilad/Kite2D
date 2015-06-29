@@ -306,6 +306,13 @@ namespace Internal{
 		return 0;
 	}
 
+	U64 ZipIO::getStreamSize() const{
+		if (!_kisopen || !_kready || _kfindex < 0)
+			return 0;
+
+		return _kfstat.m_uncomp_size;
+	}
+
 	void ZipIO::closeArchive(){
 		if (_kisopen)
 			mz_zip_reader_end(&_kzarchive);

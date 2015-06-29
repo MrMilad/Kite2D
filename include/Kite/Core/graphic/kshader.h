@@ -24,7 +24,7 @@
 
 #include "Kite/Core/system/ksystemdef.h"
 #include "Kite/Core/system/kcoreinstance.h"
-#include "Kite/Core/system/kresource.h"
+#include "Kite/Core/utility/kresource.h"
 #include "Kite/Core/graphic/kgraphictypes.h"
 #include <string>
 

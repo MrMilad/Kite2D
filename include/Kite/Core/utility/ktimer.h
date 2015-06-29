@@ -17,14 +17,36 @@
     Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
     USA
 */
-#ifndef KSYSTEM_H
-#define KSYSTEM_H
+#ifndef KTIMER_H
+#define KTIMER_H
 
-#include "Kite/Core/system/ksystemdef.h"
-#include "Kite/Core/system/ksystemtypes.h"
-#include "Kite/core/system/ksystemstructs.h"
-#include "Kite/core/system/knoncopyable.h"
-#include "Kite/Core/system/kcoreinstance.h"
-#include "Kite/core/system/ksystemutil.h"
+#include "Kite/core/system/ksystemdef.h"
 
-#endif // KSYSTEM_H
+namespace Kite {
+    class KITE_FUNC_EXPORT KTimer{
+    public:
+		KTimer();
+
+        /// start timer
+        void start();
+
+        /// stop the timer
+        void stop();
+
+		/// timer scale (default = 1)
+		inline void setScale(F32 Scale) { _kscale = Scale; }
+		inline F32 getScale() const { return _kscale; }
+
+        /// get elapsed time in second
+        F64 getElapsedSec();
+		F64 getScaledElapsedSec();
+
+        /// set all timers to 0
+        static void resetAllTimers();
+
+    private:
+        F64 _kdelta;
+		F32 _kscale;
+    };
+}
+#endif // KTIMER_H

@@ -143,7 +143,7 @@ namespace Kite{
 		if (_kmemstream)
 			delete _kmemstream;
 
-		_kmemstream = new KMemStream(Data, Size);
+		_kmemstream = new KMemInputStream(Data, Size);
 
 		return this->loadStream(*_kmemstream);
 	}

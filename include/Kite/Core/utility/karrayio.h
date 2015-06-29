@@ -22,7 +22,7 @@
 
 #include "Kite/Core/system/ksystemdef.h"
 #include "Kite/Core/utility/kutilitystructs.h"
-#include "Kite/Core/system/kinputstream.h"
+#include "Kite/Core/utility/kinputstream.h"
 #include <vector>
 #include <cstring>
 #include <cstdio>
@@ -38,7 +38,7 @@ namespace Kite{
 			bool ret = false;
 
 			// open file
-			FILE *file = fopen(FileName.c_str(), "r");
+			FILE *file = fopen(FileName.c_str(), "rb");
 
 			if (file != NULL){
 

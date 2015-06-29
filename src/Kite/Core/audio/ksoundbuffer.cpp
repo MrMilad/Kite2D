@@ -18,7 +18,7 @@
     USA
 */
 #include "Kite/core/audio/ksoundbuffer.h"
-#include "Kite/core/system/kmemstream.h"
+#include "Kite/core/utility/kmeminputstream.h"
 #include "src/Kite/core/audio/alcall.h"
 #include "src/Kite/Core/audio/soundio.h"
 #include <vector>
@@ -127,7 +127,7 @@ namespace Kite{
 	}
 
 	bool KSoundBuffer::loadMemory(const void *Data, std::size_t Size){
-		KMemStream temp(Data, Size);
+		KMemInputStream temp(Data, Size);
 		return loadStream(temp);
 	}
 

@@ -22,7 +22,7 @@
 
 #include "Kite/Core/system/ksystemdef.h"
 #include "Kite/Core/audio/kaudiostructs.h"
-#include "Kite/Core/system/kinputstream.h"
+#include "Kite/Core/utility/kinputstream.h"
 
 namespace Kite{
 namespace Internal{

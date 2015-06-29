@@ -17,14 +17,31 @@
     Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
     USA
 */
-#ifndef KSYSTEM_H
-#define KSYSTEM_H
+#ifndef KINPUTSTREAM_H
+#define KINPUTSTREAM_H
 
 #include "Kite/Core/system/ksystemdef.h"
-#include "Kite/Core/system/ksystemtypes.h"
-#include "Kite/core/system/ksystemstructs.h"
-#include "Kite/core/system/knoncopyable.h"
-#include "Kite/Core/system/kcoreinstance.h"
-#include "Kite/core/system/ksystemutil.h"
 
-#endif // KSYSTEM_H
+namespace Kite{
+	class KITE_FUNC_EXPORT KInputStream{
+	public:
+		virtual ~KInputStream(){}
+
+		virtual U64 read(void *Data, U64 DataSize) = 0;
+
+		virtual I32 seek(I64 Offset, I32 Origin) = 0;
+
+		virtual I64 tell() = 0;
+
+		virtual bool isOpen() = 0;
+
+		// returns nonzero if we are at end of file/data
+		virtual I32 eof() = 0;
+
+		virtual U64 getSize() = 0;
+
+		virtual I32 close() = 0;
+	};
+}
+
+#endif // KINPUTSTREAM_H

@@ -21,8 +21,8 @@
 #define KSTREAMSOURCE_H
 
 #include "Kite/Core/system/ksystemdef.h"
-#include "Kite/Core/system/kresource.h"
-#include "Kite/Core/system/kmemstream.h"
+#include "Kite/Core/utility/kresource.h"
+#include "Kite/Core/utility/kmeminputstream.h"
 #include "Kite/Core/audio/ksoundsource.h"
 #include <string>
 
@@ -63,7 +63,7 @@ namespace Kite{
         I8 *_kdata;
         bool _kloop;
         bool _KuserStop;
-		KMemStream *_kmemstream;
+		KMemInputStream *_kmemstream;
     };
 }
 

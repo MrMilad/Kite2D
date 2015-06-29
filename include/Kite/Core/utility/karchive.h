@@ -23,7 +23,7 @@
 /*! \file karchive.h */
 
 #include "Kite/Core/system/ksystemdef.h"
-#include "Kite/Core/system/kinputstream.h"
+#include "Kite/Core/utility/kinputstream.h"
 #include "Kite/Core/utility/kutilitystructs.h"
 #include <cstring>
 
@@ -156,6 +156,12 @@ namespace Kite{
 					Otherwise, zero is returned.
 		*/
 		I32 eof();
+
+		//! Return size of stream
+		/*!
+			\return Size of stream
+		*/
+		U64 getSize();
 
 		//! Closes the file associated with the stream and disassociates it.
 		/*!

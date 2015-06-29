@@ -28,14 +28,12 @@ namespace Kite{
 	class KITE_FUNC_EXPORT KArchiveStream : public KStream{
 	public:
 		// open from file
-		KArchiveStream(const std::string &ArchiveName);
+		void openArchive(const std::string &ArchiveName);
 
 		// open from memory
-		KArchiveStream(const void *Data, size_t Size);
+		void openArchive(const void *Data, size_t Size);
 
 		KInputStream *openRead(const std::string &Name);
-
-		const std::string &getArchiveName() const;
 
 	private:
 		std::string _karchive;

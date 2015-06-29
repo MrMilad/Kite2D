@@ -20,16 +20,16 @@ USA
 #include "Kite/Core/utility/karchivestream.h"
 
 namespace Kite{
-	KArchiveStream::KArchiveStream(const std::string &ArchiveName):
-		_karchive(ArchiveName),
-		_kloadmemory(false)
-	{}
+	void KArchiveStream::openArchive(const std::string &ArchiveName){
+		_karchive = ArchiveName;
+		_kloadmemory = false;
+	}
 
-	KArchiveStream::KArchiveStream(const void *Data, size_t Size):
-		_kdata(Data),
-		_ksize(Size),
-		_kloadmemory(true)
-	{}
+	void KArchiveStream::openArchive(const void *Data, size_t Size){
+		_kdata = Data;
+		_ksize = Size;
+		_kloadmemory = true;
+	}
 	
 	KInputStream *KArchiveStream::openRead(const std::string &Name){
 		if (!_karchive.empty()){
@@ -52,9 +52,5 @@ namespace Kite{
 
 		KDEBUG_PRINT("error in archive stream");
 		return 0;
-	}
-
-	const std::string &KArchiveStream::getArchiveName() const{
-		return _karchive;
 	}
 }

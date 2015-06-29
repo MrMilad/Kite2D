@@ -20,7 +20,7 @@ to ease the development of games.
 + Support wav, ogg file formats
 + Audio effects (reverb, ...)
 + Audio Streaming
-+ flexible and powerful resource manager (can load and manage any resource from everywhere)
++ Flexible and powerful resource manager, can load and manage any resource from anywhere (hard disk, memory, network, databases and ....)
 + Support mouse, keyboard, joystick
 + Easy window creation and handling
 + Fast and basic 2D physique functions (hit-testing, bounding box, ...)

@@ -24,7 +24,7 @@
 #include "Kite/Core/graphic/kgraphicstructs.h"
 #include "Kite/Core/graphic/kshaderprogram.h"
 #include "Kite/Core/graphic/ktexture.h"
-#include "Kite/Assist/graphic/ktransformable.h"
+#include "Kite/Core/math/ktransformable.h"
 
 namespace Kite{
     class KITE_FUNC_EXPORT KBatchObject{

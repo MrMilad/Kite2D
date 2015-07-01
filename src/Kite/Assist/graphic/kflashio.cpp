@@ -18,6 +18,7 @@
     USA
 */
 #include "Kite/Assist/graphic/kflashio.h"
+#include "Kite/Core/math/ktransformable.h"
 #include "extlibs/headers/xml/rapidxml.hpp"
 #include <fstream>
 #include <iostream>
@@ -25,9 +26,9 @@
 using namespace rapidxml;
 
 namespace Kite{
-	bool KFlashIO::loadFile(const std::string &FileName, std::vector<KAnimeKey> &Objects) {
+	bool KFlashIO::loadFile(const std::string &FileName, std::vector<KAnimeKey> &Keys, KRect2F32 &Object, bool RelativePosition) {
 		// just in case
-		Objects.clear();
+		Keys.clear();
 
 		// open file
 		std::ifstream ifs(FileName.c_str());
@@ -47,9 +48,13 @@ namespace Kite{
 		doc.parse<0>(&content[0]);
 		root = doc.first_node();
 
-		I32 left = 0, top = 0, width = 0, height = 0;
-		F32 scaleX = 0, scaleY = 0, rotation = 0;
+		F32  width = 0, height = 0;
 		F32 frameRate, fixedRate = 0;
+		KVector2F32 pos, skew, scale;
+		F32 rot = 0, x = 0, y = 0;
+
+		KTransformable trans;
+		const KTransform *tr;
 
 		for (xml_node<> *node = root->first_node(); node; node = node->next_sibling()){
 
@@ -59,55 +64,195 @@ namespace Kite{
 
 				// source attribute
 				attr = child->first_attribute("frameRate");
-				if (attr){ frameRate = atof(attr->value()); fixedRate = 1.0f / frameRate; }
+				if (attr){
+					frameRate = atof(attr->value());
+					fixedRate = 1.0f / frameRate;
+				}
+
+				attr = child->first_attribute("x");
+				if (attr){
+					pos.x = atof(attr->value());
+				}
+
+				attr = child->first_attribute("y");
+				if (attr){
+					pos.y = atof(attr->value());
+				}
 
 				attr = child->first_attribute("scaleX");
-				if (attr) scaleX = atof(attr->value());
+				if (attr){ 
+					scale.x = atof(attr->value());
+				}
 
 				attr = child->first_attribute("scaleY");
-				if (attr) scaleY = atof(attr->value());
+				if (attr){
+					scale.y = atof(attr->value());
+				}
+
+				/*attr = child->first_attribute("skewX");
+				if (attr){
+					// x and y are diffrent in flash and our transform system
+					skew.y = -atof(attr->value());
+				}
+
+				attr = child->first_attribute("skewY");
+				if (attr){
+					// x and y are diffrent in flash and our transform system
+					skew.x = -atof(attr->value());
+				}*/
 
 				attr = child->first_attribute("rotation");
-				if (attr) rotation = atof(attr->value());
+				if (attr){ 
+					rot = atof(attr->value());
+				}
 
 				// rectangle attribute
 				child = node->first_node()->first_node()->first_node("geom:Rectangle");
 				attr = child->first_attribute("left");
-				if (attr) left = atoi(attr->value());
+				if (attr){ 
+					Object.leftBottom.x = atof(attr->value());
+					Object.leftTop.x = atof(attr->value());
+				}
 
 				attr = child->first_attribute("top");
-				if (attr) top = atoi(attr->value());
+				if (attr){
+					Object.leftBottom.y = atof(attr->value());
+					Object.rightBottom.y = atof(attr->value());
+				}
 
 				attr = child->first_attribute("width");
-				if (attr) width = atoi(attr->value());
+				if (attr){
+					width = atof(attr->value());
+					Object.rightBottom.x = Object.leftBottom.x + width;
+					Object.rightTop.x = Object.leftBottom.x + width;
+				}
 
 				attr = child->first_attribute("height");
-				if (attr) height = atoi(attr->value());
+				if (attr){
+					height = atof(attr->value());
+					Object.leftTop.y = Object.leftBottom.y + height;
+					Object.rightTop.y = Object.rightBottom.y + height;
+				}
+
+				// transformation point (center)
+				child = node->first_node()->first_node()->next_sibling()->first_node("geom:Point");
+				attr = child->first_attribute("x");
+				if (attr){
+					x = (width * atof(attr->value())) + Object.leftBottom.x;
+				}
+
+				attr = child->first_attribute("y");
+				if (attr){
+					y = (height * atof(attr->value())) + Object.leftBottom.y;
+				}
+
+				// calculate source transform
+				trans.setCenter(KVector2F32(x, y));
+				trans.setSkew(skew);
+				trans.setScale(scale);
+				trans.setRotation(rot);
+				trans.setPosition(pos);
+				tr = trans.getTransform();
+				Object.leftBottom = tr->transformPoint(Object.leftBottom);
+				Object.rightBottom = tr->transformPoint(Object.rightBottom);
+				Object.leftTop = tr->transformPoint(Object.leftTop);
+				Object.rightTop = tr->transformPoint(Object.rightTop);
 			}
 
 			// keys
 			if (strcmp(node->name(), "Keyframe") == 0){
 				KAnimeKey key;
+
 				attr = node->first_attribute("index");
-				if (attr){ key.time = atoi(attr->value()) * fixedRate; }
+				if (attr){
+					// first key is always empty in xml file
+					// we fill it with default key and skip
+					if (atoi(attr->value()) == 0){
+						KAnimeKey firstKey;
+						firstKey.center = pos;
+						firstKey.position = pos;
+						Keys.push_back(firstKey);
+						continue;
+					}
+
+
+					key.time = atoi(attr->value()) * fixedRate;
+				}
 
 				attr = node->first_attribute("x");
-				if (attr){ key.trChannel = true; key.translate.x = atof(attr->value()); }
+				if (attr){
+					key.trChannel = true;
+					key.translate.x = atof(attr->value());
+				}else{
+					// use previous value
+					key.translate.x = Keys.back().translate.x;
+				}
 
 				attr = node->first_attribute("y");
-				if (attr){ key.trChannel = true; key.translate.y = atof(attr->value()); }
+				if (attr){ 
+					key.trChannel = true;
+					key.translate.y = atof(attr->value());
+				}else{
+					// use previous value
+					key.translate.y = Keys.back().translate.y;
+				}
 
 				attr = node->first_attribute("scaleX");
-				if (attr){ key.scaleChannel = true; key.scale.x = atof(attr->value()); }
+				if (attr){ 
+					key.scaleChannel = true;
+					key.scale.x = atof(attr->value());
+				}else{
+					// use previous value
+					key.scale.x = Keys.back().scale.x;
+				}
 
 				attr = node->first_attribute("scaleY");
-				if (attr){ key.scaleChannel = true; key.scale.y = atof(attr->value()); }
+				if (attr){ 
+					key.scaleChannel = true;
+					key.scale.y = atof(attr->value());
+				}else{
+					key.scale.y = Keys.back().scale.y;
+				}
+
+				/*attr = node->first_attribute("skewX");
+				if (attr){
+					key.skewChannel = true;
+					// x and y are diffrent in flash and our transform system
+					key.skew.y = -atof(attr->value());
+				}
+				else{
+					// use previous value
+					key.skew.y = Keys.back().skew.y;
+				}
+
+				attr = node->first_attribute("skewY");
+				if (attr){
+					key.skewChannel = true;
+					// x and y are diffrent in flash and our transform system
+					key.skew.x = -atof(attr->value());
+				}
+				else{
+					// use previous value
+					key.skew.x = Keys.back().skew.x;
+				}*/
 
 				attr = node->first_attribute("rotation");
-				if (attr){ key.rotateChannel = true; key.rotate = atof(attr->value()); }
+				if (attr){
+					key.rotateChannel = true;
+					key.rotate = atof(attr->value());
+				}else{
+					key.rotate = Keys.back().rotate;
+				}
 
-				Objects.push_back(key);
+				// relative position
+				if (RelativePosition){
+					key.trChannel = true;
+					key.position = pos;
+				}
 
+				key.center = Keys.back().center;
+				Keys.push_back(key);
+				
 			}
 		}
 

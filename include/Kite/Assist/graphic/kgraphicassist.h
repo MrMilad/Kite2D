@@ -21,7 +21,6 @@
 #define KGRAPHICASSIST_H
 
 #include "Kite/Assist/graphic/kdrawable.h"
-#include "Kite/Assist/graphic/ktransformable.h"
 #include "Kite/Assist/graphic/ktransformablegroup.h"
 #include "Kite/Assist/graphic/kcamera.h"
 #include "Kite/Assist/graphic/kflashio.h"

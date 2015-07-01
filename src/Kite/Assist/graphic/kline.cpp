@@ -66,6 +66,10 @@ namespace Kite{
 		// center
 		setCenter(AnimatedValue->center);
 
+		// skew
+		if (AnimatedValue->skewChannel)
+		if (AnimatedValue->skchange == KAV_SET) setSkew(AnimatedValue->skew); else skew(AnimatedValue->skew);
+
 		// scale
 		if (AnimatedValue->scaleChannel)
 		if (AnimatedValue->schange == KAV_SET) setScale(AnimatedValue->scale); else scale(AnimatedValue->scale);
@@ -75,8 +79,12 @@ namespace Kite{
 		if (AnimatedValue->rchange == KAV_SET) setRotation(AnimatedValue->rotate); else rotate(AnimatedValue->rotate);
 
 		// translate
-		if (AnimatedValue->trChannel)
-		if (AnimatedValue->tchange == KAV_SET) setPosition(AnimatedValue->translate); else move(AnimatedValue->translate);
+		if (AnimatedValue->trChannel){
+			if (AnimatedValue->tchange == KAV_SET) setPosition(AnimatedValue->translate); else move(AnimatedValue->translate);
+
+			// position (set position only when we use translate)
+			move(AnimatedValue->position);
+		}
 
 		// animate color
 		if (AnimatedValue->colorChannel){

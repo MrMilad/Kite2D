@@ -118,26 +118,30 @@ namespace Kite{
 	struct KAnimeValue{
 		KVector2F32 translate;	//!< Translate state
 		KVector2F32 scale;		//!< Scale state
+		KVector2F32 skew;		//!< Skew state
+		KVector2F32 position;	//!< Position state
 		F32 rotate;				//!< Rotate state
 		KVector2F32 center;		//!< Origin state
 		KColor color;			//!< Color state
 		KRectF32 uv;			//!< UV state
 		bool trChannel;			//!< Translate channel state
 		bool scaleChannel;		//!< Scale channel state
+		bool skewChannel;		//!< Skew channel state
 		bool rotateChannel;		//!< Rotate channel state
 		bool uvChannel;			//!< UV channel state
 		bool colorChannel;		//!< Color channel state
-		KAnimeValueChangeTypes tchange;	//!< Translate state-change mode
-		KAnimeValueChangeTypes schange;	//!< Scale state-change mode
-		KAnimeValueChangeTypes rchange;	//!< Rotate state-change mode
+		KAnimeValueChangeTypes tchange;		//!< Translate state-change mode
+		KAnimeValueChangeTypes schange;		//!< Scale state-change mode
+		KAnimeValueChangeTypes skchange;	//!< Skew state-change mode
+		KAnimeValueChangeTypes rchange;		//!< Rotate state-change mode
 
 		//! Default constructors
 		KAnimeValue() :
-			translate(), scale(1.0f, 1.0f), rotate(0), center(),
-			color(), uv(),
-			trChannel(false), scaleChannel(false), rotateChannel(false),
-			uvChannel(false), colorChannel(false),
-			tchange(KAV_SET), schange(KAV_SET), rchange(KAV_SET)
+			translate(), scale(1.0f, 1.0f), skew(0.0f, 0.0f), position(0.0f, 0.0f),
+			rotate(0), center(), color(), uv(),
+			trChannel(false), scaleChannel(false), skewChannel(false),
+			rotateChannel(false), uvChannel(false), colorChannel(false),
+			tchange(KAV_SET), schange(KAV_SET), skchange(KAV_SET), rchange(KAV_SET)
 		{}
 	};
 
@@ -150,31 +154,37 @@ namespace Kite{
 		F32 time;				//!< Time in milliseconds
 		KVector2F32 translate;	//!< Translate state
 		KVector2F32 scale;		//!< Scale state
+		KVector2F32 skew;		//!< Skew state
+		KVector2F32 position;	//!< Position state (use it just when you need to specific object position)
 		F32 rotate;				//!< Rotate state
 		KVector2F32 center;		//!< Origin state
 		U32 uv;					//!< UV state
 		KColor color;			//!< Color state
 		bool trChannel;			//!< Translate channel state
 		bool scaleChannel;		//!< Scale channel state
+		bool skewChannel;		//!< Skew channel state
 		bool rotateChannel;		//!< Rotate channel state
 		bool uvChannel;			//!< UV channel state
 		bool colorChannel;		//!< Color channel state
-		KAnimeValueChangeTypes tchange;	//!< Translate state-change mode
-		KAnimeValueChangeTypes schange;	//!< Scale state-change mode
-		KAnimeValueChangeTypes rchange;	//!< Rotate state-change mode
-		KInterpolationTypes tinterp;	//!< Translate interpolation type
-		KInterpolationTypes sinterp;	//!< Scale interpolation type
-		KInterpolationTypes rinterp;	//!< Rotate interpolation type
-		KInterpolationTypes cinterp;	//!< Origin interpolation type
+		KAnimeValueChangeTypes tchange;		//!< Translate state-change mode
+		KAnimeValueChangeTypes schange;		//!< Scale state-change mode
+		KAnimeValueChangeTypes skchange;	//!< Skew state-change mode
+		KAnimeValueChangeTypes rchange;		//!< Rotate state-change mode
+		KInterpolationTypes tinterp;		//!< Translate interpolation type
+		KInterpolationTypes sinterp;		//!< Scale interpolation type
+		KInterpolationTypes skinterp;		//!< Skew interpolation type
+		KInterpolationTypes rinterp;		//!< Rotate interpolation type
+		KInterpolationTypes cinterp;		//!< Origin interpolation type
 
 		//! Default constructors
 		KAnimeKey() :
-			time(0), translate(), scale(1.0f, 1.0f),
-			rotate(0.0f), center(), uv(0), color(),
-			tinterp(KIN_LINEAR), sinterp(KIN_LINEAR), rinterp(KIN_LINEAR), cinterp(KIN_LINEAR),
-			tchange(KAV_SET), schange(KAV_SET), rchange(KAV_SET),
-			trChannel(false), scaleChannel(false), rotateChannel(false),
-			uvChannel(false), colorChannel(false)
+			time(0), translate(), scale(1.0f, 1.0f), position(0.0f, 0.0f),
+			skew(0.0f, 0.0f), rotate(0.0f), center(), uv(0), color(),
+			tinterp(KIN_LINEAR), sinterp(KIN_LINEAR), skinterp(KIN_LINEAR),
+			rinterp(KIN_LINEAR), cinterp(KIN_LINEAR),
+			tchange(KAV_SET), schange(KAV_SET), skchange(KAV_SET), rchange(KAV_SET),
+			trChannel(false), scaleChannel(false), skewChannel(false),
+			rotateChannel(false), uvChannel(false), colorChannel(false)
 		{}
 	};
 

@@ -28,7 +28,11 @@
 namespace Kite{
 	class KITE_FUNC_EXPORT KFlashIO{
 	public:
-		static bool loadFile(const std::string &FileName, std::vector<KAnimeKey> &Objects);
+		// load flash motion xml files and convert it to KAnimeKey with associated object
+		// when RelativePosition is true, function use original position of object (in flash editor) for our animation keys
+		// else function use center position (0, 0) for animation keys (disable Position value)
+		static bool loadFile(const std::string &FileName, std::vector<KAnimeKey> &Keys,
+			KRect2F32 &Object, bool RelativePosition);
 	};
 }
 

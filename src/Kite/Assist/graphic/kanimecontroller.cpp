@@ -157,6 +157,9 @@ namespace Kite{
 			type = key1->sinterp;
 			_kvalue.scale.x = tweenFunction[type](_ktime - key1->time, key1->scale.x, key2->scale.x, key2->time - key1->time);
 			_kvalue.scale.y = tweenFunction[type](_ktime - key1->time, key1->scale.y, key2->scale.y, key2->time - key1->time);
+			type = key1->skinterp;
+			_kvalue.skew.x = tweenFunction[type](_ktime - key1->time, key1->skew.x, key2->skew.x, key2->time - key1->time);
+			_kvalue.skew.y = tweenFunction[type](_ktime - key1->time, key1->skew.y, key2->skew.y, key2->time - key1->time);
 			type = key1->rinterp;
 			_kvalue.rotate = tweenFunction[type](_ktime - key1->time, key1->rotate, key2->rotate, key2->time - key1->time);
 
@@ -169,6 +172,7 @@ namespace Kite{
 
 			_kvalue.trChannel = key2->trChannel;
 			_kvalue.scaleChannel = key2->scaleChannel;
+			_kvalue.skewChannel = key2->skewChannel;
 			_kvalue.rotateChannel = key2->rotateChannel;
 			_kvalue.colorChannel = key2->colorChannel;
 			_kvalue.uvChannel = key2->uvChannel;
@@ -177,6 +181,7 @@ namespace Kite{
 			key1 = &_kclip->at(_kcurrentKey);
 			_kvalue.translate = key1->translate;
 			_kvalue.scale = key1->scale;
+			_kvalue.skew = key1->skew;
 			_kvalue.rotate = key1->rotate;
 			_kvalue.color = key1->color;
 		}
@@ -190,8 +195,10 @@ namespace Kite{
 
 		// other values
 		_kvalue.center = key1->center;
+		_kvalue.position = key1->position;
 		_kvalue.tchange = key1->tchange;
 		_kvalue.schange = key1->schange;
+		_kvalue.skchange = key1->skchange;
 		_kvalue.rchange = key1->rchange;
 
 		for (U32 i = 0; i < _klist.size(); i++){

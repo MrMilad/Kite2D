@@ -23,7 +23,7 @@
 #include "Kite/Core/system/ksystemdef.h"
 #include "Kite/Core/graphic/kgraphicstructs.h"
 #include "Kite/Core/math/kmathstructs.h"
-#include "Kite/Assist/graphic/ktransformable.h"
+#include "Kite/Core/math/ktransformable.h"
 #include "kite/Assist/graphic/kindexbatchobject.h"
 #include "kite/Assist/graphic/kanimeobject.h"
 

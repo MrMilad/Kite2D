@@ -59,6 +59,11 @@ namespace Kite{
         /// multiplies the current scale
         void scale(const KVector2F32 &Scale);
 
+		void setSkew(const KVector2F32 &Skew);
+		inline const KVector2F32 *getSkew() const { return &_kskew; }
+
+		void skew(const KVector2F32 &Skew);
+
         /// set center of (position, scale, rotation)
         /// relative to the top-left
         /// default (0, 0)
@@ -72,6 +77,7 @@ namespace Kite{
         KVector2F32 _kposition;
         F32 _krotation;
         KVector2F32 _kscale;
+		KVector2F32 _kskew;
         KVector2F32 _kcenter;
         mutable KTransform _ktransform;
         mutable bool _kneedUpdate;

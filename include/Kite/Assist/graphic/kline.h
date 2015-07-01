@@ -22,7 +22,7 @@
 
 #include "Kite/Core/system/ksystemdef.h"
 #include "Kite/Assist/graphic/kbatchobject.h"
-#include "Kite/Assist/graphic/ktransformable.h"
+#include "Kite/Core/math/ktransformable.h"
 #include "kite/Assist/graphic/kanimeobject.h"
 
 namespace Kite{

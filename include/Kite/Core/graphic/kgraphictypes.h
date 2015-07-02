@@ -221,10 +221,10 @@ namespace Kite{
 		KAS_STOP	//!< Stop
 	};
 
-	/*enum KAnimePlayTypes{
-		KAP_FOREWARD,
-		KAP_BACKWARD
-	};*/
+	enum KAnimeDirectionTypes{
+		KAD_FOREWARD,
+		KAD_BACKWARD
+	};
 
 	/*! \enum KAnimeValueChangeTypes
 		\brief Property animation methodes
@@ -266,6 +266,11 @@ namespace Kite{
 		\brief Function handle for animation triggers
 	*/
 	typedef void(*KCallAnimeTrigger)(void *Parameter);
+
+	/*! \typedef KCallKeyChange
+	\brief Function handle for animation key change
+	*/
+	typedef void(*KCallKeyChange)(void *Parameter, U32 KeyNumber);
 
 	/*! \typedef KCallAnimeStatechange
 		\brief Function handle for animation states

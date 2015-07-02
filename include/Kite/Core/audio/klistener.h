@@ -42,6 +42,15 @@ namespace Kite{
 
 		//! Set master global gain
 		/*!
+		Range of master gain [1, 100]
+		by default 1
+
+		\param Gain Pointer to image data.
+		*/
+		static bool inite();
+
+		//! Set master global gain
+		/*!
 			Range of master gain [1, 100]
 			by default 1
 

@@ -60,6 +60,10 @@ namespace Kite{
 		// get animation loop
 		inline bool getLoop() const { return _kloop; }
 
+		inline void setPlayDirection(KAnimeDirectionTypes Direction) { _kdtype = Direction; }
+
+		inline KAnimeDirectionTypes getPlayDirection() const { return _kdtype; }
+
 		// set animation state (play, pause, stop)
 		inline void setState(KAnimeStateTypes State) { _kstype = State; }
 
@@ -83,15 +87,26 @@ namespace Kite{
 		inline U32 getCurrentKey() const { return _kcurrentKey; }
 
 		// add a time trigger (if StartTime <= current time <= StartTime + Duration) then trigger
-		// The function will be executed only once in their duration
+		// the functor will be executed only once in their duration
 		// time count as second
-		// avoid heavy work in the functor
+		// avoid heavy work in the functor.
 		void addTimeTrigger(KCallAnimeTrigger Functor, void *Sender, F32 StartTime, F32 Duration);
 
-		// delete all triggers
-		void deleteAllTriggers();
+		// set a key-change callback.
+		// the functor will be executed only once per key.
+		// key-change happens before any trigger.
+		// normally, the animation played from first key (clip[0]), so key-change for the first key in the first turn will not happen.
+		// avoid heavy work in the functor.
+		void setKeyChangeCallback(KCallKeyChange Functor, void *Sender);
+
+		// delete all time triggers
+		void deleteAllTimeTriggers();
+
+		// delete all time triggers
+		void deleteAllKeyTriggers();
 
 		// update animation state
+		// positive and negative values, are ineffective in play direction (use setPlayDirection())
 		void update(F32 Delta);
 
 	private:
@@ -106,6 +121,9 @@ namespace Kite{
 		std::vector<KAnimeObject *> _klist;
 		KAnimeValue _kvalue;
 		U32 _kcurrentKey;
+		KAnimeDirectionTypes _kdtype;
+		KCallKeyChange _kkcall;
+		void *_kksender;
 	};
 }
 

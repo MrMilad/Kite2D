@@ -36,6 +36,12 @@ namespace Kite{
 		}
 	}
 
+	void KAnimeControllerGroup::setPlayDirection(KAnimeDirectionTypes Direction){
+		for (U32 i = 0; i < _klist.size(); i++){
+			_klist[i]->setPlayDirection(Direction);
+		}
+	}
+
 	void KAnimeControllerGroup::setState(KAnimeStateTypes State){
 		for (U32 i = 0; i < _klist.size(); i++){
 			_klist[i]->setState(State);

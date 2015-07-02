@@ -29,7 +29,9 @@ namespace Kite{
 		_kloop(false),
 		_kstype(KAS_STOP),
 		_kvalue(),
-		_kcurrentKey(0)
+		_kcurrentKey(0),
+		_kdtype(KAD_FOREWARD),
+		_kkcall(0)
 	{}
 
 	KAnimeController::KAnimeController(KAnimeObject *Object,
@@ -39,7 +41,9 @@ namespace Kite{
 		_kloop(false),
 		_kstype(KAS_STOP),
 		_kvalue(),
-		_kcurrentKey(0)
+		_kcurrentKey(0),
+		_kdtype(KAD_FOREWARD),
+		_kkcall(0)
 	{
 		addObject(Object);
 		setClip(AnimationClip);
@@ -102,7 +106,12 @@ namespace Kite{
 		_kttrig.push_back(Internal::KAnimeTimeTrigger(StartTime, StartTime + Duration, Functor, false, Sender));
 	}
 
-	void KAnimeController::deleteAllTriggers(){
+	void KAnimeController::setKeyChangeCallback(KCallKeyChange Functor, void *Sender){
+		_kkcall = Functor;
+		_kksender = Sender;
+	}
+
+	void KAnimeController::deleteAllTimeTriggers(){
 		_kttrig.clear();
 	}
 
@@ -115,7 +124,7 @@ namespace Kite{
 
 		// check animation state
 		if (_kstype == KAS_STOP)  {	_ktime = 0; _kcurrentKey = 0; return; }
-		if (_kstype == KAS_PAUSE) { return; }
+		if (_kstype == KAS_PAUSE || Delta == 0) { return; }
 
 		bool needStop = false;
 		bool needInterpolate = true;
@@ -126,11 +135,27 @@ namespace Kite{
 			KTween::sinusoidalOut, KTween::sinusoidalInOut, KTween::exponentialIn,
 			KTween::exponentialOut, KTween::exponentialInOut };
 
+		// direction
+		if (_kdtype == KAD_FOREWARD){
+			Delta = fabs(Delta);
+		}else{
+			Delta = -fabs(Delta);
+		}
+
 		// time calibration
 		if (_kloop){
+			//// this methode causes both sides of animation stick together (like a circle) and loss of a few frames but its not a problem, its a methode!
+			// out of range time (before 0 or after total duration) 
+			//if ((_ktime + Delta) > _kclip->back().time) { _ktime = fmodf(_ktime + Delta, _kclip->back().time); }
+			//else if ((_ktime + Delta) <= 0) { _ktime = _kclip->back().time - fmodf(abs(_ktime + Delta) + _kclip->back().time, _kclip->back().time); }
+			// in range time
+			//else { _ktime += Delta; }
+			
+			if (_kdtype == KAD_FOREWARD && _ktime == _kclip->back().time) _ktime = 0;
+			if (_kdtype == KAD_BACKWARD && _ktime == 0) _ktime = _kclip->back().time;
 			// out of range time (before 0 or after total duration)
-			if ((_ktime + Delta) >= _kclip->back().time) { _ktime = fmodf(_ktime + Delta, _kclip->back().time); }
-			else if ((_ktime + Delta) <= 0) { _ktime = _kclip->back().time - fmodf(abs(_ktime + Delta) + _kclip->back().time, _kclip->back().time); }
+			if ((_ktime + Delta) > _kclip->back().time) { _ktime = _kclip->back().time; }
+			else if ((_ktime + Delta) < 0) { _ktime = 0; }
 			// in range time
 			else { _ktime += Delta; }
 		}else{
@@ -201,6 +226,7 @@ namespace Kite{
 		_kvalue.skchange = key1->skchange;
 		_kvalue.rchange = key1->rchange;
 
+		// send animated values to objects
 		for (U32 i = 0; i < _klist.size(); i++){
 			_klist[i]->animeUpdate(&_kvalue);
 		}
@@ -222,8 +248,7 @@ namespace Kite{
 					_kttrig[i].func(_kttrig[i].sender);
 					_kttrig[i].called = true;
 				}
-			}
-			else{
+			}else{
 				_kttrig[i].called = false;
 			}
 		}
@@ -239,16 +264,40 @@ namespace Kite{
 			return;
 		}
 
+		U32 temp = _kcurrentKey;
+
 		// first step, we check last key in our clip
 		if (_ktime == _kclip->back().time){
-			_kcurrentKey = _kclip->size() - 1;
+
+			// set current key
+			// return last - 1 or (size() - 2)
+			_kcurrentKey = _kclip->size() - 2;
+
+			// key-change callback
+			if (_kkcall && temp != _kclip->size() - 1){
+				_kkcall(_kksender, _kclip->size() - 1);
+			}
 			return;
 		}
 
 		// then we check all keys from 0 to last - 1
 		for (U32 i = 0; i < _kclip->size() - 1; i++){
+
 			if (_kclip->at(i).time <= _ktime && _kclip->at(i + 1).time > _ktime){
+
+				// set current key
 				_kcurrentKey = i;
+
+				// key-change callback
+				if (_kkcall && temp != i){
+					if (_kdtype == KAD_FOREWARD){
+						_kkcall(_kksender, i);
+					}
+					else{
+						_kkcall(_kksender, i + 1);
+					}
+				}
+		
 				return;
 			}
 		}

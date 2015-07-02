@@ -35,6 +35,9 @@ namespace Kite{
 		// loop apply at any direction (foreward and backwrad)
 		void setLoop(bool Loop);
 
+		// set group play direction
+		void setPlayDirection(KAnimeDirectionTypes Direction);
+
 		// set group state (play, pause, stop)
 		void setState(KAnimeStateTypes State);
 

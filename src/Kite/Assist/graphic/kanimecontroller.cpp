@@ -35,7 +35,7 @@ namespace Kite{
 	{}
 
 	KAnimeController::KAnimeController(KAnimeObject *Object,
-		const std::vector<KAnimeKey> *AnimationClip, const std::vector<KAtlas> *SpriteSheet) :
+		const std::vector<KAnimeKey> *AnimationClip, const std::vector<KAtlas> *SpriteSheet = 0) :
 		_katlas(SpriteSheet),
 		_ktime(0),
 		_kloop(false),
@@ -144,17 +144,19 @@ namespace Kite{
 
 		// time calibration
 		if (_kloop){
-			//// this methode causes both sides of animation stick together (like a circle) and loss of a few frames but its not a problem, its a methode!
+			//// this method causes both sides of animation stick together (like a circle) 
+			//// and loss of a few frames(with associated event) but its not a problem, its a method!
 			// out of range time (before 0 or after total duration) 
 			//if ((_ktime + Delta) > _kclip->back().time) { _ktime = fmodf(_ktime + Delta, _kclip->back().time); }
 			//else if ((_ktime + Delta) <= 0) { _ktime = _kclip->back().time - fmodf(abs(_ktime + Delta) + _kclip->back().time, _kclip->back().time); }
 			// in range time
 			//else { _ktime += Delta; }
 			
-			if (_kdtype == KAD_FOREWARD && _ktime == _kclip->back().time) _ktime = 0;
+			if (_kdtype == KAD_FOREWARD && _ktime == _kclip->back().time){ _ktime = 0; needInterpolate = true; }
 			if (_kdtype == KAD_BACKWARD && _ktime == 0) _ktime = _kclip->back().time;
+
 			// out of range time (before 0 or after total duration)
-			if ((_ktime + Delta) > _kclip->back().time) { _ktime = _kclip->back().time; }
+			if ((_ktime + Delta) > _kclip->back().time) { _ktime = _kclip->back().time; needInterpolate = false; }
 			else if ((_ktime + Delta) < 0) { _ktime = 0; }
 			// in range time
 			else { _ktime += Delta; }
@@ -170,9 +172,9 @@ namespace Kite{
 		keyLookup();
 
 		const KAnimeKey *key1 = &_kclip->at(_kcurrentKey);
+		KInterpolationTypes type;
 		if (needInterpolate){
 			const KAnimeKey *key2 = 0;
-			KInterpolationTypes type;
 			key2 = &_kclip->at(_kcurrentKey + 1);
 
 			// transform
@@ -214,7 +216,7 @@ namespace Kite{
 		// uv
 		if (_katlas)
 		if (_katlas->size() > key1->uv){
-			const KAtlas *atlas = &_katlas->at(_kcurrentKey);
+			const KAtlas *atlas = &_katlas->at(key1->uv);
 			_kvalue.uv = KRectF32(atlas->blu, atlas->tru, atlas->trv, atlas->blv);
 		}
 
@@ -270,8 +272,7 @@ namespace Kite{
 		if (_ktime == _kclip->back().time){
 
 			// set current key
-			// return last - 1 or (size() - 2)
-			_kcurrentKey = _kclip->size() - 2;
+			_kcurrentKey = _kclip->size() - 1;
 
 			// key-change callback
 			if (_kkcall && temp != _kclip->size() - 1){

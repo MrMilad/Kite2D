@@ -94,6 +94,13 @@ namespace Kite{
 	*/
 	#define KCINT_TO_F_SIZE(s, b)       ((2 / (float)b) * s)
 
+
+	/*!
+	\brief Convert integer base size to float (opengl 0 to 1) texture uv.
+		e.g uv = 10, wh = 100 , result = 0.1
+	*/
+	#define KCINT_TO_F_TEXTURE(uv, wh)       ((1 / (float)wh) * uv)
+
 	/*! \brief Convert mouse position (y) from microsoft windows coordinate to opengl coordinate */
 	#define KCYMOUSE(y, h)			(h - y)
 

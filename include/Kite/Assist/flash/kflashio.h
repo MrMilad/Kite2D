@@ -17,19 +17,26 @@
     Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
     USA
 */
-#ifndef KGRAPHICASSIST_H
-#define KGRAPHICASSIST_H
+#ifndef KFLASHIO_H
+#define KFLASHIO_H
 
-#include "Kite/Assist/graphic/kdrawable.h"
-#include "Kite/Assist/graphic/ktransformablegroup.h"
-#include "Kite/Assist/graphic/kcamera.h"
-#include "Kite/Assist/graphic/kanimeobject.h"
-#include "Kite/Assist/graphic/kanimecontrollergroup.h"
-#include "Kite/Assist/graphic/kanimecontroller.h"
-#include "Kite/Assist/graphic/kquad.h"
-#include "Kite/Assist/graphic/kbatch.h"
-#include "Kite/Assist/graphic/kindexbatch.h"
-#include "Kite/Assist/graphic/ktext.h"
-#include "Kite/Assist/graphic/kline.h"
+#include "Kite/Core/system/ksystemdef.h"
+#include "Kite/Core/graphic/kgraphicstructs.h"
+#include <cstring>
+#include <vector>
 
-#endif // KGRAPHICASSIST_H
+namespace Kite{
+	class KITE_FUNC_EXPORT KFlashIO{
+	public:
+		// load flash motion xml files and convert it to KAnimeKey with associated object
+		// when RelativePosition is true, function use original position of object (in flash editor) for our animation keys
+		// else function use center position (0, 0) for animation keys (disable Position value)
+		static bool loadMotionXMLFile(const std::string &FileName, std::vector<KAnimeKey> &Keys,
+			KRect2F32 &Object, bool RelativePosition);
+
+		static bool loadAtlasJSONFile(const std::string &FileName, std::vector<KAtlas> &Atlas, std::string &ImageName);
+	};
+}
+
+
+#endif // KFLASHIO_H

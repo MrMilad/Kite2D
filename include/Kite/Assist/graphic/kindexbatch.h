@@ -29,45 +29,42 @@
 #include <vector>
 
 namespace Kite{
-	class KITE_FUNC_EXPORT KIndexBatch : public KDrawable{
+	class KITE_FUNC_EXPORT KIndexBatch{
 	public:
 		KIndexBatch(const std::vector<KIndexBatchObject *> &Objects, const KBatchConfig Config);
+		KIndexBatch(U32 VertexSize, U32 IndexSize, const KBatchConfig Config);
 
-		U32 getSize() const;
+		inline U32 getVertexSize() const { return _kvsize; }
+		inline U32 getIndexSize() const { return _kisize; }
 
-		/// update positions
-		void updatePosition();
-		void updatePosition(U32 FirstIndex, U32 Size);
+		inline void setCamera(const KCamera &Camera) { _kcam = &Camera; }
+		inline const KCamera &getCamera() const { return *_kcam; }
 
-		/// update uv
-		void updateUV();
-		void updateUV(U32 FirstIndex, U32 Size);
+		/// draw a single object
+		void draw(const KIndexBatchObject *Object, const KBatchUpdate &Update);
 
-		/// update colors
-		void updateColor();
-		void updateColor(U32 FirstIndex, U32 Size);
-
-		/// draw all objects
-		void draw();
-
-		/// draw a part of objects
-		/// draw(0, 1) = draw first object 
-		void draw(U32 FirstIndex, U32 Size);
+		/// draw a vector of objects
+		void draw(const std::vector<KIndexBatchObject *> &Objects, const KBatchUpdate &Update);
 
 	private:
+		void _draw(const std::vector<KIndexBatchObject *> &Objects, U32 VSize, U32 ISize, const KBatchUpdate &Update);
+		static void _updateInd(void *Data, U32 Offset, U32 DataSize, void *Sender);
 		static void _updatePos(void *Data, U32 Offset, U32 DataSize, void *Sender);
 		static void _updateUV(void *Data, U32 Offset, U32 DataSize, void *Sender);
 		static void _updateCol(void *Data, U32 Offset, U32 DataSize, void *Sender);
-		const std::vector<KIndexBatchObject *> *_kobjects;
+		
+		std::vector<KIndexBatchObject *> _kobj;
+		Internal::KUpdateSender _ksender;
+		const KCamera *_kcam;
+		static const KCamera _kdefcam;
 		KVertexArray _kvao;
 		KVertexBuffer _kvboInd;		/// index
 		KVertexBuffer _kvboXY;		/// xy (position)
 		KVertexBuffer _kvboUV;		/// uv (texture uv)
 		KVertexBuffer _kvboCol;		/// rgba (color)
-		std::vector<U32> _kvoffset;	/// vertex offset
-		std::vector<U32> _kioffset;	/// index offset
-		KVector2U32 _krange;
 		KBatchConfig _kconfig;
+		U32 _kvsize;
+		U32 _kisize;
 	};
 }
 

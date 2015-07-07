@@ -20,36 +20,42 @@
 #include "Kite/Assist/graphic/ktext.h"
 
 namespace Kite{
-	KText::KText(U32 MaxSize) :
-		KIndexBatchObject(MaxSize * 4, MaxSize * 6),
+	KText::KText() :
+		KIndexBatchObject(100 * 4, 100 * 6),
 		_kfont(0),
-		_ktext(""),
 		_kwidth(0),
-		_ksize(MaxSize),
-		_kcolor()
-	{
-		_fillIndex();
-		setGeoType(KGP_TRIANGLES);
-	}
+		_kmaxSize(100),
+		_kmid(0)
+	{}
+
+	KText::KText(U32 MaximumSize):
+		KIndexBatchObject(MaximumSize * 4, MaximumSize * 6),
+		_kfont(0),
+		_kwidth(0),
+		_kmaxSize(100),
+		_kmid(0)
+	{}
 
 	KText::KText(const std::string &Text, const std::vector<KAtlas> &Font, const KColor &Color) :
 		KIndexBatchObject(Text.size() * 4, Text.size() * 6),
 		_kfont(&Font),
-		_ktext(Text),
+		_kcolor(Color),
 		_kwidth(0),
-		_ksize(Text.size()),
-		_kcolor(Color)
+		_kmaxSize(Text.size()),
+		_kmid(0)
 	{
-		_fillIndex();
-		setFont(Font);
-		setColor(Color);
+		setText(Text);
 		setGeoType(KGP_TRIANGLES);
 	}
 
 	void KText::_fillIndex(){
 		U32 ind = 0;
 		U32 val = 0;
-		for (U32 i = 0; i < _ksize; i++){
+
+		// resize index vector
+		_kindex.resize(_ktext.size() * 6);
+
+		for (U32 i = 0; i < _ktext.size(); i++) {
 			ind = i * 6;
 			val = i * 4;
 			_kindex[ind] = val;
@@ -62,18 +68,30 @@ namespace Kite{
 	}
 
 	void KText::_reshape(){
-		if (_kfont && !_ktext.empty()){
+		if (_kfont && !_ktext.empty()) {
 			const KAtlas *atemp;
 			U32 ind = 0;
 			F32 width = 0;
 			char ascii;
 
-			for (U32 i = 0; i < _ksize; i++){
+			// resize vertex vector
+			_kvertex.resize(_ktext.size() * 4);
+
+			for (U32 i = 0; i < _ktext.size(); i++) {
 				// retrieve character from atlas
 				ascii = _ktext[i];
 				atemp = &KAtlas(0, 0, 0, 0, 0, 0, 0);
-				if (ascii != '\0')
-					atemp = &_kfont->at(ascii - 32);
+				if (ascii != '\0') {
+					if (_kfont->size() >(ascii - 32) && (ascii - 32) >= 0) {
+						// we have key
+						atemp = &_kfont->at(ascii - 32);
+					} else {
+						// we dont have key
+						// fill with " " space instead.
+						atemp = &_kfont->at(0);
+					}
+				}
+
 
 				ind = i * 4;
 				// size and position
@@ -88,6 +106,12 @@ namespace Kite{
 				_kvertex[ind + 2].uv = KVector2F32(atemp->tru, atemp->trv);
 				_kvertex[ind + 3].uv = KVector2F32(atemp->tru, atemp->blv);
 
+				// color
+				_kvertex[ind].color = _kcolor;
+				_kvertex[ind + 1].color = _kcolor;
+				_kvertex[ind + 2].color = _kcolor;
+				_kvertex[ind + 3].color = _kcolor;
+
 				width += atemp->w + _kmid;
 			}
 		}
@@ -100,22 +124,22 @@ namespace Kite{
 
 	void KText::setText(const std::string &Text){
 		_ktext = Text;
-		_ktext.resize(_ksize);
+		if (_ktext.size() > _kmaxSize) {
+			_ktext.resize(_kmaxSize);
+		}
 		_reshape();
+		_fillIndex();
 	}
 
 	void KText::setMiddleSpace(U32 Size){
 		_kmid = Size;
-		setText(_ktext);
+		_reshape();
 	}
 
 	void KText::setColor(const KColor &Color){
 		U32 ind = 0;
 		_kcolor = Color;
-		for (U32 i = 0; i < _ksize; i++){
-			ind = i * 4;
-			_kvertex[ind].color = _kvertex[ind + 1].color = _kvertex[ind + 2].color = _kvertex[ind + 3].color = Color;
-		}
+		_reshape();
 	}
 
 	const KTransform &KText::getModelViewTransform() const{

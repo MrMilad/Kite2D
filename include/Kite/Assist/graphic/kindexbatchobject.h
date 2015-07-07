@@ -25,16 +25,17 @@
 #include "Kite/Core/graphic/ktexture.h"
 #include "Kite/Core/graphic/kshaderprogram.h"
 #include "Kite/core/math/ktransform.h"
+#include <vector>
 
 namespace Kite{
     class KITE_FUNC_EXPORT KIndexBatchObject{
 		friend class KIndexBatch;
     public:
+		KIndexBatchObject();
 		KIndexBatchObject(U32 VertexSize, U32 IndexSize);
-		~KIndexBatchObject();
 
-		inline const KVertex *getVertex() const { return _kvertex; }
-        inline const U16 *getIndex() const {return _kindex;}
+		inline const KVertex *getVertex() const { return &_kvertex.at(0); }
+        inline const U16 *getIndex() const {return &_kindex.at(0);}
 
 		inline void setShader(const KShaderProgram *Shader) { _kshader = Shader; }
 		inline const KShaderProgram *getShader() const { return _kshader; }
@@ -45,25 +46,24 @@ namespace Kite{
 		inline void setGeoType(KGeoPrimitiveTypes GeoType) { _kgtype = GeoType; }
 		inline KGeoPrimitiveTypes getGeoType() const { return _kgtype; }
 
-        inline U32 getVertexSize() const { return _kvsize; }
-        inline U32 getIndexSize() const { return _kisize; }
+		inline void setVisible(bool Visible) { _kvisible = Visible; }
+		inline bool getVisible() const { return _kvisible; }
+
+        inline U32 getVertexSize() const { return _kvertex.size(); }
+        inline U32 getIndexSize() const { return _kindex.size(); }
 
     protected:
-		/// resize only before batching (not safe)
-		//inline void resizeVertex(U32 VertexSize){ delete[] _kvertex, _kvertex = new KVertex[VertexSize]; _kvsize = VertexSize; }
-		//inline void resizeIndex(U32 IndexSize){ delete[] _kindex, _kindex = new U16[IndexSize]; _kisize = IndexSize; }
-        KVertex *_kvertex;
-        U16 *_kindex;
+        std::vector<KVertex> _kvertex;
+		std::vector<U16> _kindex;
 
 		// return model-view teansform
 		virtual const KTransform &getModelViewTransform() const = 0;
 
     private:
-        const U32 _kvsize;
-        const U32 _kisize;
 		const KShaderProgram *_kshader;
 		const KTexture *_ktexture;
 		KGeoPrimitiveTypes _kgtype;
+		bool _kvisible;
     };
 }
 

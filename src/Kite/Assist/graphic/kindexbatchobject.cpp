@@ -21,18 +21,19 @@
 #include "Kite/Assist/graphic/kindexbatchobject.h"
 
 namespace Kite{
-	KIndexBatchObject::KIndexBatchObject(U32 VertexSize, U32 IndexSize) :
-		_kvsize(VertexSize),
-		_kisize(IndexSize),
-		_kvertex(new KVertex[VertexSize]),
-		_kindex(new U16[IndexSize]),
+	KIndexBatchObject::KIndexBatchObject() :
 		_ktexture(0),
 		_kshader(0),
-		_kgtype(KGP_POINTS)
+		_kgtype(KGP_POINTS),
+		_kvisible(true)
 	{}
 
-	KIndexBatchObject::~KIndexBatchObject(){
-		delete[] _kvertex;
-		delete[] _kindex;
-	}
+	KIndexBatchObject::KIndexBatchObject(U32 VertexSize, U32 IndexSize) :
+		_kvertex(VertexSize, KVertex()),
+		_kindex(IndexSize, 0),
+		_ktexture(0),
+		_kshader(0),
+		_kgtype(KGP_POINTS),
+		_kvisible(true)
+	{}
 }

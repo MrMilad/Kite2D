@@ -28,7 +28,7 @@
 
 namespace Kite{
     class KITE_FUNC_EXPORT KBatchObject{
-		friend  class KBatch;
+		friend  class KArrayBatch;
     public:
 		KBatchObject(U32 VertexSize);
 		~KBatchObject();

@@ -209,16 +209,31 @@ namespace Kite{
 		Specifies how to configure the vertex buffer objects (VBO).
 	*/
     struct KBatchConfig{
+		KVertexBufferTypes index;		//!< Index buffer config
 		KVertexBufferTypes position;	//!< Position buffer config
 		KVertexBufferTypes uv;			//!< UV buffer config
 		KVertexBufferTypes color;		//!< Color buffer config
 
 		//! Default constructors
-        KBatchConfig(KVertexBufferTypes Position = KVB_STATIC, KVertexBufferTypes UV = KVB_STATIC,
-                     KVertexBufferTypes Color = KVB_STATIC):
-            position(Position), uv(UV), color(Color)
+		KBatchConfig(KVertexBufferTypes Index = KVB_STREAM, KVertexBufferTypes Position = KVB_STREAM,
+					 KVertexBufferTypes UV = KVB_STREAM, KVertexBufferTypes Color = KVB_STREAM) :
+            index(Index), position(Position),
+			uv(UV), color(Color)
         {}
     };
+
+	struct KBatchUpdate{
+		bool index;		//!< Index buffer config
+		bool position;	//!< Position buffer config
+		bool uv;		//!< UV buffer config
+		bool color;		//!< Color buffer config
+
+		//! Default constructors
+		KBatchUpdate(bool Index = true, bool Position = true,
+					 bool UV = true, bool Color = true) :
+					 index(Index), position(Position),
+					 uv(UV), color(Color) {}
+	};
 
 	struct KTileMapInfo{
 		KTileMapTypes mapType;
@@ -252,6 +267,15 @@ namespace Kite{
 			KAnimeTimeTrigger(F32 Start = 0, F32 End = 0,
 				KCallAnimeTrigger Functor = 0, bool Called = false, void *Sender = 0) :
 				start(Start), end(End), func(Functor), called(Called), sender(Sender)
+			{}
+		};
+
+		struct KUpdateSender {
+			U32 arraySize;
+			const void *firstObject;
+
+			KUpdateSender(U32 ArraySize = 0, void *FirstObject = 0) :
+				arraySize(ArraySize), firstObject(FirstObject) 
 			{}
 		};
 

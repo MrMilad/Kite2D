@@ -27,7 +27,7 @@
 #include "Kite/Assist/graphic/kanimecontrollergroup.h"
 #include "Kite/Assist/graphic/kanimecontroller.h"
 #include "Kite/Assist/graphic/kquad.h"
-#include "Kite/Assist/graphic/kbatch.h"
+#include "Kite/Assist/graphic/karraybatch.h"
 #include "Kite/Assist/graphic/kindexbatch.h"
 #include "Kite/Assist/graphic/ktext.h"
 #include "Kite/Assist/graphic/kline.h"

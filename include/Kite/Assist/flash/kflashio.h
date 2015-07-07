@@ -28,12 +28,18 @@
 namespace Kite{
 	class KITE_FUNC_EXPORT KFlashIO{
 	public:
-		// load flash motion xml files and convert it to KAnimeKey with associated object
+		// load generated flash motion xml files and convert it to KAnimeKey with associated object
 		// when RelativePosition is true, function use original position of object (in flash editor) for our animation keys
 		// else function use center position (0, 0) for animation keys (disable Position value)
+		// contents of the Keys array will be deleted in first step
 		static bool loadMotionXMLFile(const std::string &FileName, std::vector<KAnimeKey> &Keys,
 			KRect2F32 &Object, bool RelativePosition);
 
+		// load generated flash JSON files (atlas) and convert it to KAtlas 
+		// maximum suported object in the file is 256
+		// if you need more objects (more than 256),
+		// split your objects in multiple JSON file with maximum size
+		// contents of the Atlas array will be deleted in first step
 		static bool loadAtlasJSONFile(const std::string &FileName, std::vector<KAtlas> &Atlas, std::string &ImageName);
 	};
 }

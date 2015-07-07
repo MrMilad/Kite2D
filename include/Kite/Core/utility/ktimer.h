@@ -45,7 +45,7 @@ namespace Kite {
         static void resetAllTimers();
 
     private:
-        F64 _kdelta;
+        F64 _kstart;
 		F32 _kscale;
     };
 }

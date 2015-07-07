@@ -286,9 +286,12 @@ namespace Kite{
 		// erase junky data from beginning of file (adobe flash write that junky data at the beginning of json files!)
 		content.erase(0, content.find("{", 0));
 
-		const U32 tokenSize = 2048;
+		// we need 32 tokens per atlas object in the file
+		// and 20 bytes per token
+		// we expect no more than 65536 tokens = 2048 Objects = 1.3 mb
+		const U32 tokenSize = 65536;
 		jsmn_parser jpars;
-		jsmntok_t *tok = new jsmntok_t[tokenSize]; /* We expect no more than 512 tokens */
+		jsmntok_t *tok = new jsmntok_t[tokenSize]; 
 		I32 ret = 0;
 
 		I32 frames = -2;

@@ -24,27 +24,27 @@
 namespace Kite{
 	KTimer::KTimer():
 		_kscale(1.0f),
-		_kdelta(0.0)
+		_kstart(0.0)
 	{
 		// initialize glfw
 		Internal::initeGLFW();
 	}
     void KTimer::start(){
         // get current time
-        _kdelta = glfwGetTime();
+		_kstart = glfwGetTime();
     }
 
     void KTimer::stop(){
         F64 end = glfwGetTime();
-        _kdelta = end - _kdelta;
+		_kstart = end - _kstart;
     }
 
     F64 KTimer::getElapsedSec(){
-        return (glfwGetTime() - _kdelta);
+		return (glfwGetTime() - _kstart);
     }
 
 	F64 KTimer::getScaledElapsedSec(){
-		return ((glfwGetTime() - _kdelta) * _kscale);
+		return ((glfwGetTime() - _kstart) * _kscale);
 	}
 
     void KTimer::resetAllTimers(){

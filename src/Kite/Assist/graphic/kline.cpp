@@ -21,7 +21,7 @@
 
 namespace Kite{
 	KLine::KLine() :
-		KBatchObject(2),
+		KArrayBatchObject(2),
 		_kstart(0.0f, 0.0f),
 		_kend(0.0f, 0.0f),
 		_kcolor()
@@ -30,7 +30,7 @@ namespace Kite{
 	}
 
 	KLine::KLine(const KVector2F32 &Start, const KVector2F32 &End, const KColor &Color) :
-		KBatchObject(2),
+		KArrayBatchObject(2),
 		_kstart(Start),
 		_kend(End),
 		_kcolor(Color)

@@ -21,12 +21,12 @@
 #define KLINE_H
 
 #include "Kite/Core/system/ksystemdef.h"
-#include "Kite/Assist/graphic/kbatchobject.h"
+#include "Kite/Assist/graphic/karraybatchobject.h"
 #include "Kite/Core/math/ktransformable.h"
 #include "kite/Assist/graphic/kanimeobject.h"
 
 namespace Kite{
-    class KITE_FUNC_EXPORT KLine : public KBatchObject, public KTransformable, public KAnimeObject{
+    class KITE_FUNC_EXPORT KLine : public KArrayBatchObject, public KTransformable, public KAnimeObject{
     public:
         KLine();
         KLine(const KVector2F32 &Start, const KVector2F32 &End, const KColor &Color);

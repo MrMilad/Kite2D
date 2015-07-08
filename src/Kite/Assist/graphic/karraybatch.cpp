@@ -17,95 +17,21 @@
     Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
     USA
 */
-#include "Kite/Assist/graphic/kindexbatch.h"
+#include "Kite/Assist/graphic/karraybatch.h"
 #include "Kite/Core/graphic/krender.h"
 #include "Kite/Core/graphic/kgraphicdef.h"
-#include "Kite/core/graphic/ktexturemanager.h"
 
 namespace Kite{
-	const KCamera KIndexBatch::_kdefcam;
-	KIndexBatch::KIndexBatch(const std::vector<KIndexBatchObject *> &Objects,
-		const KBatchConfig Config) :
+	const KCamera KArrayBatch::_kdefcam;
+	KArrayBatch::KArrayBatch(U32 VertexSize, const KBatchConfig Config) :
 		_kcam(&_kdefcam),
-		_kvboInd(KBT_INDEX),
 		_kvboXY(KBT_VERTEX),
 		_kvboUV(KBT_VERTEX),
 		_kvboCol(KBT_VERTEX),
 		_kconfig(Config),
-		_kvsize(0),
-		_kisize(0)
+		_kvsize(VertexSize)
 	{
-
-		KDEBUG_ASSERT_T(!Objects.empty());
-
-		// store vertex and index offset of all objects
-		for (U32 i = 0; i < Objects.size(); i++){
-			_kvsize += Objects[i]->getVertexSize();
-			_kisize += Objects[i]->getIndexSize();
-		}
-
-		KDEBUG_ASSERT_T(_kvsize > 0);
-		KDEBUG_ASSERT_T(_kisize > 0);
-
-		_kobj.reserve(Objects.size());
-		// initialize index
-		std::vector<U16> ind(_kisize, 0);
-
-		// initialize vertex
-		std::vector<KVector2F32> ve(_kvsize, KVector2F32(0,0));
-
-		// initialize color
-		std::vector<KColor> co(_kvsize, KColor());
-
-		// bind vao then inite buffers
-		_kvao.bind();
-
-		// index buffer
-		_kvboInd.bind();
-		_kvboInd.fill(&ind[0], sizeof(U16) * _kisize, _kconfig.index);
-		_kvboInd.setUpdateHandle(_updateInd);
-
-		// position buffer
-		_kvboXY.bind();
-		_kvboXY.fill(&ve[0], sizeof(KVector2F32) * _kvsize, _kconfig.position);
-		_kvao.enableAttribute(0);
-		_kvao.setAttribute(0, KAC_2COMPONENT, KAT_FLOAT, false, sizeof(KVector2F32), KBUFFER_OFFSET(0));
-		_kvboXY.setUpdateHandle(_updatePos);
-
-		// uv buffer
-		_kvboUV.bind();
-		_kvboUV.fill(&ve[0], sizeof(KVector2F32) * _kvsize, _kconfig.uv);
-		_kvao.enableAttribute(1);
-		_kvao.setAttribute(1, KAC_2COMPONENT, KAT_FLOAT, false, sizeof(KVector2F32), KBUFFER_OFFSET(0));
-		_kvboUV.setUpdateHandle(_updateUV);
-
-		// color buffer
-		_kvboCol.bind();
-		_kvboCol.fill(&co[0], sizeof(KColor) * _kvsize, _kconfig.color);
-		_kvao.enableAttribute(2);
-		_kvao.setAttribute(2, KAC_4COMPONENT, KAT_FLOAT, false, sizeof(KColor), KBUFFER_OFFSET(0));
-		_kvboCol.setUpdateHandle(_updateCol);
-
-		// finish. unbind vao.
-		_kvao.unbindVertexArray();
-	}
-
-	KIndexBatch::KIndexBatch(U32 VertexSize, U32 IndexSize, const KBatchConfig Config) :
-		_kcam(&_kdefcam),
-		_kvboInd(KBT_INDEX),
-		_kvboXY(KBT_VERTEX),
-		_kvboUV(KBT_VERTEX),
-		_kvboCol(KBT_VERTEX),
-		_kconfig(Config),
-		_kvsize(VertexSize),
-		_kisize(IndexSize) 
-	{
-
-		KDEBUG_ASSERT_T(IndexSize > 0);
 		KDEBUG_ASSERT_T(VertexSize > 0);
-
-		// initialize index
-		std::vector<U16> ind(_kisize, 0);
 
 		// initialize vertex
 		std::vector<KVector2F32> ve(_kvsize, KVector2F32(0, 0));
@@ -115,11 +41,6 @@ namespace Kite{
 
 		// bind vao then inite buffers
 		_kvao.bind();
-
-		// index buffer
-		_kvboInd.bind();
-		_kvboInd.fill(&ind[0], sizeof(U16)* IndexSize, _kconfig.index);
-		_kvboInd.setUpdateHandle(_updateInd);
 
 		// position buffer
 		_kvboXY.bind();
@@ -146,33 +67,85 @@ namespace Kite{
 		_kvao.unbindVertexArray();
 	}
 
-	void KIndexBatch::draw(const KIndexBatchObject *Object, const KBatchUpdate &Update) {
+	KArrayBatch::KArrayBatch(const std::vector<KArrayBatchObject *> &Objects,
+		const KBatchConfig Config) :
+		_kcam(&_kdefcam),
+		_kvboXY(KBT_VERTEX),
+		_kvboUV(KBT_VERTEX),
+		_kvboCol(KBT_VERTEX),
+		_kconfig(Config),
+		_kvsize(0)
+    {
+
+		KDEBUG_ASSERT_T(!Objects.empty());
+
+		// store vertex and index offset of all objects
+		for (U32 i = 0; i < Objects.size(); i++) {
+			_kvsize += Objects[i]->getVertexSize();
+		}
+
+		KDEBUG_ASSERT_T(_kvsize > 0);
+
+		_kobj.reserve(Objects.size());
+
+		// initialize vertex
+		std::vector<KVector2F32> ve(_kvsize, KVector2F32(0, 0));
+
+		// initialize color
+		std::vector<KColor> co(_kvsize, KColor());
+
+		// bind vao then inite buffers
+		_kvao.bind();
+
+		// position buffer
+		_kvboXY.bind();
+		_kvboXY.fill(&ve[0], sizeof(KVector2F32)* _kvsize, _kconfig.position);
+		_kvao.enableAttribute(0);
+		_kvao.setAttribute(0, KAC_2COMPONENT, KAT_FLOAT, false, sizeof(KVector2F32), KBUFFER_OFFSET(0));
+		_kvboXY.setUpdateHandle(_updatePos);
+
+		// uv buffer
+		_kvboUV.bind();
+		_kvboUV.fill(&ve[0], sizeof(KVector2F32)* _kvsize, _kconfig.uv);
+		_kvao.enableAttribute(1);
+		_kvao.setAttribute(1, KAC_2COMPONENT, KAT_FLOAT, false, sizeof(KVector2F32), KBUFFER_OFFSET(0));
+		_kvboUV.setUpdateHandle(_updateUV);
+
+		// color buffer
+		_kvboCol.bind();
+		_kvboCol.fill(&co[0], sizeof(KColor)* _kvsize, _kconfig.color);
+		_kvao.enableAttribute(2);
+		_kvao.setAttribute(2, KAC_4COMPONENT, KAT_FLOAT, false, sizeof(KColor), KBUFFER_OFFSET(0));
+		_kvboCol.setUpdateHandle(_updateCol);
+
+		// finish. unbind vao.
+		_kvao.unbindVertexArray();
+    }
+
+	void KArrayBatch::draw(const KArrayBatchObject *Object, const KBatchUpdate &Update) {
 		if (!Object)
 			return;
 
-		if (Object->getIndexSize() > _kisize || Object->getVertexSize() > _kvsize) {
+		if (Object->getVertexSize() > _kvsize) {
 			KDEBUG_PRINT("object size is greater than buffer size.");
 			return;
 		}
 
-		if (!Object->getVisible()) 
+		if (!Object->getVisible())
 			return;
 
 		// update vertex attributes
 		_ksender.arraySize = 1;
 		_ksender.firstObject = (const void *)&Object;
-		if (Update.index) {
-			_kvboInd.update(0, sizeof(U16) * Object->getIndexSize(), false, (void *)this);
-		}
 		if (Update.position) {
-			_kvboXY.update(0, sizeof(KVector2F32) * Object->getVertexSize(), false, (void *)this);
-		} 
+			_kvboXY.update(0, sizeof(KVector2F32)* Object->getVertexSize(), false, (void *)this);
+		}
 		if (Update.uv) {
-			_kvboUV.update(0, sizeof(KVector2F32) * Object->getVertexSize(), false, (void *)this);
-		} 
+			_kvboUV.update(0, sizeof(KVector2F32)* Object->getVertexSize(), false, (void *)this);
+		}
 		if (Update.color) {
-			_kvboCol.update(0, sizeof(KColor) * Object->getVertexSize(), false, (void *)this);
-		} 
+			_kvboCol.update(0, sizeof(KColor)* Object->getVertexSize(), false, (void *)this);
+		}
 
 		_kvao.bind();
 
@@ -185,21 +158,21 @@ namespace Kite{
 			Object->getTexture()->bind();
 
 		// draw objects
-		KRender::draw(Object->getIndexSize(), (U16 *)0, Object->getGeoType());
+		KRender::draw(0, Object->getVertexSize(), Object->getGeoType());
 	}
 
-	void KIndexBatch::draw(const std::vector<KIndexBatchObject *> &Objects, const KBatchUpdate &Update) {
+	void KArrayBatch::draw(const std::vector<KArrayBatchObject *> &Objects, const KBatchUpdate &Update) {
 		if (Objects.empty())
 			return;
-		
+
 		bool needDraw = true;
 		U32 counter = 0;
-		
+
 
 		// update buffers and draw
 		while (needDraw) {
 
-			U32 vsize = 0, isize = 0;
+			U32 vsize = 0;
 			U32 firstInList = counter;
 			_kobj.clear();
 
@@ -208,10 +181,8 @@ namespace Kite{
 				if (!Objects.at(counter)->getVisible())
 					continue;
 
-				if ((vsize + Objects.at(counter)->getVertexSize()) <= _kvsize &&
-					(isize + Objects.at(counter)->getIndexSize()) <= _kisize) {
+				if ((vsize + Objects.at(counter)->getVertexSize()) <= _kvsize) {
 					vsize += Objects.at(counter)->getVertexSize();
-					isize += Objects.at(counter)->getIndexSize();
 					_kobj.push_back(Objects.at(counter));
 
 				} else {
@@ -219,7 +190,7 @@ namespace Kite{
 				}
 			}
 
-			if (vsize == 0 || isize == 0) {
+			if (vsize == 0) {
 				KDEBUG_PRINT("object size is greater than buffer size.");
 				return;
 			}
@@ -228,17 +199,14 @@ namespace Kite{
 			if (counter >= Objects.size())
 				needDraw = false;
 
-			_draw(_kobj, vsize, isize, Update);
+			_draw(_kobj, vsize, Update);
 		}
 	}
 
-	void KIndexBatch::_draw(const std::vector<const KIndexBatchObject *> &Objects, U32 VSize, U32 ISize, const KBatchUpdate &Update) {
+	void KArrayBatch::_draw(const std::vector<const KArrayBatchObject *> &Objects, U32 VSize, const KBatchUpdate &Update) {
 		// update vertex attributes
 		_ksender.arraySize = Objects.size();
 		_ksender.firstObject = (const void *)&Objects[0];
-		if (Update.index) {
-			_kvboInd.update(0, sizeof(U16)* ISize, false, (void *)this);
-		}
 		if (Update.position) {
 			_kvboXY.update(0, sizeof(KVector2F32)* VSize, false, (void *)this);
 		}
@@ -254,7 +222,7 @@ namespace Kite{
 		Internal::KCatchDraw currentCatch;
 		Internal::KCatchDraw tempCatch;
 
-		U32 iter = 0, groupOfst = 0, groupSize = 0;
+		U32 iter = 0, groupSize = 0;
 		bool completed = false;
 
 		// fill catch with first object in array
@@ -285,7 +253,7 @@ namespace Kite{
 					tempCatch.lastShdId = Objects.at(iter)->getShader()->getGLID();
 				currentCatch.lastGeo = Objects.at(iter)->getGeoType();
 				if (tempCatch == currentCatch) {
-					groupSize += Objects.at(iter)->getIndexSize();
+					groupSize += Objects.at(iter)->getVertexSize();
 					continue;
 				}
 				break;
@@ -304,11 +272,10 @@ namespace Kite{
 			}
 
 			// draw objects
-			KRender::draw(groupSize, (U16 *)(sizeof(U16) * groupOfst), currentCatch.lastGeo);
+			KRender::draw(0, groupSize, currentCatch.lastGeo);
 
 			// reset catch
 			currentCatch = tempCatch;
-			groupOfst = groupSize;
 			groupSize = 0;
 
 			// draw completed
@@ -317,51 +284,24 @@ namespace Kite{
 		}
 	}
 
-	void KIndexBatch::_updateInd(void *Data, U32 Offset, U32 DataSize, void *Sender) {
-		KIndexBatch *clObject = (KIndexBatch *)Sender;
-		const KIndexBatchObject **obj = (const KIndexBatchObject **)clObject->_ksender.firstObject;
-		U32 size = clObject->_ksender.arraySize;
-		U16 *ind = (U16 *)Data;
-		const KIndexBatchObject *otmp;
-		U16 itmp;
-
-		// retrieve index, size and offset
-		U32 iofst = 0;
-		U32 vofst = 0;
-
-		for (U32 i = 0; i < size; i++) {
-			otmp = obj[i];
-			for (U32 j = 0; j < otmp->getIndexSize(); j++) {
-				itmp = otmp->getIndex()[j];
-
-				// update color
-				ind[iofst + j] = itmp + vofst;
-			}
-
-			// move offset to next object
-			iofst += otmp->getIndexSize();
-			vofst += otmp->getVertexSize();
-		}
-	}
-
-	void KIndexBatch::_updatePos(void *Data, U32 Offset, U32 DataSize, void *Sender){
-		KIndexBatch *clObject = (KIndexBatch *)Sender;
-		const KIndexBatchObject **obj = (const KIndexBatchObject **)clObject->_ksender.firstObject;
+    void KArrayBatch::_updatePos(void *Data, U32 Offset, U32 DataSize, void *Sender){
+		KArrayBatch *clObject = (KArrayBatch *)Sender;
+		const KArrayBatchObject **obj = (const KArrayBatchObject **)clObject->_ksender.firstObject;
 		U32 size = clObject->_ksender.arraySize;
 		const KTransform *pmat;
 		const KTransform *mmat;
 		KVector2F32 *pos = (KVector2F32 *)Data;
-		const KIndexBatchObject *otmp;
+		const KArrayBatchObject *otmp;
 		const KVertex *vtmp;
 
 		// projection matrix
 		pmat = clObject->getCamera().getTransform();
 
 		U32 ofst = 0;
-		for (U32 i = 0; i < size; i++){
+		for (U32 i = 0; i < size; i++) {
 			otmp = obj[i];
 			mmat = &otmp->getModelViewTransform();
-			for (U32 j = 0; j < otmp->getVertexSize(); j++){
+			for (U32 j = 0; j < otmp->getVertexSize(); j++) {
 				vtmp = &otmp->getVertex()[j];
 
 				// multiply model-matrix (object) with projection-matrix (camera)
@@ -372,20 +312,20 @@ namespace Kite{
 			// move offset to next object
 			ofst += otmp->getVertexSize();
 		}
-	}
+    }
 
-	void KIndexBatch::_updateUV(void *Data, U32 Offset, U32 DataSize, void *Sender){
-		KIndexBatch *clObject = (KIndexBatch *)Sender;
-		const KIndexBatchObject **obj = (const KIndexBatchObject **)clObject->_ksender.firstObject;
+	void KArrayBatch::_updateUV(void *Data, U32 Offset, U32 DataSize, void *Sender){
+		KArrayBatch *clObject = (KArrayBatch *)Sender;
+		const KArrayBatchObject **obj = (const KArrayBatchObject **)clObject->_ksender.firstObject;
 		U32 size = clObject->_ksender.arraySize;
 		KVector2F32 *uv = (KVector2F32 *)Data;
-		const KIndexBatchObject *otmp;
+		const KArrayBatchObject *otmp;
 		const KVertex *vtmp;
 
 		U32 ofst = 0;
-		for (U32 i = 0; i < size; i++){
+		for (U32 i = 0; i < size; i++) {
 			otmp = obj[i];
-			for (U32 j = 0; j < otmp->getVertexSize(); j++){
+			for (U32 j = 0; j < otmp->getVertexSize(); j++) {
 				vtmp = &otmp->getVertex()[j];
 
 				// update uv
@@ -397,20 +337,20 @@ namespace Kite{
 		}
 	}
 
-	void KIndexBatch::_updateCol(void *Data, U32 Offset, U32 DataSize, void *Sender){
-		KIndexBatch *clObject = (KIndexBatch *)Sender;
-		const KIndexBatchObject **obj = (const KIndexBatchObject **)clObject->_ksender.firstObject;
+	void KArrayBatch::_updateCol(void *Data, U32 Offset, U32 DataSize, void *Sender){
+		KArrayBatch *clObject = (KArrayBatch *)Sender;
+		const KArrayBatchObject **obj = (const KArrayBatchObject **)clObject->_ksender.firstObject;
 		U32 size = clObject->_ksender.arraySize;
 		KColor *col = (KColor *)Data;
-		const KIndexBatchObject *otmp;
+		const KArrayBatchObject *otmp;
 		const KVertex *vtmp;
 
 		// retrieve index, size and offset
 		U32 ofst = 0;
 
-		for (U32 i = 0; i < size; i++){
+		for (U32 i = 0; i < size; i++) {
 			otmp = obj[i];
-			for (U32 j = 0; j < otmp->getVertexSize(); j++){
+			for (U32 j = 0; j < otmp->getVertexSize(); j++) {
 				vtmp = &otmp->getVertex()[j];
 
 				// update color

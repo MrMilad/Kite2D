@@ -31,10 +31,10 @@ namespace Kite{
     class KITE_FUNC_EXPORT KText : public KIndexBatchObject, public KTransformable, public KAnimeObject{
 	public:
 		// default max size = 100
-		KText();
+		KText(const std::vector<KAtlas> &Font);
 
 		// custom max size
-		KText(U32 MaximumSize);
+		KText(U32 MaximumSize, const std::vector<KAtlas> &Font);
 
 		// max size = Text size
 		KText(const std::string &Text, const std::vector<KAtlas> &Font, const KColor &Color);
@@ -48,7 +48,12 @@ namespace Kite{
 		// 100 by default
 		void setMaximumSize(U32 Size);
 		inline U32 getMaximumSize() const { return _kmaxSize; }
+		
+		// 30 by default
+		inline void setLineSpace(U32 Size) { _kpgraph = Size; }
+		inline U32 getLineSpace() const { return _kpgraph; }
 
+		// 0 by default
 		void setMiddleSpace(U32 Size);
 		inline U32 getMiddleSpace() const { return _kmid; }
 
@@ -56,6 +61,7 @@ namespace Kite{
 		inline const KColor &getColor() const { return _kcolor; }
 
 		inline F32 getWidth() const { return _kwidth; }
+		inline F32 getHeight() const { return _kheight; }
 
 	protected:
 		// from KIndexBatchObject (output/send)
@@ -70,8 +76,10 @@ namespace Kite{
         const std::vector<KAtlas> *_kfont;
         std::string _ktext;
 		F32 _kwidth;
+		F32 _kheight;
 		U32 _kmaxSize;
 		U32 _kmid;
+		U32 _kpgraph;
 		KColor _kcolor;
     };
 }

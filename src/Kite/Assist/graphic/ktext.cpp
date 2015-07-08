@@ -20,20 +20,24 @@
 #include "Kite/Assist/graphic/ktext.h"
 
 namespace Kite{
-	KText::KText() :
+	KText::KText(const std::vector<KAtlas> &Font) :
 		KIndexBatchObject(100 * 4, 100 * 6),
-		_kfont(0),
+		_kfont(&Font),
 		_kwidth(0),
+		_kheight(0),
 		_kmaxSize(100),
-		_kmid(0)
+		_kmid(0),
+		_kpgraph(15)
 	{}
 
-	KText::KText(U32 MaximumSize):
+	KText::KText(U32 MaximumSize, const std::vector<KAtlas> &Font) :
 		KIndexBatchObject(MaximumSize * 4, MaximumSize * 6),
-		_kfont(0),
+		_kfont(&Font),
 		_kwidth(0),
+		_kheight(0),
 		_kmaxSize(100),
-		_kmid(0)
+		_kmid(0),
+		_kpgraph(15)
 	{}
 
 	KText::KText(const std::string &Text, const std::vector<KAtlas> &Font, const KColor &Color) :
@@ -41,8 +45,10 @@ namespace Kite{
 		_kfont(&Font),
 		_kcolor(Color),
 		_kwidth(0),
+		_kheight(0),
 		_kmaxSize(Text.size()),
-		_kmid(0)
+		_kmid(0),
+		_kpgraph(15)
 	{
 		setText(Text);
 		setGeoType(KGP_TRIANGLES);
@@ -71,49 +77,74 @@ namespace Kite{
 		if (_kfont && !_ktext.empty()) {
 			const KAtlas *atemp;
 			U32 ind = 0;
-			F32 width = 0;
+			F32 width = 0, height = 0;
 			char ascii;
 
 			// resize vertex vector
-			_kvertex.resize(_ktext.size() * 4);
+			_kvertex.clear();
 
 			for (U32 i = 0; i < _ktext.size(); i++) {
 				// retrieve character from atlas
 				ascii = _ktext[i];
 				atemp = &KAtlas(0, 0, 0, 0, 0, 0, 0);
-				if (ascii != '\0') {
-					if (_kfont->size() >(ascii - 32) && (ascii - 32) >= 0) {
-						// we have key
-						atemp = &_kfont->at(ascii - 32);
-					} else {
-						// we dont have key
-						// fill with " " space instead.
-						atemp = &_kfont->at(0);
-					}
+
+				// skip '\0' 
+				if (ascii == '\0') { 
+					continue; 
+
+				// space
+				} else if (ascii == ' ') {
+					width += _kfont->at(0).w;
+					continue;
+
+				// next line '\n'
+				} else if (ascii == '\n') {
+					width = 0; height += _kpgraph;
+					continue;
+
+				// normal characters
+				} else if (_kfont->size() > (ascii - 32) && (ascii - 32) >= 0) {
+					// we have key
+					atemp = &_kfont->at(ascii - 32);
+				} else {
+					// we dont have key
+					// fill with " " space instead.
+					width += _kfont->at(0).w;
+					continue;
 				}
 
 
-				ind = i * 4;
-				// size and position
-				_kvertex[ind].pos = KVector2F32(width, 0.0f);
-				_kvertex[ind + 1].pos = KVector2F32(width, atemp->h);
-				_kvertex[ind + 2].pos = KVector2F32(width + atemp->w, 0.0f);
-				_kvertex[ind + 3].pos = KVector2F32(width + atemp->w, atemp->h);
+				KVertex temp;
 
-				// uv
-				_kvertex[ind].uv = KVector2F32(atemp->blu, atemp->trv);
-				_kvertex[ind + 1].uv = KVector2F32(atemp->blu, atemp->blv);
-				_kvertex[ind + 2].uv = KVector2F32(atemp->tru, atemp->trv);
-				_kvertex[ind + 3].uv = KVector2F32(atemp->tru, atemp->blv);
+				// vertex 0
+				temp.pos = KVector2F32(width, height);
+				temp.uv = KVector2F32(atemp->blu, atemp->trv);
+				temp.color = _kcolor;
+				_kvertex.push_back(temp);
 
-				// color
-				_kvertex[ind].color = _kcolor;
-				_kvertex[ind + 1].color = _kcolor;
-				_kvertex[ind + 2].color = _kcolor;
-				_kvertex[ind + 3].color = _kcolor;
+				// vertex 1
+				temp.pos = KVector2F32(width, atemp->h + height);
+				temp.uv = KVector2F32(atemp->blu, atemp->blv);
+				temp.color = _kcolor;
+				_kvertex.push_back(temp);
+
+				// vertex 2
+				temp.pos = KVector2F32(width + atemp->w, height);
+				temp.uv = KVector2F32(atemp->tru, atemp->trv);
+				temp.color = _kcolor;
+				_kvertex.push_back(temp);
+
+				// vertex 3
+				temp.pos = KVector2F32(width + atemp->w, atemp->h + height);
+				temp.uv = KVector2F32(atemp->tru, atemp->blv);
+				temp.color = _kcolor;
+				_kvertex.push_back(temp);
 
 				width += atemp->w + _kmid;
 			}
+
+			if (_kwidth < width) { _kwidth = width; }
+			_kheight = height;
 		}
 	}
 

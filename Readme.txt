@@ -24,7 +24,7 @@ to ease the development of games.
 + Support mouse, keyboard, joystick
 + Easy window creation and handling
 + Fast and basic 2D physique functions (hit-testing, bounding box, ...)
-+ Full support of isometric games
++ Powerful particle system
 + ...
 
 ---------------------[ LICENSE ]---------------------

@@ -221,6 +221,9 @@ namespace Kite{
 		KAS_STOP	//!< Stop
 	};
 
+	/*! \enum KAnimeDirectionTypes
+		\brief Direction of the animation
+	*/
 	enum KAnimeDirectionTypes{
 		KAD_FOREWARD,
 		KAD_BACKWARD
@@ -276,6 +279,11 @@ namespace Kite{
 		\brief Function handle for animation states
 	*/
 	typedef void(*KCallAnimeStatechange)(void *Parameter);
+
+	/*! \typedef KCallSingleDraw
+	\brief Function handle for drawable objects
+	*/
+	typedef void(*KCallOnDraw)(void *Parameter);
 
 	/*! \namespace Kite::Internal
 		\brief Private namespace.

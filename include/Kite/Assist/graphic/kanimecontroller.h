@@ -177,7 +177,7 @@ namespace Kite{
 		const std::vector<KAnimeKey> *_kclip;
 		const std::vector<KAtlas> *_katlas;
 		std::vector<Internal::KAnimeTimeTrigger> _kttrig;
-		F32 _ktime;
+		F64 _ktime;
 		bool _kloop;
 		KAnimeStateTypes _kstype;
 		std::vector<KAnimeObject *> _klist;

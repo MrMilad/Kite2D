@@ -21,31 +21,66 @@
 #define KPARTICLEEMITTER_H
 
 #include "Kite/Core/system/ksystemdef.h"
+#include "Kite/Core/math/kmathdef.h"
+#include "Kite/Core/math/ktransformable.h"
+#include "Kite/Core/utility/krandom.h"
+#include "Kite/Core/utility/ktimeline.h"
 #include "Kite/Core/graphic/kgraphicstructs.h"
+#include "Kite/Core/graphic/kgraphictypes.h"
+#include "Kite/Assist/graphic/karraybatchobject.h"
+#include <forward_list>
 
 namespace Kite{
-	class KITE_FUNC_EXPORT KParticleEmitter{
+	// use a separate batch to darw partciles
+	class KITE_FUNC_EXPORT KParticleEmitter : public KArrayBatchObject, public KTransformable{
 	public:
-		KParticleEmitter(U32 ParticleSize) :
-			_kpsize(ParticleSize),
-			_kparticles(new KParticle[ParticleSize])
-		{}
+		KParticleEmitter(U32 ParticleSize);
 
-		~KParticleEmitter(){
-			delete[] _kparticles;
-		}
+		// rate particle/seconds
+		void setEmissionRate(U32 Rate);
+		inline U32 getEmissionRate() const { return _krate; }
 
-		inline U32 getParticleSize() const { return _kpsize; }
+		// life as seconds
+		void setParticleLife(F32 Base, F32 Variation);
 
-		inline const KParticle *getParticles() const { return _kparticles; }
+		// size
+		void setParticleSize(F32 Base, F32 Variation, const KTimeLine<F32, F32> *OverTime);
 
-		inline void setUV(const KRectF32 &UV) { _kuv = UV; }
-		inline const KRectF32 &getUV() const { return _kuv; }
+		// speed
+		void setParticleSpeed(F32 Base, F32 Variation, const KTimeLine<F32, F32> *OverTime);
+
+		// angle
+		void setParticleAngle(F32 Base, F32 Variation, const KTimeLine<F32, F32> *OverTime);
+
+		// color
+		void setParticleColor(const std::vector<KColor> &ColorSheet, bool RandomBase, const KTimeLine<U32, F32> *OverTime);
+
+		// SpriteSheet and OverTime is optional.
+		void setParticleUV(const std::vector<KAtlas> &SpriteSheet, bool RandomBase, const KTimeLine<U32, F32> *OverTime);
+
+		void update(F32 Delta);
+
+	protected:
+		const KTransform &getModelViewTransform() const;
 
 	private:
-		KParticle *_kparticles;
-		const U32 _kpsize;
-		KRectF32 _kuv;
+		KRandom _krandom;
+		std::forward_list<KParticle> _kparticles;
+		U32 _krate;
+		U32 _kavail;
+		KVector2F32 _klife;
+		KVector2F32 _ksize;
+		KVector2F32 _kspeed;
+		KVector2F32 _kangle;
+		const KTimeLine<F32, F32> *_ksizeovert;
+		const KTimeLine<F32, F32> *_kspeedovert;
+		const KTimeLine<F32, F32> *_kangleovert;
+		const KTimeLine<U32, F32> *_kcolovert;
+		const KTimeLine<U32, F32> *_kuvovert;
+		const std::vector<KColor> *_kcolsheet;
+		const std::vector<KAtlas> *_kuvsheet;
+		bool _krndCol;
+		bool _krndUV;
 	};
 }
 

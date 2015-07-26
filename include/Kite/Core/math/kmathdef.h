@@ -20,15 +20,23 @@
 #ifndef KMATHDEF_H
 #define KMATHDEF_H
 
-// Common math constants
-#define KMATH_PI	3.14159265358979323846f
-#define KMATH_PI_2	1.57079632679489661923f
-#define KMATH_PI_4	0.785398163397448309616f
+#include "Kite/Core/system/ksystemdef.h"
 
-#define KMATH_PIsub45  0.06981317008f
-#define KMATH_PIsub90  0.03490658504f
-#define KMATH_PIsub180 0.01745329252f
-#define KMATH_PIsub240 0.01308996939f
-#define KMATH_PIsub360 0.00872664626f
+namespace Kite {
+
+	// Common math constants
+	#define KMATH_PI	3.14159265358979323846f
+	#define KMATH_PI_2	1.57079632679489661923f
+	#define KMATH_PI_4	0.785398163397448309616f
+
+	#define KMATH_PIsub45  0.06981317008f
+	#define KMATH_PIsub90  0.03490658504f
+	#define KMATH_PIsub180 0.01745329252f
+	#define KMATH_PIsub240 0.01308996939f
+	#define KMATH_PIsub360 0.00872664626f
+
+	typedef F32(*KCallEasingFloat)(F64 Time, F32 Start, F32 End, F32 Duration);
+	typedef I32(*KCallEasingInt)(I64 Time, I32 Start, I32 End, I32 Duration);
+}
 
 #endif // KMATHDEF_H

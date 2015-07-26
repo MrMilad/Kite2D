@@ -25,16 +25,15 @@
 #include "Kite/Core/graphic/kshaderprogram.h"
 #include "Kite/Core/graphic/ktexture.h"
 #include "Kite/Core/math/ktransformable.h"
-#include <vector>
 
 namespace Kite{
     class KITE_FUNC_EXPORT KArrayBatchObject{
-		friend  class KArrayBatch;
+		friend class KArrayBatch;
     public:
-		KArrayBatchObject();
-		KArrayBatchObject(U32 VertexSize);
+		KArrayBatchObject(U32 VertexSize, bool PointSprite);
 
-		inline const KVertex *getVertex() const { return &_kvertex.at(0); }
+		inline const KVertex *getVertex() const { return _kvertex; }
+		inline const KPointSprite *getPoint() const { return _kpsprite; }
 
 		inline void setShader(const KShaderProgram *Shader) { _kshader = Shader; }
 		inline const KShaderProgram *getShader() const { return _kshader; }
@@ -48,10 +47,22 @@ namespace Kite{
 		inline void setVisible(bool Visible) { _kvisible = Visible; }
 		inline bool getVisible() const { return _kvisible; }
 
-		inline U32 getVertexSize() const { return _kvertex.size(); }
+		inline U32 getVertexSize() const { return _kusedSize; }
+		inline U32 getPointSize() const { return _kusedSize; }
+
+		inline U32 getRealVertexSize() const { return _krealSize; }
+		inline U32 getRealPointSize() const { return _krealSize; }
+
+		inline void setRelativeTransform(bool Relative) { _krelTrans = Relative; }
+		inline bool getRelativeTransform() const { return _krelTrans; }
+
+		inline bool isPointSpriteEnabled() const { return _kpenable; }
 
 	protected:
-		std::vector<KVertex> _kvertex;
+		void setUseSize(U32 Size);
+
+		KVertex *_kvertex;
+		KPointSprite *_kpsprite;
 
 		// return model-view teansform
 		virtual const KTransform &getModelViewTransform() const = 0;
@@ -60,7 +71,11 @@ namespace Kite{
 		const KShaderProgram *_kshader;
 		const KTexture *_ktexture;
 		KGeoPrimitiveTypes _kgtype;
+		const U32 _krealSize;
+		U32 _kusedSize;
 		bool _kvisible;
+		bool _kpenable;
+		bool _krelTrans;
     };
 }
 

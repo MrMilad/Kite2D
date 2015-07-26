@@ -30,7 +30,6 @@ namespace Kite{
     public:
         KLine();
         KLine(const KVector2F32 &Start, const KVector2F32 &End, const KColor &Color);
-        ~KLine();
 
 		void setStart(const KVector2F32 &Start);
 		inline const KVector2F32 &getStart() const { return _kstart; }

@@ -8,9 +8,9 @@ out vec4 out_col;
 
 void main(void)
 {
-	//out_col = texture2D( in_texture, gl_PointCoord); // point sprite
+	out_col = texture2D( in_texture, gl_PointCoord); // point sprite
 	//out_col = texture2D( in_texture, ex_uv);
-	out_col = texture2D( in_texture, ex_uv) * ex_col;
+	//out_col = texture2D( in_texture, ex_uv) * ex_col;
 	//out_col = vec4(ex_UV,1,1);
 	//out_col = ex_col;
 }

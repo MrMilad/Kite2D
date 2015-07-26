@@ -22,20 +22,19 @@
 
 #include "Kite/Core/system/ksystemdef.h"
 #include "Kite/Core/graphic/kgraphicstructs.h"
+#include "Kite/Core/graphic/kgraphictypes.h"
 #include "Kite/Core/graphic/ktexture.h"
 #include "Kite/Core/graphic/kshaderprogram.h"
 #include "Kite/core/math/ktransform.h"
-#include <vector>
 
 namespace Kite{
     class KITE_FUNC_EXPORT KIndexBatchObject{
 		friend class KIndexBatch;
     public:
-		KIndexBatchObject();
 		KIndexBatchObject(U32 VertexSize, U32 IndexSize);
 
-		inline const KVertex *getVertex() const { return &_kvertex.at(0); }
-        inline const U16 *getIndex() const {return &_kindex.at(0);}
+		inline const KVertex *getVertex() const { return _kvertex; }
+        inline const U16 *getIndex() const {return _kindex;}
 
 		inline void setShader(const KShaderProgram *Shader) { _kshader = Shader; }
 		inline const KShaderProgram *getShader() const { return _kshader; }
@@ -49,12 +48,20 @@ namespace Kite{
 		inline void setVisible(bool Visible) { _kvisible = Visible; }
 		inline bool getVisible() const { return _kvisible; }
 
-        inline U32 getVertexSize() const { return _kvertex.size(); }
-        inline U32 getIndexSize() const { return _kindex.size(); }
+        inline U32 getVertexSize() const { return _kusedVSize; }
+		inline U32 getIndexSize() const { return _kusedISize; }
+
+		inline U32 getRealVertexSize() const { return _krealVSize; }
+		inline U32 getRealIndexSize() const { return _krealISize; }
+
+		inline void setRelativeTransform(bool Relative) { _krelTrans = Relative; }
+		inline bool getRelativeTransform() const { return _krelTrans; }
 
     protected:
-        std::vector<KVertex> _kvertex;
-		std::vector<U16> _kindex;
+		void setUseVertexSize(U32 Size);
+		void setUseIndexSize(U32 Size);
+        KVertex *_kvertex;
+		U16 *_kindex;
 
 		// return model-view teansform
 		virtual const KTransform &getModelViewTransform() const = 0;
@@ -63,7 +70,12 @@ namespace Kite{
 		const KShaderProgram *_kshader;
 		const KTexture *_ktexture;
 		KGeoPrimitiveTypes _kgtype;
+		const U32 _krealVSize;
+		const U32 _krealISize;
+		U32 _kusedVSize;
+		U32 _kusedISize;
 		bool _kvisible;
+		bool _krelTrans;
     };
 }
 

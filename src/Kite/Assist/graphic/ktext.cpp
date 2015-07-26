@@ -58,8 +58,8 @@ namespace Kite{
 		U32 ind = 0;
 		U32 val = 0;
 
-		// resize index vector
-		_kindex.resize(_ktext.size() * 6);
+		// set index buffer size
+		this->setUseIndexSize(_ktext.size() * 6);
 
 		for (U32 i = 0; i < _ktext.size(); i++) {
 			ind = i * 6;
@@ -79,9 +79,6 @@ namespace Kite{
 			U32 ind = 0;
 			F32 width = 0, height = 0;
 			char ascii;
-
-			// resize vertex vector
-			_kvertex.clear();
 
 			for (U32 i = 0; i < _ktext.size(); i++) {
 				// retrieve character from atlas
@@ -120,31 +117,35 @@ namespace Kite{
 				temp.pos = KVector2F32(width, height);
 				temp.uv = KVector2F32(atemp->blu, atemp->trv);
 				temp.color = _kcolor;
-				_kvertex.push_back(temp);
+				_kvertex[ind + 0] = temp;
 
 				// vertex 1
 				temp.pos = KVector2F32(width, atemp->h + height);
 				temp.uv = KVector2F32(atemp->blu, atemp->blv);
 				temp.color = _kcolor;
-				_kvertex.push_back(temp);
+				_kvertex[ind + 1] = temp;
 
 				// vertex 2
 				temp.pos = KVector2F32(width + atemp->w, height);
 				temp.uv = KVector2F32(atemp->tru, atemp->trv);
 				temp.color = _kcolor;
-				_kvertex.push_back(temp);
+				_kvertex[ind + 2] = temp;
 
 				// vertex 3
 				temp.pos = KVector2F32(width + atemp->w, atemp->h + height);
 				temp.uv = KVector2F32(atemp->tru, atemp->blv);
 				temp.color = _kcolor;
-				_kvertex.push_back(temp);
+				_kvertex[ind + 3] = temp;
 
 				width += atemp->w + _kmid;
+				ind += 4;
 			}
 
 			if (_kwidth < width) { _kwidth = width; }
 			_kheight = height;
+
+			// set vertex buffer size
+			this->setUseVertexSize(ind);
 		}
 	}
 

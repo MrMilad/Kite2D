@@ -32,8 +32,8 @@
 namespace Kite{
     class KITE_FUNC_EXPORT KArrayBatch : KNonCopyable{
     public:
-		KArrayBatch(U32 VertexSize, const KBatchConfig Config);
-        KArrayBatch(const std::vector<KArrayBatchObject *> &Objects, const KBatchConfig Config);
+		KArrayBatch(U32 VertexSize, const KBatchConfig Config, bool PointSprite);
+		KArrayBatch(const std::vector<KArrayBatchObject *> &Objects, const KBatchConfig Config, bool PointSprite);
 
 		inline U32 getVertexSize() const { return _kvsize; }
 
@@ -52,6 +52,7 @@ namespace Kite{
         static void _updatePos(void *Data, U32 Offset, U32 DataSize, void *Sender);
 		static void _updateUV(void *Data, U32 Offset, U32 DataSize, void *Sender);
 		static void _updateCol(void *Data, U32 Offset, U32 DataSize, void *Sender);
+		static void _updatePar(void *Data, U32 Offset, U32 DataSize, void *Sender);
         std::vector<const KArrayBatchObject *> _kobj;
 		Internal::KUpdateSender _ksender;
 		const KCamera *_kcam;
@@ -60,8 +61,10 @@ namespace Kite{
 		KVertexBuffer _kvboXY;		/// xy (position)
         KVertexBuffer _kvboUV;		/// uv (texture uv)
 		KVertexBuffer _kvboCol;		/// rgba (color)
+		KVertexBuffer _kvboPnt;		/// stride: point size and texture size (Particle)
         KBatchConfig _kconfig;
 		U32 _kvsize;
+		bool _kpstride;
     };
 }
 

@@ -21,7 +21,7 @@
 
 namespace Kite{
 	KLine::KLine() :
-		KArrayBatchObject(2),
+		KArrayBatchObject(2, false),
 		_kstart(0.0f, 0.0f),
 		_kend(0.0f, 0.0f),
 		_kcolor()
@@ -30,7 +30,7 @@ namespace Kite{
 	}
 
 	KLine::KLine(const KVector2F32 &Start, const KVector2F32 &End, const KColor &Color) :
-		KArrayBatchObject(2),
+		KArrayBatchObject(2, false),
 		_kstart(Start),
 		_kend(End),
 		_kcolor(Color)
@@ -40,8 +40,6 @@ namespace Kite{
 		setColor(Color);
 		setGeoType(KGP_LINES);
 	}
-
-	KLine::~KLine(){}
 
 	void KLine::setStart(const KVector2F32 &Start){
 		_kvertex[0].pos = Start;

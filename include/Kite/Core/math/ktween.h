@@ -26,58 +26,60 @@
 #include <cmath>
 
 namespace Kite{
+	// TIME: F64 or I64     PARAM: F32 or I32
+	template <typename TIME, typename PARAM>
 	class KITE_FUNC_EXPORT KTween{
 	public:
 		// Time = current time
 		// Start = start point
 		// End = end point
 		// Duration = duration between start and end point
-		static inline F32 linear(F32 Time, F32 Start, F32 End, F32 Duration){
+		static inline PARAM linear(TIME Time, PARAM Start, PARAM End, PARAM Duration) {
 			Time /= Duration;
 			return (End - Start) * Time + Start;
 		}
 
-		static inline F32 quadraticIn(F32 Time, F32 Start, F32 End, F32 Duration){
+		static inline PARAM quadraticIn(TIME Time, PARAM Start, PARAM End, PARAM Duration) {
 			Time /= Duration;
 			return (End - Start) * (Time * Time) + Start;
 		}
 
 
-		static inline F32 quadraticOut(F32 Time, F32 Start, F32 End, F32 Duration){
+		static inline PARAM quadraticOut(TIME Time, PARAM Start, PARAM End, PARAM Duration) {
 			Time /= Duration;
 			return (End - Start) * (Time * (2 - Time)) + Start;
 		}
 
-		static inline F32 quadraticInOut(F32 Time, F32 Start, F32 End, F32 Duration){
+		static inline PARAM quadraticInOut(TIME Time, PARAM Start, PARAM End, PARAM Duration) {
 			Time /= Duration / 2;
 			if (Time < 1) return (((End - Start) / 2) * (Time * Time)) + Start;
 			return -(End - Start) / 2 * (((Time - 2) * (--Time)) - 1) + Start;
 		}
 
-		static inline F32 sinusoidalIn(F32 Time, F32 Start, F32 End, F32 Duration){
+		static inline PARAM sinusoidalIn(TIME Time, PARAM Start, PARAM End, PARAM Duration) {
 			Time /= Duration;
 			return -(End - Start) * cos(Time * KMATH_PI_2) + (End - Start) + Start;
 		}
 
-		static inline F32 sinusoidalOut(F32 Time, F32 Start, F32 End, F32 Duration){
+		static inline PARAM sinusoidalOut(TIME Time, PARAM Start, PARAM End, PARAM Duration) {
 			Time /= Duration;
 			return (End - Start) * sin(Time * KMATH_PI_2) + Start;
 		}
 
-		static inline F32 sinusoidalInOut(F32 Time, F32 Start, F32 End, F32 Duration){
+		static inline PARAM sinusoidalInOut(TIME Time, PARAM Start, PARAM End, PARAM Duration) {
 			Time /= Duration;
 			return -(End - Start) / 2 * (cos(KMATH_PI * Time) - 1) + Start;
 		}
 
-		static inline F32 exponentialIn(F32 Time, F32 Start, F32 End, F32 Duration){
+		static inline PARAM exponentialIn(TIME Time, PARAM Start, PARAM End, PARAM Duration) {
 			return (Time == 0) ? Start : (End - Start) * pow(2, 10 * (Time / Duration - 1)) + Start;
 		}
 
-		static inline F32 exponentialOut(F32 Time, F32 Start, F32 End, F32 Duration){
+		static inline PARAM exponentialOut(TIME Time, PARAM Start, PARAM End, PARAM Duration) {
 			return (Time == Duration) ? Start + (End - Start) : (End - Start) * (-pow(2, -10 * Time / Duration) + 1) + Start;
 		}
 
-		static inline F32 exponentialInOut(F32 Time, F32 Start, F32 End, F32 Duration){
+		static inline PARAM exponentialInOut(TIME Time, PARAM Start, PARAM End, PARAM Duration) {
 			if (Time == 0) return Start;
 			if (Time == Duration) return Start + (End - Start);
 			if ((Time /= Duration / 2) < 1) return (End - Start) / 2 * pow(2, 10 * (Time - 1)) + Start;

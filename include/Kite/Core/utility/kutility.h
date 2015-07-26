@@ -21,7 +21,9 @@
 #define KUTILITY_H
 
 #include "Kite/Core/utility/kutilitystructs.h"
+#include "Kite/Core/utility/krandom.h"
 #include "Kite/Core/utility/karrayio.h"
+#include "Kite/Core/utility/ktimeline.h"
 #include "Kite/core/utility/kstream.h"
 #include "Kite/core/utility/kinputstream.h"
 #include "Kite/core/utility/kfilestream.h"

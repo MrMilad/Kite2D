@@ -49,6 +49,13 @@ namespace Kite{
 	}
 
 	template <typename T>
+	static inline KVector2<T>& operator+=(KVector2<T>& left, T right) {
+		left.x += right;
+		left.y += right;
+		return left;
+	}
+
+	template <typename T>
 	static inline KVector2<T>& operator-=(KVector2<T>& left, const KVector2<T>& right){
 		left.x -= right.x;
 		left.y -= right.y;
@@ -58,6 +65,11 @@ namespace Kite{
 	template <typename T>
 	static inline KVector2<T> operator+(const KVector2<T>& left, const KVector2<T>& right){
 		return KVector2<T>(left.x + right.x, left.y + right.y);
+	}
+
+	template <typename T>
+	static inline KVector2<T> operator+(const KVector2<T>& left, T right) {
+		return KVector2<T>(left.x + right, left.y + right);
 	}
 
 	template <typename T>

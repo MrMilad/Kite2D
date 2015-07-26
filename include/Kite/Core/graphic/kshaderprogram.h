@@ -77,6 +77,12 @@ namespace Kite{
 		*/
 		I16 getUniformLocation(const std::string &ParamName) const;
 
+		//! Get location of the attribute in the shader
+		/*!
+		\return return -1 if failed
+		*/
+		I16 getAttributeLocation(const std::string &ParamName) const;
+
 		//! Set a float parameter of the shader
 		/*!
 		\param Location Location of parameter in the shader

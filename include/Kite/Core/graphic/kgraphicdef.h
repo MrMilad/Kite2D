@@ -29,6 +29,9 @@
 */
 namespace Kite{
 
+	#define KCOLOR_TO_GL(col)		(col / 255.0f)
+	#define KCOLOR_TO_RGB(col)		(col * 255.0f)
+
 	/*! \brief Hardware color macros*/
 	#define ARGB(a,r,g,b)	((DWORD(a)<<24) + (DWORD(r)<<16) + (DWORD(g)<<8) + DWORD(b))
 	/*! \brief Hardware color macros*/

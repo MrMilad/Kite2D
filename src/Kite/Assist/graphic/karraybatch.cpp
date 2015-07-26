@@ -23,13 +23,15 @@
 
 namespace Kite{
 	const KCamera KArrayBatch::_kdefcam;
-	KArrayBatch::KArrayBatch(U32 VertexSize, const KBatchConfig Config) :
+	KArrayBatch::KArrayBatch(U32 VertexSize, const KBatchConfig Config, bool PointSprite) :
 		_kcam(&_kdefcam),
 		_kvboXY(KBT_VERTEX),
 		_kvboUV(KBT_VERTEX),
 		_kvboCol(KBT_VERTEX),
+		_kvboPnt(KBT_VERTEX),
 		_kconfig(Config),
-		_kvsize(VertexSize)
+		_kvsize(VertexSize),
+		_kpstride(PointSprite)
 	{
 		KDEBUG_ASSERT_T(VertexSize > 0);
 
@@ -38,6 +40,12 @@ namespace Kite{
 
 		// initialize color
 		std::vector<KColor> co(_kvsize, KColor());
+
+		// initialize particle
+		std::vector<KPointSprite> par;
+		if (_kpstride) {
+			par.resize(VertexSize);
+		}
 
 		// bind vao then inite buffers
 		_kvao.bind();
@@ -63,18 +71,33 @@ namespace Kite{
 		_kvao.setAttribute(2, KAC_4COMPONENT, KAT_FLOAT, false, sizeof(KColor), KBUFFER_OFFSET(0));
 		_kvboCol.setUpdateHandle(_updateCol);
 
+		// particle buffer
+		if (_kpstride) {
+			_kvboPnt.bind();
+			_kvboPnt.fill(&par[0], sizeof(KPointSprite)* VertexSize, _kconfig.point);
+			// point size
+			_kvao.enableAttribute(3);
+			_kvao.setAttribute(3, KAC_1COMPONENT, KAT_FLOAT, false, sizeof(F32), KBUFFER_OFFSET(0));
+			// texture size
+			_kvao.enableAttribute(4);
+			_kvao.setAttribute(4, KAC_2COMPONENT, KAT_FLOAT, false, sizeof(KVector2F32), KBUFFER_OFFSET(sizeof(F32)));
+			_kvboPnt.setUpdateHandle(_updateCol);
+		}
+
 		// finish. unbind vao.
 		_kvao.unbindVertexArray();
 	}
 
 	KArrayBatch::KArrayBatch(const std::vector<KArrayBatchObject *> &Objects,
-		const KBatchConfig Config) :
+							 const KBatchConfig Config, bool PointSprite) :
 		_kcam(&_kdefcam),
 		_kvboXY(KBT_VERTEX),
 		_kvboUV(KBT_VERTEX),
 		_kvboCol(KBT_VERTEX),
+		_kvboPnt(KBT_VERTEX),
 		_kconfig(Config),
-		_kvsize(0)
+		_kvsize(0),
+		_kpstride(PointSprite)
     {
 
 		KDEBUG_ASSERT_T(!Objects.empty());
@@ -93,6 +116,12 @@ namespace Kite{
 
 		// initialize color
 		std::vector<KColor> co(_kvsize, KColor());
+
+		// initialize particle
+		std::vector<KPointSprite> par;
+		if (_kpstride) {
+			par.resize(_kvsize, KPointSprite());
+		}
 
 		// bind vao then inite buffers
 		_kvao.bind();
@@ -118,6 +147,17 @@ namespace Kite{
 		_kvao.setAttribute(2, KAC_4COMPONENT, KAT_FLOAT, false, sizeof(KColor), KBUFFER_OFFSET(0));
 		_kvboCol.setUpdateHandle(_updateCol);
 
+		// point sprite buffer
+		if (_kpstride) {
+			_kvboPnt.bind();
+			_kvboPnt.fill(&par[0], sizeof(KPointSprite)* _kvsize, _kconfig.point);
+			// point sprite
+			_kvao.enableAttribute(3);
+			_kvao.setAttribute(3, KAC_3COMPONENT, KAT_FLOAT, false, sizeof(KPointSprite), KBUFFER_OFFSET(0));
+			_kvboPnt.setUpdateHandle(_updatePar);
+		}
+
+
 		// finish. unbind vao.
 		_kvao.unbindVertexArray();
     }
@@ -138,13 +178,16 @@ namespace Kite{
 		_ksender.arraySize = 1;
 		_ksender.firstObject = (const void *)&Object;
 		if (Update.position) {
-			_kvboXY.update(0, sizeof(KVector2F32)* Object->getVertexSize(), false, (void *)this);
+			_kvboXY.update(0, sizeof(KVector2F32) * Object->getVertexSize(), false, (void *)this);
 		}
 		if (Update.uv) {
-			_kvboUV.update(0, sizeof(KVector2F32)* Object->getVertexSize(), false, (void *)this);
+			_kvboUV.update(0, sizeof(KVector2F32) * Object->getVertexSize(), false, (void *)this);
 		}
 		if (Update.color) {
-			_kvboCol.update(0, sizeof(KColor)* Object->getVertexSize(), false, (void *)this);
+			_kvboCol.update(0, sizeof(KColor) * Object->getVertexSize(), false, (void *)this);
+		}
+		if (_kpstride && Update.particle) {
+			_kvboPnt.update(0, sizeof(KPointSprite) * Object->getPointSize(), false, (void *)this);
 		}
 
 		_kvao.bind();
@@ -181,9 +224,9 @@ namespace Kite{
 				if (!Objects.at(counter)->getVisible())
 					continue;
 
-				if ((vsize + Objects.at(counter)->getVertexSize()) <= _kvsize) {
-					vsize += Objects.at(counter)->getVertexSize();
-					_kobj.push_back(Objects.at(counter));
+				if ((vsize + Objects[counter]->getVertexSize()) <= _kvsize) {
+					vsize += Objects[counter]->getVertexSize();
+					_kobj.push_back(Objects[counter]);
 
 				} else {
 					break;
@@ -191,7 +234,7 @@ namespace Kite{
 			}
 
 			if (vsize == 0) {
-				KDEBUG_PRINT("object size is greater than buffer size.");
+				//KDEBUG_PRINT("object size is greater than buffer size.");
 				return;
 			}
 
@@ -208,13 +251,16 @@ namespace Kite{
 		_ksender.arraySize = Objects.size();
 		_ksender.firstObject = (const void *)&Objects[0];
 		if (Update.position) {
-			_kvboXY.update(0, sizeof(KVector2F32)* VSize, false, (void *)this);
+			_kvboXY.update(0, sizeof(KVector2F32) * VSize, false, (void *)this);
 		}
 		if (Update.uv) {
-			_kvboUV.update(0, sizeof(KVector2F32)* VSize, false, (void *)this);
+			_kvboUV.update(0, sizeof(KVector2F32) * VSize, false, (void *)this);
 		}
 		if (Update.color) {
-			_kvboCol.update(0, sizeof(KColor)* VSize, false, (void *)this);
+			_kvboCol.update(0, sizeof(KColor) * VSize, false, (void *)this);
+		}
+		if (_kpstride && Update.particle) {
+			_kvboPnt.update(0, sizeof(KPointSprite) * VSize, false, (void *)this);
 		}
 
 		// catch objects state (shader, texture, ...)
@@ -244,16 +290,16 @@ namespace Kite{
 			// iterate over all objects and draw same objects with one draw call
 			for (iter = iter; iter < Objects.size(); iter++) {
 				tempCatch.objIndex = iter;
-				if (Objects.at(iter)->getTexture()) {
-					tempCatch.lastTexId = Objects.at(iter)->getTexture()->getGLID();
+				if (Objects[iter]->getTexture()) {
+					tempCatch.lastTexId = Objects[iter]->getTexture()->getGLID();
 				} else {
 					tempCatch.lastTexId = 0;
 				}
-				if (Objects.at(iter)->getShader())
-					tempCatch.lastShdId = Objects.at(iter)->getShader()->getGLID();
-				currentCatch.lastGeo = Objects.at(iter)->getGeoType();
+				if (Objects[iter]->getShader())
+					tempCatch.lastShdId = Objects[iter]->getShader()->getGLID();
+				tempCatch.lastGeo = Objects[iter]->getGeoType();
 				if (tempCatch == currentCatch) {
-					groupSize += Objects.at(iter)->getVertexSize();
+					groupSize += Objects[iter]->getVertexSize();
 					continue;
 				}
 				break;
@@ -261,12 +307,12 @@ namespace Kite{
 
 			// draw same object(s) in group
 			// bind shader
-			if (Objects.at(currentCatch.objIndex)->getShader())
-				Objects.at(currentCatch.objIndex)->getShader()->bind();
+			if (Objects[currentCatch.objIndex]->getShader())
+				Objects[currentCatch.objIndex]->getShader()->bind();
 
 			// bind texture
-			if (Objects.at(currentCatch.objIndex)->getTexture()) {
-				Objects.at(currentCatch.objIndex)->getTexture()->bind();
+			if (Objects[currentCatch.objIndex]->getTexture()) {
+				Objects[currentCatch.objIndex]->getTexture()->bind();
 			} else {
 				KTexture::unbindTexture();
 			}
@@ -306,7 +352,11 @@ namespace Kite{
 
 				// multiply model-matrix (object) with projection-matrix (camera)
 				// then update position
-				pos[ofst + j] = pmat->transformPoint(mmat->transformPoint(vtmp->pos));
+				if (otmp->getRelativeTransform()) {
+					pos[ofst + j] = pmat->transformPoint(mmat->transformPoint(vtmp->pos));
+				} else {
+					pos[ofst + j] = pmat->transformPoint(vtmp->pos);
+				}
 			}
 
 			// move offset to next object
@@ -344,8 +394,6 @@ namespace Kite{
 		KColor *col = (KColor *)Data;
 		const KArrayBatchObject *otmp;
 		const KVertex *vtmp;
-
-		// retrieve index, size and offset
 		U32 ofst = 0;
 
 		for (U32 i = 0; i < size; i++) {
@@ -359,6 +407,29 @@ namespace Kite{
 
 			// move offset to next object
 			ofst += otmp->getVertexSize();
+		}
+	}
+
+	void KArrayBatch::_updatePar(void *Data, U32 Offset, U32 DataSize, void *Sender) {
+		KArrayBatch *clObject = (KArrayBatch *)Sender;
+		const KArrayBatchObject **obj = (const KArrayBatchObject **)clObject->_ksender.firstObject;
+		U32 size = clObject->_ksender.arraySize;
+		KPointSprite *par = (KPointSprite *)Data;
+		const KArrayBatchObject *otmp;
+		const KPointSprite *vtmp;
+		U32 ofst = 0;
+
+		for (U32 i = 0; i < size; i++) {
+			otmp = obj[i];
+			for (U32 j = 0; j < otmp->getPointSize(); j++) {
+				vtmp = &otmp->getPoint()[j];
+
+				// update point
+				par[ofst + j] = *vtmp;
+			}
+
+			// move offset to next object
+			ofst += otmp->getPointSize();
 		}
 	}
 }

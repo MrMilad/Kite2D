@@ -26,6 +26,7 @@
 #include "Kite/Assist/graphic/kanimeobject.h"
 #include "Kite/Assist/graphic/kanimecontrollergroup.h"
 #include "Kite/Assist/graphic/kanimecontroller.h"
+#include "Kite/Assist/graphic/kparticleemitter.h"
 #include "Kite/Assist/graphic/kquad.h"
 #include "Kite/Assist/graphic/karraybatch.h"
 #include "Kite/Assist/graphic/kindexbatch.h"

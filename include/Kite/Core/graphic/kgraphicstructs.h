@@ -37,7 +37,8 @@ namespace Kite{
 	//! Utility struct for manipulating RGBAs color.
 	/*! 
 		KColor is a simple color struct composed of 4 components: r, g, b, a (opacity)
-		each component is an float in the range [0, 255]
+		each component is an float in the range [0, 1],
+		use KCOLOR_TO_* macro for convert from opengl[0 to 1] range to RGB[0 to 255] range.
 	*/
     struct KColor{
 		F32 r;	//!< Red component
@@ -47,9 +48,10 @@ namespace Kite{
 
 		//! Construct the color from its 4 RGBA components.
 		/*!
-			Default value is (255, 255, 255, 255)
+			Range [0 to 255]
+			default value is (255, 255, 255, 255)
 		*/
-		KColor(F32 R = 255, F32 G = 255, F32 B = 255, F32 A = 255) :
+		KColor(U8 R = 255, U8 G = 255, U8 B = 255, U8 A = 255) :
             r(R/255.0f), g(G/255.0f), b(B/255.0f), a(A/255.0f)
         {}
 
@@ -63,6 +65,18 @@ namespace Kite{
 			g = ((U8)((HexCode >> 8) & 0xFF)) / 255.0f;
 			b = ((U8)((HexCode)& 0xFF)) / 255.0f;
 		}
+
+		//! Set R component. range [0 to 255]
+		inline void setR(U8 R) { r = (R / 255.0f); }
+
+		//! Set G component. range [0 to 255]
+		inline void setG(U8 G) { g = (G / 255.0f); }
+
+		//! Set B component. range [0 to 255]
+		inline void setB(U8 B) { b = (B / 255.0f); }
+
+		//! Set A component. range [0 to 255]
+		inline void setA(U8 A) { a = (A / 255.0f); }
 	};
 
 	//! Utility struct for manipulating vertex attributes.
@@ -82,10 +96,23 @@ namespace Kite{
         {}
 
 		//! Construct the vertex from its 3 attributes.
-        KVertex(KVector2F32 Pos, KVector2F32 UV, KColor Color):
+		KVertex(const KVector2F32 &Pos, const KVector2F32 &UV, const KColor &Color) :
             pos(Pos), uv(UV), color(Color)
         {}
     };
+
+	struct KPointSprite {
+		F32 pointSize;
+		KVector2F32 textureSize;
+
+		KPointSprite() :
+			pointSize(), textureSize() 
+		{}
+
+		KPointSprite(F32 PointSize, const KVector2F32 &TextureSize) :
+			pointSize(PointSize), textureSize(TextureSize) 
+		{}
+	};
 
 	//! Utility struct for representing a atlas object.
 	/*!
@@ -197,11 +224,27 @@ namespace Kite{
 	//! Particle attribute
     struct KParticle{
 		KVector2F32 pos;	//!< Position
+		F32 size;			//!< Size
+		F32 angle;			//!< Angle
 		KColor color;		//!< Color
-        I32 angle;			//!< Angle
-        I32 speed;			//!< Speed
-        U32 life;			//!< Life
-        U32 size;			//!< Size
+        F32 speed;			//!< Speed
+        F32 life;			//!< Life
+		F32 timer;			//!< Timer
+		KRectF32 uv;		//!< Texture uv
+
+		KParticle() :
+			pos(), size(), angle(0),
+			color(), speed(0), life(0),
+			timer(0), uv()
+		{}
+
+		KParticle(KVector2F32 Pos, F32 Size, F32 Angle,
+				  KColor Color, F32 Speed, F32 Life,
+				  F32 Timer, KRectF32 UV) :
+				  pos(Pos), size(Size), angle(Angle),
+				  color(Color), speed(Speed), life(Life),
+				  timer(Timer), uv(UV)
+		{}
     };
 
 	//! Configuration of Batch objects.
@@ -213,12 +256,14 @@ namespace Kite{
 		KVertexBufferTypes position;	//!< Position buffer config
 		KVertexBufferTypes uv;			//!< UV buffer config
 		KVertexBufferTypes color;		//!< Color buffer config
+		KVertexBufferTypes point;	//!< Particle buffer config ( only when we set Particle as true)
 
 		//! Default constructors
 		KBatchConfig(KVertexBufferTypes Index = KVB_STREAM, KVertexBufferTypes Position = KVB_STREAM,
-					 KVertexBufferTypes UV = KVB_STREAM, KVertexBufferTypes Color = KVB_STREAM) :
+					 KVertexBufferTypes UV = KVB_STREAM, KVertexBufferTypes Color = KVB_STREAM,
+					 KVertexBufferTypes Point = KVB_STATIC) :
             index(Index), position(Position),
-			uv(UV), color(Color)
+			uv(UV), color(Color), point(Point)
         {}
     };
 
@@ -227,12 +272,16 @@ namespace Kite{
 		bool position;	//!< Position buffer config
 		bool uv;		//!< UV buffer config
 		bool color;		//!< Color buffer config
+		bool particle;	//!< Particle buffer config
 
 		//! Default constructors
 		KBatchUpdate(bool Index = true, bool Position = true,
-					 bool UV = true, bool Color = true) :
+					 bool UV = true, bool Color = true,
+					 bool Particle = true) :
 					 index(Index), position(Position),
-					 uv(UV), color(Color) {}
+					 uv(UV), color(Color),
+					 particle(Particle)
+		{}
 	};
 
 	struct KTileMapInfo{

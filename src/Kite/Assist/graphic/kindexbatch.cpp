@@ -205,14 +205,14 @@ namespace Kite{
 
 			for (counter; counter < Objects.size(); counter++) {
 
-				if (!Objects.at(counter)->getVisible())
+				if (!Objects[counter]->getVisible())
 					continue;
 
-				if ((vsize + Objects.at(counter)->getVertexSize()) <= _kvsize &&
-					(isize + Objects.at(counter)->getIndexSize()) <= _kisize) {
-					vsize += Objects.at(counter)->getVertexSize();
-					isize += Objects.at(counter)->getIndexSize();
-					_kobj.push_back(Objects.at(counter));
+				if ((vsize + Objects[counter]->getVertexSize()) <= _kvsize &&
+					(isize + Objects[counter]->getIndexSize()) <= _kisize) {
+					vsize += Objects[counter]->getVertexSize();
+					isize += Objects[counter]->getIndexSize();
+					_kobj.push_back(Objects[counter]);
 
 				} else {
 					break;
@@ -276,16 +276,16 @@ namespace Kite{
 			// iterate over all objects and draw same objects with one draw call
 			for (iter = iter; iter < Objects.size(); iter++) {
 				tempCatch.objIndex = iter;
-				if (Objects.at(iter)->getTexture()) {
-					tempCatch.lastTexId = Objects.at(iter)->getTexture()->getGLID();
+				if (Objects[iter]->getTexture()) {
+					tempCatch.lastTexId = Objects[iter]->getTexture()->getGLID();
 				} else {
 					tempCatch.lastTexId = 0;
 				}
-				if (Objects.at(iter)->getShader())
-					tempCatch.lastShdId = Objects.at(iter)->getShader()->getGLID();
-				currentCatch.lastGeo = Objects.at(iter)->getGeoType();
+				if (Objects[iter]->getShader())
+					tempCatch.lastShdId = Objects[iter]->getShader()->getGLID();
+				tempCatch.lastGeo = Objects[iter]->getGeoType();
 				if (tempCatch == currentCatch) {
-					groupSize += Objects.at(iter)->getIndexSize();
+					groupSize += Objects[iter]->getIndexSize();
 					continue;
 				}
 				break;
@@ -293,12 +293,12 @@ namespace Kite{
 
 			// draw same object(s) in group
 			// bind shader
-			if (Objects.at(currentCatch.objIndex)->getShader())
-				Objects.at(currentCatch.objIndex)->getShader()->bind();
+			if (Objects[currentCatch.objIndex]->getShader())
+				Objects[currentCatch.objIndex]->getShader()->bind();
 
 			// bind texture
-			if (Objects.at(currentCatch.objIndex)->getTexture()) {
-				Objects.at(currentCatch.objIndex)->getTexture()->bind();
+			if (Objects[currentCatch.objIndex]->getTexture()) {
+				Objects[currentCatch.objIndex]->getTexture()->bind();
 			} else {
 				KTexture::unbindTexture();
 			}
@@ -366,7 +366,11 @@ namespace Kite{
 
 				// multiply model-matrix (object) with projection-matrix (camera)
 				// then update position
-				pos[ofst + j] = pmat->transformPoint(mmat->transformPoint(vtmp->pos));
+				if (otmp->getRelativeTransform()) {
+					pos[ofst + j] = pmat->transformPoint(mmat->transformPoint(vtmp->pos));
+				} else {
+					pos[ofst + j] = pmat->transformPoint(vtmp->pos);
+				}
 			}
 
 			// move offset to next object

@@ -91,6 +91,14 @@ namespace Kite{
 		return -1;
 	}
 
+	I16 KShaderProgram::getAttributeLocation(const std::string &ParamName) const {
+		if (_kprogId) {
+			GLint location = glGetUniformLocationARB(_kprogId, ParamName.c_str());
+			return (I16)location;
+		}
+		return -1;
+	}
+
 	void KShaderProgram::setParam(Kite::I16 Location, F32 Value) const{
 		if (_kprogId && Location >= 0){
 			// get parameter location and assign it new values

@@ -1,0 +1,19 @@
+#version 330
+
+in vec4 ex_col;
+in vec2 ex_uv;
+in vec2 ex_tsize;
+uniform sampler2D in_texture;
+
+out vec4 out_col;
+
+void main(void)
+{
+    // This is where the magic happens.  Combine all three factors to render
+    // just a portion of the sprite-sheet for this point
+    vec2 realTexCoord = ex_uv + (gl_PointCoord * ex_tsize);
+    vec4 fragColor = texture2D(in_texture, realTexCoord);
+
+    out_col = fragColor;
+     //out_col = ex_col;
+}

@@ -130,10 +130,10 @@ namespace Kite{
 		bool needInterpolate = true;
 
 		// map KTween functions into fucntion pointers
-		static F32(*tweenFunction[])(F32, F32, F32, F32) = { KTween::linear, KTween::quadraticIn,
-			KTween::quadraticOut, KTween::quadraticInOut, KTween::sinusoidalIn,
-			KTween::sinusoidalOut, KTween::sinusoidalInOut, KTween::exponentialIn,
-			KTween::exponentialOut, KTween::exponentialInOut };
+		static KCallEasingFloat tweenFunction[] = { KTween<F64, F32>::linear, KTween<F64, F32>::quadraticIn,
+			KTween<F64, F32>::quadraticOut, KTween<F64, F32>::quadraticInOut, KTween<F64, F32>::sinusoidalIn,
+			KTween<F64, F32>::sinusoidalOut, KTween<F64, F32>::sinusoidalInOut, KTween<F64, F32>::exponentialIn,
+			KTween<F64, F32>::exponentialOut, KTween<F64, F32>::exponentialInOut };
 
 		// direction
 		if (_kdtype == KAD_FOREWARD){

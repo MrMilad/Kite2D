@@ -41,7 +41,7 @@ namespace Kite{
 	/*!
 	This class supports shader programs written in the OpenGL Shading Language (GLSL).
 	*/
-	class KShaderProgram : public KCoreInstance{
+	class KITE_FUNC_EXPORT KShaderProgram : public KCoreInstance{
 	public:
 		//! Default constructors
 		/*!

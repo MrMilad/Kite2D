@@ -246,7 +246,8 @@ namespace Kite{
 		\brief Types of tile-based maps
 	*/
 	enum KTileMapTypes{
-		KTM_ISOMETRIC	//!< Isometric map
+		KTM_ISOMETRIC,	//!< Isometric map
+		KTM_FLAT		//!< Flat (rectangular) map
 	};
 
 	/*! \enum KTileBitmapTypes

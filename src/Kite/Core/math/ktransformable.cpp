@@ -39,9 +39,22 @@ namespace Kite{
         _kneedUpdate = true;
     }
 
+	void KTransformable::setPosition(F32 X, F32 Y) {
+		_kposition.x = X;
+		_kposition.y = Y;
+		_kneedUpdate = true;
+	}
+
     void KTransformable::move(const KVector2F32 &Steps){
-        setPosition(_kposition + Steps);
+		_kposition += Steps;
+		_kneedUpdate = true;
     }
+
+	void KTransformable::move(F32 X, F32 Y) {
+		_kposition.x += X;
+		_kposition.y += Y;
+		_kneedUpdate = true;
+	}
 
     void KTransformable::setRotation(F32 Angle){
 		if (Angle > 360.000f || Angle < -360.000f)
@@ -59,14 +72,31 @@ namespace Kite{
         _kneedUpdate = true;
     }
 
+	void KTransformable::setScale(F32 X, F32 Y) {
+		_kscale.x = X;
+		_kscale.y = Y;
+		_kneedUpdate = true;
+	}
+
     void KTransformable::scale(const KVector2F32 &Scale){
         _kscale *= Scale;
         _kneedUpdate = true;
     }
 
+	void KTransformable::scale(F32 X, F32 Y) {
+		_kscale.x *= X;
+		_kscale.y *= Y;
+		_kneedUpdate = true;
+	}
+
 	void KTransformable::setSkew(const KVector2F32 &Skew){
 		_kskew.x = (fmod(Skew.x, 180) == 90) ? 0 : Skew.x;
 		_kskew.y = (fmod(Skew.y, 180) == 90) ? 0 : Skew.y;
+	}
+
+	void KTransformable::setSkew(F32 X, F32 Y) {
+		_kskew.x = (fmod(X, 180) == 90) ? 0 : X;
+		_kskew.y = (fmod(Y, 180) == 90) ? 0 : Y;
 	}
 
 	void KTransformable::skew(const KVector2F32 &Skew){
@@ -74,10 +104,21 @@ namespace Kite{
 		_kskew.y += (fmod(Skew.y, 180) == 90) ? 0 : Skew.y;
 	}
 
+	void KTransformable::skew(F32 X, F32 Y) {
+		_kskew.x += (fmod(X, 180) == 90) ? 0 : X;
+		_kskew.y += (fmod(Y, 180) == 90) ? 0 : Y;
+	}
+
     void KTransformable::setCenter(const KVector2F32 &Center){
         _kcenter = Center;
         _kneedUpdate = true;
     }
+
+	void KTransformable::setCenter(F32 X, F32 Y) {
+		_kcenter.x = X;
+		_kcenter.y = Y;
+		_kneedUpdate = true;
+	}
 
 	const KTransform *KTransformable::getTransform() const{
 		// calculate

@@ -35,11 +35,13 @@ namespace Kite{
         /// completely restore the previous position
         /// default (0, 0)
         void setPosition(const KVector2F32& Position);
+		void setPosition(F32 X, F32 Y);
         inline const KVector2F32 *getPosition() const {return &_kposition;}
 
         /// move object
         /// adds to the current position
         void move(const KVector2F32 &Steps);
+		void move(F32 X, F32 Y);
 
         /// completely restore the previous Rotation
         /// range [0, 360]
@@ -54,20 +56,25 @@ namespace Kite{
         /// completely restore the previous scale
         /// default (1, 1)
         void setScale(const KVector2F32 &Scale);
+		void setScale(F32 X, F32 Y);
         inline const KVector2F32 *getScale() const {return &_kscale;}
 
         /// multiplies the current scale
         void scale(const KVector2F32 &Scale);
+		void scale(F32 X, F32 Y);
 
 		void setSkew(const KVector2F32 &Skew);
+		void setSkew(F32 X, F32 Y);
 		inline const KVector2F32 *getSkew() const { return &_kskew; }
 
 		void skew(const KVector2F32 &Skew);
+		void skew(F32 X, F32 Y);
 
         /// set center of (position, scale, rotation)
         /// relative to the top-left
         /// default (0, 0)
         void setCenter(const KVector2F32 &Center);
+		void setCenter(F32 X, F32 Y);
         inline const KVector2F32 *getCenter() const {return &_kcenter;}
 
 		/// combining the position/rotation/scale/center

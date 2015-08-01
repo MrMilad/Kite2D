@@ -30,7 +30,6 @@ namespace Kite{
 	class KITE_FUNC_EXPORT KAnimeObject{
 		friend class KAnimeController;
 	protected:
-		// color
 		virtual void animeUpdate(const KAnimeValue *AnimatedValue) = 0;
 	};
 }

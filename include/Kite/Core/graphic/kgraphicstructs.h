@@ -64,6 +64,7 @@ namespace Kite{
 			r = ((U8)((HexCode >> 16) & 0xFF)) / 255.0f;
 			g = ((U8)((HexCode >> 8) & 0xFF)) / 255.0f;
 			b = ((U8)((HexCode)& 0xFF)) / 255.0f;
+			a = 1.0;
 		}
 
 		//! Set R component. range [0 to 255]
@@ -231,11 +232,12 @@ namespace Kite{
         F32 life;			//!< Life
 		F32 timer;			//!< Timer
 		KRectF32 uv;		//!< Texture uv
+		F32 spin;			//!< Spin
 
 		KParticle() :
 			pos(), size(), angle(0),
 			color(), speed(0), life(0),
-			timer(0), uv()
+			timer(0), uv(), spin(0)
 		{}
 
 		KParticle(KVector2F32 Pos, F32 Size, F32 Angle,
@@ -261,7 +263,7 @@ namespace Kite{
 		//! Default constructors
 		KBatchConfig(KVertexBufferTypes Index = KVB_STREAM, KVertexBufferTypes Position = KVB_STREAM,
 					 KVertexBufferTypes UV = KVB_STREAM, KVertexBufferTypes Color = KVB_STREAM,
-					 KVertexBufferTypes Point = KVB_STATIC) :
+					 KVertexBufferTypes Point = KVB_STREAM) :
             index(Index), position(Position),
 			uv(UV), color(Color), point(Point)
         {}

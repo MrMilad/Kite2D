@@ -17,42 +17,52 @@
     Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
     USA
 */
-#ifndef KTILESHEET_H
-#define KTILESHEET_H
+#ifndef KTILEMAP_H
+#define KTILEMAP_H
 
 #include "Kite/Core/system/ksystemdef.h"
 #include "kite/Core/graphic/kgraphicstructs.h"
+#include "kite/Assist/map/ktilemapobject.h"
 #include <vector>
 
 namespace Kite{
-	class KITE_FUNC_EXPORT KTileSheet{
+	class KITE_FUNC_EXPORT KTileMap{
 	public:
-		KTileSheet(const KTileMapInfo &MapInfo);
+		KTileMap(const KTileMapInfo &MapInfo);
 
-		// set bitmap array for isometric mouse coordinate detection
+		// set assocaited objects with tiles
+		// duplicate is not allowed (new object will replaced)
+		bool setObject(KTileMapObject *Objects);
+
+		// set bitmap array for isometric mouse hit detection
 		// vector size must equal with tile size
 		// eg: tile size = 100 x 50 (pixel) , vector size = 5000
-		void setTileBitmap(const std::vector<KTileBitmapTypes> &TileBitmap);
+		void setTileHitBitmap(const std::vector<KTileBitmapTypes> &TileBitmap);
 
 		// get map width (in pixel)
-		U32 getWidth() const;
+		F32 getMapWidth() const;
 
 		// get map height (in pixel)
-		U32 getHeight() const;
+		F32 getMapHeight() const;
 
-		inline KTileMapInfo getMapInfo() const { return _kmapInfo; }
+		inline const KTileMapInfo *getMapInfo() const { return &_kmapInfo; }
 
-		U32 getTileID(const KVector2F32 &Position);
+		// retun -1 if out of position
+		I32 getTileID(const KVector2F32 &Position) const;
 
-		KVector2F32 getTilePosition(U32 TileID);
+		bool getTilePosition(U32 TileID, KVector2F32 &Output) const;
+		bool getTileDimension(U32 TileID, KRect2F32 &Output) const;
+		bool getTileDimension(const KVector2F32 &Position, KRect2F32 &Output) const;
+		KTileMapObject *getTileObject(U32 TileID) const;
+		KTileMapObject *getTileObject(const KVector2F32 &Position) const;
 
-		KRect2F32 getTileDimension(U32 TileID);
-		KRect2F32 getTileDimension(const KVector2F32 &Position);
+		const std::vector<KTileMapObject *> *queryTiles(KRectF32 &Area) const;
 
 	private:
 		KTileMapInfo _kmapInfo;
+		std::vector<KTileMapObject *> _ktiles;
 	};
 }
 
-#endif // KTILESHEET_H
+#endif // KTILEMAP_H
 

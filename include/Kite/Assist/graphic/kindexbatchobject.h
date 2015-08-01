@@ -57,14 +57,14 @@ namespace Kite{
 		inline void setRelativeTransform(bool Relative) { _krelTrans = Relative; }
 		inline bool getRelativeTransform() const { return _krelTrans; }
 
+		// return model-view teansform
+		virtual const KTransform &getModelViewTransform() const = 0;
+
     protected:
 		void setUseVertexSize(U32 Size);
 		void setUseIndexSize(U32 Size);
         KVertex *_kvertex;
 		U16 *_kindex;
-
-		// return model-view teansform
-		virtual const KTransform &getModelViewTransform() const = 0;
 
     private:
 		const KShaderProgram *_kshader;

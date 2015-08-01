@@ -221,7 +221,7 @@ namespace Kite{
 
 			for (counter; counter < Objects.size(); counter++) {
 
-				if (!Objects.at(counter)->getVisible())
+				if (!Objects[counter]->getVisible())
 					continue;
 
 				if ((vsize + Objects[counter]->getVertexSize()) <= _kvsize) {
@@ -273,14 +273,14 @@ namespace Kite{
 
 		// fill catch with first object in array
 		currentCatch.objIndex = 0;
-		if (Objects.at(0)->getTexture()) {
-			currentCatch.lastTexId = Objects.at(0)->getTexture()->getGLID();
+		if (Objects[0]->getTexture()) {
+			currentCatch.lastTexId = Objects[0]->getTexture()->getGLID();
 		} else {
 			currentCatch.lastTexId = 0;
 		}
-		if (Objects.at(0)->getShader())
-			currentCatch.lastShdId = Objects.at(0)->getShader()->getGLID();
-		currentCatch.lastGeo = Objects.at(0)->getGeoType();
+		if (Objects[0]->getShader())
+			currentCatch.lastShdId = Objects[0]->getShader()->getGLID();
+		currentCatch.lastGeo = Objects[0]->getGeoType();
 
 		_kvao.bind();
 

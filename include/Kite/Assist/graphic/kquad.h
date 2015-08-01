@@ -26,9 +26,10 @@
 #include "Kite/Core/math/ktransformable.h"
 #include "kite/Assist/graphic/kindexbatchobject.h"
 #include "kite/Assist/graphic/kanimeobject.h"
+#include "kite/Assist/map/ktilemapobject.h"
 
 namespace Kite{
-    class KITE_FUNC_EXPORT KQuad : public KIndexBatchObject, public KTransformable, public KAnimeObject{
+    class KITE_FUNC_EXPORT KQuad : public KIndexBatchObject, public KTransformable, public KAnimeObject, public KTileMapObject{
     public:
 		KQuad();
 		KQuad(const KRectF32 &Dimension, const KRectF32 &UV, const KColor &Color);
@@ -44,10 +45,13 @@ namespace Kite{
 		void setColor(const KColor &Color);
 		inline const KColor &getColor() const { return _kcolor; }
 
-	protected:
+		// from KTileMapObject (output/send)
+		const KVector2F32 *getTilePosition() const;
+
 		// from KIndexBatchObject (output/send)
 		const KTransform &getModelViewTransform() const;
 
+	protected:
 		// from KAnimeObject (input/recive)
 		void animeUpdate(const KAnimeValue *AnimatedValue);
 

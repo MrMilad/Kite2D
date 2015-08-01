@@ -68,6 +68,13 @@ namespace Kite{
 		KCI_WINDOW
 	};
 
+	enum KGridMapTriggerTypes {
+		KST_ENTER,
+		KST_LEAVE
+	};
+
+	typedef void(*KCallGridMapTrigger)(void *Data, KGridMapTriggerTypes State);
+
 	/*typedef U64(*KCallInputStreamRead)(void *Data, U64 DataSize);
 	typedef I32(*KCallInputStreamSeek)(I64 Offset, I32 Origin);
 	typedef I64(*KCallInputStreamTell)();

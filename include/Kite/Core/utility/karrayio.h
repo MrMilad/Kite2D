@@ -150,7 +150,7 @@ namespace Kite{
 
 				// write array elements 
 				for (U32 i = 0; i < Objects.size(); i++){
-					fwrite(&Objects.at(i), sizeof(T), 1, file);
+					fwrite(&Objects[i], sizeof(T), 1, file);
 				}
 
 				ret = true;

@@ -96,7 +96,7 @@ namespace Kite{
 			return;
 
 		_kcurrentKey = KeyIndex;
-		_ktime = _kclip->at(KeyIndex).time;
+		_ktime = (*_kclip)[KeyIndex].time;
 	}
 
 	void KAnimeController::addTimeTrigger(KCallAnimeTrigger Functor, void *Sender, F32 StartTime, F32 Duration){
@@ -171,11 +171,11 @@ namespace Kite{
 		// find appropriate key
 		keyLookup();
 
-		const KAnimeKey *key1 = &_kclip->at(_kcurrentKey);
+		const KAnimeKey *key1 = &(*_kclip)[_kcurrentKey];
 		KInterpolationTypes type;
 		if (needInterpolate){
 			const KAnimeKey *key2 = 0;
-			key2 = &_kclip->at(_kcurrentKey + 1);
+			key2 = &(*_kclip)[_kcurrentKey + 1];
 
 			// transform
 			type = key1->tinterp;
@@ -205,7 +205,7 @@ namespace Kite{
 			_kvalue.uvChannel = key2->uvChannel;
 
 		}else{
-			key1 = &_kclip->at(_kcurrentKey);
+			key1 = &(*_kclip)[_kcurrentKey];
 			_kvalue.translate = key1->translate;
 			_kvalue.scale = key1->scale;
 			_kvalue.skew = key1->skew;
@@ -216,7 +216,7 @@ namespace Kite{
 		// uv
 		if (_katlas)
 		if (_katlas->size() > key1->uv){
-			const KAtlas *atlas = &_katlas->at(key1->uv);
+			const KAtlas *atlas = &(*_katlas)[key1->uv];
 			_kvalue.uv = KRectF32(atlas->blu, atlas->tru, atlas->trv, atlas->blv);
 		}
 
@@ -284,7 +284,7 @@ namespace Kite{
 		// then we check all keys from 0 to last - 1
 		for (U32 i = 0; i < _kclip->size() - 1; i++){
 
-			if (_kclip->at(i).time <= _ktime && _kclip->at(i + 1).time > _ktime){
+			if ((*_kclip)[i].time <= _ktime && (*_kclip)[i + 1].time > _ktime){
 
 				// set current key
 				_kcurrentKey = i;

@@ -25,6 +25,7 @@ to ease the development of games.
 + Easy window creation and handling
 + Fast and basic 2D physique functions (hit-testing, bounding box, ...)
 + Powerful particle system
++ Powerful tile-based map engine
 + ...
 
 ---------------------[ LICENSE ]---------------------

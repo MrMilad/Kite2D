@@ -36,6 +36,10 @@ namespace Kite{
 			_kstream(&StreamProvider)
 		{}
 
+		~KResourceManager() {
+			clear();
+		}
+
 		void setDefaultResource(T *DefaultResource){
 			_kdefault = DefaultResource;
 		}
@@ -113,15 +117,20 @@ namespace Kite{
 			// check resource catch
 			std::unordered_map<std::string, std::pair<T *, KInputStream *>>::iterator found = _kmap.find(tempKey);
 			if (found != _kmap.end()){
-				// free resource
-				delete found->second.first;
+				found->second.first->decRef();
 
-				// free associated input stream 
-				if (found->second.second)
-					delete found->second.second;
+				// check resource count
+				if (found->second.first->getReferencesCount() == 0) {
+					// free resource
+					delete found->second.first;
 
-				// erase pair from catch
-				_kmap.erase(found);
+					// free associated input stream 
+					if (found->second.second)
+						delete found->second.second;
+
+					// erase pair from catch
+					_kmap.erase(found);
+				}
 			}
 		}
 

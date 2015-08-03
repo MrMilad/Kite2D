@@ -31,6 +31,7 @@ namespace Kite{
 		friend class KArrayBatch;
     public:
 		KArrayBatchObject(U32 VertexSize, bool PointSprite);
+		virtual ~KArrayBatchObject() {}
 
 		inline const KVertex *getVertex() const { return _kvertex; }
 		inline const KPointSprite *getPoint() const { return _kpsprite; }

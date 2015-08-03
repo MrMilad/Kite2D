@@ -28,18 +28,22 @@ namespace Kite {
 		friend class KTileMap;
 	public:
 		KTileMapObject() :
-			_ktID(0)
+			_ktID(-1)
 		{}
 
 		virtual ~KTileMapObject() {}
 
 		// ID of tile in the map
-		inline U32 getTileID() const { return _ktID; }
+		inline I32 getTileID() const { return _ktID; }
+
+		// get next object in the tile list
+		inline KTileMapObject *getNextObject() const { return (KTileMapObject *)_klink.next; }
 
 		virtual const KVector2F32 *getTilePosition() const = 0;
 
 	private:
-		mutable U32 _ktID;
+		I32 _ktID;
+		Internal::KLinkedPoint _klink;
 	};
 }
 

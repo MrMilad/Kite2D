@@ -29,6 +29,8 @@
 namespace Kite{
 	class KITE_FUNC_EXPORT KAnimeObject{
 		friend class KAnimeController;
+	public:
+		virtual ~KAnimeObject() {}
 	protected:
 		virtual void animeUpdate(const KAnimeValue *AnimatedValue) = 0;
 	};

@@ -50,7 +50,7 @@ namespace Internal{
 		static size_t _read(void *ptr, size_t size, size_t nmemb, void *datasource);
 		static int _seek(void *datasource, ogg_int64_t offset, int whence);
 		static int _close(void *datasource);
-		static long _tell(void *datasource);
+		static long int _tell(void *datasource);
         bool _kisOpen;
         OggVorbis_File _koggStream;    // stream handle
         vorbis_info *_koggInfo;      // some formatting data

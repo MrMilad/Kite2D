@@ -42,10 +42,10 @@ namespace Kite{
             U8* ptr = &_kpixels[0];
             U8* end = ptr + _kpixels.size();
             while (ptr < end){
-                *ptr++ = Color.r;
-                *ptr++ = Color.g;
-                *ptr++ = Color.b;
-                *ptr++ = Color.a;
+                *ptr++ = Color.getR();
+				*ptr++ = Color.getG();
+				*ptr++ = Color.getB();
+				*ptr++ = Color.getA();
             }
         }else{
             // create an empty image
@@ -140,10 +140,10 @@ namespace Kite{
 
     void KImage::setPixel(KVector2U32 Position, const KColor &Color){
         U8* pixel = &_kpixels[(Position.x + Position.y * _ksize.x) * 4];
-        *pixel++ = Color.r;
-        *pixel++ = Color.g;
-        *pixel++ = Color.b;
-        *pixel++ = Color.a;
+        *pixel++ = Color.getR();
+		*pixel++ = Color.getG();
+		*pixel++ = Color.getB();
+		*pixel++ = Color.getA();
     }
 
     KColor KImage::getPixel(KVector2U32 Position) const{

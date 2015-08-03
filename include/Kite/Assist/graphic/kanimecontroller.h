@@ -118,7 +118,7 @@ namespace Kite{
 		void setCurrentTime(F32 Time);
 
 		//! Get current playback time in seconds
-		inline F32 getCurrentTime() const { return _ktime; }
+		inline F64 getCurrentTime() const { return _ktime; }
 
 		//! Get total time of the animation clip
 		F32 getTotalTime() const;

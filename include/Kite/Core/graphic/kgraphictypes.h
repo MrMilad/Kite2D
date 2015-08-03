@@ -286,6 +286,8 @@ namespace Kite{
 	*/
 	typedef void(*KCallOnDraw)(void *Parameter);
 
+	typedef void(*KCallTileQuery)(void *Parameter, void *Sender);
+
 	/*! \namespace Kite::Internal
 		\brief Private namespace.
 	*/

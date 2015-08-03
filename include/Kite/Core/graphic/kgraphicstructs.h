@@ -78,6 +78,18 @@ namespace Kite{
 
 		//! Set A component. range [0 to 255]
 		inline void setA(U8 A) { a = (A / 255.0f); }
+
+		//! Set R component. range [0 to 255]
+		inline U8 getR() const { return (U8)(r * 255.0f); }
+
+		//! Set G component. range [0 to 255]
+		inline U8 getG() const { return (U8)(g * 255.0f); }
+
+		//! Set B component. range [0 to 255]
+		inline U8 getB() const { return (U8)(b * 255.0f); }
+
+		//! Set A component. range [0 to 255]
+		inline U8 getA() const { return (U8)(a * 255.0f); }
 	};
 
 	//! Utility struct for manipulating vertex attributes.
@@ -328,6 +340,16 @@ namespace Kite{
 			KUpdateSender(U32 ArraySize = 0, void *FirstObject = 0) :
 				arraySize(ArraySize), firstObject(FirstObject) 
 			{}
+		};
+
+		struct KLinkedPoint{
+			KVector2F32 point;
+			void *next;
+			void *prev;
+			KLinkedPoint() :
+				point(),
+				next(0),
+				prev(0) {}
 		};
 
 		//! Catch last OpenGL state. (internally use)

@@ -18,6 +18,7 @@
     USA
 */
 #include "Kite/Assist/graphic/kquad.h"
+#include <vector>
 
 namespace Kite{
 	KQuad::KQuad() :
@@ -88,6 +89,10 @@ namespace Kite{
 	void KQuad::setColor(const KColor &Color){
 		_kvertex[0].color = _kvertex[1].color = _kvertex[2].color = _kvertex[3].color = Color;
 		_kcolor = Color;
+	}
+
+	const KVector2F32 *KQuad::getTilePosition() const {
+		return getPosition();
 	}
 
 	const KTransform & KQuad::getModelViewTransform() const{

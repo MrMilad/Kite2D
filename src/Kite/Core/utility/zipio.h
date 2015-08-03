@@ -89,7 +89,7 @@ namespace Internal{
 		mz_zip_archive_file_stat _kfstat;
 		U64 _kcurOfst;
 		U64 _kfileCurOfst;
-		U32 _kfindex;
+		I32 _kfindex;
 		bool _kisopen;
 		bool _kready;
 		bool _kisCmprsd;

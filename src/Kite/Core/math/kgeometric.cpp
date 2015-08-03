@@ -136,7 +136,7 @@ namespace Kite{
 		}
 
 		// compute the hull on the deque D[]
-		for (int i = 3; i < Size; i++) {   // process the rest of vertices
+		for (U32 i = 3; i < Size; i++) {   // process the rest of vertices
 			// test if next vertex is inside the deque hull
 			if ((getOrientation(D[bot], D[bot + 1], Points[i]) > 0) &&
 				(getOrientation(D[top - 1], D[top], Points[i]) > 0))
@@ -159,7 +159,7 @@ namespace Kite{
 		for (count = 0; count <= (top - bot); count)
 			ConvexHull[count] = D[bot + count];
 
-		delete D;
+		delete[] D;
 		return count - 1;
 	}
 
@@ -206,7 +206,7 @@ namespace Kite{
 			if (bb > f)     return false;
 		}
 
-		F32 out = 1.0 - (aa / f);
+		F32 out = 1.0f - (aa / f);
 		IntersectPoint = ((Line2End - Line2Start) * out) + Line2Start;
 		return true;
 	}

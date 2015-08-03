@@ -32,8 +32,8 @@
 namespace Kite{
     class KITE_FUNC_EXPORT KArrayBatch : KNonCopyable{
     public:
-		KArrayBatch(U32 VertexSize, const KBatchConfig Config, bool PointSprite);
-		KArrayBatch(const std::vector<KArrayBatchObject *> &Objects, const KBatchConfig Config, bool PointSprite);
+		KArrayBatch(U32 VertexSize, const KBatchConfig &Config, bool PointSprite);
+		KArrayBatch(const std::vector<KArrayBatchObject *> &Objects, const KBatchConfig &Config, bool PointSprite);
 
 		inline U32 getVertexSize() const { return _kvsize; }
 

@@ -91,7 +91,7 @@ namespace Kite{
 
 				// space
 				} else if (ascii == ' ') {
-					width += _kfont->at(0).w;
+					width += (*_kfont)[0].w;
 					continue;
 
 				// next line '\n'
@@ -100,13 +100,13 @@ namespace Kite{
 					continue;
 
 				// normal characters
-				} else if (_kfont->size() > (ascii - 32) && (ascii - 32) >= 0) {
+				} else if (_kfont->size() > (U32)(ascii - 32) && (ascii - 32) >= 0) {
 					// we have key
-					atemp = &_kfont->at(ascii - 32);
+					atemp = &(*_kfont)[ascii - 32];
 				} else {
 					// we dont have key
 					// fill with " " space instead.
-					width += _kfont->at(0).w;
+					width += (*_kfont)[0].w;
 					continue;
 				}
 

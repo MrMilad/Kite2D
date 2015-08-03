@@ -39,7 +39,7 @@ namespace Kite{
 		KDEBUG_ASSERT_T(!Objects.empty());
 
 		// store vertex and index offset of all objects
-		for (U32 i = 0; i < Objects.size(); i++){
+		for (size_t i = 0; i < Objects.size(); i++){
 			_kvsize += Objects[i]->getVertexSize();
 			_kisize += Objects[i]->getIndexSize();
 		}
@@ -259,14 +259,14 @@ namespace Kite{
 
 		// fill catch with first object in array
 		currentCatch.objIndex = 0;
-		if (Objects.at(0)->getTexture()) {
-			currentCatch.lastTexId = Objects.at(0)->getTexture()->getGLID();
+		if (Objects[0]->getTexture()) {
+			currentCatch.lastTexId = Objects[0]->getTexture()->getGLID();
 		} else {
 			currentCatch.lastTexId = 0;
 		}
-		if (Objects.at(0)->getShader())
-			currentCatch.lastShdId = Objects.at(0)->getShader()->getGLID();
-		currentCatch.lastGeo = Objects.at(0)->getGeoType();
+		if (Objects[0]->getShader())
+			currentCatch.lastShdId = Objects[0]->getShader()->getGLID();
+		currentCatch.lastGeo = Objects[0]->getGeoType();
 
 		_kvao.bind();
 
@@ -308,7 +308,7 @@ namespace Kite{
 
 			// reset catch
 			currentCatch = tempCatch;
-			groupOfst = groupSize;
+			groupOfst += groupSize;
 			groupSize = 0;
 
 			// draw completed

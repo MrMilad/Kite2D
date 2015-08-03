@@ -67,7 +67,7 @@ namespace Kite{
 							else if (pixel[0] >= 51 && pixel[0] <= 100) Objects.push_back(KTB_BOTTOM_LEFT);
 							else if (pixel[0] >= 101 && pixel[0] <= 150) Objects.push_back(KTB_BOTTOM_RIGHT);
 							else if (pixel[0] >= 151 && pixel[0] <= 200) Objects.push_back(KTB_TOP_LEFT);
-							else if (pixel[0] >= 201 && pixel[0] <= 255) Objects.push_back(KTB_TOP_RIGHT);
+							else if (pixel[0] >= 201) Objects.push_back(KTB_TOP_RIGHT);
 						}
 						ret = true;
 					}

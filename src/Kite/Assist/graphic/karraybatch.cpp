@@ -23,7 +23,7 @@
 
 namespace Kite{
 	const KCamera KArrayBatch::_kdefcam;
-	KArrayBatch::KArrayBatch(U32 VertexSize, const KBatchConfig Config, bool PointSprite) :
+	KArrayBatch::KArrayBatch(U32 VertexSize, const KBatchConfig &Config, bool PointSprite) :
 		_kcam(&_kdefcam),
 		_kvboXY(KBT_VERTEX),
 		_kvboUV(KBT_VERTEX),
@@ -89,7 +89,7 @@ namespace Kite{
 	}
 
 	KArrayBatch::KArrayBatch(const std::vector<KArrayBatchObject *> &Objects,
-							 const KBatchConfig Config, bool PointSprite) :
+							 const KBatchConfig &Config, bool PointSprite) :
 		_kcam(&_kdefcam),
 		_kvboXY(KBT_VERTEX),
 		_kvboUV(KBT_VERTEX),

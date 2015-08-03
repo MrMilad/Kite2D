@@ -179,23 +179,23 @@ namespace Kite{
 
 			// transform
 			type = key1->tinterp;
-			_kvalue.translate.x = tweenFunction[type](_ktime - key1->time, key1->translate.x, key2->translate.x, key2->time - key1->time);
-			_kvalue.translate.y = tweenFunction[type](_ktime - key1->time, key1->translate.y, key2->translate.y, key2->time - key1->time);
+			_kvalue.translate.x = (F32)tweenFunction[type](_ktime - key1->time, key1->translate.x, key2->translate.x, key2->time - key1->time);
+			_kvalue.translate.y = (F32)tweenFunction[type](_ktime - key1->time, key1->translate.y, key2->translate.y, key2->time - key1->time);
 			type = key1->sinterp;
-			_kvalue.scale.x = tweenFunction[type](_ktime - key1->time, key1->scale.x, key2->scale.x, key2->time - key1->time);
-			_kvalue.scale.y = tweenFunction[type](_ktime - key1->time, key1->scale.y, key2->scale.y, key2->time - key1->time);
+			_kvalue.scale.x = (F32)tweenFunction[type](_ktime - key1->time, key1->scale.x, key2->scale.x, key2->time - key1->time);
+			_kvalue.scale.y = (F32)tweenFunction[type](_ktime - key1->time, key1->scale.y, key2->scale.y, key2->time - key1->time);
 			type = key1->skinterp;
-			_kvalue.skew.x = tweenFunction[type](_ktime - key1->time, key1->skew.x, key2->skew.x, key2->time - key1->time);
-			_kvalue.skew.y = tweenFunction[type](_ktime - key1->time, key1->skew.y, key2->skew.y, key2->time - key1->time);
+			_kvalue.skew.x = (F32)tweenFunction[type](_ktime - key1->time, key1->skew.x, key2->skew.x, key2->time - key1->time);
+			_kvalue.skew.y = (F32)tweenFunction[type](_ktime - key1->time, key1->skew.y, key2->skew.y, key2->time - key1->time);
 			type = key1->rinterp;
-			_kvalue.rotate = tweenFunction[type](_ktime - key1->time, key1->rotate, key2->rotate, key2->time - key1->time);
+			_kvalue.rotate = (F32)tweenFunction[type](_ktime - key1->time, key1->rotate, key2->rotate, key2->time - key1->time);
 
 			// color
 			type = key1->cinterp;
-			_kvalue.color.a = tweenFunction[type](_ktime - key1->time, key1->color.a, key2->color.a, key2->time - key1->time);
-			_kvalue.color.r = tweenFunction[type](_ktime - key1->time, key1->color.r, key2->color.r, key2->time - key1->time);
-			_kvalue.color.g = tweenFunction[type](_ktime - key1->time, key1->color.g, key2->color.g, key2->time - key1->time);
-			_kvalue.color.b = tweenFunction[type](_ktime - key1->time, key1->color.b, key2->color.b, key2->time - key1->time);
+			_kvalue.color.a = (F32)tweenFunction[type](_ktime - key1->time, key1->color.a, key2->color.a, key2->time - key1->time);
+			_kvalue.color.r = (F32)tweenFunction[type](_ktime - key1->time, key1->color.r, key2->color.r, key2->time - key1->time);
+			_kvalue.color.g = (F32)tweenFunction[type](_ktime - key1->time, key1->color.g, key2->color.g, key2->time - key1->time);
+			_kvalue.color.b = (F32)tweenFunction[type](_ktime - key1->time, key1->color.b, key2->color.b, key2->time - key1->time);
 
 			_kvalue.trChannel = key2->trChannel;
 			_kvalue.scaleChannel = key2->scaleChannel;

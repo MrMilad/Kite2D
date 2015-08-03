@@ -157,7 +157,7 @@ namespace Internal{
 
 	size_t OGGIO::_read(void *ptr, size_t size, size_t nmemb, void *datasource){
 		KInputStream *stream = (KInputStream *)datasource;
-		return stream->read(ptr, size * nmemb) / size;
+		return (size_t)stream->read(ptr, size * nmemb) / size;
 	}
 
 	int OGGIO::_seek(void *datasource, ogg_int64_t offset, int whence){
@@ -170,9 +170,9 @@ namespace Internal{
 		return stream->close();
 	}
 
-	long OGGIO::_tell(void *datasource){
+	long int OGGIO::_tell(void *datasource){
 		KInputStream *stream = (KInputStream *)datasource;
-		return stream->tell();
+		return (long int)stream->tell();
 	}
 }
 }

@@ -70,28 +70,28 @@ namespace Kite{
 				// source attribute
 				attr = child->first_attribute("frameRate");
 				if (attr){
-					frameRate = atof(attr->value());
+					frameRate = (F32)atof(attr->value());
 					fixedRate = 1.0f / frameRate;
 				}
 
 				attr = child->first_attribute("x");
 				if (attr){
-					pos.x = atof(attr->value());
+					pos.x = (F32)atof(attr->value());
 				}
 
 				attr = child->first_attribute("y");
 				if (attr){
-					pos.y = atof(attr->value());
+					pos.y = (F32)atof(attr->value());
 				}
 
 				attr = child->first_attribute("scaleX");
 				if (attr){ 
-					scale.x = atof(attr->value());
+					scale.x = (F32)atof(attr->value());
 				}
 
 				attr = child->first_attribute("scaleY");
 				if (attr){
-					scale.y = atof(attr->value());
+					scale.y = (F32)atof(attr->value());
 				}
 
 				//// skew not supported
@@ -109,33 +109,33 @@ namespace Kite{
 
 				attr = child->first_attribute("rotation");
 				if (attr){ 
-					rot = atof(attr->value());
+					rot = (F32)atof(attr->value());
 				}
 
 				// rectangle attribute
 				child = node->first_node()->first_node()->first_node("geom:Rectangle");
 				attr = child->first_attribute("left");
 				if (attr){ 
-					Object.leftBottom.x = atof(attr->value());
-					Object.leftTop.x = atof(attr->value());
+					Object.leftBottom.x = (F32)atof(attr->value());
+					Object.leftTop.x = (F32)atof(attr->value());
 				}
 
 				attr = child->first_attribute("top");
 				if (attr){
-					Object.leftBottom.y = atof(attr->value());
-					Object.rightBottom.y = atof(attr->value());
+					Object.leftBottom.y = (F32)atof(attr->value());
+					Object.rightBottom.y = (F32)atof(attr->value());
 				}
 
 				attr = child->first_attribute("width");
 				if (attr){
-					width = atof(attr->value());
+					width = (F32)atof(attr->value());
 					Object.rightBottom.x = Object.leftBottom.x + width;
 					Object.rightTop.x = Object.leftBottom.x + width;
 				}
 
 				attr = child->first_attribute("height");
 				if (attr){
-					height = atof(attr->value());
+					height = (F32)atof(attr->value());
 					Object.leftTop.y = Object.leftBottom.y + height;
 					Object.rightTop.y = Object.rightBottom.y + height;
 				}
@@ -144,12 +144,12 @@ namespace Kite{
 				child = node->first_node()->first_node()->next_sibling()->first_node("geom:Point");
 				attr = child->first_attribute("x");
 				if (attr){
-					x = (width * atof(attr->value())) + Object.leftBottom.x;
+					x = (width * (F32)atof(attr->value())) + Object.leftBottom.x;
 				}
 
 				attr = child->first_attribute("y");
 				if (attr){
-					y = (height * atof(attr->value())) + Object.leftBottom.y;
+					y = (height * (F32)atof(attr->value())) + Object.leftBottom.y;
 				}
 
 				// calculate source transform
@@ -188,7 +188,7 @@ namespace Kite{
 				attr = node->first_attribute("x");
 				if (attr){
 					key.trChannel = true;
-					key.translate.x = atof(attr->value());
+					key.translate.x = (F32)atof(attr->value());
 				}else{
 					// use previous value
 					key.translate.x = Keys.back().translate.x;
@@ -197,7 +197,7 @@ namespace Kite{
 				attr = node->first_attribute("y");
 				if (attr){ 
 					key.trChannel = true;
-					key.translate.y = atof(attr->value());
+					key.translate.y = (F32)atof(attr->value());
 				}else{
 					// use previous value
 					key.translate.y = Keys.back().translate.y;
@@ -206,7 +206,7 @@ namespace Kite{
 				attr = node->first_attribute("scaleX");
 				if (attr){ 
 					key.scaleChannel = true;
-					key.scale.x = atof(attr->value());
+					key.scale.x = (F32)atof(attr->value());
 				}else{
 					// use previous value
 					key.scale.x = Keys.back().scale.x;
@@ -215,7 +215,7 @@ namespace Kite{
 				attr = node->first_attribute("scaleY");
 				if (attr){ 
 					key.scaleChannel = true;
-					key.scale.y = atof(attr->value());
+					key.scale.y = (F32)atof(attr->value());
 				}else{
 					key.scale.y = Keys.back().scale.y;
 				}
@@ -246,7 +246,7 @@ namespace Kite{
 				attr = node->first_attribute("rotation");
 				if (attr){
 					key.rotateChannel = true;
-					key.rotate = atof(attr->value());
+					key.rotate = (F32)atof(attr->value());
 				}else{
 					key.rotate = Keys.back().rotate;
 				}
@@ -312,7 +312,7 @@ namespace Kite{
 		}
 
 		// find frames
-		for (U32 i = 0; i < ret; i++){
+		for (I32 i = 0; i < ret; i++){
 
 			// frames
 			if (tok[i].type == JSMN_STRING && strncmp(&content.at(tok[i].start), "frames", strlen("frames")) == 0){
@@ -336,28 +336,28 @@ namespace Kite{
 				// we only need frame field of any object
 				if (tok[i].type == JSMN_STRING && strncmp(&content.at(tok[i].start), "frame", strlen("frame")) == 0){
 					KAtlas atl;
-					for (U16 count = 0; (count < tok[obj].size) && (i < ret); i++){
+					for (I32 count = 0; (count < tok[obj].size) && (i < ret); i++){
 						// x
 						if (tok[i].type == JSMN_STRING && strncmp(&content.at(tok[i].start), "x", strlen("x")) == 0){
-							atl.blu = atof(content.substr(tok[i + 1].start, tok[i + 1].end - tok[i + 1].start).c_str());
+							atl.blu = (F32)atof(content.substr(tok[i + 1].start, tok[i + 1].end - tok[i + 1].start).c_str());
 							++count;
 						}
 
 						// y
 						if (tok[i].type == JSMN_STRING && strncmp(&content.at(tok[i].start), "y", strlen("y")) == 0){
-							atl.blv = atof(content.substr(tok[i + 1].start, tok[i + 1].end - tok[i + 1].start).c_str());
+							atl.blv = (F32)atof(content.substr(tok[i + 1].start, tok[i + 1].end - tok[i + 1].start).c_str());
 							++count;
 						}
 
 						// w
 						if (tok[i].type == JSMN_STRING && strncmp(&content.at(tok[i].start), "w", strlen("w")) == 0){
-							atl.w = atof(content.substr(tok[i + 1].start, tok[i + 1].end - tok[i + 1].start).c_str());
+							atl.w = (F32)atof(content.substr(tok[i + 1].start, tok[i + 1].end - tok[i + 1].start).c_str());
 							++count;
 						}
 
 						// h
 						if (tok[i].type == JSMN_STRING && strncmp(&content.at(tok[i].start), "h", strlen("h")) == 0){
-							atl.h = atof(content.substr(tok[i + 1].start, tok[i + 1].end - tok[i + 1].start).c_str());
+							atl.h = (F32)atof(content.substr(tok[i + 1].start, tok[i + 1].end - tok[i + 1].start).c_str());
 							++count;
 						}
 					}
@@ -377,13 +377,13 @@ namespace Kite{
 						for (U16 count = 0; (count < tok[obj].size) && (i < ret); i++){
 							// width
 							if (tok[i].type == JSMN_STRING && strncmp(&content.at(tok[i].start), "w", strlen("w")) == 0){
-								width = atof(content.substr(tok[i + 1].start, tok[i + 1].end - tok[i + 1].start).c_str());
+								width = atoi(content.substr(tok[i + 1].start, tok[i + 1].end - tok[i + 1].start).c_str());
 								++count;
 							}
 
 							// height
 							if (tok[i].type == JSMN_STRING && strncmp(&content.at(tok[i].start), "h", strlen("h")) == 0){
-								height = atof(content.substr(tok[i + 1].start, tok[i + 1].end - tok[i + 1].start).c_str());
+								height = atoi(content.substr(tok[i + 1].start, tok[i + 1].end - tok[i + 1].start).c_str());
 								++count;
 							}
 						}

@@ -156,7 +156,7 @@ namespace Internal{
 
 	int ImageIO::_read(void *user, char *data, int size){
 		KInputStream *stream = (KInputStream *)user;
-		return stream->read(data, size);
+		return (int)stream->read(data, size);
 	}
 	void ImageIO::_skip(void *user, unsigned n){
 		KInputStream *stream = (KInputStream *)user;

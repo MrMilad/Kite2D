@@ -32,6 +32,7 @@ namespace Kite{
 		friend class KIndexBatch;
     public:
 		KIndexBatchObject(U32 VertexSize, U32 IndexSize);
+		virtual ~KIndexBatchObject() {}
 
 		inline const KVertex *getVertex() const { return _kvertex; }
         inline const U16 *getIndex() const {return _kindex;}

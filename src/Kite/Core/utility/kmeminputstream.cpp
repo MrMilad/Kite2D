@@ -34,7 +34,7 @@ namespace Kite{
 			DataSize = _ksize - _kcurOfst;
 		}
 
-		memcpy(Data, (U8 *)_kdata + _kcurOfst, DataSize);
+		memcpy(Data, (U8 *)_kdata + _kcurOfst, (size_t)DataSize);
 		_kcurOfst += DataSize;
 		return DataSize;
 	}
@@ -46,7 +46,7 @@ namespace Kite{
 		switch (Origin){
 		case SEEK_SET:
 			// calibration new offset
-			if (Offset > _ksize)
+			if ((U64)Offset > _ksize)
 				Offset = _ksize;
 
 			// set new offset
@@ -66,7 +66,7 @@ namespace Kite{
 
 		case SEEK_END:
 			// calibration new offset
-			if (Offset > _ksize)
+			if ((U64)Offset > _ksize)
 				Offset = 0;
 
 			// set new offset

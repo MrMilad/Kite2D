@@ -204,7 +204,7 @@ namespace Internal{
 		switch (Origin){
 		case SEEK_SET:
 			// calibration new offset
-			if (Offset > _kfstat.m_uncomp_size)
+			if ((U64)Offset > _kfstat.m_uncomp_size)
 				Offset = _kfstat.m_uncomp_size;
 
 			// return current offset to base offset
@@ -229,7 +229,7 @@ namespace Internal{
 
 		case SEEK_END:
 			// calibration new offset
-			if (Offset > _kfstat.m_uncomp_size)
+			if ((U64)Offset > _kfstat.m_uncomp_size)
 				Offset = 0;
 
 			// return current offset to base offset
@@ -271,7 +271,7 @@ namespace Internal{
 		if (!_kisopen || !_kready || _kfindex < 0)
 			return 0;
 
-		if (mz_zip_reader_extract_to_mem(&_kzarchive, _kfindex, Data, DataSize, 0))
+		if (mz_zip_reader_extract_to_mem(&_kzarchive, _kfindex, Data, (size_t)DataSize, 0))
 			return DataSize;
 
 		KDEBUG_PRINT("Error in reading file");

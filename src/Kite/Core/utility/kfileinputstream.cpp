@@ -34,13 +34,13 @@ namespace Kite{
 
 	U64 KFileInputStream::read(void *Data, U64 DataSize){
 		if (_kfile)
-			return fread(Data, 1, DataSize, _kfile);
+			return (U64)fread(Data, 1, (size_t)DataSize, _kfile);
 		return 0;
 	}
 
 	I32 KFileInputStream::seek(I64 Offset, I32 Origin){
 		if (_kfile)
-			return fseek(_kfile, Offset, Origin);
+			return (I32)fseek(_kfile, (long)Offset, Origin);
 		return -1;
 	}
 
@@ -58,7 +58,7 @@ namespace Kite{
 
 	U64 KFileInputStream::getSize(){
 		if (_kfile){
-			I64 cur = ftell(_kfile);
+			long cur = ftell(_kfile);
 			fseek(_kfile, 0, SEEK_END);
 			U64 size = ftell(_kfile);
 			fseek(_kfile, cur, SEEK_SET);

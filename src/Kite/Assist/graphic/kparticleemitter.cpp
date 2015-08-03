@@ -99,28 +99,26 @@ namespace Kite {
 
 				// life
 				// convert to miliseconds
-				_krandom.setRange(0, _klife.y * 1000);
+				_krandom.setRange(0, (U32)_klife.y * 1000);
 				temp.life = _klife.x + ((float)_krandom.getRandomInt() / 1000.0f);
 
 				// size
-				_krandom.setRange(0, _ksize.y);
+				_krandom.setRange(0, (U32)_ksize.y);
 				temp.size = _ksize.x + (F32)_krandom.getRandomInt();
 
 				// speed
-				_krandom.setRange(0, _kspeed.y);
+				_krandom.setRange(0, (U32)_kspeed.y);
 				temp.speed = _kspeed.x + _krandom.getRandomInt();
 
 				// angle
-				_krandom.setRange(0, _kangle.y);
+				_krandom.setRange(0, (U32)_kangle.y);
 				temp.angle = _kangle.x + _krandom.getRandomInt();
 
 				// spawn position
 				F32 inRadians = temp.angle * KMATH_PIsub180;
 				temp.pos.x += (temp.speed * cos(inRadians)) * Delta;
 				temp.pos.y += (temp.speed * sin(inRadians)) * Delta;
-				if (getRelativeTransform()) {
-					temp.pos = temp.pos;
-				} else {
+				if (!getRelativeTransform()) {
 					temp.pos = getTransform()->transformPoint(temp.pos);
 				}
 
@@ -131,11 +129,11 @@ namespace Kite {
 						// random base color
 						if (_krndCol) {
 							_krandom.setRange(0, _kcolsheet->size() - 1);
-							temp.color = _kcolsheet->at(_krandom.getRandomInt());
+							temp.color = (*_kcolsheet)[_krandom.getRandomInt()];
 
 						// use first color in color sheet
 						} else {
-							temp.color = _kcolsheet->at(0);
+							temp.color = (*_kcolsheet)[0];
 						}
 					}
 				}
@@ -148,17 +146,17 @@ namespace Kite {
 						if (_krndUV) {
 							_krandom.setRange(0, _kuvsheet->size() - 1);
 							U32 rnd = _krandom.getRandomInt();
-							temp.uv.left = _kuvsheet->at(rnd).blu;
-							temp.uv.bottom = _kuvsheet->at(rnd).blv;
-							temp.uv.right = _kuvsheet->at(rnd).tru - _kuvsheet->at(rnd).blu;;
-							temp.uv.top = _kuvsheet->at(rnd).trv - _kuvsheet->at(rnd).blv;
+							temp.uv.left = (*_kuvsheet)[rnd].blu;
+							temp.uv.bottom = (*_kuvsheet)[rnd].blv;
+							temp.uv.right = (*_kuvsheet)[rnd].tru - (*_kuvsheet)[rnd].blu;;
+							temp.uv.top = (*_kuvsheet)[rnd].trv - (*_kuvsheet)[rnd].blv;
 
 							// use first color in color sheet
 						} else {
-							temp.uv.left = _kuvsheet->at(0).blu;
-							temp.uv.bottom = _kuvsheet->at(0).blv;
-							temp.uv.right = _kuvsheet->at(0).tru - _kuvsheet->at(0).blu;;
-							temp.uv.top = _kuvsheet->at(0).trv - _kuvsheet->at(0).blv;
+							temp.uv.left = (*_kuvsheet)[0].blu;
+							temp.uv.bottom = (*_kuvsheet)[0].blv;
+							temp.uv.right = (*_kuvsheet)[0].tru - (*_kuvsheet)[0].blu;;
+							temp.uv.top = (*_kuvsheet)[0].trv - (*_kuvsheet)[0].blv;
 						}
 					}
 				}
@@ -221,20 +219,20 @@ namespace Kite {
 					_kcolovert->getSectionByX(it->timer, index, time);
 
 					// color tween
-					_kvertex[i].color.a = KTween<F64, F32>::linear(it->timer - time.first,
-																   _kcolsheet->at(index.first).a, _kcolsheet->at(index.second).a,
+					_kvertex[i].color.a = (F32)KTween<F64, F32>::linear(it->timer - time.first,
+																   (*_kcolsheet)[index.first].a, (*_kcolsheet)[index.second].a,
 																   time.second - time.first);
 
-					_kvertex[i].color.r = KTween<F64, F32>::linear(it->timer - time.first,
-																   _kcolsheet->at(index.first).r, _kcolsheet->at(index.second).r,
+					_kvertex[i].color.r = (F32)KTween<F64, F32>::linear(it->timer - time.first,
+																   (*_kcolsheet)[index.first].r, (*_kcolsheet)[index.second].r,
 																   time.second - time.first);
 
-					_kvertex[i].color.g = KTween<F64, F32>::linear(it->timer - time.first,
-																   _kcolsheet->at(index.first).g, _kcolsheet->at(index.second).g,
+					_kvertex[i].color.g = (F32)KTween<F64, F32>::linear(it->timer - time.first,
+																   (*_kcolsheet)[index.first].g, (*_kcolsheet)[index.second].g,
 																   time.second - time.first);
 
-					_kvertex[i].color.b = KTween<F64, F32>::linear(it->timer - time.first,
-																   _kcolsheet->at(index.first).b, _kcolsheet->at(index.second).b,
+					_kvertex[i].color.b = (F32)KTween<F64, F32>::linear(it->timer - time.first,
+																   (*_kcolsheet)[index.first].b, (*_kcolsheet)[index.second].b,
 																   time.second - time.first);
 				}
 
@@ -245,10 +243,10 @@ namespace Kite {
 				_kpsprite[i].textureSize.y = it->uv.top;
 				if (_kuvovert) {
 					U32 index = _kuvovert->getValueByX(it->timer, false);
-					_kvertex[i].uv.x = _kuvsheet->at(index).blu;
-					_kvertex[i].uv.y = _kuvsheet->at(index).blv;
-					_kpsprite[i].textureSize.x = _kuvsheet->at(index).tru - _kuvsheet->at(index).blu;
-					_kpsprite[i].textureSize.y = _kuvsheet->at(index).trv - _kuvsheet->at(index).blv;
+					_kvertex[i].uv.x = (*_kuvsheet)[index].blu;
+					_kvertex[i].uv.y = (*_kuvsheet)[index].blv;
+					_kpsprite[i].textureSize.x = (*_kuvsheet)[index].tru - (*_kuvsheet)[index].blu;
+					_kpsprite[i].textureSize.y = (*_kuvsheet)[index].trv - (*_kuvsheet)[index].blv;
 				}
 
 				++i;

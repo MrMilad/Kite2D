@@ -22,7 +22,9 @@
 
 #include "Kite/Core/system/ksystemdef.h"
 #include "kite/Core/graphic/kgraphicstructs.h"
+#include "kite/Core/graphic/kgraphictypes.h"
 #include "kite/Assist/map/ktilemapobject.h"
+#include <utility>
 #include <vector>
 
 namespace Kite{
@@ -30,14 +32,19 @@ namespace Kite{
 	public:
 		KTileMap(const KTileMapInfo &MapInfo);
 
-		// set assocaited objects with tiles
-		// duplicate is not allowed (new object will replaced)
-		bool setObject(KTileMapObject *Objects);
+		// add an object to the appropriate tile
+		// stack object in a single tile is allowed
+		// add or duplicate same object in two or more tile is not allowed
+		bool addObject(KTileMapObject *Object);
+
+		// remove object from associated tile
+		// object will remove even with changed position
+		void removeObject(KTileMapObject *Object);
 
 		// set bitmap array for isometric mouse hit detection
 		// vector size must equal with tile size
 		// eg: tile size = 100 x 50 (pixel) , vector size = 5000
-		void setTileHitBitmap(const std::vector<KTileBitmapTypes> &TileBitmap);
+		void setTileHitBitmap(const std::vector<KTileBitmapTypes> *TileBitmap);
 
 		// get map width (in pixel)
 		F32 getMapWidth() const;
@@ -53,14 +60,24 @@ namespace Kite{
 		bool getTilePosition(U32 TileID, KVector2F32 &Output) const;
 		bool getTileDimension(U32 TileID, KRect2F32 &Output) const;
 		bool getTileDimension(const KVector2F32 &Position, KRect2F32 &Output) const;
-		KTileMapObject *getTileObject(U32 TileID) const;
-		KTileMapObject *getTileObject(const KVector2F32 &Position) const;
 
-		const std::vector<KTileMapObject *> *queryTiles(KRectF32 &Area) const;
+		// return pointer to first object in the list
+		KTileMapObject *getTileObjects(U32 TileID) const;
+
+		// return pointer to first object in the list
+		KTileMapObject *getTileObjects(const KVector2F32 &Position) const;
+
+		// callback will called for every tile in the given area
+		// callback will called once for every tile and send begin item of list
+		inline void setQueryCallback(KCallTileQuery Callback, void *Sender) { _kcallb = Callback; _ksender = Sender; }
+
+		void queryTiles(KRectF32 &Area);
 
 	private:
 		KTileMapInfo _kmapInfo;
-		std::vector<KTileMapObject *> _ktiles;
+		std::vector<std::pair<KTileMapObject *, KTileMapObject *>> _ktiles;
+		KCallTileQuery _kcallb;
+		void *_ksender;
 	};
 }
 

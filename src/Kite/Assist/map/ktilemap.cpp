@@ -21,22 +21,55 @@
 #include "Kite/Assist/map/ktilemap.h"
 
 namespace Kite{
-	KTileMap::KTileMap(const KTileMapInfo &MapInfo):
+	KTileMap::KTileMap(const KTileMapInfo &MapInfo) :
 		_kmapInfo(MapInfo),
-		_ktiles(MapInfo.mapSize.x * MapInfo.mapSize.y, 0)
+		_ktiles(MapInfo.mapSize.x * MapInfo.mapSize.y, std::pair<KTileMapObject *, KTileMapObject *>(0, 0))
 	{}
 
-	bool KTileMap::setObject(KTileMapObject *Objects) {
+	bool KTileMap::addObject(KTileMapObject *Object) {
 		bool ret = true;
-		if (Objects) {
-			U32 row = Objects->getTilePosition()->y / _kmapInfo.tileSize.y;
-			U32 col = Objects->getTilePosition()->x / _kmapInfo.tileSize.x;
+		if (Object) {
+
+			// duplicate is not allowed
+			if (Object->getTileID() >= 0)
+				return false;
+
+			U32 row = (U32)Object->getTilePosition()->y / (U32)_kmapInfo.tileSize.y;
+			U32 col = (U32)Object->getTilePosition()->x / (U32)_kmapInfo.tileSize.x;
 			U32 index = (row * _kmapInfo.mapSize.x) + col;
 
 			// set tile
 			if (index < (_kmapInfo.mapSize.x * _kmapInfo.mapSize.y)) {
-				_ktiles[index] = Objects;
-				Objects->_ktID = index;
+
+				// store position
+				Object->_klink.point = *Object->getTilePosition();
+
+				// set id
+				Object->_ktID = index;
+				
+				// list is empty
+				if (_ktiles[index].first == 0) {
+
+					// inite object
+					Object->_klink.next = 0;
+					Object->_klink.prev = 0;
+
+					// add object as first item in the list
+					_ktiles[index].first = _ktiles[index].second = Object;
+				
+				// list is not empty
+				} else {
+
+					// inite object
+					Object->_klink.next = 0;
+					Object->_klink.prev = _ktiles[index].second;
+
+					// attach object to last node in the list
+					_ktiles[index].second->_klink.next = Object;
+
+					// set last pointer
+					_ktiles[index].second = Object;
+				}
 			} else {
 				ret = false;
 			}
@@ -45,7 +78,63 @@ namespace Kite{
 		return ret;
 	}
 
-	void KTileMap::setTileHitBitmap(const std::vector<KTileBitmapTypes> &TileBitmap) {
+	void KTileMap::removeObject(KTileMapObject *Object) {
+		if (Object) {
+			if (Object->getTileID() < 0)
+				return;
+
+			U32 index = Object->getTileID();
+
+			if (index < (_kmapInfo.mapSize.x * _kmapInfo.mapSize.y)) {
+
+				// object is at begin node
+				if (Object == _ktiles[index].first) {
+					// remove object from list
+					_ktiles[index].first = (KTileMapObject *)Object->_klink.next;
+
+					// single item list
+					if (Object == _ktiles[index].second) {
+						_ktiles[index].second = 0;
+					} else {
+						_ktiles[index].first->_klink.prev = 0;
+					}
+
+					// reset object node info
+					Object->_ktID = -1;
+					Object->_klink.next = Object->_klink.prev = 0;
+
+				// object is at end node
+				} else if (Object == _ktiles[index].second){
+					_ktiles[index].second = (KTileMapObject *)Object->_klink.prev;
+
+					// just in case
+					if (_ktiles[index].second) {
+						_ktiles[index].second->_klink.next = 0;
+					}
+
+					// reset object node info
+					Object->_ktID = -1;
+					Object->_klink.next = Object->_klink.prev = 0;
+
+				// object is in middle of the list
+				} else {
+					// retrieve previous object
+					KTileMapObject *temp = (KTileMapObject *)Object->_klink.prev;
+
+					// just in case
+					if (temp) {
+						temp->_klink.next = (KTileMapObject *)Object->_klink.next;
+
+						// reset object node info
+						Object->_ktID = -1;
+						Object->_klink.next = Object->_klink.prev = 0;
+					}
+				}
+			}
+		}
+	}
+
+	void KTileMap::setTileHitBitmap(const std::vector<KTileBitmapTypes> *TileBitmap) {
 
 	}
 
@@ -62,8 +151,8 @@ namespace Kite{
 		if (Position.x >= getMapWidth() || Position.x < 0 || Position.y >= getMapHeight() || Position.y < 0)
 			return -1;
 
-		U32 row = Position.y / _kmapInfo.tileSize.y;
-		U32 col = Position.x / _kmapInfo.tileSize.x;
+		U32 row = (U32)Position.y / (U32)_kmapInfo.tileSize.y;
+		U32 col = (U32)Position.x / (U32)_kmapInfo.tileSize.x;
 		U32 index = (row * _kmapInfo.mapSize.x) + col;
 
 		if (index >= 0 && index < (_kmapInfo.mapSize.x * _kmapInfo.mapSize.y)) {
@@ -84,8 +173,8 @@ namespace Kite{
 
 	bool KTileMap::getTileDimension(U32 TileID, KRect2F32 &Output) const {
 		if (TileID < (_kmapInfo.mapSize.x * _kmapInfo.mapSize.y)) {
-			U32 x = (TileID % _kmapInfo.mapSize.x) * _kmapInfo.tileSize.x;
-			U32 y = (TileID / _kmapInfo.mapSize.x) * _kmapInfo.tileSize.y;
+			F32 x = (TileID % _kmapInfo.mapSize.x) * _kmapInfo.tileSize.x;
+			F32 y = (TileID / _kmapInfo.mapSize.x) * _kmapInfo.tileSize.y;
 
 			Output.leftBottom.x = x;
 			Output.leftBottom.y = y;
@@ -114,31 +203,31 @@ namespace Kite{
 		return false;
 	}
 
-	KTileMapObject *KTileMap::getTileObject(U32 TileID) const{
+	KTileMapObject *KTileMap::getTileObjects(U32 TileID) const{
 		if (TileID < (_kmapInfo.mapSize.x * _kmapInfo.mapSize.y)) {
-			return _ktiles[TileID];
+			return _ktiles[TileID].first;
 		}
 		return 0;
 	}
 
-	KTileMapObject *KTileMap::getTileObject(const KVector2F32 &Position) const {
+	KTileMapObject *KTileMap::getTileObjects(const KVector2F32 &Position) const {
 		I32 id = getTileID(Position);
 		if (id >= 0) {
-			return getTileObject(getTileID(Position));
+			return getTileObjects(getTileID(Position));
 		}
 
 		return 0;
 	}
 
-	const std::vector<KTileMapObject *> *KTileMap::queryTiles(KRectF32 &Area) const {
-		static std::vector<KTileMapObject *> result;
-		result.clear();
+	void KTileMap::queryTiles(KRectF32 &Area) {
+		// check callback
+		if (!_kcallb) return;
 
 		// out of range
-		if (Area.left >= getMapWidth()) return &result;
-		if (Area.bottom >= getMapHeight()) return &result;
-		if (Area.top <= 0) return &result;
-		if (Area.right <= 0) return &result;
+		if (Area.left >= getMapWidth()) return;
+		if (Area.bottom >= getMapHeight()) return;
+		if (Area.top <= 0) return;
+		if (Area.right <= 0) return;
 
 		// calibrate area
 		if (Area.left < 0) Area.left = 0;
@@ -153,26 +242,26 @@ namespace Kite{
 
 		// find lenght of row and column of given area
 		// then fill every row in between
-		U32 rowLen = (Area.right - Area.left) / _kmapInfo.tileSize.x;
-		if (fmod(Area.right, _kmapInfo.tileSize.x) > 0) ++rowLen;
-		U32 colLen = (Area.top - Area.bottom) / _kmapInfo.tileSize.y;
-		if (fmod(Area.top, _kmapInfo.tileSize.y) > 0) ++colLen;
+		U32 rowLen = (U32)(Area.right - Area.left) / (U32)_kmapInfo.tileSize.x;
+		//if (fmod(Area.right, _kmapInfo.tileSize.x) > 0) ++rowLen;
+		U32 colLen = (U32)(Area.top - Area.bottom) / (U32)_kmapInfo.tileSize.y;
+		//if (fmod(Area.top, _kmapInfo.tileSize.y) > 0) ++colLen;
 		I32 startPoint = getTileID(KVector2F32(Area.left, Area.bottom));
 		U32 row = startPoint / _kmapInfo.mapSize.x;
 		U32 tile = startPoint % _kmapInfo.mapSize.x;
 
-		// calculate enough size
-		result.reserve(rowLen * colLen);
 
 		// fill vector
 		if (startPoint >= 0) {
-			for (auto i = 0; i < colLen; i++) {
-				result.insert(result.end(), &_ktiles[(_kmapInfo.mapSize.x * row) + tile], (&_ktiles[(_kmapInfo.mapSize.x * row) + tile]) + rowLen);
+			for (U32 cc = 0; cc < colLen; cc++) {
+				for (U32 rc = 0; rc < rowLen; rc++) {
+					if (_ktiles[row * cc + tile].first) {
+						_kcallb(_ktiles[(row * _kmapInfo.mapSize.x) + tile + rc].first, _ksender);
+					}
+				}
 				++row;
 			}
 		}
-
-		return &result;
 	}
 
 }

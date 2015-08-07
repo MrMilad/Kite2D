@@ -24,6 +24,7 @@ namespace Kite{
 	KQuad::KQuad() :
 		KIndexBatchObject(4, 6)
 	{
+		setTileFlag(KTO_QUAD);
 		_fillIndex();
 		setDimension(KRect2F32());
 		setUV(KRectF32(0.0f, 1.0f, 0.0f, 1.0f));
@@ -34,6 +35,7 @@ namespace Kite{
 	KQuad::KQuad(const KRectF32 &Dimension, const KRectF32 &UV, const KColor &Color):
 		KIndexBatchObject(4, 6)
 	{
+		setTileFlag(KTO_QUAD);
 		_fillIndex();
 		setDimension(KRect2F32(KVector2F32(Dimension.left, Dimension.bottom),
 			KVector2F32(Dimension.left, Dimension.top),
@@ -47,6 +49,7 @@ namespace Kite{
 	KQuad::KQuad(const KRect2F32 &Dimension, const KRectF32 &UV, const KColor &Color):
 		KIndexBatchObject(4, 6)
 	{
+		setTileFlag(KTO_QUAD);
 		_fillIndex();
 		setDimension(Dimension);
 		setUV(UV);

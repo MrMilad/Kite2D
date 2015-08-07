@@ -28,7 +28,9 @@ namespace Kite{
 		_kmaxSize(100),
 		_kmid(0),
 		_kpgraph(15)
-	{}
+	{
+		setTileFlag(KTO_TEXT);
+	}
 
 	KText::KText(U32 MaximumSize, const std::vector<KAtlas> &Font) :
 		KIndexBatchObject(MaximumSize * 4, MaximumSize * 6),
@@ -38,7 +40,9 @@ namespace Kite{
 		_kmaxSize(100),
 		_kmid(0),
 		_kpgraph(15)
-	{}
+	{
+		setTileFlag(KTO_TEXT);
+	}
 
 	KText::KText(const std::string &Text, const std::vector<KAtlas> &Font, const KColor &Color) :
 		KIndexBatchObject(Text.size() * 4, Text.size() * 6),
@@ -50,6 +54,7 @@ namespace Kite{
 		_kmid(0),
 		_kpgraph(15)
 	{
+		setTileFlag(KTO_TEXT);
 		setText(Text);
 		setGeoType(KGP_TRIANGLES);
 	}
@@ -206,5 +211,10 @@ namespace Kite{
 		if (AnimatedValue->colorChannel){
 			setColor(AnimatedValue->color);
 		}
+	}
+
+	// from KTileMapObject (output/send)
+	const KVector2F32 *KText::getTilePosition() const {
+		return this->getPosition();
 	}
 }

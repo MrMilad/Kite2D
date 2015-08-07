@@ -30,6 +30,10 @@ namespace Kite{
 	class KITE_FUNC_EXPORT KResource : KNonCopyable{
 	template < class T > friend class KResourceManager;
 	public:
+		KResource():
+			_kref(0)
+		{}
+
 		virtual ~KResource(){};
 
 		//! Load the resource from a file on disk

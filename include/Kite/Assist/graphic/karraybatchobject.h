@@ -25,9 +25,11 @@
 #include "Kite/Core/graphic/kshaderprogram.h"
 #include "Kite/Core/graphic/ktexture.h"
 #include "Kite/Core/math/ktransformable.h"
+#include "kite/Assist/graphic/kanimeobject.h"
+#include "kite/Assist/map/ktilemapobject.h"
 
 namespace Kite{
-    class KITE_FUNC_EXPORT KArrayBatchObject{
+	class KITE_FUNC_EXPORT KArrayBatchObject : public KTransformable, public KAnimeObject, public KTileMapObject {
 		friend class KArrayBatch;
     public:
 		KArrayBatchObject(U32 VertexSize, bool PointSprite);
@@ -59,14 +61,14 @@ namespace Kite{
 
 		inline bool isPointSpriteEnabled() const { return _kpenable; }
 
+		// return model-view teansform
+		virtual const KTransform &getModelViewTransform() const = 0;
+
 	protected:
 		void setUseSize(U32 Size);
 
 		KVertex *_kvertex;
 		KPointSprite *_kpsprite;
-
-		// return model-view teansform
-		virtual const KTransform &getModelViewTransform() const = 0;
 
 	private:
 		const KShaderProgram *_kshader;

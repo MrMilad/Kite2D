@@ -22,11 +22,9 @@
 
 #include "Kite/Core/system/ksystemdef.h"
 #include "Kite/Assist/graphic/karraybatchobject.h"
-#include "Kite/Core/math/ktransformable.h"
-#include "kite/Assist/graphic/kanimeobject.h"
 
 namespace Kite{
-    class KITE_FUNC_EXPORT KLine : public KArrayBatchObject, public KTransformable, public KAnimeObject{
+    class KITE_FUNC_EXPORT KLine : public KArrayBatchObject{
     public:
         KLine();
         KLine(const KVector2F32 &Start, const KVector2F32 &End, const KColor &Color);
@@ -40,9 +38,13 @@ namespace Kite{
 		void setColor(const KColor &Color);
 		inline const KColor &getColor() const { return _kcolor; }
 
-	protected:
+		// from KTileMapObject (output/send)
+		const KVector2F32 *getTilePosition() const;
+
 		// from KBatchObject (output/send)
 		const KTransform &getModelViewTransform() const;
+
+	protected:
 
 		// from KAnimeObject (input/recive)
 		void animeUpdate(const KAnimeValue *AnimatedValue);

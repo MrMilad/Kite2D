@@ -26,6 +26,7 @@ namespace Kite{
 		_kend(0.0f, 0.0f),
 		_kcolor()
 	{
+		setTileFlag(KTO_LINE);
 		setGeoType(KGP_LINES);
 	}
 
@@ -35,6 +36,7 @@ namespace Kite{
 		_kend(End),
 		_kcolor(Color)
 	{
+		setTileFlag(KTO_LINE);
 		setStart(Start);
 		setEnd(End);
 		setColor(Color);
@@ -89,4 +91,9 @@ namespace Kite{
 			setColor(AnimatedValue->color);
 		}
 	}
+	
+	const KVector2F32 *KLine::getTilePosition() const {
+		return this->getPosition();
+	}
+
 }

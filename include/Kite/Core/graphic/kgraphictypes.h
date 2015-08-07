@@ -261,6 +261,14 @@ namespace Kite{
 		KTB_TOP_RIGHT
 	};
 
+	enum KTileBitmapObjectTypes {
+		KTO_QUAD = 0,
+		KTO_TEXT,
+		KTO_LINE,
+		KTO_EMITTER,
+		KTO_CUSTOM
+	};
+
 	/*! \typedef KCallVBUpdate
 		\brief Function handle for mapping and updating VBO buffers
 	*/
@@ -281,12 +289,13 @@ namespace Kite{
 	*/
 	typedef void(*KCallAnimeStatechange)(void *Parameter);
 
-	/*! \typedef KCallSingleDraw
-	\brief Function handle for drawable objects
+	/*! \typedef KCallTileQuery
+	\brief Function handle for tile objects 
 	*/
-	typedef void(*KCallOnDraw)(void *Parameter);
-
 	typedef void(*KCallTileQuery)(void *Parameter, void *Sender);
+
+	typedef void(*KCallTileTrigger)(void *Sender);
+	
 
 	/*! \namespace Kite::Internal
 		\brief Private namespace.

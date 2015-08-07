@@ -28,11 +28,12 @@
 #include "Kite/Core/graphic/kgraphicstructs.h"
 #include "Kite/Core/graphic/kgraphictypes.h"
 #include "Kite/Assist/graphic/karraybatchobject.h"
+#include "Kite/Assist/map/ktilemapobject.h"
 #include <forward_list>
 
 namespace Kite{
 	// use a separate batch to darw partciles
-	class KITE_FUNC_EXPORT KParticleEmitter : public KArrayBatchObject, public KTransformable{
+	class KITE_FUNC_EXPORT KParticleEmitter : public KArrayBatchObject{
 	public:
 		KParticleEmitter(U32 ParticleSize);
 
@@ -60,8 +61,15 @@ namespace Kite{
 
 		void update(F32 Delta);
 
-	protected:
+		// from KTileMapObject (output/send)
+		const KVector2F32 *getTilePosition() const;
+
 		const KTransform &getModelViewTransform() const;
+
+	protected:
+
+		// from KAnimeObject (input/recive)
+		void animeUpdate(const KAnimeValue *AnimatedValue);
 
 	private:
 		KRandom _krandom;

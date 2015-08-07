@@ -23,7 +23,7 @@
 namespace Kite{
 	KTileMap::KTileMap(const KTileMapInfo &MapInfo) :
 		_kmapInfo(MapInfo),
-		_ktiles(MapInfo.mapSize.x * MapInfo.mapSize.y, std::pair<KTileMapObject *, KTileMapObject *>(0, 0))
+		_ktiles(MapInfo.mapSize.x * MapInfo.mapSize.y, Internal::KTile())
 	{}
 
 	bool KTileMap::addObject(KTileMapObject *Object) {
@@ -65,7 +65,7 @@ namespace Kite{
 					Object->_klink.prev = _ktiles[index].second;
 
 					// attach object to last node in the list
-					_ktiles[index].second->_klink.next = Object;
+					((KTileMapObject *)_ktiles[index].second)->_klink.next = Object;
 
 					// set last pointer
 					_ktiles[index].second = Object;
@@ -96,7 +96,7 @@ namespace Kite{
 					if (Object == _ktiles[index].second) {
 						_ktiles[index].second = 0;
 					} else {
-						_ktiles[index].first->_klink.prev = 0;
+						((KTileMapObject *)_ktiles[index].first)->_klink.prev = 0;
 					}
 
 					// reset object node info
@@ -109,7 +109,7 @@ namespace Kite{
 
 					// just in case
 					if (_ktiles[index].second) {
-						_ktiles[index].second->_klink.next = 0;
+						((KTileMapObject *)_ktiles[index].second)->_klink.next = 0;
 					}
 
 					// reset object node info
@@ -205,7 +205,7 @@ namespace Kite{
 
 	KTileMapObject *KTileMap::getTileObjects(U32 TileID) const{
 		if (TileID < (_kmapInfo.mapSize.x * _kmapInfo.mapSize.y)) {
-			return _ktiles[TileID].first;
+			return (KTileMapObject *)_ktiles[TileID].first;
 		}
 		return 0;
 	}
@@ -219,6 +219,20 @@ namespace Kite{
 		return 0;
 	}
 
+	void KTileMap::setTileTrigger(U32 TileID, KCallTileTrigger Functor, void *Sender) {
+		if (TileID < (_kmapInfo.mapSize.x * _kmapInfo.mapSize.y)) {
+			_ktiles[TileID].sender = Sender;
+			_ktiles[TileID].trigger = Functor;
+		}
+	}
+
+	void KTileMap::setTileTrigger(const KVector2F32 &Position, KCallTileTrigger Functor, void *Sender) {
+		I32 tid = getTileID(Position);
+		if (tid >= 0) {
+			setTileTrigger(tid, Functor, Sender);
+		}
+	}
+
 	void KTileMap::queryTiles(KRectF32 &Area) {
 		// check callback
 		if (!_kcallb) return;
@@ -228,6 +242,10 @@ namespace Kite{
 		if (Area.bottom >= getMapHeight()) return;
 		if (Area.top <= 0) return;
 		if (Area.right <= 0) return;
+
+		// bad area
+		if (Area.right < Area.left) return;
+		if (Area.top < Area.bottom) return;
 
 		// calibrate area
 		if (Area.left < 0) Area.left = 0;
@@ -243,9 +261,9 @@ namespace Kite{
 		// find lenght of row and column of given area
 		// then fill every row in between
 		U32 rowLen = (U32)(Area.right - Area.left) / (U32)_kmapInfo.tileSize.x;
-		//if (fmod(Area.right, _kmapInfo.tileSize.x) > 0) ++rowLen;
+		if (fmod(Area.right, _kmapInfo.tileSize.x) > 0) ++rowLen;
 		U32 colLen = (U32)(Area.top - Area.bottom) / (U32)_kmapInfo.tileSize.y;
-		//if (fmod(Area.top, _kmapInfo.tileSize.y) > 0) ++colLen;
+		if (fmod(Area.top, _kmapInfo.tileSize.y) > 0) ++colLen;
 		I32 startPoint = getTileID(KVector2F32(Area.left, Area.bottom));
 		U32 row = startPoint / _kmapInfo.mapSize.x;
 		U32 tile = startPoint % _kmapInfo.mapSize.x;
@@ -255,8 +273,14 @@ namespace Kite{
 		if (startPoint >= 0) {
 			for (U32 cc = 0; cc < colLen; cc++) {
 				for (U32 rc = 0; rc < rowLen; rc++) {
+					// query callback
 					if (_ktiles[row * cc + tile].first) {
 						_kcallb(_ktiles[(row * _kmapInfo.mapSize.x) + tile + rc].first, _ksender);
+					}
+
+					// tile trigger
+					if (_ktiles[(row * _kmapInfo.mapSize.x) + tile + rc].trigger) {
+						_ktiles[(row * _kmapInfo.mapSize.x) + tile + rc].trigger(_ktiles[(row * _kmapInfo.mapSize.x) + tile + rc].sender);
 					}
 				}
 				++row;

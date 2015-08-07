@@ -22,13 +22,14 @@
 
 #include "Kite/Core/system/ksystemdef.h"
 #include "Kite/Core/graphic/kgraphicstructs.h"
-#include "Kite/Assist/graphic/kindexbatchobject.h"
 #include "Kite/Core/Math/ktransformable.h"
+#include "Kite/Assist/graphic/kindexbatchobject.h"
 #include "kite/Assist/graphic/kanimeobject.h"
+#include "kite/Assist/map/ktilemapobject.h"
 #include <cstring>
 
 namespace Kite{
-    class KITE_FUNC_EXPORT KText : public KIndexBatchObject, public KTransformable, public KAnimeObject{
+    class KITE_FUNC_EXPORT KText : public KIndexBatchObject{
 	public:
 		// default max size = 100
 		KText(const std::vector<KAtlas> &Font);
@@ -63,9 +64,13 @@ namespace Kite{
 		inline F32 getWidth() const { return _kwidth; }
 		inline F32 getHeight() const { return _kheight; }
 
-	protected:
+		// from KTileMapObject (output/send)
+		const KVector2F32 *getTilePosition() const;
+
 		// from KIndexBatchObject (output/send)
 		const KTransform &getModelViewTransform() const;
+
+	protected:
 
 		// from KAnimeObject (input/recive)
 		void animeUpdate(const KAnimeValue *AnimatedValue);

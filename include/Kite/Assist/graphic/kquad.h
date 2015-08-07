@@ -29,7 +29,7 @@
 #include "kite/Assist/map/ktilemapobject.h"
 
 namespace Kite{
-    class KITE_FUNC_EXPORT KQuad : public KIndexBatchObject, public KTransformable, public KAnimeObject, public KTileMapObject{
+    class KITE_FUNC_EXPORT KQuad : public KIndexBatchObject{
     public:
 		KQuad();
 		KQuad(const KRectF32 &Dimension, const KRectF32 &UV, const KColor &Color);

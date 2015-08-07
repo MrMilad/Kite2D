@@ -67,6 +67,10 @@ namespace Kite{
 		// return pointer to first object in the list
 		KTileMapObject *getTileObjects(const KVector2F32 &Position) const;
 
+		// functor triggered when tile is in query result
+		void setTileTrigger(U32 TileID, KCallTileTrigger Functor, void *Sender);
+		void setTileTrigger(const KVector2F32 &Position, KCallTileTrigger Functor, void *Sender);
+
 		// callback will called for every tile in the given area
 		// callback will called once for every tile and send begin item of list
 		inline void setQueryCallback(KCallTileQuery Callback, void *Sender) { _kcallb = Callback; _ksender = Sender; }
@@ -75,7 +79,7 @@ namespace Kite{
 
 	private:
 		KTileMapInfo _kmapInfo;
-		std::vector<std::pair<KTileMapObject *, KTileMapObject *>> _ktiles;
+		std::vector<Internal::KTile> _ktiles;
 		KCallTileQuery _kcallb;
 		void *_ksender;
 	};

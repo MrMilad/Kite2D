@@ -32,20 +32,24 @@ namespace Kite{
 	template < class T >
 	class KITE_FUNC_EXPORT KResourceManager{
 	public:
-		KResourceManager(KStream &StreamProvider) :
-			_kstream(&StreamProvider)
-		{}
-
 		~KResourceManager() {
 			clear();
 		}
 
-		void setDefaultResource(T *DefaultResource){
+		static inline void setInputStream(KInputStream *InputStream) { _kstream = InputStream; }
+
+		static inline void setDefaultResource(T *DefaultResource) {
 			_kdefault = DefaultResource;
 		}
 
 		// use catch stream for stream resource eg: KStreamSource
-		T *load(const std::string &FileName, bool CatchStream){
+		static T *load(const std::string &FileName, bool CatchStream){
+			// checking input stream
+			if (!_kstream) {
+				KDEBUG_PRINT("there is no input stream");
+				return 0;
+			}
+
 			// checking file name
 			if (FileName.empty()){
 				KDEBUG_PRINT("empty file name is not valid");
@@ -103,7 +107,7 @@ namespace Kite{
 			return resource;
 		}
 
-		void unload(const std::string &FileName){
+		static void unload(const std::string &FileName) {
 			// checking file name
 			if (FileName.empty()){
 				KDEBUG_PRINT("empty file name is not valid");
@@ -134,7 +138,7 @@ namespace Kite{
 			}
 		}
 
-		void clear(){
+		static void clear() {
 			std::unordered_map<std::string, std::pair<T *, KInputStream *>>::iterator it;
 			for (it = _kmap.begin(); it != _kmap.end(); ++it){
 				// free resource
@@ -150,9 +154,9 @@ namespace Kite{
 		}
 
 	private:
-		KStream *_kstream;
-		std::unordered_map<std::string, std::pair<T *, KInputStream *>> _kmap;
-		T *_kdefault;
+		static KStream *_kstream;
+		static std::unordered_map<std::string, std::pair<T *, KInputStream *>> _kmap;
+		static T *_kdefault;
 	};
 }
 

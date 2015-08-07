@@ -352,6 +352,18 @@ namespace Kite{
 				prev(0) {}
 		};
 
+		struct KTile {
+			void *first;
+			void *second;
+			void *sender;
+			KCallTileTrigger trigger;
+			KTile() :
+				first(0),
+				second(0),
+				sender(0),
+				trigger(0) {}
+		};
+
 		//! Catch last OpenGL state. (internally use)
 		struct KCatchDraw{
 			U32 objIndex;	//!< Index of current object

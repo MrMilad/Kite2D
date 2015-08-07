@@ -38,6 +38,7 @@ namespace Kite {
 		_krndCol(false),
 		_krndUV(false)
 	{
+		setTileFlag(KTO_EMITTER);
 		setGeoType(KGP_POINTS);
 		setRelativeTransform(false);
 	}
@@ -260,7 +261,25 @@ namespace Kite {
 		
 	}
 
+	const KVector2F32 *KParticleEmitter::getTilePosition() const {
+		return this->getPosition();
+	}
+
 	const KTransform &KParticleEmitter::getModelViewTransform() const {
 		return *this->getTransform();
 	}
+
+	void KParticleEmitter::animeUpdate(const KAnimeValue *AnimatedValue) {
+		// center
+		setCenter(AnimatedValue->center);
+
+		// translate
+		if (AnimatedValue->trChannel) {
+			if (AnimatedValue->tchange == KAV_SET) setPosition(AnimatedValue->translate); else move(AnimatedValue->translate);
+
+			// position (set position only when we use translate)
+			move(AnimatedValue->position);
+		}
+	}
+
 }

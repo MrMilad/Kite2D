@@ -25,10 +25,12 @@
 #include "Kite/Core/graphic/kgraphictypes.h"
 #include "Kite/Core/graphic/ktexture.h"
 #include "Kite/Core/graphic/kshaderprogram.h"
-#include "Kite/core/math/ktransform.h"
+#include "Kite/core/math/ktransformable.h"
+#include "kite/Assist/graphic/kanimeobject.h"
+#include "kite/Assist/map/ktilemapobject.h"
 
 namespace Kite{
-    class KITE_FUNC_EXPORT KIndexBatchObject{
+	class KITE_FUNC_EXPORT KIndexBatchObject : public KTransformable, public KAnimeObject, public KTileMapObject {
 		friend class KIndexBatch;
     public:
 		KIndexBatchObject(U32 VertexSize, U32 IndexSize);

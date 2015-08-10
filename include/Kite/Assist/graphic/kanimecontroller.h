@@ -26,6 +26,7 @@
 #include "Kite/Core/graphic/kgraphicstructs.h"
 #include "Kite/Core/graphic/kgraphictypes.h"
 #include "Kite/Assist/graphic/kanimeobject.h"
+#include "Kite/Assist/graphic/katlas.h"
 #include <vector>
 
 /*! \namespace Kite
@@ -49,7 +50,7 @@ namespace Kite{
 			\param AnimationClip Animation clip
 			\param SpriteSheet Sprite-sheet (optional - pass 0 if there is no sprite sheet)
 		*/
-		KAnimeController(KAnimeObject *Object, const std::vector<KAnimeKey> *AnimationClip, const std::vector<KAtlas> *SpriteSheet);
+		KAnimeController(KAnimeObject *Object, const std::vector<KAnimeKey> *AnimationClip, const KAtlas *SpriteSheet);
 
 		//! Add a object to list
 		/*!
@@ -75,10 +76,10 @@ namespace Kite{
 		/*!
 			\param SpriteSheet Sprite-sheet (pass 0 if there is no sprite sheet)
 		*/
-		inline void setSpriteSheet(const std::vector<KAtlas> *SpriteSheet) { _katlas = SpriteSheet; }
+		inline void setSpriteSheet(const KAtlas *SpriteSheet) { _katlas = SpriteSheet; }
 
 		//! Get sprite-sheet
-		inline const std::vector<KAtlas> *getSpriteSheet() const { return _katlas; }
+		inline const KAtlas *getSpriteSheet() const { return _katlas; }
 
 		//! Set animation loop
 		/*!
@@ -175,7 +176,7 @@ namespace Kite{
 		void triggerLookup(); // lookup triggers
 		void keyLookup(); // lookup keys and find appropriate key (depend of time)
 		const std::vector<KAnimeKey> *_kclip;
-		const std::vector<KAtlas> *_katlas;
+		const KAtlas *_katlas;
 		std::vector<Internal::KAnimeTimeTrigger> _kttrig;
 		F64 _ktime;
 		bool _kloop;

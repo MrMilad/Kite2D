@@ -20,7 +20,7 @@
 #include "Kite/Assist/graphic/karraybatchobject.h"
 
 namespace Kite{
-	KArrayBatchObject::KArrayBatchObject(U32 VertexSize, bool PointSprite) :
+	KArrayBatchObject::KArrayBatchObject(U32 VertexSize, bool PointSprite, const std::string &Name) :
 		_kvertex(new KVertex[VertexSize]),
 		_kshader(0),
 		_ktexture(0),
@@ -29,7 +29,8 @@ namespace Kite{
 		_kusedSize(VertexSize),
 		_kvisible(true),
 		_kpenable(PointSprite),
-		_krelTrans(true)
+		_krelTrans(true),
+		_kname(Name)
 	{
 		if (PointSprite) {
 			_kpsprite = new KPointSprite[VertexSize];

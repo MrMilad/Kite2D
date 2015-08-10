@@ -280,7 +280,8 @@ namespace Kite{
 
 					// tile trigger
 					if (_ktiles[(row * _kmapInfo.mapSize.x) + tile + rc].trigger) {
-						_ktiles[(row * _kmapInfo.mapSize.x) + tile + rc].trigger(_ktiles[(row * _kmapInfo.mapSize.x) + tile + rc].sender);
+						_ktiles[(row * _kmapInfo.mapSize.x) + tile + rc].trigger(((row * _kmapInfo.mapSize.x) + tile + rc),
+							_ktiles[(row * _kmapInfo.mapSize.x) + tile + rc].sender);
 					}
 				}
 				++row;

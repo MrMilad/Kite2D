@@ -28,7 +28,7 @@
 #include "Kite/Core/graphic/kgraphicstructs.h"
 #include "Kite/Core/graphic/kgraphictypes.h"
 #include "Kite/Assist/graphic/karraybatchobject.h"
-#include "Kite/Assist/map/ktilemapobject.h"
+#include "Kite/Assist/graphic/katlas.h"
 #include <forward_list>
 
 namespace Kite{
@@ -57,7 +57,7 @@ namespace Kite{
 		void setParticleColor(const std::vector<KColor> &ColorSheet, bool RandomBase, const KTimeLine<U32, F32> *OverTime);
 
 		// SpriteSheet and OverTime is optional.
-		void setParticleUV(const std::vector<KAtlas> &SpriteSheet, bool RandomBase, const KTimeLine<U32, F32> *OverTime);
+		void setParticleUV(const KAtlas &SpriteSheet, bool RandomBase, const KTimeLine<U32, F32> *OverTime);
 
 		void update(F32 Delta);
 
@@ -86,7 +86,7 @@ namespace Kite{
 		const KTimeLine<U32, F32> *_kcolovert;
 		const KTimeLine<U32, F32> *_kuvovert;
 		const std::vector<KColor> *_kcolsheet;
-		const std::vector<KAtlas> *_kuvsheet;
+		const KAtlas *_kuvsheet;
 		bool _krndCol;
 		bool _krndUV;
 	};

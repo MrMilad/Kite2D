@@ -28,12 +28,13 @@
 #include "Kite/core/math/ktransformable.h"
 #include "kite/Assist/graphic/kanimeobject.h"
 #include "kite/Assist/map/ktilemapobject.h"
+#include <cstring>
 
 namespace Kite{
 	class KITE_FUNC_EXPORT KIndexBatchObject : public KTransformable, public KAnimeObject, public KTileMapObject {
 		friend class KIndexBatch;
     public:
-		KIndexBatchObject(U32 VertexSize, U32 IndexSize);
+		KIndexBatchObject(U32 VertexSize, U32 IndexSize, const std::string &Name = "");
 		virtual ~KIndexBatchObject() {}
 
 		inline const KVertex *getVertex() const { return _kvertex; }
@@ -79,6 +80,7 @@ namespace Kite{
 		U32 _kusedISize;
 		bool _kvisible;
 		bool _krelTrans;
+		std::string _kname;
     };
 }
 

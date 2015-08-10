@@ -73,15 +73,15 @@ namespace Kite{
         }
     }
 
-    bool KImage::loadFile(const std::string &FileName){
+	bool KImage::loadFile(const std::string &FileName, U32 FileType) {
 		return Internal::ImageIO::readFromFile(FileName, _kpixels, _ksize);
     }
 
-    bool KImage::loadMemory(const void *Data, std::size_t Size){
+	bool KImage::loadMemory(const void *Data, std::size_t Size, U32 FileType) {
 		return Internal::ImageIO::readFromMemory(Data, Size, _kpixels, _ksize);
     }
 
-	bool KImage::loadStream(KInputStream &Stream){
+	bool KImage::loadStream(KInputStream &Stream, U32 FileType) {
 		return Internal::ImageIO::readFromStream(Stream, _kpixels, _ksize);
 	}
 

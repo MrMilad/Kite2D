@@ -84,7 +84,7 @@ namespace Kite{
 
 			bool ret = false;
 
-			if (file != NULL){
+			if (Stream.isOpen()){
 
 				// file header
 				KArrayHeader header;
@@ -108,7 +108,7 @@ namespace Kite{
 
 							// read objects one bye one
 							for (U32 i = 0; i < header.objCount; i++){
-								rsize = fread(&temp, header.objSize, 1, file);
+								rsize = Stream(&temp, header.objSize);
 								Objects.push_back(temp);
 							}
 							ret = true;
@@ -117,7 +117,6 @@ namespace Kite{
 				}
 			}
 
-			fclose(file);
 			return ret;
 		}
 

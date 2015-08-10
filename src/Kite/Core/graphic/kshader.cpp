@@ -49,7 +49,7 @@ namespace Kite{
 		DGL_CALL(glDeleteShader(_kglid));
     }
 
-	bool KShader::loadFile(const std::string &ShaderFile){
+	bool KShader::loadFile(const std::string &ShaderFile, U32 FileType) {
         // first make sure that we can use shaders
 //        if(!isShaderAvailable()){
 //            KDEBUG_PRINT("shader is not available.")
@@ -90,7 +90,7 @@ namespace Kite{
 		return true;
     }
 
-	bool KShader::loadMemory(const void *Data, std::size_t DataSize){
+	bool KShader::loadMemory(const void *Data, std::size_t DataSize, U32 FileType) {
         // first make sure that we can use shaders
 //        if(!isShaderAvailable()){
 //            KDEBUG_PRINT("shader is not available.")
@@ -109,7 +109,7 @@ namespace Kite{
         return true;
     }
 
-	bool KShader::loadStream(KInputStream &ShaderStream){
+	bool KShader::loadStream(KInputStream &ShaderStream, U32 FileType) {
 		std::vector<char> data;
 		// calculate size of stream
 		ShaderStream.seek(0, std::ios_base::end);

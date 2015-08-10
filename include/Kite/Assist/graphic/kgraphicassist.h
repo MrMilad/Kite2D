@@ -32,5 +32,7 @@
 #include "Kite/Assist/graphic/kindexbatch.h"
 #include "Kite/Assist/graphic/ktext.h"
 #include "Kite/Assist/graphic/kline.h"
+#include "Kite/Assist/graphic/katlas.h"
+#include "Kite/Assist/graphic/kanimeclip.h"
 
 #endif // KGRAPHICASSIST_H

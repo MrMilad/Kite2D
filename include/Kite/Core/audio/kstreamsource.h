@@ -46,13 +46,13 @@ namespace Kite{
 		bool getLoop();
 
         /// load sound file
-		bool loadFile(const std::string &FileName);
+		bool loadFile(const std::string &FileName, U32 FileType = 0);
 
 		/// load from stream
-		bool loadStream(KInputStream &InputStream);
+		bool loadStream(KInputStream &InputStream, U32 FileType = 0);
 
 		/// load from memory
-		bool loadMemory(const void *Data, std::size_t Size);
+		bool loadMemory(const void *Data, std::size_t Size, U32 FileType = 0);
 
     private:
         void loader(); // fill buffers immediately (thread task)

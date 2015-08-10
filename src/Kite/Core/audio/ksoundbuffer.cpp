@@ -42,7 +42,7 @@ namespace Kite{
         DAL_CALL(alDeleteBuffers(1, &_kID));
     }
 
-    bool KSoundBuffer::loadFile(const std::string &FileName){
+	bool KSoundBuffer::loadFile(const std::string &FileName, U32 FileType ) {
         Internal::SoundIO sound;
 		char *Data;
 		bool ret = false;
@@ -84,7 +84,7 @@ namespace Kite{
 		return ret;
     }
 
-	bool KSoundBuffer::loadStream(KInputStream &InputStream){
+	bool KSoundBuffer::loadStream(KInputStream &InputStream, U32 FileType) {
 		Internal::SoundIO sound;
 		char *Data;
 		bool ret = false;
@@ -126,7 +126,7 @@ namespace Kite{
 		return ret;
 	}
 
-	bool KSoundBuffer::loadMemory(const void *Data, std::size_t Size){
+	bool KSoundBuffer::loadMemory(const void *Data, std::size_t Size, U32 FileType) {
 		KMemInputStream temp(Data, Size);
 		return loadStream(temp);
 	}

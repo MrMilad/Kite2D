@@ -35,7 +35,7 @@ namespace Kite{
 	{}
 
 	KAnimeController::KAnimeController(KAnimeObject *Object,
-		const std::vector<KAnimeKey> *AnimationClip, const std::vector<KAtlas> *SpriteSheet = 0) :
+									   const std::vector<KAnimeKey> *AnimationClip, const KAtlas *SpriteSheet = 0) :
 		_katlas(SpriteSheet),
 		_ktime(0),
 		_kloop(false),
@@ -215,8 +215,8 @@ namespace Kite{
 
 		// uv
 		if (_katlas)
-		if (_katlas->size() > key1->uv){
-			const KAtlas *atlas = &(*_katlas)[key1->uv];
+		if (_katlas->getItems()->size() > key1->uv){
+			const KAtlasItem *atlas = &(*_katlas->getItems())[key1->uv];
 			_kvalue.uv = KRectF32(atlas->blu, atlas->tru, atlas->trv, atlas->blv);
 		}
 

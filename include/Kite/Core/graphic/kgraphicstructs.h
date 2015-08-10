@@ -131,7 +131,7 @@ namespace Kite{
 	/*!
 		KAtlas is a simple and compact struct for managing objects in atlas textures.
 	*/
-	struct KAtlas{
+	struct KAtlasItem{
 		U32 id;		//!< Unique ID
 		F32 blu;	//!< Bottom-left U texture position with range [0, 1]
 		F32 blv;	//!< Bottom-left V texture position with range [0, 1]
@@ -141,7 +141,7 @@ namespace Kite{
 		F32 h;		//!< Height in pixel
 
 		//! Construct the atlas object from its attributes.
-		KAtlas(U32 ID = 0, F32 BLU = 0, F32 BLV = 0,
+		KAtlasItem(U32 ID = 0, F32 BLU = 0, F32 BLV = 0,
 			F32 TRU = 0, F32 TRV = 0, F32 W = 0, F32 H = 0) :
 			id(ID),
 			blu(BLU), blv(BLV),

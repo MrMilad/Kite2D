@@ -36,14 +36,14 @@ namespace Kite{
 			clear();
 		}
 
-		static inline void setInputStream(KInputStream *InputStream) { _kstream = InputStream; }
+		static inline void setInputStream(KStream *Stream) { _kstream = Stream; }
 
 		static inline void setDefaultResource(T *DefaultResource) {
 			_kdefault = DefaultResource;
 		}
 
 		// use catch stream for stream resource eg: KStreamSource
-		static T *load(const std::string &FileName, bool CatchStream){
+		static T *load(const std::string &FileName, bool CatchStream, U32 FileType = 0){
 			// checking input stream
 			if (!_kstream) {
 				KDEBUG_PRINT("there is no input stream");
@@ -79,7 +79,7 @@ namespace Kite{
 				return 0;
 			}
 
-			if (!resource->loadStream(*stream)){
+			if (!resource->loadStream(*stream, FileType)) {
 				KDEBUG_PRINT("can't load resource");
 				delete resource;
 
@@ -158,6 +158,13 @@ namespace Kite{
 		static std::unordered_map<std::string, std::pair<T *, KInputStream *>> _kmap;
 		static T *_kdefault;
 	};
+
+	template < class T >
+	KStream *KResourceManager<T>::_kstream = 0;
+	template < class T >
+	std::unordered_map<std::string, std::pair<T *, KInputStream *>> KResourceManager<T>::_kmap;
+	template < class T >
+	T *KResourceManager<T>::_kdefault = 0;
 }
 
 #endif // KRESOURCEMANAGER_H

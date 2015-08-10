@@ -110,7 +110,7 @@ namespace Kite{
 		return _kloop; 
 	}
 
-	bool KStreamSource::loadFile(const std::string &FileName){
+	bool KStreamSource::loadFile(const std::string &FileName, U32 FileType) {
         // first we stop the source
         stop();
 
@@ -123,7 +123,7 @@ namespace Kite{
 		return ret;
     }
 
-	bool KStreamSource::loadStream(KInputStream &InputStream){
+	bool KStreamSource::loadStream(KInputStream &InputStream, U32 FileType) {
 		// first we stop the source
 		stop();
 
@@ -136,7 +136,7 @@ namespace Kite{
 		return ret;
 	}
 
-	bool KStreamSource::loadMemory(const void *Data, std::size_t Size){
+	bool KStreamSource::loadMemory(const void *Data, std::size_t Size, U32 FileType) {
 		// first we stop the source
 		stop();
 

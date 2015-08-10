@@ -20,7 +20,7 @@
 #include "Kite/Assist/graphic/ktext.h"
 
 namespace Kite{
-	KText::KText(const std::vector<KAtlas> &Font) :
+	KText::KText(const KAtlas &Font) :
 		KIndexBatchObject(100 * 4, 100 * 6),
 		_kfont(&Font),
 		_kwidth(0),
@@ -32,7 +32,7 @@ namespace Kite{
 		setTileFlag(KTO_TEXT);
 	}
 
-	KText::KText(U32 MaximumSize, const std::vector<KAtlas> &Font) :
+	KText::KText(U32 MaximumSize, const KAtlas &Font) :
 		KIndexBatchObject(MaximumSize * 4, MaximumSize * 6),
 		_kfont(&Font),
 		_kwidth(0),
@@ -44,7 +44,7 @@ namespace Kite{
 		setTileFlag(KTO_TEXT);
 	}
 
-	KText::KText(const std::string &Text, const std::vector<KAtlas> &Font, const KColor &Color) :
+	KText::KText(const std::string &Text, const KAtlas &Font, const KColor &Color) :
 		KIndexBatchObject(Text.size() * 4, Text.size() * 6),
 		_kfont(&Font),
 		_kcolor(Color),
@@ -80,7 +80,7 @@ namespace Kite{
 
 	void KText::_reshape(){
 		if (_kfont && !_ktext.empty()) {
-			const KAtlas *atemp;
+			const KAtlasItem *atemp;
 			U32 ind = 0;
 			F32 width = 0, height = 0;
 			char ascii;
@@ -88,7 +88,7 @@ namespace Kite{
 			for (U32 i = 0; i < _ktext.size(); i++) {
 				// retrieve character from atlas
 				ascii = _ktext[i];
-				atemp = &KAtlas(0, 0, 0, 0, 0, 0, 0);
+				atemp = &KAtlasItem(0, 0, 0, 0, 0, 0, 0);
 
 				// skip '\0' 
 				if (ascii == '\0') { 
@@ -96,7 +96,7 @@ namespace Kite{
 
 				// space
 				} else if (ascii == ' ') {
-					width += (*_kfont)[0].w;
+					width += (*_kfont->getItems())[0].w;
 					continue;
 
 				// next line '\n'
@@ -105,13 +105,13 @@ namespace Kite{
 					continue;
 
 				// normal characters
-				} else if (_kfont->size() > (U32)(ascii - 32) && (ascii - 32) >= 0) {
+				} else if (_kfont->getItems()->size() > (U32)(ascii - 32) && (ascii - 32) >= 0) {
 					// we have key
-					atemp = &(*_kfont)[ascii - 32];
+					atemp = &(*_kfont->getItems())[ascii - 32];
 				} else {
 					// we dont have key
 					// fill with " " space instead.
-					width += (*_kfont)[0].w;
+					width += (*_kfont->getItems())[0].w;
 					continue;
 				}
 
@@ -154,7 +154,7 @@ namespace Kite{
 		}
 	}
 
-	void KText::setFont(const std::vector<KAtlas> &Font){
+	void KText::setFont(const KAtlas &Font){
 		_kfont = &Font;
 		_reshape();
 	}

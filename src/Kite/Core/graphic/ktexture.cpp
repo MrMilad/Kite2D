@@ -48,7 +48,7 @@ namespace Kite{
         _create(Image.getPixelsData(), Image.getSize(), Filter, Wrap, *this);
     }
 
-	bool KTexture::loadFile(const std::string &FileName){
+	bool KTexture::loadFile(const std::string &FileName, U32 FileType) {
 		KImage temp;
 		bool ret = temp.loadFile(FileName);
 		
@@ -58,7 +58,7 @@ namespace Kite{
 		return ret;
 	}
 
-	bool KTexture::loadMemory(const void *Data, std::size_t Size){
+	bool KTexture::loadMemory(const void *Data, std::size_t Size, U32 FileType) {
 		KImage temp;
 		bool ret = temp.loadMemory(Data, Size);
 
@@ -68,7 +68,7 @@ namespace Kite{
 		return ret;
 	}
 
-	bool KTexture::loadStream(KInputStream &Stream){
+	bool KTexture::loadStream(KInputStream &Stream, U32 FileType) {
 		KImage temp;
 		bool ret = temp.loadStream(Stream);
 

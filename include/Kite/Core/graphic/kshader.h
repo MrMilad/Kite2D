@@ -54,27 +54,30 @@ namespace Kite{
 		//! Load the shader (vertex or fragment) from the files on disk
 		/*!
 			\param ShaderFile Address of the shader file on the disk
+			\param FileTypes Type of file. set 0 for any type.
 
 			\return True if loading was successful
 		*/
-        bool loadFile(const std::string &ShaderFile);
+        bool loadFile(const std::string &ShaderFile, U32 FileType = 0);
 
 		//! Load the shader (vertex or fragment) from memory
 		/*!
 			\param ShaderCod Null-terminated (\0) source code of the sahder (in char)
+			\param FileTypes Type of file. set 0 for any type.
 
 			\return True if loading was successful
 		*/
-        bool loadMemory(const void * Data, std::size_t DataSize);
+		bool loadMemory(const void * Data, std::size_t DataSize, U32 FileType = 0);
 
 		//! Load both the vertex and fragment shaders from input stream
 		/*!
 			\param Vertex InputStream of the vertex shader
 			\param Fragment InputStream of the fragment shader
+			\param FileTypes Type of file. set 0 for any type.
 
 			\return True if loading was successful
 		*/
-		bool loadStream(KInputStream &ShaderStream);
+		bool loadStream(KInputStream &ShaderStream, U32 FileType = 0);
 
 		//! Method to compile a shader and display any problems if compilation fails
 		/*!

@@ -42,7 +42,7 @@ namespace Kite{
 
 		\return True if loading was successful
 		*/
-		virtual bool loadFile(const std::string &FileName) = 0;
+		virtual bool loadFile(const std::string &FileName, U32 FileType = 0) = 0;
 
 		//! Load the resource from a memory block
 		/*!
@@ -52,7 +52,7 @@ namespace Kite{
 
 		\return True if loading was successful
 		*/
-		virtual bool loadMemory(const void *Data, std::size_t Size) = 0;
+		virtual bool loadMemory(const void *Data, std::size_t Size, U32 FileType = 0) = 0;
 
 		//! Read the resource from input stream.
 		/*!
@@ -60,12 +60,9 @@ namespace Kite{
 
 		\return True if loading was successful
 		*/
-		virtual bool loadStream(KInputStream &Stream) = 0;
+		virtual bool loadStream(KInputStream &Stream, U32 FileType = 0) = 0;
 
 		inline U32 getReferencesCount() const { return _kref; }
-
-	protected:
-		std::string _kfileName;
 
 	private:
 		U32 _kref;

@@ -24,24 +24,23 @@
 #include "Kite/Core/graphic/kgraphicstructs.h"
 #include "Kite/Core/Math/ktransformable.h"
 #include "Kite/Assist/graphic/kindexbatchobject.h"
-#include "kite/Assist/graphic/kanimeobject.h"
-#include "kite/Assist/map/ktilemapobject.h"
+#include "Kite/Assist/graphic/katlas.h"
 #include <cstring>
 
 namespace Kite{
     class KITE_FUNC_EXPORT KText : public KIndexBatchObject{
 	public:
 		// default max size = 100
-		KText(const std::vector<KAtlas> &Font);
+		KText(const KAtlas &Font);
 
 		// custom max size
-		KText(U32 MaximumSize, const std::vector<KAtlas> &Font);
+		KText(U32 MaximumSize, const KAtlas &Font);
 
 		// max size = Text size
-		KText(const std::string &Text, const std::vector<KAtlas> &Font, const KColor &Color);
+		KText(const std::string &Text, const KAtlas &Font, const KColor &Color);
 
-		void setFont(const std::vector<KAtlas> &Font);
-        inline const std::vector<KAtlas> &getFont() const {return *_kfont;}
+		void setFont(const KAtlas &Font);
+        inline const KAtlas &getFont() const {return *_kfont;}
 
 		void setText(const std::string &Text);
         inline const std::string &getText() const {return _ktext;}
@@ -78,7 +77,7 @@ namespace Kite{
     private:
 		void _fillIndex();
 		void _reshape();
-        const std::vector<KAtlas> *_kfont;
+        const KAtlas *_kfont;
         std::string _ktext;
 		F32 _kwidth;
 		F32 _kheight;

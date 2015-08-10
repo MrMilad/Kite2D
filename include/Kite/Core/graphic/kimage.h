@@ -75,10 +75,11 @@ namespace Kite{
 			if this function fails, the image is left unchanged.
 
 			\param FileName Address of the image file on the disk
+			\param FileTypes Type of file. set 0 for any type.
 
 			\return True if loading was successful
 		*/
-        bool loadFile(const std::string &FileName);
+		bool loadFile(const std::string &FileName, U32 FileType = 0);
 
 		//! Load the image from a memory block
 		/*!
@@ -87,18 +88,20 @@ namespace Kite{
 
 			\param Data Pointer to the file data in memory
 			\param Size Size of the data (in bytes)
+			\param FileTypes Type of file. set 0 for any type.
 
 			\return True if loading was successful
 		*/
-        bool loadMemory(const void *Data, std::size_t Size);
+		bool loadMemory(const void *Data, std::size_t Size, U32 FileType = 0);
 
 		//! Read and decode pixels from input stream.
 		/*!
 			\param Stream Input stream.
+			\param FileTypes Type of file. set 0 for any type.
 
 			\return True if loading was successful
 		*/
-		bool loadStream(KInputStream &Stream);
+		bool loadStream(KInputStream &Stream, U32 FileType = 0);
 
 		//! Load the image to a file on disk
 		/*!

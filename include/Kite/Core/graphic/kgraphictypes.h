@@ -269,6 +269,19 @@ namespace Kite{
 		KTO_CUSTOM
 	};
 
+	/*! \typedef KAtlasFileTypes
+	\brief Types of the atlas files
+	*/
+	enum KAtlasFileTypes {
+		KAF_ATLAS,	//!< Default KAtlas format (compact format in speed and size)
+		KAF_JSON	//!< Adobe Flash created JSON 
+	};
+
+	enum KAnimeClipFileTypes {
+		KAF_ANIMEKEY,	//!< Default KAtlas format (compact format in speed and size)
+		KAF_XML	//!< Adobe Flash created JSON 
+	};
+
 	/*! \typedef KCallVBUpdate
 		\brief Function handle for mapping and updating VBO buffers
 	*/
@@ -294,7 +307,7 @@ namespace Kite{
 	*/
 	typedef void(*KCallTileQuery)(void *Parameter, void *Sender);
 
-	typedef void(*KCallTileTrigger)(void *Sender);
+	typedef void(*KCallTileTrigger)(U32 TileID, void *Sender);
 	
 
 	/*! \namespace Kite::Internal

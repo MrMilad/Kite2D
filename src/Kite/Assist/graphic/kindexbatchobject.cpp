@@ -22,7 +22,7 @@
 
 namespace Kite{
 
-	KIndexBatchObject::KIndexBatchObject(U32 VertexSize, U32 IndexSize) :
+	KIndexBatchObject::KIndexBatchObject(U32 VertexSize, U32 IndexSize, const std::string &Name) :
 		_kvertex(new KVertex[VertexSize]),
 		_kindex(new U16[IndexSize]),
 		_krealVSize(VertexSize),
@@ -33,7 +33,8 @@ namespace Kite{
 		_kshader(0),
 		_kgtype(KGP_POINTS),
 		_kvisible(true),
-		_krelTrans(true)
+		_krelTrans(true),
+		_kname(Name)
 	{}
 
 	void KIndexBatchObject::setUseVertexSize(U32 Size) {

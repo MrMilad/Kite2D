@@ -24,7 +24,7 @@ USA
 namespace Kite {
 	KParticleEmitter::KParticleEmitter(U32 ParticleSize) :
 		KArrayBatchObject(ParticleSize, true),
-		_krandom(getUniqueNumber()),
+		_krandom((U32)getUniqueNumber()),
 		_kparticles(),
 		_krate(0),
 		_kavail(ParticleSize),
@@ -80,7 +80,7 @@ namespace Kite {
 		_krndCol = RandomBase;
 	}
 
-	void KParticleEmitter::setParticleUV(const std::vector<KAtlas> &SpriteSheet, bool RandomBase, const KTimeLine<U32, F32> *OverTime) {
+	void KParticleEmitter::setParticleUV(const KAtlas &SpriteSheet, bool RandomBase, const KTimeLine<U32, F32> *OverTime) {
 		_kuvsheet = &SpriteSheet;
 		_kuvovert = OverTime;
 		_krndUV = RandomBase;
@@ -141,23 +141,23 @@ namespace Kite {
 
 				// uv
 				if (_kuvsheet) {
-					if (!_kuvsheet->empty()) {
+					if (!_kuvsheet->getItems()->empty()) {
 
 						// random base uv
 						if (_krndUV) {
-							_krandom.setRange(0, _kuvsheet->size() - 1);
+							_krandom.setRange(0, _kuvsheet->getItems()->size() - 1);
 							U32 rnd = _krandom.getRandomInt();
-							temp.uv.left = (*_kuvsheet)[rnd].blu;
-							temp.uv.bottom = (*_kuvsheet)[rnd].blv;
-							temp.uv.right = (*_kuvsheet)[rnd].tru - (*_kuvsheet)[rnd].blu;;
-							temp.uv.top = (*_kuvsheet)[rnd].trv - (*_kuvsheet)[rnd].blv;
+							temp.uv.left = (*_kuvsheet->getItems())[rnd].blu;
+							temp.uv.bottom = (*_kuvsheet->getItems())[rnd].blv;
+							temp.uv.right = (*_kuvsheet->getItems())[rnd].tru - (*_kuvsheet->getItems())[rnd].blu;;
+							temp.uv.top = (*_kuvsheet->getItems())[rnd].trv - (*_kuvsheet->getItems())[rnd].blv;
 
 							// use first color in color sheet
 						} else {
-							temp.uv.left = (*_kuvsheet)[0].blu;
-							temp.uv.bottom = (*_kuvsheet)[0].blv;
-							temp.uv.right = (*_kuvsheet)[0].tru - (*_kuvsheet)[0].blu;;
-							temp.uv.top = (*_kuvsheet)[0].trv - (*_kuvsheet)[0].blv;
+							temp.uv.left = (*_kuvsheet->getItems())[0].blu;
+							temp.uv.bottom = (*_kuvsheet->getItems())[0].blv;
+							temp.uv.right = (*_kuvsheet->getItems())[0].tru - (*_kuvsheet->getItems())[0].blu;;
+							temp.uv.top = (*_kuvsheet->getItems())[0].trv - (*_kuvsheet->getItems())[0].blv;
 						}
 					}
 				}
@@ -244,10 +244,10 @@ namespace Kite {
 				_kpsprite[i].textureSize.y = it->uv.top;
 				if (_kuvovert) {
 					U32 index = _kuvovert->getValueByX(it->timer, false);
-					_kvertex[i].uv.x = (*_kuvsheet)[index].blu;
-					_kvertex[i].uv.y = (*_kuvsheet)[index].blv;
-					_kpsprite[i].textureSize.x = (*_kuvsheet)[index].tru - (*_kuvsheet)[index].blu;
-					_kpsprite[i].textureSize.y = (*_kuvsheet)[index].trv - (*_kuvsheet)[index].blv;
+					_kvertex[i].uv.x = (*_kuvsheet->getItems())[index].blu;
+					_kvertex[i].uv.y = (*_kuvsheet->getItems())[index].blv;
+					_kpsprite[i].textureSize.x = (*_kuvsheet->getItems())[index].tru - (*_kuvsheet->getItems())[index].blu;
+					_kpsprite[i].textureSize.y = (*_kuvsheet->getItems())[index].trv - (*_kuvsheet->getItems())[index].blv;
 				}
 
 				++i;

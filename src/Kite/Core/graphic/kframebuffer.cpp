@@ -39,7 +39,6 @@ namespace Kite{
 
     void KFrameBuffer::attachTexture(const KTexture *Texture){
 		// save currently bound buffer then bind our buffer temporary
-		Internal::GLBindGuard guard(Internal::KBG_FBUFFER, _klastBufId, _kbufId);
 		bind();
 
         // attach the texture to FBO color attachment point

@@ -29,7 +29,6 @@ USA
 #include <utility>
 
 namespace Kite{
-	template < class T >
 	class KITE_FUNC_EXPORT KResourceManager{
 	public:
 		~KResourceManager() {
@@ -38,11 +37,8 @@ namespace Kite{
 
 		static inline void setInputStream(KStream *Stream) { _kstream = Stream; }
 
-		static inline void setDefaultResource(T *DefaultResource) {
-			_kdefault = DefaultResource;
-		}
-
 		// use catch stream for stream resource eg: KStreamSource
+		template <typename T>
 		static T *load(const std::string &FileName, bool CatchStream, U32 FileType = 0){
 			// checking input stream
 			if (!_kstream) {
@@ -57,41 +53,31 @@ namespace Kite{
 			}
 
 			// create key from file name
-			std::string tempKey = FileName;
+			std::string tempKey(FileName);
 			std::transform(FileName.begin(), FileName.end(), tempKey.begin(), ::tolower);
 
 			// first, check our resource catch
-			std::unordered_map<std::string, std::pair<T *, KInputStream *>>::iterator found = _kmap.find(tempKey);
+			std::unordered_map<std::string, std::pair<KResource *, KInputStream *>>::iterator found = _kmap.find(tempKey);
 			if (found != _kmap.end())
 				return (T *)found->second.first;
 
 			// trying to load resource
-			T *resource = new T;
+			KResource *resource = new T;
 			KInputStream *stream = _kstream->openRead(FileName);
 			if (stream == 0){
 				KDEBUG_PRINT("can't create stream");
 				delete resource;
-
-				// return default resource
-				if (_kdefault)
-					return _kdefault;
-
 				return 0;
 			}
 
 			if (!resource->loadStream(*stream, FileType)) {
 				KDEBUG_PRINT("can't load resource");
 				delete resource;
-
-				// return default resource
-				if (_kdefault)
-					return _kdefault;
-
 				return 0;
 			}
 
 			// stream lifetime
-			std::pair<T *, KInputStream *> pair;
+			std::pair<KResource *, KInputStream *> pair;
 			if (CatchStream){
 				pair = std::make_pair(resource, stream);
 			}else{
@@ -104,9 +90,10 @@ namespace Kite{
 
 			// storing resource
 			_kmap.insert({ tempKey, pair });
-			return resource;
+			return (T *)resource;
 		}
 
+		// unload any resource with any type
 		static void unload(const std::string &FileName) {
 			// checking file name
 			if (FileName.empty()){
@@ -119,7 +106,7 @@ namespace Kite{
 			std::transform(FileName.begin(), FileName.end(), tempKey.begin(), ::tolower);
 
 			// check resource catch
-			std::unordered_map<std::string, std::pair<T *, KInputStream *>>::iterator found = _kmap.find(tempKey);
+			std::unordered_map<std::string, std::pair<KResource *, KInputStream *>>::iterator found = _kmap.find(tempKey);
 			if (found != _kmap.end()){
 				found->second.first->decRef();
 
@@ -138,8 +125,9 @@ namespace Kite{
 			}
 		}
 
+		// clear all resources
 		static void clear() {
-			std::unordered_map<std::string, std::pair<T *, KInputStream *>>::iterator it;
+			std::unordered_map<std::string, std::pair<KResource *, KInputStream *>>::iterator it;
 			for (it = _kmap.begin(); it != _kmap.end(); ++it){
 				// free resource
 				delete it->second.first;
@@ -155,16 +143,11 @@ namespace Kite{
 
 	private:
 		static KStream *_kstream;
-		static std::unordered_map<std::string, std::pair<T *, KInputStream *>> _kmap;
-		static T *_kdefault;
+		static std::unordered_map<std::string, std::pair<KResource *, KInputStream *>> _kmap;
 	};
 
-	template < class T >
-	KStream *KResourceManager<T>::_kstream = 0;
-	template < class T >
-	std::unordered_map<std::string, std::pair<T *, KInputStream *>> KResourceManager<T>::_kmap;
-	template < class T >
-	T *KResourceManager<T>::_kdefault = 0;
+	KStream *KResourceManager::_kstream = 0;
+	std::unordered_map<std::string, std::pair<KResource *, KInputStream *>> KResourceManager::_kmap;
 }
 
 #endif // KRESOURCEMANAGER_H

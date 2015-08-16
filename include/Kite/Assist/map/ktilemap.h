@@ -67,6 +67,13 @@ namespace Kite{
 		// return pointer to first object in the list
 		KTileMapObject *getTileObjects(const KVector2F32 &Position) const;
 
+		// border tickness
+		// 0 by default
+		// Width count as tile (not pixels or ...)
+		// ex: width = 1, result= 1 * tile size
+		inline void setQueryBorderWidth(U32 Width) { _kborder = Width; }
+		inline U32 getQueryBorderWidth() const { return _kborder; }
+
 		// functor triggered when tile is in query result
 		void setTileTrigger(U32 TileID, KCallTileTrigger Functor, void *Sender);
 		void setTileTrigger(const KVector2F32 &Position, KCallTileTrigger Functor, void *Sender);
@@ -82,6 +89,7 @@ namespace Kite{
 		std::vector<Internal::KTile> _ktiles;
 		KCallTileQuery _kcallb;
 		void *_ksender;
+		U32 _kborder;
 	};
 }
 

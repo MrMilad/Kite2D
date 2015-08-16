@@ -21,7 +21,7 @@
 
 namespace Kite{
 	KText::KText(const KAtlas &Font) :
-		KIndexBatchObject(100 * 4, 100 * 6),
+		KBatchObject(100 * 4, 100 * 6, "text"),
 		_kfont(&Font),
 		_kwidth(0),
 		_kheight(0),
@@ -33,7 +33,7 @@ namespace Kite{
 	}
 
 	KText::KText(U32 MaximumSize, const KAtlas &Font) :
-		KIndexBatchObject(MaximumSize * 4, MaximumSize * 6),
+		KBatchObject(MaximumSize * 4, MaximumSize * 6, "text"),
 		_kfont(&Font),
 		_kwidth(0),
 		_kheight(0),
@@ -45,7 +45,7 @@ namespace Kite{
 	}
 
 	KText::KText(const std::string &Text, const KAtlas &Font, const KColor &Color) :
-		KIndexBatchObject(Text.size() * 4, Text.size() * 6),
+		KBatchObject(Text.size() * 4, Text.size() * 6, "text"),
 		_kfont(&Font),
 		_kcolor(Color),
 		_kwidth(0),

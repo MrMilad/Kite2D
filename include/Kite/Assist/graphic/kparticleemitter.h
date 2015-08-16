@@ -27,13 +27,13 @@
 #include "Kite/Core/utility/ktimeline.h"
 #include "Kite/Core/graphic/kgraphicstructs.h"
 #include "Kite/Core/graphic/kgraphictypes.h"
-#include "Kite/Assist/graphic/karraybatchobject.h"
+#include "Kite/Assist/graphic/kbatchobject.h"
 #include "Kite/Assist/graphic/katlas.h"
 #include <forward_list>
 
 namespace Kite{
 	// use a separate batch to darw partciles
-	class KITE_FUNC_EXPORT KParticleEmitter : public KArrayBatchObject{
+	class KITE_FUNC_EXPORT KParticleEmitter : public KBatchObject{
 	public:
 		KParticleEmitter(U32 ParticleSize);
 

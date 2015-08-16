@@ -23,7 +23,7 @@ USA
 
 namespace Kite {
 	KParticleEmitter::KParticleEmitter(U32 ParticleSize) :
-		KArrayBatchObject(ParticleSize, true),
+		KBatchObject(ParticleSize, "emitter", true),
 		_krandom((U32)getUniqueNumber()),
 		_kparticles(),
 		_krate(0),
@@ -87,7 +87,7 @@ namespace Kite {
 	}
 
 	void KParticleEmitter::update(F32 Delta) {
-		setUseSize(0);
+		setUseVertexSize(0);
 		static F32 count;
 		// add new particle if need
 		if (_kavail > 0) {
@@ -256,7 +256,7 @@ namespace Kite {
 			}
 
 			// set buffer size
-			this->setUseSize(i);
+			this->setUseVertexSize(i);
 		}
 		
 	}

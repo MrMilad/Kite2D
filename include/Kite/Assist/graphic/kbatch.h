@@ -17,55 +17,54 @@
     Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
     USA
 */
-#ifndef KARRAYBATCH_H
-#define KARRAYBATCH_H
+#ifndef KBATCH_H
+#define KBATCH_H
 
 #include "Kite/Core/system/ksystemdef.h"
-#include "Kite/Core/system/knoncopyable.h"
 #include "Kite/Core/graphic/kgraphicstructs.h"
 #include "Kite/Core/graphic/kvertexarray.h"
 #include "Kite/Core/graphic/kvertexbuffer.h"
 #include "Kite/Assist/graphic/kcamera.h"
-#include "Kite/Assist/graphic/karraybatchobject.h"
+#include "Kite/Assist/graphic/kbatchobject.h"
 #include <vector>
 
 namespace Kite{
-    class KITE_FUNC_EXPORT KArrayBatch : KNonCopyable{
-    public:
-		KArrayBatch(U32 VertexSize, const KBatchConfig &Config, bool PointSprite);
-		KArrayBatch(const std::vector<KArrayBatchObject *> &Objects, const KBatchConfig &Config, bool PointSprite);
+	class KITE_FUNC_EXPORT KBatch : KNonCopyable{
+	public:
+		KBatch(const std::vector<KBatchObject *> &Objects, const KBatchConfig Config, bool PointSprite);
+		KBatch(U32 VertexSize, U32 IndexSize, const KBatchConfig Config, bool PointSprite);
 
 		inline U32 getVertexSize() const { return _kvsize; }
+		inline U32 getIndexSize() const { return _kisize; }
 
 		inline void setCamera(const KCamera &Camera) { _kcam = &Camera; }
 		inline const KCamera &getCamera() const { return *_kcam; }
 
 		/// draw a single object
-		void draw(const KArrayBatchObject *Object, const KBatchUpdate &Update);
+		void draw(const KBatchObject *Object, const KBatchUpdate &Update);
 
 		/// draw a vector of objects
-		void draw(const std::vector<KArrayBatchObject *> &Objects, const KBatchUpdate &Update);
+		void draw(const std::vector<KBatchObject *> &Objects, const KBatchUpdate &Update);
 
-
-    private:
-		void _draw(const std::vector<const KArrayBatchObject *> &Objects, U32 VSize, const KBatchUpdate &Update);
-        static void _updatePos(void *Data, U32 Offset, U32 DataSize, void *Sender);
-		static void _updateUV(void *Data, U32 Offset, U32 DataSize, void *Sender);
-		static void _updateCol(void *Data, U32 Offset, U32 DataSize, void *Sender);
+	private:
+		void _draw(const std::vector<const KBatchObject *> &Objects, U32 VSize, U32 ISize, const KBatchUpdate &Update);
+		static void _updateInd(void *Data, U32 Offset, U32 DataSize, void *Sender);
+		static void _updateVer(void *Data, U32 Offset, U32 DataSize, void *Sender);
 		static void _updatePar(void *Data, U32 Offset, U32 DataSize, void *Sender);
-        std::vector<const KArrayBatchObject *> _kobj;
+		
+		std::vector<const KBatchObject *> _kobj;
 		Internal::KUpdateSender _ksender;
 		const KCamera *_kcam;
 		static const KCamera _kdefcam;
-        KVertexArray _kvao;
-		KVertexBuffer _kvboXY;		/// xy (position)
-        KVertexBuffer _kvboUV;		/// uv (texture uv)
-		KVertexBuffer _kvboCol;		/// rgba (color)
-		KVertexBuffer _kvboPnt;		/// stride: point size and texture size (Particle)
-        KBatchConfig _kconfig;
+		KVertexArray _kvao;
+		KVertexBuffer _kvboInd;		/// index
+		KVertexBuffer _kvboVer;		/// xy (position)
+		KVertexBuffer _kvboPnt;		/// point sprite: point size and texture size (usage: Particle)
+		KBatchConfig _kconfig;
 		U32 _kvsize;
-		bool _kpstride;
-    };
+		U32 _kisize;
+		bool _kpsprite;
+	};
 }
 
-#endif // KARRAYBATCH_H
+#endif // KBATCH_H

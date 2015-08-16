@@ -267,34 +267,26 @@ namespace Kite{
 	*/
     struct KBatchConfig{
 		KVertexBufferTypes index;		//!< Index buffer config
-		KVertexBufferTypes position;	//!< Position buffer config
-		KVertexBufferTypes uv;			//!< UV buffer config
-		KVertexBufferTypes color;		//!< Color buffer config
-		KVertexBufferTypes point;	//!< Particle buffer config ( only when we set Particle as true)
+		KVertexBufferTypes vertex;		//!< Vertex (position, uv, color) buffer config
+		KVertexBufferTypes point;		//!< Point buffer config ( set it true when you want render particle emitters )
 
 		//! Default constructors
-		KBatchConfig(KVertexBufferTypes Index = KVB_STREAM, KVertexBufferTypes Position = KVB_STREAM,
-					 KVertexBufferTypes UV = KVB_STREAM, KVertexBufferTypes Color = KVB_STREAM,
+		KBatchConfig(KVertexBufferTypes Index = KVB_STREAM,
+					 KVertexBufferTypes Vertex = KVB_STREAM,
 					 KVertexBufferTypes Point = KVB_STREAM) :
-            index(Index), position(Position),
-			uv(UV), color(Color), point(Point)
+            index(Index), vertex(Vertex) , point(Point)
         {}
     };
 
 	struct KBatchUpdate{
-		bool index;		//!< Index buffer config
-		bool position;	//!< Position buffer config
-		bool uv;		//!< UV buffer config
-		bool color;		//!< Color buffer config
-		bool particle;	//!< Particle buffer config
+		bool vertex;	//!< Enable/Disable updating vertex (position, uv, color) buffer
+		bool point;		//!< Enable/Disable updating point (uv, size) buffer
 
 		//! Default constructors
-		KBatchUpdate(bool Index = true, bool Position = true,
-					 bool UV = true, bool Color = true,
-					 bool Particle = true) :
-					 index(Index), position(Position),
-					 uv(UV), color(Color),
-					 particle(Particle)
+		KBatchUpdate(bool Vertex = true,
+					 bool Point = true) :
+					 vertex(Vertex),
+					 point(Point)
 		{}
 	};
 

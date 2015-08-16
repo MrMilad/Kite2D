@@ -23,7 +23,8 @@
 namespace Kite{
 	KTileMap::KTileMap(const KTileMapInfo &MapInfo) :
 		_kmapInfo(MapInfo),
-		_ktiles(MapInfo.mapSize.x * MapInfo.mapSize.y, Internal::KTile())
+		_ktiles(MapInfo.mapSize.x * MapInfo.mapSize.y, Internal::KTile()),
+		_kborder(0)
 	{}
 
 	bool KTileMap::addObject(KTileMapObject *Object) {
@@ -237,15 +238,21 @@ namespace Kite{
 		// check callback
 		if (!_kcallb) return;
 
+		// bad area
+		if (Area.right < Area.left) return;
+		if (Area.top < Area.bottom) return;
+
+		// added border
+		Area.left -= (_kborder * _kmapInfo.tileSize.x);
+		Area.bottom -= (_kborder * _kmapInfo.tileSize.y);
+		Area.right += (_kborder * _kmapInfo.tileSize.x);
+		Area.top += (_kborder * _kmapInfo.tileSize.y);
+
 		// out of range
 		if (Area.left >= getMapWidth()) return;
 		if (Area.bottom >= getMapHeight()) return;
 		if (Area.top <= 0) return;
 		if (Area.right <= 0) return;
-
-		// bad area
-		if (Area.right < Area.left) return;
-		if (Area.top < Area.bottom) return;
 
 		// calibrate area
 		if (Area.left < 0) Area.left = 0;

@@ -18,11 +18,32 @@
     USA
 */
 
-#include "Kite/Assist/graphic/kindexbatchobject.h"
+#include "Kite/Assist/graphic/kbatchobject.h"
 
 namespace Kite{
 
-	KIndexBatchObject::KIndexBatchObject(U32 VertexSize, U32 IndexSize, const std::string &Name) :
+	KBatchObject::KBatchObject(U32 VertexSize, const std::string &Name, bool PointSprite) :
+		_kvertex(new KVertex[VertexSize]),
+		_kindex(0),
+		_krealVSize(VertexSize),
+		_krealISize(0),
+		_kusedVSize(VertexSize),
+		_kusedISize(0),
+		_ktexture(0),
+		_kshader(0),
+		_kgtype(KGP_POINTS),
+		_kvisible(true),
+		_krelTrans(true),
+		_kname(Name),
+		_kindexed(false),
+		_kpoint(PointSprite)
+	{
+		if (PointSprite) {
+			_kpsprite = new KPointSprite[VertexSize];
+		}
+	}
+
+	KBatchObject::KBatchObject(U32 VertexSize, U32 IndexSize, const std::string &Name) :
 		_kvertex(new KVertex[VertexSize]),
 		_kindex(new U16[IndexSize]),
 		_krealVSize(VertexSize),
@@ -34,10 +55,12 @@ namespace Kite{
 		_kgtype(KGP_POINTS),
 		_kvisible(true),
 		_krelTrans(true),
-		_kname(Name)
+		_kname(Name),
+		_kindexed(true),
+		_kpoint(false)
 	{}
 
-	void KIndexBatchObject::setUseVertexSize(U32 Size) {
+	void KBatchObject::setUseVertexSize(U32 Size) {
 		if (Size > _krealVSize) {
 			Size = _krealVSize;
 		}
@@ -45,8 +68,8 @@ namespace Kite{
 		_kusedVSize = Size;
 	}
 
-	void KIndexBatchObject::setUseIndexSize(U32 Size) {
-		if (Size > _krealISize) {
+	void KBatchObject::setUseIndexSize(U32 Size) {
+		if (Size > _krealISize || !_kindexed) {
 			Size = _krealISize;
 		}
 

@@ -23,12 +23,12 @@
 #include "Kite/Core/system/ksystemdef.h"
 #include "Kite/Core/graphic/kgraphicstructs.h"
 #include "Kite/Core/Math/ktransformable.h"
-#include "Kite/Assist/graphic/kindexbatchobject.h"
+#include "Kite/Assist/graphic/kbatchobject.h"
 #include "Kite/Assist/graphic/katlas.h"
 #include <cstring>
 
 namespace Kite{
-    class KITE_FUNC_EXPORT KText : public KIndexBatchObject{
+    class KITE_FUNC_EXPORT KText : public KBatchObject{
 	public:
 		// default max size = 100
 		KText(const KAtlas &Font);

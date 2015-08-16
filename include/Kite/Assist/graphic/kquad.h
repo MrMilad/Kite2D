@@ -24,12 +24,12 @@
 #include "Kite/Core/graphic/kgraphicstructs.h"
 #include "Kite/Core/math/kmathstructs.h"
 #include "Kite/Core/math/ktransformable.h"
-#include "kite/Assist/graphic/kindexbatchobject.h"
+#include "kite/Assist/graphic/kbatchobject.h"
 #include "kite/Assist/graphic/kanimeobject.h"
 #include "kite/Assist/map/ktilemapobject.h"
 
 namespace Kite{
-    class KITE_FUNC_EXPORT KQuad : public KIndexBatchObject{
+    class KITE_FUNC_EXPORT KQuad : public KBatchObject{
     public:
 		KQuad();
 		KQuad(const KRectF32 &Dimension, const KRectF32 &UV, const KColor &Color);

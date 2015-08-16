@@ -28,10 +28,11 @@
 
 namespace Kite{
 	class KITE_FUNC_EXPORT KResource : KNonCopyable{
-	template < class T > friend class KResourceManager;
+	friend class KResourceManager;
 	public:
-		KResource():
-			_kref(0)
+		KResource(const std::string &Name = ""):
+			_kref(0),
+			_kname(Name)
 		{}
 
 		virtual ~KResource(){};
@@ -64,8 +65,12 @@ namespace Kite{
 
 		inline U32 getReferencesCount() const { return _kref; }
 
+		inline void setResourceName(const std::string &Name) { _kname = Name; }
+		inline const std::string &getResourceName() const { return _kname; }
+
 	private:
 		U32 _kref;
+		std::string _kname;
 		inline void incRef() { ++_kref; }
 		inline void decRef() { _kref > 0 ? --_kref : _kref; }
 	};

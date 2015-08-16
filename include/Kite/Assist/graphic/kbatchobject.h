@@ -17,8 +17,8 @@
     Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
     USA
 */
-#ifndef KINDEXBATCHOBJECT_H
-#define KINDEXBATCHOBJECT_H
+#ifndef KBATCHOBJECT_H
+#define KBATCHOBJECT_H
 
 #include "Kite/Core/system/ksystemdef.h"
 #include "Kite/Core/graphic/kgraphicstructs.h"
@@ -31,14 +31,18 @@
 #include <cstring>
 
 namespace Kite{
-	class KITE_FUNC_EXPORT KIndexBatchObject : public KTransformable, public KAnimeObject, public KTileMapObject {
-		friend class KIndexBatch;
+	class KITE_FUNC_EXPORT KBatchObject : public KTransformable, public KAnimeObject, public KTileMapObject {
+		friend class KBatch;
     public:
-		KIndexBatchObject(U32 VertexSize, U32 IndexSize, const std::string &Name = "");
-		virtual ~KIndexBatchObject() {}
+		// array rendering (without index)
+		KBatchObject(U32 VertexSize, const std::string &Name, bool PointSprite);
+		// index rendering
+		KBatchObject(U32 VertexSize, U32 IndexSize, const std::string &Name);
+		virtual ~KBatchObject() {}
 
 		inline const KVertex *getVertex() const { return _kvertex; }
         inline const U16 *getIndex() const {return _kindex;}
+		inline const KPointSprite *getPoint() const { return _kpsprite; }
 
 		inline void setShader(const KShaderProgram *Shader) { _kshader = Shader; }
 		inline const KShaderProgram *getShader() const { return _kshader; }
@@ -54,21 +58,30 @@ namespace Kite{
 
         inline U32 getVertexSize() const { return _kusedVSize; }
 		inline U32 getIndexSize() const { return _kusedISize; }
+		inline U32 getPointSize() const { if (_kpoint) return _kusedVSize; return 0; }
 
 		inline U32 getRealVertexSize() const { return _krealVSize; }
 		inline U32 getRealIndexSize() const { return _krealISize; }
+		inline U32 getRealPointSize() const { return _krealVSize; }
 
 		inline void setRelativeTransform(bool Relative) { _krelTrans = Relative; }
 		inline bool getRelativeTransform() const { return _krelTrans; }
+
+		inline bool getIndexed() const { return _kindexed; }
+		inline bool getSpriteEnabled() const { return _kpoint; }
 
 		// return model-view teansform
 		virtual const KTransform &getModelViewTransform() const = 0;
 
     protected:
+		// vertex/point catch size
 		void setUseVertexSize(U32 Size);
+		// index catch size
 		void setUseIndexSize(U32 Size);
+
         KVertex *_kvertex;
 		U16 *_kindex;
+		KPointSprite *_kpsprite;
 
     private:
 		const KShaderProgram *_kshader;
@@ -81,7 +94,9 @@ namespace Kite{
 		bool _kvisible;
 		bool _krelTrans;
 		std::string _kname;
+		bool _kindexed;
+		bool _kpoint;
     };
 }
 
-#endif // KINDEXBATCHOBJECT_H
+#endif // KBATCHOBJECT_H

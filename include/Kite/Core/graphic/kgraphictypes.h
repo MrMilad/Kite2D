@@ -269,6 +269,17 @@ namespace Kite{
 		KTO_CUSTOM
 	};
 
+	enum KBuiltinShaderTypes {
+		KBS_VERT,
+		KBS_FRAG_COLOR,
+		KBS_FRAG_TEXTURE,
+		KBS_FRAG_TEXTURE_COLOR,
+		KBS_VERT_POINT,
+		KBS_FRAG_POINT_COLOR,
+		KBS_FRAG_POINT_TEXTURE,
+		KBS_FRAG_POINT_TEXTURE_COLOR,
+	};
+
 	/*! \typedef KAtlasFileTypes
 	\brief Types of the atlas files
 	*/

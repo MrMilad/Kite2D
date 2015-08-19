@@ -32,7 +32,7 @@ namespace Kite{
 		_ktransform(KMatrix3()) // unit
     {}
 
-	KCamera::KCamera(const KRectF32 &Viewport) :
+	KCamera::KCamera(const KRectI32 &Viewport) :
 		_krotation(0.0f),
 		_kzoom(1.0f),
 		_kflipy(1.0f),
@@ -43,7 +43,7 @@ namespace Kite{
 		setViewport(Viewport);
 	}
 
-	void KCamera::setViewport(const KRectF32 &Viewport){
+	void KCamera::setViewport(const KRectI32 &Viewport){
 		_kcenter.x = (Viewport.left + Viewport.right) / 2.0f;
 		_kcenter.y = (Viewport.top + Viewport.bottom) / 2.0f;
 		_ksize.x = Viewport.right - Viewport.left;
@@ -90,7 +90,11 @@ namespace Kite{
 
 		// translate
 		if (AnimatedValue->trChannel)
-		if (AnimatedValue->tchange == KAV_SET) setCenter(AnimatedValue->translate); else move(AnimatedValue->translate);
+		if (AnimatedValue->tchange == KAV_SET) {
+			setCenter(KVector2I32((I32)AnimatedValue->translate.x, (I32)AnimatedValue->translate.y));
+		}else { 
+			move(KVector2I32((I32)AnimatedValue->translate.x, (I32)AnimatedValue->translate.y));
+		}
 	}
 
 }

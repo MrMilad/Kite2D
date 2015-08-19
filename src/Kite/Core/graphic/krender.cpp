@@ -30,7 +30,7 @@ namespace Kite{
                                     GL_LINES_ADJACENCY, GL_TRIANGLE_STRIP_ADJACENCY,
                                     GL_TRIANGLES_ADJACENCY};
 
-    KRectU32 KRender::_kviewport;
+    KRectI32 KRender::_kviewport;
 
     KRender::KRender(){}
 
@@ -92,7 +92,7 @@ namespace Kite{
 		}
 	}
 
-    void KRender::setViewport(const KRectU32 &Viewport){
+    void KRender::setViewport(const KRectI32 &Viewport){
         _kviewport = Viewport;
         DGL_CALL(glViewport(_kviewport.left,
                             _kviewport.bottom,
@@ -100,7 +100,7 @@ namespace Kite{
                             _kviewport.top));
     }
 
-    const KRectU32 *KRender::getViewport(){
+    const KRectI32 *KRender::getViewport(){
         return &_kviewport;
     }
 }

@@ -135,6 +135,20 @@ namespace Kite{
 		return true;
 	}
 
+	bool KShader::loadString(const std::string &Source) {
+		if (Source.empty()) {
+			KDEBUG_PRINT("Empty shader source");
+			return false;
+		}
+
+		// get the source as a pointer to an array of characters
+		const GLchar *cod = &Source[0];
+
+		// associate the source with the shader id
+		DGL_CALL(glShaderSource(_kglid, 1, &cod, NULL));
+		return true;
+	}
+
 	bool KShader::compile(){
 		// compile the shader
 		DGL_CALL(glCompileShader(_kglid));

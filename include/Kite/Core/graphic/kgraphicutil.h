@@ -25,6 +25,8 @@
 */
 
 #include "Kite/Core/system/ksystemdef.h"
+#include "Kite/Core/graphic/kgraphictypes.h"
+#include <cstring>
 
 /*! \namespace Kite
 	\brief Public namespace.
@@ -42,6 +44,8 @@ namespace Kite{
 
 	//! Check availability of opengl shader programs
 	//KITE_FUNC_EXPORT extern bool isShaderAvailable(); 
+
+	KITE_FUNC_EXPORT extern const std::string &getBuiltinShader(KBuiltinShaderTypes Types);
 
 }
 

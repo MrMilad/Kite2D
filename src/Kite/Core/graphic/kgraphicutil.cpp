@@ -47,4 +47,115 @@ namespace Kite{
 //               GLEW_ARB_vertex_shader        &&
 //               GLEW_ARB_fragment_shader;
 //    }
+
+	const std::string &getBuiltinShader(KBuiltinShaderTypes Types) {
+		static std::string source;
+		source.clear();
+
+		switch (Types) {
+		case Kite::KBS_VERT:
+			source = "#version 330\n"
+				"attribute vec2 in_pos;"
+				"attribute vec2 in_uv;"
+				"attribute vec4 in_col;"
+				"out vec4 ex_col;"
+				"out vec2 ex_uv;"
+				"void main(void){"
+				"gl_Position = vec4(in_pos, 0.0, 1.0);"
+				"ex_uv = in_uv;"
+				"ex_col = in_col;}";
+			return source;
+
+		case Kite::KBS_VERT_POINT:
+			source = "#version 330\n"
+				"attribute vec2 in_pos;"
+				"attribute vec2 in_uv;"
+				"attribute vec4 in_col;"
+				"attribute vec3 in_psprite;"
+				"out vec4 ex_col;"
+				"out vec2 ex_uv;"
+				"out vec2 ex_tsize;"
+				"void main(void) {"
+				"gl_Position = vec4(in_pos, 0.0, 1.0);"
+				"ex_col = in_col;"
+				"ex_uv = in_uv;"
+				"gl_PointSize = in_psprite.x;"
+				"ex_tsize = vec2(in_psprite.y, in_psprite.z);}";
+			return source;
+
+		case Kite::KBS_FRAG_COLOR:
+			source = "#version 330\n"
+				"in vec4 ex_col;"
+				"in vec2 ex_uv;"
+				"uniform sampler2D in_texture;"
+				"out vec4 out_col;"
+				"void main(void) {"
+				"out_col = ex_col;}";
+			return source;
+
+		case Kite::KBS_FRAG_TEXTURE:
+			source = "#version 330\n"
+				"in vec4 ex_col;"
+				"in vec2 ex_uv;"
+				"uniform sampler2D in_texture;"
+				"out vec4 out_col;"
+				"void main(void) {"
+				"out_col = texture2D( in_texture, ex_uv);}";
+			return source;
+
+		case Kite::KBS_FRAG_TEXTURE_COLOR:
+			source = "#version 330\n"
+				"in vec4 ex_col;"
+				"in vec2 ex_uv;"
+				"uniform sampler2D in_texture;"
+				"out vec4 out_col;"
+				"void main(void) {"
+				"out_col = texture2D( in_texture, ex_uv) * ex_col;}";
+			return source;
+
+		case Kite::KBS_FRAG_POINT_COLOR:
+			source = "#version 330\n"
+				"in vec4 ex_col;"
+				"in vec2 ex_uv;"
+				"in vec2 ex_tsize;"
+				"uniform sampler2D in_texture;"
+				"out vec4 out_col;"
+				"void main(void) {"
+				"vec2 realTexCoord = ex_uv + (gl_PointCoord * ex_tsize);"
+				"vec4 fragColor = texture2D(in_texture, realTexCoord);"
+				"out_col = ex_col;}";
+			return source;
+
+		case Kite::KBS_FRAG_POINT_TEXTURE:
+			source = "#version 330\n"
+				"in vec4 ex_col;"
+				"in vec2 ex_uv;"
+				"in vec2 ex_tsize;"
+				"uniform sampler2D in_texture;"
+				"out vec4 out_col;"
+				"void main(void) {"
+				"vec2 realTexCoord = ex_uv + (gl_PointCoord * ex_tsize);"
+				"vec4 fragColor = texture2D(in_texture, realTexCoord);"
+				"out_col = fragColor;}";
+			return source;
+
+		case Kite::KBS_FRAG_POINT_TEXTURE_COLOR:
+			source = "#version 330\n"
+				"in vec4 ex_col;"
+				"in vec2 ex_uv;"
+				"in vec2 ex_tsize;"
+				"uniform sampler2D in_texture;"
+				"out vec4 out_col;"
+				"void main(void) {"
+				"vec2 realTexCoord = ex_uv + (gl_PointCoord * ex_tsize);"
+				"vec4 fragColor = texture2D(in_texture, realTexCoord);"
+				"out_col = fragColor * ex_col;}";
+			return source;
+
+		default:
+			KDEBUG_PRINT("invalid shader type");
+			break;
+		}
+		return source;
+	}
 }

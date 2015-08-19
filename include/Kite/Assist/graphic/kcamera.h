@@ -31,14 +31,14 @@ namespace Kite{
 	class KITE_FUNC_EXPORT KCamera : public KAnimeObject{
     public:
         KCamera();
-        KCamera(const KRectF32 &Viewport);
+        KCamera(const KRectI32 &Viewport);
 
-		void setViewport(const KRectF32 &Viewport);
+		void setViewport(const KRectI32 &Viewport);
 
 		/// default: 0.0, 0.0
-		inline void setCenter(const KVector2F32 &Center) { _kcenter = Center; _kneedUpdate = true; }
-		inline const KVector2F32 &getCenter() const { return _kcenter; }
-		inline void move(const KVector2F32 &Move){ _kcenter += Move;  _kneedUpdate = true; }
+		inline void setCenter(const KVector2I32 &Center) { _kcenter = Center; _kneedUpdate = true; }
+		inline const KVector2I32 &getCenter() const { return _kcenter; }
+		inline void move(const KVector2I32 &Move){ _kcenter += Move;  _kneedUpdate = true; }
 
 		/// default: 0.0
 		inline void setRotation(F32 Angle) { _krotation = Angle; _kneedUpdate = true; }
@@ -60,8 +60,8 @@ namespace Kite{
 		void animeUpdate(const KAnimeValue *AnimatedValue);
 
     private:
-		KVector2F32 _ksize;
-        KVector2F32 _kcenter;
+		KVector2I32 _ksize;
+        KVector2I32 _kcenter;
         F32 _krotation;
         F32 _kzoom;
 		F32 _kflipy;

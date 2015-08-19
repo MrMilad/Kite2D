@@ -113,13 +113,13 @@ namespace Kite{
 
 			\param Viewport Specify the viewport
 		*/
-        static void setViewport(const KRectU32 &Viewport);
+        static void setViewport(const KRectI32 &Viewport);
 
 		//! Get the viewport
 		/*!
 			\return Read-only pointer to viewport
 		*/
-        static const KRectU32 *getViewport();
+        static const KRectI32 *getViewport();
 
 //        void setBlendMode(KBlendMode BlendMode);
     private:
@@ -130,7 +130,7 @@ namespace Kite{
         ~KRender();
 
         static const U32 geoTypes[11];	//!< Static array of GL geometric types
-        static KRectU32 _kviewport;		//!< Static viewport
+        static KRectI32 _kviewport;		//!< Static viewport
     };
 }
 

@@ -44,9 +44,6 @@ namespace Kite{
 			_kisize += Objects[i]->getIndexSize();
 		}
 
-		KDEBUG_ASSERT_T(_kvsize > 0);
-		KDEBUG_ASSERT_T(_kisize > 0);
-
 		// inite internal vector
 		_kobj.reserve(Objects.size());
 
@@ -56,7 +53,9 @@ namespace Kite{
 
 		// inite index
 		std::vector<U16> ind(_kisize, 0);
-		_updateInd(&ind[0], 0, 0, this);
+		if (_kisize > 0) {
+			_updateInd(&ind[0], 0, 0, this);
+		}
 
 		// inite vertex
 		std::vector<KVertex> vert(_kvsize, KVertex());
@@ -73,9 +72,11 @@ namespace Kite{
 		_kvao.bind();
 
 		// index buffer
-		_kvboInd.bind();
-		_kvboInd.fill(&ind[0], sizeof(U16) * _kisize, _kconfig.index);
-		_kvboInd.setUpdateHandle(_updateInd);
+		if (_kisize > 0) {
+			_kvboInd.bind();
+			_kvboInd.fill(&ind[0], sizeof(U16)* _kisize, _kconfig.index);
+			_kvboInd.setUpdateHandle(_updateInd);
+		}
 
 		// vertex buffer
 		_kvboVer.bind();
@@ -119,29 +120,28 @@ namespace Kite{
 		_kpsprite(PointSprite)
 	{
 
-		KDEBUG_ASSERT_T(IndexSize > 0);
-		KDEBUG_ASSERT_T(VertexSize > 0);
-
-		// initialize index
+		// inite index
 		std::vector<U16> ind(_kisize, 0);
 
-		// initialize vertex
+		// inite vertex
 		std::vector<KVertex> vert(_kvsize, KVertex());
-		_updateVer(&vert[0], 0, 0, this);
 
-		// initialize particle
-		std::vector<KPointSprite> par;
+		// inite point
+		std::vector<KPointSprite> po;
 		if (_kpsprite) {
-			par.resize(VertexSize);
+			po.resize(_kvsize, KPointSprite());
+			_updatePar(&po[0], 0, 0, this);
 		}
 
 		// bind vao then inite buffers
 		_kvao.bind();
 
 		// index buffer
-		_kvboInd.bind();
-		_kvboInd.fill(&ind[0], sizeof(U16)* _kisize, _kconfig.index);
-		_kvboInd.setUpdateHandle(_updateInd);
+		if (_kisize > 0) {
+			_kvboInd.bind();
+			_kvboInd.fill(&ind[0], sizeof(U16)* _kisize, _kconfig.index);
+			_kvboInd.setUpdateHandle(_updateInd);
+		}
 
 		// vertex buffer
 		_kvboVer.bind();
@@ -149,27 +149,24 @@ namespace Kite{
 
 		// pos
 		_kvao.enableAttribute(0);
-		_kvao.setAttribute(0, KAC_2COMPONENT, KAT_FLOAT, false, sizeof(KVector2F32), KBUFFER_OFFSET(0));
+		_kvao.setAttribute(0, KAC_2COMPONENT, KAT_FLOAT, false, sizeof(KVertex), KBUFFER_OFFSET(0));
 
 		// uv
 		_kvao.enableAttribute(1);
-		_kvao.setAttribute(1, KAC_2COMPONENT, KAT_FLOAT, false, sizeof(KVector2F32), KBUFFER_OFFSET(sizeof(KVector2F32)));
+		_kvao.setAttribute(1, KAC_2COMPONENT, KAT_FLOAT, false, sizeof(KVertex), KBUFFER_OFFSET(sizeof(KVector2F32)));
 
 		// color
 		_kvao.enableAttribute(2);
-		_kvao.setAttribute(2, KAC_4COMPONENT, KAT_FLOAT, false, sizeof(KColor), KBUFFER_OFFSET(sizeof(KVector2F32)* 2));
+		_kvao.setAttribute(2, KAC_4COMPONENT, KAT_FLOAT, false, sizeof(KVertex), KBUFFER_OFFSET(sizeof(KVector2F32)* 2));
 		_kvboVer.setUpdateHandle(_updateVer);
 
-		// particle buffer
+		// point sprite buffer
 		if (_kpsprite) {
 			_kvboPnt.bind();
-			_kvboPnt.fill(&par[0], sizeof(KPointSprite)* VertexSize, _kconfig.point);
-			// point size
+			_kvboPnt.fill(&po[0], sizeof(KPointSprite)* _kvsize, _kconfig.point);
+			// point sprite
 			_kvao.enableAttribute(3);
-			_kvao.setAttribute(3, KAC_1COMPONENT, KAT_FLOAT, false, sizeof(F32), KBUFFER_OFFSET(0));
-			// texture size
-			_kvao.enableAttribute(4);
-			_kvao.setAttribute(4, KAC_2COMPONENT, KAT_FLOAT, false, sizeof(KVector2F32), KBUFFER_OFFSET(sizeof(F32)));
+			_kvao.setAttribute(3, KAC_3COMPONENT, KAT_FLOAT, false, sizeof(KPointSprite), KBUFFER_OFFSET(0));
 			_kvboPnt.setUpdateHandle(_updatePar);
 		}
 

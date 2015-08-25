@@ -26,6 +26,7 @@ to ease the development of games.
 + Fast and basic 2D physique functions (hit-testing, bounding box, ...)
 + Powerful particle system
 + Powerful tile-based map engine
++ Flexible serializer class and custom binary-compatible file format
 + ...
 
 ---------------------[ LICENSE ]---------------------

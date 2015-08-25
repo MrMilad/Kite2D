@@ -21,6 +21,7 @@ USA
 #define KTIMELINE_H
 
 #include "Kite/Core/system/ksystemdef.h"
+#include "Kite/Core/utility/kserialize.h"
 #include <utility>
 #include <set>
 
@@ -29,6 +30,26 @@ namespace Kite {
 	// duplicate on X is not valid
 	template <typename Y, typename X>
 	class KTimeLine {
+
+		// Ktimeline
+		friend KSerialize &operator<<(KSerialize &Out, const KTimeLine<Y, X> &Value) {
+			std::set<std::pair<Y, X>, bool(*)(const std::pair<Y, X> &, const std::pair<Y, X> &)>::const_iterator it = Value._knodes.begin();
+			Out << Value._knodes.size();
+			for (it; it != Value._knodes.end(); ++it)
+				Out << *it;
+			return Out;
+		}
+
+		friend KSerialize &operator>>(KSerialize &In, KTimeLine<Y, X> &Value) {
+			U32 size;
+			std::pair<Y, X> pair;
+			In >> size;
+			for (U32 i = 0; i < size; i++) {
+				In >> pair;
+				Value._knodes.insert(pair);
+			}
+			return In;
+		}
 	public:
 		KTimeLine():
 			_knodes(_comp)
@@ -80,7 +101,7 @@ namespace Kite {
 					pair1 = *(--it);
 					pair2 = *(++it);
 					if (Tween) {
-						return KTween<X, Y>::linear(XValue - pair1.second, pair1.first, pair2.first, pair2.second - pair1.second);
+						return (Y)KTween<X, Y>::linear(XValue - pair1.second, pair1.first, pair2.first, pair2.second - pair1.second);
 					} else {
 						return pair1.first;
 					}

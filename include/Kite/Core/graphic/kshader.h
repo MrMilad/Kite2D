@@ -76,7 +76,7 @@ namespace Kite{
 
 			\return True if loading was successful
 		*/
-		bool loadStream(KInputStream &ShaderStream, U32 FileType = 0);
+		bool loadStream(KIStream &ShaderStream, U32 FileType = 0);
 
 		//! Load both the vertex and fragment shaders directly from source
 		/*!

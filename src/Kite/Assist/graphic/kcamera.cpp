@@ -91,9 +91,9 @@ namespace Kite{
 		// translate
 		if (AnimatedValue->trChannel)
 		if (AnimatedValue->tchange == KAV_SET) {
-			setCenter(KVector2I32((I32)AnimatedValue->translate.x, (I32)AnimatedValue->translate.y));
+			setCenter(AnimatedValue->translate);
 		}else { 
-			move(KVector2I32((I32)AnimatedValue->translate.x, (I32)AnimatedValue->translate.y));
+			move(AnimatedValue->translate);
 		}
 	}
 

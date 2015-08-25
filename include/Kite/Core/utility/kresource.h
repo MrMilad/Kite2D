@@ -23,7 +23,7 @@
 #include "Kite/Core/system/ksystemdef.h"
 #include "Kite/Core/system/ksystemtypes.h"
 #include "Kite/Core/system/knoncopyable.h"
-#include "Kite/Core/utility/kinputstream.h"
+#include "Kite/Core/utility/kistream.h"
 #include <cstring>
 
 namespace Kite{
@@ -61,7 +61,7 @@ namespace Kite{
 
 		\return True if loading was successful
 		*/
-		virtual bool loadStream(KInputStream &Stream, U32 FileType = 0) = 0;
+		virtual bool loadStream(KIStream &Stream, U32 FileType = 0) = 0;
 
 		inline U32 getReferencesCount() const { return _kref; }
 

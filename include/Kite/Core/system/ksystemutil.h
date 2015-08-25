@@ -46,6 +46,8 @@ namespace Kite{
 	/// not thread-safe
 	KITE_FUNC_EXPORT extern U64 getUniqueNumber();
 
+	KITE_FUNC_EXPORT extern F64 convertStrToDouble(const char *Value);
+
 }
 
 #endif // KSYSTEMUTIL_H

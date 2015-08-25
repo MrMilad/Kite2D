@@ -50,7 +50,7 @@ namespace Kite{
 	/*! \enum KVertexBufferTypes
 		\brief Performance hint for VBO to provide how the buffer object is going to be used.
 	*/
-    enum KVertexBufferTypes{
+    enum KVertexBufferTypes : U8{
         KVB_STATIC = 0,	//!< The data in VBO will not be changed (specified once and used many times)
         KVB_DYNAMIC,	//!< The data in VBO will be changed frequently (specified and used repeatedly)
         KVB_STREAM		//!< The data in VBO will be changed every frame (specified once and used once)
@@ -245,8 +245,8 @@ namespace Kite{
 	/*! \enum KTileMapTypes
 		\brief Types of tile-based maps
 	*/
-	enum KTileMapTypes{
-		KTM_ISOMETRIC,	//!< Isometric map
+	enum KTileMapTypes : U8{
+		KTM_ISOMETRIC = 0,	//!< Isometric map
 		KTM_FLAT		//!< Flat (rectangular) map
 	};
 
@@ -254,7 +254,7 @@ namespace Kite{
 		\brief Isometric tiles - mouse detection (Internally use)
 	*/
 	enum KTileBitmapTypes : U8{
-		KTB_CENTER,
+		KTB_CENTER = 0,
 		KTB_BOTTOM_LEFT,
 		KTB_BOTTOM_RIGHT,
 		KTB_TOP_LEFT,

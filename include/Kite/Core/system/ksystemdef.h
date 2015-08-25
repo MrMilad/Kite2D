@@ -220,5 +220,6 @@ namespace Kite{
 
     // OpenGL Context is HGLRC
     typedef void *KContextHandle;
+
 }
 #endif // KSYSTEMDEF_H

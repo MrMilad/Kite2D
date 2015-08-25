@@ -20,9 +20,9 @@ USA
 #include "Kite/Assist/graphic/katlas.h"
 #include "Kite/Core/utility/kutilitystructs.h"
 #include "Kite/Core/utility/kmeminputstream.h"
+#include "Kite/Core/utility/kserialize.h"
 #include "Kite/Core/graphic/kgraphicdef.h"
 #include <fstream>
-#include <iostream>
 
 #define JSMN_PARENT_LINKS
 #include "extlibs/headers/json/jsmn.h"
@@ -35,46 +35,29 @@ namespace Kite {
 		if (FileType == KAF_JSON)
 			return _loadJSON(FileName);
 
-		bool ret = false;
+		KSerialize serial;
+		if (serial.loadFile(FileName)) {
 
-		// open file
-		FILE *file = fopen(FileName.c_str(), "rb");
+			// check format
+			std::string format;
+			serial >> format;
 
-		if (file != NULL) {
+			if (format.compare("katlas") == 0) {
+				// check size
+				U32 size = 0;
+				serial >> size;
 
-			// file header
-			KArrayHeader header;
-			size_t rsize;
-
-			// set read pointer to begin of file
-			fseek(file, 0, SEEK_SET);
-
-			// read header
-			rsize = fread(&header, sizeof(KArrayHeader), 1, file);
-			if (rsize == 1) {
-
-				// check file format
-				if (strcmp(header.format, "katlasi\0") == 0) {
-
-					// check size of array objects
-					if (header.objCount > 0) {
-
-						// temp object
-						KAtlasItem temp;
-
-						// read objects one bye one
-						for (U32 i = 0; i < header.objCount; i++) {
-							rsize = fread(&temp, (size_t)header.objSize, 1, file);
-							_kitems.push_back(temp);
-						}
-						ret = true;
-					}
+				for (U32 i = 0; i < size; i++){
+					KAtlasItem item;
+					serial >> item;
+					_kitems.push_back(item);
 				}
+				return true;
+			} else {
+				KDEBUG_PRINT("wrong file format");
 			}
 		}
-
-		fclose(file);
-		return ret;
+		return false;
 	}
 
 	bool KAtlas::loadMemory(const void *Data, std::size_t Size, U32 FileType) {
@@ -87,89 +70,66 @@ namespace Kite {
 		return loadStream(temp);
 	}
 
-	bool KAtlas::loadStream(KInputStream &Stream, U32 FileType) {
-		// just in case
+	bool KAtlas::loadStream(KIStream &Stream, U32 FileType) {
 		_kitems.clear();
 
 		// checking file types
 		if (FileType == KAF_JSON)
 			return _loadJSON(Stream);
 
-		bool ret = false;
+		KSerialize serial;
+		if (serial.loadStream(Stream)) {
 
-		if (Stream.isOpen()) {
+			// check format
+			std::string format;
+			serial >> format;
 
-			// file header
-			KArrayHeader header;
-			U64 rsize = 0;
+			if (format.compare("katlas") == 0) {
+				// check size
+				U32 size = 0;
+				serial >> size;
 
-			// set read pointer to begin of file
-			Stream.seek(0, SEEK_SET);
-
-			// read header
-			rsize = Stream.read(&header, sizeof(KArrayHeader));
-			if (rsize == sizeof(KArrayHeader)) {
-
-				// check file format
-				if (strcmp(header.format, "katlasi\0") == 0) {
-
-					// check size of array objects
-					if (header.objCount > 0) {
-
-						// temp object
-						KAtlasItem temp;
-
-						// read objects one bye one
-						for (U32 i = 0; i < header.objCount; i++) {
-							Stream.read(&temp, header.objSize);
-							_kitems.push_back(temp);
-						}
-						ret = true;
-					}
+				for (U32 i = 0; i < size; i++) {
+					KAtlasItem item;
+					serial >> item;
+					_kitems.push_back(item);
 				}
+				return true;
+			} else {
+				KDEBUG_PRINT("wrong file format");
 			}
 		}
-
-		return ret;
+		return false;
 	}
 
 	bool KAtlas::saveFile(const std::string &FileName) {
 		if (_kitems.empty())
-			return false;
+			return true;
+		
+		KSerialize serial;
+		serial << std::string("katlas");
+		serial << _kitems.size();
 
-		bool ret = false;
-
-		// open file
-		FILE *file = fopen(FileName.c_str(), "wb");
-		if (file != NULL) {
-
-			// inite header
-			KArrayHeader header;
-			header.format[0] = 'k';
-			header.format[1] = 'a';
-			header.format[2] = 't';
-			header.format[3] = 'l';
-			header.format[4] = 'a';
-			header.format[5] = 's';
-			header.format[6] = 'i';
-			header.format[7] = '\0';
-			header.objCount = _kitems.size();
-			header.objSize = sizeof(KAtlasItem);
-
-			// write header
-			fwrite(&header, sizeof(KArrayHeader), 1, file);
-
-			// write array elements 
-			for (U32 i = 0; i < _kitems.size(); i++) {
-				fwrite(&_kitems[i], sizeof(KAtlasItem), 1, file);
-			}
-
-			ret = true;
+		for (U32 i = 0; i < _kitems.size(); i++) {
+			serial << _kitems[i];
 		}
 
-		// cleanup
-		fclose(file);
-		return ret;
+		return serial.saveFile(FileName);
+	}
+
+	bool KAtlas::saveStream(KOStream &Stream) {
+		if (_kitems.empty())
+			return true;
+
+		KSerialize serial;
+		serial << std::string("katlas");
+		serial << _kitems.size();
+
+		for (U32 i = 0; i < _kitems.size(); i++) {
+			serial << _kitems[i];
+		}
+
+		return serial.saveStream(Stream);
 	}
 
 	bool KAtlas::_loadJSON(const std::string &FileName) {
@@ -191,7 +151,7 @@ namespace Kite {
 		return _jsonParser(content);
 	}
 
-	bool KAtlas::_loadJSON(KInputStream &Stream) {
+	bool KAtlas::_loadJSON(KIStream &Stream) {
 		// just in case
 		_kitems.clear();
 		_kimgName.clear();

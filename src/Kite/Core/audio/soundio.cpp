@@ -45,7 +45,7 @@ namespace Internal{
 		return false;
     }
 
-	bool SoundIO::openFile(KInputStream &InputStream, KAudioFileTypes FileTypes){
+	bool SoundIO::openFile(KIStream &InputStream, KAudioFileTypes FileTypes){
 		delete _kformat;
 		switch (FileTypes){
 		case KAF_OGG:

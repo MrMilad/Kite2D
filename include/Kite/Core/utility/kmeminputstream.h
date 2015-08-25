@@ -21,10 +21,10 @@ USA
 #define KMEMINPUTSTREAM_H
 
 #include "Kite/Core/system/ksystemdef.h"
-#include "Kite/Core/utility/kinputstream.h"
+#include "Kite/Core/utility/kistream.h"
 
 namespace Kite{
-	class KITE_FUNC_EXPORT KMemInputStream : public KInputStream{
+	class KITE_FUNC_EXPORT KMemInputStream : public KIStream{
 	public:
 		KMemInputStream(const void *Data, U64 DataSize);
 

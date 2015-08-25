@@ -23,13 +23,13 @@
 #include "Kite/Core/system/ksystemdef.h"
 
 namespace Kite{
-	enum KOrientationTypes{
+	enum KOrientationTypes : I8{
 		KO_COLLINEAR = 0,
 		KO_CLOCKWISE = -1,
 		KO_CCLOCKWISE = 1
 	};
 
-	enum KInterpolationTypes{
+	enum KInterpolationTypes : U8{
 		KIN_LINEAR = 0,
 		KIN_QUADRATICIN,
 		KIN_QUADRATICOUT,

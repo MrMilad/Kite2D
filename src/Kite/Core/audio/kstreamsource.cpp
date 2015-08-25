@@ -123,7 +123,7 @@ namespace Kite{
 		return ret;
     }
 
-	bool KStreamSource::loadStream(KInputStream &InputStream, U32 FileType) {
+	bool KStreamSource::loadStream(KIStream &InputStream, U32 FileType) {
 		// first we stop the source
 		stop();
 

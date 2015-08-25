@@ -26,6 +26,7 @@
 #include "Kite/Core/system/kcoreinstance.h"
 #include "Kite/Core/graphic/kgraphictypes.h"
 #include "Kite/Core/graphic/kgraphicstructs.h"
+#include "Kite/Core/utility/kresource.h"
 #include "Kite/core/graphic/kshader.h"
 #include "Kite/Core/graphic/ktexture.h"
 #include "Kite/Core/math/ktransform.h"
@@ -41,7 +42,7 @@ namespace Kite{
 	/*!
 	This class supports shader programs written in the OpenGL Shading Language (GLSL).
 	*/
-	class KITE_FUNC_EXPORT KShaderProgram : public KCoreInstance{
+	class KITE_FUNC_EXPORT KShaderProgram : public KCoreInstance, public KResource{
 	public:
 		//! Default constructors
 		/*!
@@ -49,6 +50,12 @@ namespace Kite{
 		*/
 		KShaderProgram();
 		~KShaderProgram();
+
+		bool loadFile(const std::string &FileName, U32 FileType = 0);
+
+		bool loadMemory(const void *Data, std::size_t Size, U32 FileType = 0);
+
+		bool loadStream(KIStream &Stream, U32 FileType = 0);
 
 		//! Attach a shader (vertex or fragment) to the shader program
 		/*!
@@ -155,6 +162,7 @@ namespace Kite{
 		U64 getInstanceSize() const;
 
 	private:
+		bool _createShaders(const std::string &Vertex, const std::string &Fragment);
 		U32 _kshaderCount; 
 		U32 _kprogId;	//!< ID of shader program
 		static U32 _klastProgId;	//!< Last id of shader program 

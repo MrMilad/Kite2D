@@ -75,7 +75,7 @@ namespace Internal{
     }
 
 	
-	bool OGGIO::openFile(KInputStream &InputStream){
+	bool OGGIO::openFile(KIStream &InputStream){
 		if (_kisOpen){
 			ov_clear(&_koggStream);
 			_kinfo = KAudioInfo();
@@ -156,22 +156,22 @@ namespace Internal{
     }
 
 	size_t OGGIO::_read(void *ptr, size_t size, size_t nmemb, void *datasource){
-		KInputStream *stream = (KInputStream *)datasource;
+		KIStream *stream = (KIStream *)datasource;
 		return (size_t)stream->read(ptr, size * nmemb) / size;
 	}
 
 	int OGGIO::_seek(void *datasource, ogg_int64_t offset, int whence){
-		KInputStream *stream = (KInputStream *)datasource;
+		KIStream *stream = (KIStream *)datasource;
 		return stream->seek(offset, whence);
 	}
 
 	int OGGIO::_close(void *datasource){
-		KInputStream *stream = (KInputStream *)datasource;
+		KIStream *stream = (KIStream *)datasource;
 		return stream->close();
 	}
 
 	long int OGGIO::_tell(void *datasource){
-		KInputStream *stream = (KInputStream *)datasource;
+		KIStream *stream = (KIStream *)datasource;
 		return (long int)stream->tell();
 	}
 }

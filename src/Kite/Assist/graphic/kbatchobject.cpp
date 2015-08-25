@@ -36,7 +36,8 @@ namespace Kite{
 		_krelTrans(true),
 		_kname(Name),
 		_kindexed(false),
-		_kpoint(PointSprite)
+		_kpoint(PointSprite),
+		_kreverse(false)
 	{
 		if (PointSprite) {
 			_kpsprite = new KPointSprite[VertexSize];
@@ -57,7 +58,8 @@ namespace Kite{
 		_krelTrans(true),
 		_kname(Name),
 		_kindexed(true),
-		_kpoint(false)
+		_kpoint(false),
+		_kreverse(false)
 	{}
 
 	void KBatchObject::setUseVertexSize(U32 Size) {

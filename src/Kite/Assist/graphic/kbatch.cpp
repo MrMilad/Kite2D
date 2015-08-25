@@ -74,13 +74,13 @@ namespace Kite{
 		// index buffer
 		if (_kisize > 0) {
 			_kvboInd.bind();
-			_kvboInd.fill(&ind[0], sizeof(U16)* _kisize, _kconfig.index);
+			_kvboInd.fill(&ind[0], sizeof(U16)* _kisize, (KVertexBufferTypes)_kconfig.index);
 			_kvboInd.setUpdateHandle(_updateInd);
 		}
 
 		// vertex buffer
 		_kvboVer.bind();
-		_kvboVer.fill(&vert[0], sizeof(KVertex)* _kvsize, _kconfig.vertex);
+		_kvboVer.fill(&vert[0], sizeof(KVertex)* _kvsize, (KVertexBufferTypes)_kconfig.vertex);
 
 		// pos
 		_kvao.enableAttribute(0);
@@ -98,7 +98,7 @@ namespace Kite{
 		// point sprite buffer
 		if (_kpsprite) {
 			_kvboPnt.bind();
-			_kvboPnt.fill(&po[0], sizeof(KPointSprite)* _kvsize, _kconfig.point);
+			_kvboPnt.fill(&po[0], sizeof(KPointSprite)* _kvsize, (KVertexBufferTypes)_kconfig.point);
 			// point sprite
 			_kvao.enableAttribute(3);
 			_kvao.setAttribute(3, KAC_3COMPONENT, KAT_FLOAT, false, sizeof(KPointSprite), KBUFFER_OFFSET(0));
@@ -139,13 +139,13 @@ namespace Kite{
 		// index buffer
 		if (_kisize > 0) {
 			_kvboInd.bind();
-			_kvboInd.fill(&ind[0], sizeof(U16)* _kisize, _kconfig.index);
+			_kvboInd.fill(&ind[0], sizeof(U16)* _kisize, (KVertexBufferTypes)_kconfig.index);
 			_kvboInd.setUpdateHandle(_updateInd);
 		}
 
 		// vertex buffer
 		_kvboVer.bind();
-		_kvboVer.fill(&vert[0], sizeof(KVertex)* _kvsize, _kconfig.vertex);
+		_kvboVer.fill(&vert[0], sizeof(KVertex)* _kvsize, (KVertexBufferTypes)_kconfig.vertex);
 
 		// pos
 		_kvao.enableAttribute(0);
@@ -163,7 +163,7 @@ namespace Kite{
 		// point sprite buffer
 		if (_kpsprite) {
 			_kvboPnt.bind();
-			_kvboPnt.fill(&po[0], sizeof(KPointSprite)* _kvsize, _kconfig.point);
+			_kvboPnt.fill(&po[0], sizeof(KPointSprite)* _kvsize, (KVertexBufferTypes)_kconfig.point);
 			// point sprite
 			_kvao.enableAttribute(3);
 			_kvao.setAttribute(3, KAC_3COMPONENT, KAT_FLOAT, false, sizeof(KPointSprite), KBUFFER_OFFSET(0));
@@ -423,7 +423,12 @@ namespace Kite{
 			otmp = obj[i];
 			mmat = &otmp->getModelViewTransform();
 			for (U32 j = 0; j < otmp->getVertexSize(); j++){
-				vtmp = &otmp->getVertex()[j];
+				// reverse render
+				if (otmp->getReverseRender()) {
+					vtmp = &otmp->getVertex()[(otmp->getVertexSize() - 1) - j];
+				} else {
+					vtmp = &otmp->getVertex()[j];
+				}
 
 				// multiply model-matrix (object) with projection-matrix (camera)
 				// then update position
@@ -457,7 +462,12 @@ namespace Kite{
 		for (U32 i = 0; i < size; i++) {
 			otmp = obj[i];
 			for (U32 j = 0; j < otmp->getPointSize(); j++) {
-				vtmp = &otmp->getPoint()[j];
+				// reverse render
+				if (otmp->getReverseRender()) {
+					vtmp = &otmp->getPoint()[(otmp->getPointSize() - 1) - j];
+				} else {
+					vtmp = &otmp->getPoint()[j];
+				}
 
 				// update point
 				par[ofst + j] = *vtmp;

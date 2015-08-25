@@ -84,7 +84,7 @@ namespace Internal{
 		return false;
     }
 
-	bool ImageIO::readFromStream(KInputStream &Stream, std::vector<U8> &Pixels, KVector2U32 &Size){
+	bool ImageIO::readFromStream(KIStream &Stream, std::vector<U8> &Pixels, KVector2U32 &Size){
 		// we need an empty array
 		Pixels.clear();
 
@@ -155,16 +155,16 @@ namespace Internal{
     }
 
 	int ImageIO::_read(void *user, char *data, int size){
-		KInputStream *stream = (KInputStream *)user;
+		KIStream *stream = (KIStream *)user;
 		return (int)stream->read(data, size);
 	}
 	void ImageIO::_skip(void *user, unsigned n){
-		KInputStream *stream = (KInputStream *)user;
+		KIStream *stream = (KIStream *)user;
 		stream->seek(stream->tell() + n, SEEK_CUR);
 	}
 
 	int ImageIO::_eof(void *user){
-		KInputStream *stream = (KInputStream *)user;
+		KIStream *stream = (KIStream *)user;
 		return stream->eof();
 	}
 }

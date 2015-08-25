@@ -52,7 +52,7 @@ namespace Kite{
 		_kmap.clear();
 	}
 
-	KInputStream *KMemoryStream::openRead(const std::string &Name){
+	KIStream *KMemoryStream::openRead(const std::string &Name){
 
 		// convert section name to lower case to using for key
 		std::string tempKey = Name;

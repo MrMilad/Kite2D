@@ -24,7 +24,7 @@
 
 #include "Kite/core/system/knoncopyable.h"
 #include "Kite/Core/math/kmathstructs.h"
-#include "Kite/Core/utility/kinputstream.h"
+#include "Kite/Core/utility/kistream.h"
 #include <string>
 #include <vector>
 
@@ -75,7 +75,7 @@ namespace Internal{
 
 			\return True if loading was successful
 		*/
-		static bool readFromStream(KInputStream &Stream, std::vector<U8> &Pixels, KVector2U32 &Size);
+		static bool readFromStream(KIStream &Stream, std::vector<U8> &Pixels, KVector2U32 &Size);
 
 		//! Encode and write pixels from a pixels storage to the file.
 		/*!

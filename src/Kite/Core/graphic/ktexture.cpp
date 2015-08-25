@@ -68,7 +68,7 @@ namespace Kite{
 		return ret;
 	}
 
-	bool KTexture::loadStream(KInputStream &Stream, U32 FileType) {
+	bool KTexture::loadStream(KIStream &Stream, U32 FileType) {
 		KImage temp;
 		bool ret = temp.loadStream(Stream);
 

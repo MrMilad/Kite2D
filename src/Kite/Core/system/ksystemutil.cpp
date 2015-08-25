@@ -104,4 +104,32 @@ void cpuid(unsigned int CPUInfo[4],int InfoType){
         static U64 id = 0;
         return ++id;
     }
+
+	F64 convertStrToDouble(const char *p) {
+		double r = 0.0;
+		bool neg = false;
+		if (*p == '-') {
+			neg = true;
+			++p;
+		}
+		while (*p >= '0' && *p <= '9') {
+			r = (r*10.0) + (*p - '0');
+			++p;
+		}
+		if (*p == '.') {
+			double f = 0.0;
+			int n = 0;
+			++p;
+			while (*p >= '0' && *p <= '9') {
+				f = (f*10.0) + (*p - '0');
+				++p;
+				++n;
+			}
+			r += f / std::pow(10.0, n);
+		}
+		if (neg) {
+			r = -r;
+		}
+		return r;
+	}
 }

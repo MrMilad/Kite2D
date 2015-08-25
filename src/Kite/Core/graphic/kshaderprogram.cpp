@@ -21,6 +21,7 @@
 #include "Kite/core/graphic/kshaderprogram.h"
 #include "Kite/core/graphic/kgraphicutil.h"
 #include "src/Kite/core/graphic/glcall.h"
+#include <cstdio>
 
 namespace Kite{
 	U32 KShaderProgram::_klastProgId = 0;
@@ -44,6 +45,18 @@ namespace Kite{
 		if (_klastProgId == _kprogId){
 			_klastProgId = 0;
 		}
+	}
+
+	bool KShaderProgram::loadFile(const std::string &FileName, U32 FileType) {
+		return false;
+	}
+
+	bool KShaderProgram::loadMemory(const void *Data, std::size_t Size, U32 FileType) {
+		return false;
+	}
+
+	bool KShaderProgram::loadStream(KIStream &Stream, U32 FileType) {
+		return false;
 	}
 
 	void KShaderProgram::attachShader(const KShader &Shader){
@@ -148,6 +161,29 @@ namespace Kite{
 		// disable the program
 		DGL_CALL(glUseProgramObjectARB(0));
 		_klastProgId = 0;
+	}
+
+	bool KShaderProgram::_createShaders(const std::string &Vertex, const std::string &Fragment) {
+		KShader vert(KS_VERTEX);
+		KShader frag(KS_FRAGMENT);
+
+		vert.loadString(Vertex);
+		frag.loadString(Fragment);
+
+		if (!vert.compile()) {
+			KDEBUG_PRINT("vertex shader compile error");
+			return false;
+		}
+
+		if (!frag.compile()) {
+			KDEBUG_PRINT("fragment shader compile error");
+			return false;
+		}
+
+		attachShader(vert);
+		attachShader(frag);
+
+		return true;
 	}
 
 	U64 KShaderProgram::getInstanceSize() const{

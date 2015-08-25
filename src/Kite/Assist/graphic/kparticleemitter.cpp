@@ -89,6 +89,7 @@ namespace Kite {
 	void KParticleEmitter::update(F32 Delta) {
 		setUseVertexSize(0);
 		static F32 count;
+
 		// add new particle if need
 		if (_kavail > 0) {
 			count += Delta * _krate;

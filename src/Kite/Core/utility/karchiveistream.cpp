@@ -17,79 +17,79 @@
     Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
     USA
 */
-#include "Kite/Core/utility/karchive.h"
+#include "Kite/Core/utility/karchiveistream.h"
 #include "src/Kite/Core/utility/zipio.h"
 
 namespace Kite{
-	KArchive::KArchive():
+	KArchiveIStream::KArchiveIStream() :
 		_kzipIO(new Internal::ZipIO)
 	{}
 
-	KArchive::~KArchive(){
+	KArchiveIStream::~KArchiveIStream() {
 		delete _kzipIO;
 	}
 
-	bool KArchive::openArchive(const std::string &ArchiveName){
-		return _kzipIO->openArchive(ArchiveName);
+	bool KArchiveIStream::openArchive(const std::string &ArchiveName) {
+		return _kzipIO->openArchive(ArchiveName, KIO_READ);
 	}
 
-	bool KArchive::openArchive(const void *Data, size_t Size){
+	bool KArchiveIStream::openArchive(const void *Data, size_t Size) {
 		return _kzipIO->openArchive(Data, Size);
 	}
 
-	const std::string &KArchive::getArchiveName() const{
+	const std::string &KArchiveIStream::getArchiveName() const {
 		return _kzipIO->getArchiveName();
 	}
 
-	U32 KArchive::getFilesNumber(){
+	U32 KArchiveIStream::getFilesNumber() {
 		return _kzipIO->getFilesNumber();
 	}
 
-	I32 KArchive::searchFile(const std::string &FileName){
+	I32 KArchiveIStream::searchFile(const std::string &FileName) {
 		return _kzipIO->searchFile(FileName);
 	}
 
-	bool KArchive::getFileInformation(U32 FileIndex, KArchiveFileInfo &FileInfo){
+	bool KArchiveIStream::getFileInformation(U32 FileIndex, KArchiveFileInfo &FileInfo) {
 		return _kzipIO->getFileInformation(FileIndex, FileInfo);
 	}
 
-	bool KArchive::openFile(const std::string &FileName){
+	bool KArchiveIStream::openFile(const std::string &FileName) {
 		return _kzipIO->openFile(FileName);
 	}
 
-	const std::string &KArchive::getFileName() const{
+	const std::string &KArchiveIStream::getFileName() const {
 		return _kzipIO->getFileName();
 	}
 
-	U64 KArchive::read(void *Data, U64 DataSize){
+	U64 KArchiveIStream::read(void *Data, U64 DataSize) {
 		return _kzipIO->readFile(Data, DataSize);
 	}
 
-	I32 KArchive::seek(I64 Offset, I32 Origin){
+	I32 KArchiveIStream::seek(I64 Offset, I32 Origin) {
 		return _kzipIO->setReadOffset(Offset, Origin);
 	}
 
-	I64 KArchive::tell(){
+	I64 KArchiveIStream::tell() {
 		return _kzipIO->getReadOffset();
 	}
 
-	bool KArchive::isArchiveOpen() const{
+	bool KArchiveIStream::isArchiveOpen() const {
 		return _kzipIO->isArchiveOpen();
 	}
 
-	bool KArchive::isOpen(){
+	bool KArchiveIStream::isOpen() {
 		return _kzipIO->isFileOpen();
 	}
 
-	I32 KArchive::eof(){
+	I32 KArchiveIStream::eof() {
 		return _kzipIO->eof();
 	}
 
-	U64 KArchive::getSize(){
+	U64 KArchiveIStream::getSize() {
 		return _kzipIO->getStreamSize();
 	}
 
-	I32 KArchive::close(){
+	I32 KArchiveIStream::close() {
 		_kzipIO->closeArchive();
 		return 0;
 	}

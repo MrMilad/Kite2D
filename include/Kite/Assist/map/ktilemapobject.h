@@ -27,9 +27,10 @@ namespace Kite {
 	class KITE_FUNC_EXPORT KTileMapObject {
 		friend class KTileMap;
 	public:
-		KTileMapObject(I32 ObjectFlag = -1) :
+		KTileMapObject(I32 ObjectFlag = -1, U32 Layer = 0) :
 			_kflag(ObjectFlag),
-			_ktID(-1)
+			_ktID(-1),
+			_klayer(Layer)
 		{}
 
 		virtual ~KTileMapObject() {}
@@ -38,6 +39,9 @@ namespace Kite {
 		inline I32 getTileID() const { return _ktID; }
 
 		inline I32 getTileFlag() const { return _kflag; }
+
+		inline void setLayer(U32 Layer) { _klayer = Layer; }
+		inline U32 getLayer() const { return _klayer; }
 
 		// get next object in the tile list
 		inline KTileMapObject *getNextObject() const { return (KTileMapObject *)_klink.next; }
@@ -51,6 +55,7 @@ namespace Kite {
 	private:
 		I32 _kflag;
 		I32 _ktID;
+		U32 _klayer;
 		Internal::KLinkedPoint _klink;
 	};
 }

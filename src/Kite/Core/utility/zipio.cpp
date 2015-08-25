@@ -39,37 +39,39 @@ namespace Internal{
 	}
 
 	// open from file
-	bool ZipIO::openArchive(const std::string &ArchiveName){
+	bool ZipIO::openArchive(const std::string &ArchiveName, KIOTypes Mode) {
 		// first close last opened archive
-		_kready = false;
 		_kaname = "";
-		if (_kisopen){
-			mz_zip_reader_end(&_kzarchive);
-			_kisopen = false;
-		}
+		closeArchive();
 
 		// inite object
 		memset(&_kzarchive, 0, sizeof(_kzarchive));
 
 		// open archive
-		mz_bool status = mz_zip_reader_init_file(&_kzarchive, ArchiveName.c_str(), 0);
+		mz_bool status;
+		if (Mode == KIO_READ) {
+			status = mz_zip_reader_init_file(&_kzarchive, ArchiveName.c_str(), 0);
+		} else if (Mode == KIO_WRITE){
+			remove(ArchiveName.c_str());
+			status = true;
+		} else if (Mode == KIO_WRITE_APPEND){
+			status = true;
+		}
+
 		if (!status) 
 			return false;
 
+		_kmode = Mode;
 		_kisopen = true;
 		_kaname = ArchiveName;
 		return true;
 	}
 
 	// open from memory
-	bool ZipIO::openArchive(const void *Memory, size_t Size){
+	bool ZipIO::openArchive(const void *Memory, size_t Size) {
 		// first close last opened archive
-		_kready = false;
 		_kaname = "";
-		if (_kisopen){
-			mz_zip_reader_end(&_kzarchive);
-			_kisopen = false;
-		}
+		closeArchive();
 
 		// inite object
 		memset(&_kzarchive, 0, sizeof(_kzarchive));
@@ -90,6 +92,14 @@ namespace Internal{
 		if (!_kisopen)
 			return false;
 
+		// file is ready for writing
+		if (_kmode == KIO_WRITE || _kmode == KIO_WRITE_APPEND) {
+			_kfname = FileName;
+			_kready = true;
+			return true;
+		}
+
+		// check for reading
 		if ((_kfindex = mz_zip_reader_locate_file(&_kzarchive, FileName.c_str(), NULL, 0)) < 0)
 			return false;
 
@@ -101,7 +111,7 @@ namespace Internal{
 		_kfindex = FileIndex;
 		_kcurOfst = 0;
 		_kfileCurOfst = 0;
-		if (!_kisopen)
+		if (!_kisopen || _kmode == KIO_WRITE || _kmode == KIO_WRITE_APPEND)
 			return false;
 
 		if (!mz_zip_reader_file_stat(&_kzarchive, FileIndex, &_kfstat))
@@ -141,27 +151,27 @@ namespace Internal{
 		else if (_kfstat.m_method == 0 && _kfstat.m_uncomp_size == _kfstat.m_comp_size)
 			_kisCmprsd = false;
 
-		_kfname.append(_kfstat.m_filename);
+		_kfname = _kfstat.m_filename;
 		_kready = true;
 		return true;
 	}
 
 	U32 ZipIO::getFilesNumber(){
-		if (!_kisopen)
+		if (!_kisopen || _kmode == KIO_WRITE)
 			return 0;
 
 		return mz_zip_reader_get_num_files(&_kzarchive);
 	}
 
 	I32 ZipIO::searchFile(const std::string &FileName){
-		if (!_kisopen)
+		if (!_kisopen || _kmode == KIO_WRITE)
 			return -1;
 
 		return mz_zip_reader_locate_file(&_kzarchive, FileName.c_str(), NULL, 0);
 	}
 
 	bool ZipIO::getFileInformation(U32 FileIndex, KArchiveFileInfo &FileInfo){
-		if (!_kisopen)
+		if (!_kisopen || _kmode == KIO_WRITE)
 			return false;
 		
 		mz_zip_archive_file_stat stat;
@@ -182,7 +192,7 @@ namespace Internal{
 	}
 
 	U64 ZipIO::readFile(void *Data, U64 DataSize){
-		if (!_kisopen || !_kready || _kfindex < 0)
+		if (!_kisopen || !_kready || _kfindex < 0 || _kmode == KIO_WRITE)
 			return 0;
 		
 		if (_kisCmprsd)
@@ -194,8 +204,27 @@ namespace Internal{
 		return 0;
 	}
 
+	bool ZipIO::writeFile(void *Data, U64 DataSize, bool Compress) {
+		if (!_kisopen || !_kready || _kmode != KIO_WRITE && _kmode != KIO_WRITE_APPEND)
+			return 0;
+		
+		mz_uint cmpType = MZ_BEST_COMPRESSION;
+		if (!Compress)
+			cmpType = MZ_NO_COMPRESSION;
+
+		return mz_zip_add_mem_to_archive_file_in_place(_kaname.c_str(), _kfname.c_str(),
+													   Data, (size_t)DataSize, "no comment", (U16)strlen("no comment"), cmpType);
+	}
+
+	bool ZipIO::addDirectory(const std::string &Name) {
+		if (!_kisopen || !_kready || _kmode != KIO_WRITE || Name.empty())
+			return false;
+
+		return mz_zip_writer_add_mem(&_kzarchive, Name.c_str(), 0, 0, 0);
+	}
+
 	I32 ZipIO::setReadOffset(I64 Offset, I32 Origin){
-		if (!_kisopen || !_kready || _kfindex < 0)
+		if (!_kisopen || !_kready || _kfindex < 0 || _kmode == KIO_WRITE)
 			return -1;
 
 		if (_kisCmprsd)
@@ -250,7 +279,7 @@ namespace Internal{
 	}
 
 	I64 ZipIO::getReadOffset(){
-		if (!_kisopen || !_kready || _kfindex < 0)
+		if (!_kisopen || !_kready || _kfindex < 0 || _kmode == KIO_WRITE)
 			return -1;
 
 		if (_kisCmprsd)
@@ -268,7 +297,7 @@ namespace Internal{
 	}
 
 	U64 ZipIO::_readCompressed(void *Data, U64 DataSize){
-		if (!_kisopen || !_kready || _kfindex < 0)
+		if (!_kisopen || !_kready || _kfindex < 0 || _kmode == KIO_WRITE)
 			return 0;
 
 		if (mz_zip_reader_extract_to_mem(&_kzarchive, _kfindex, Data, (size_t)DataSize, 0))
@@ -279,7 +308,7 @@ namespace Internal{
 	}
 
 	U64 ZipIO::_readUncompressed(void *Data, U64 DataSize){
-		if (!_kisopen || !_kready || _kfindex < 0)
+		if (!_kisopen || !_kready || _kfindex < 0 || _kmode == KIO_WRITE)
 			return 0;
 
 		if (!Data || DataSize == 0)
@@ -297,7 +326,7 @@ namespace Internal{
 	}
 
 	I32 ZipIO::eof() const{
-		if (!_kisopen || !_kready || _kfindex < 0)
+		if (!_kisopen || !_kready || _kfindex < 0 || _kmode == KIO_WRITE)
 			return -1;
 
 		if (_kfstat.m_uncomp_size == _kfileCurOfst)
@@ -307,15 +336,20 @@ namespace Internal{
 	}
 
 	U64 ZipIO::getStreamSize() const{
-		if (!_kisopen || !_kready || _kfindex < 0)
+		if (!_kisopen || !_kready || _kfindex < 0 || _kmode == KIO_WRITE)
 			return 0;
 
 		return _kfstat.m_uncomp_size;
 	}
 
 	void ZipIO::closeArchive(){
-		if (_kisopen)
-			mz_zip_reader_end(&_kzarchive);
+		if (_kisopen) {
+			if (_kmode == KIO_READ) {
+				mz_zip_reader_end(&_kzarchive);
+			} else if (_kmode == KIO_WRITE) {
+				mz_zip_writer_end(&_kzarchive);
+			};
+		}
 
 		_kisopen = false;
 		_kready = false;

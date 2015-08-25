@@ -35,9 +35,11 @@ namespace Kite {
 		bool loadMemory(const void *Data, std::size_t Size, U32 FileType = 0);
 
 		// pas KAF_XML for adobeflash XML motion files
-		bool loadStream(KInputStream &Stream, U32 FileType = 0);
+		bool loadStream(KIStream &Stream, U32 FileType = 0);
 
 		bool saveFile(const std::string &FileName);
+
+		bool saveStream(KOStream &Stream);
 
 		// const access
 		inline const std::vector<KAnimeKey> *getKeys() const { return &_kkeys; }
@@ -51,7 +53,7 @@ namespace Kite {
 
 	private:
 		bool _loadXML(const std::string &FileName);
-		bool _loadXML(KInputStream &Stream);
+		bool _loadXML(KIStream &Stream);
 		bool _xmlParser(std::string &content);
 		std::vector<KAnimeKey> _kkeys;
 		KRect2F32 _kshape;

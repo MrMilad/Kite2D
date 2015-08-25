@@ -17,37 +17,35 @@ License along with this library; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 USA
 */
-#ifndef KFILEINPUTSTREAM_H
-#define KFILEINPUTSTREAM_H
+#ifndef KLAYERSORT_H
+#define KLAYERSORT_H
 
 #include "Kite/Core/system/ksystemdef.h"
-#include "Kite/Core/utility/kinputstream.h"
-#include <cstring>
-#include <cstdio>
+#include <vector>
 
-namespace Kite{
-	class KITE_FUNC_EXPORT KFileInputStream : public KInputStream{
+namespace Kite {
+	class KITE_FUNC_EXPORT KLayerSort {
 	public:
-		KFileInputStream(const std::string &FileName);
-		~KFileInputStream();
+		KLayerSort(U32 MaximumLayers);
 
-		U64 read(void *Data, U64 DataSize);
+		// add an object to any layers
+		void addObject(U32 LayerNumber);
 
-		I32 seek(I64 Offset, I32 Origin);
+		// remove an object from any layers
+		void removeObject(U32 LayerNumber);
 
-		I64 tell();
+		// get place of added objects
+		U32 getObjectPlace(U32 LayerNumber);
+		 
+		// resize layers (need Reallocating memory if you need greater size)
+		void resize(U32 Size);
 
-		bool isOpen();
-
-		U64 getSize();
-
-		I32 eof();
-
-		I32 close();
+		// clear all layers
+		void clear();
 
 	private:
-		FILE *_kfile;
+		std::vector<U32> _klayers;
 	};
 }
 
-#endif // KFILEINPUTSTREAM_H
+#endif // KLAYERSORT_H

@@ -109,7 +109,7 @@ namespace Kite{
         return true;
     }
 
-	bool KShader::loadStream(KInputStream &ShaderStream, U32 FileType) {
+	bool KShader::loadStream(KIStream &ShaderStream, U32 FileType) {
 		std::vector<char> data;
 		// calculate size of stream
 		ShaderStream.seek(0, std::ios_base::end);

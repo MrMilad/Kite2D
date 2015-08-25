@@ -24,9 +24,12 @@
 #include "Kite/Core/math/kmathdef.h"
 #include "Kite/Core/math/kmathstructs.h"
 #include "Kite/Core/math/kmatrix3.h"
+#include "Kite/Core/utility/kserialize.h"
 
 namespace Kite{
     class KITE_FUNC_EXPORT KTransform{
+		friend KSerialize &operator<<(KSerialize &Out, const KTransform &Value);
+		friend KSerialize &operator>>(KSerialize &In, KTransform &Value);
     public:
 		/// construct a transform (unit matrix)
 		KTransform();

@@ -172,7 +172,7 @@ namespace Kite{
 		keyLookup();
 
 		const KAnimeKey *key1 = &(*_kclip)[_kcurrentKey];
-		KInterpolationTypes type;
+		U8 type;
 		if (needInterpolate){
 			const KAnimeKey *key2 = 0;
 			key2 = &(*_kclip)[_kcurrentKey + 1];

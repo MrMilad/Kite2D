@@ -22,12 +22,12 @@ USA
 
 #include "Kite/Core/system/ksystemdef.h"
 #include "Kite/Core/utility/kstream.h"
-#include "Kite/Core/utility/kfileinputstream.h"
+#include "Kite/Core/utility/kfileistream.h"
 
 namespace Kite{
 	class KITE_FUNC_EXPORT KFileStream : public KStream{
 	public:
-		KInputStream *openRead(const std::string &FileName);
+		KIStream *openRead(const std::string &FileName);
 	};
 }
 

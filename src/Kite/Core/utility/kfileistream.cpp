@@ -17,46 +17,46 @@ License along with this library; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 USA
 */
-#include "Kite/Core/utility/kfileinputstream.h"
+#include "Kite/Core/utility/kfileistream.h"
 
 namespace Kite{
-	KFileInputStream::KFileInputStream(const std::string &FileName){
+	KFileIStream::KFileIStream(const std::string &FileName) {
 		_kfile = fopen(FileName.c_str(), "rb");
 		if (_kfile == NULL){
 			KDEBUG_PRINT("cant open file");
 		}
 	}
 
-	KFileInputStream::~KFileInputStream(){
+	KFileIStream::~KFileIStream() {
 		if (_kfile)
 			fclose(_kfile);
 	}
 
-	U64 KFileInputStream::read(void *Data, U64 DataSize){
+	U64 KFileIStream::read(void *Data, U64 DataSize) {
 		if (_kfile)
 			return (U64)fread(Data, 1, (size_t)DataSize, _kfile);
 		return 0;
 	}
 
-	I32 KFileInputStream::seek(I64 Offset, I32 Origin){
+	I32 KFileIStream::seek(I64 Offset, I32 Origin) {
 		if (_kfile)
 			return (I32)fseek(_kfile, (long)Offset, Origin);
 		return -1;
 	}
 
-	I64 KFileInputStream::tell(){
+	I64 KFileIStream::tell() {
 		if (_kfile)
 			return ftell(_kfile);
 		return -1;
 	}
 
-	bool KFileInputStream::isOpen(){
+	bool KFileIStream::isOpen() {
 		if (_kfile)
 			return true;
 		return false;
 	}
 
-	U64 KFileInputStream::getSize(){
+	U64 KFileIStream::getSize() {
 		if (_kfile){
 			long cur = ftell(_kfile);
 			fseek(_kfile, 0, SEEK_END);
@@ -67,13 +67,13 @@ namespace Kite{
 		return 0;
 	}
 
-	I32 KFileInputStream::eof(){
+	I32 KFileIStream::eof() {
 		if (_kfile)
 			return feof(_kfile);
 		return 0;
 	}
 
-	I32 KFileInputStream::close(){
+	I32 KFileIStream::close() {
 		if (_kfile)
 			return fclose(_kfile);
 		return 0;

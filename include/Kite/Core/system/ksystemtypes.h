@@ -37,13 +37,10 @@ namespace Kite{
 		KBS_UNKNOWN
 	};*/
 
-	enum KSeqIOAccTypes{
-		KSIOA_READ,
-		KSIOA_WRITE,
-		KSIOA_APPEND,
-		KSIOA_RW,
-		KSIOA_RWEX,
-		KSIOA_RWTOEND
+	enum KIOTypes{
+		KIO_READ,
+		KIO_WRITE,
+		KIO_WRITE_APPEND
 	};
 
 	enum KVectorComponentTypes{

@@ -17,13 +17,13 @@
     Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
     USA
 */
-#ifndef KARCHIVE_H
-#define KARCHIVE_H
+#ifndef KARCHIVEISTREAM_H
+#define KARCHIVEISTREAM_H
 
-/*! \file karchive.h */
+/*! \file karchiveistream.h */
 
 #include "Kite/Core/system/ksystemdef.h"
-#include "Kite/Core/utility/kinputstream.h"
+#include "Kite/Core/utility/kistream.h"
 #include "Kite/Core/utility/kutilitystructs.h"
 #include <cstring>
 
@@ -40,14 +40,14 @@ namespace Kite{
 		to read compressed files use only one read() call, along with a buffer large enough to read the entire file.
 		use this class as InputStream only for uncompressed data.
 	*/
-	class KITE_FUNC_EXPORT KArchive : public KInputStream{
+	class KITE_FUNC_EXPORT KArchiveIStream : public KIStream{
 	public:
 
 		//! Default constructors
-		KArchive();
+		KArchiveIStream();
 
 		//! Destructor
-		~KArchive();
+		~KArchiveIStream();
 
 		//! Open the archive from a file on disk
 		/*!
@@ -174,4 +174,4 @@ namespace Kite{
 	};
 }
 
-#endif // KARCHIVE_H
+#endif // KARCHIVEISTREAM_H

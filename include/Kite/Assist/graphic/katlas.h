@@ -36,9 +36,11 @@ namespace Kite {
 		bool loadMemory(const void *Data, std::size_t Size, U32 FileType = 0);
 
 		// pass KAF_JSON for adobe flas JSON files
-		bool loadStream(KInputStream &Stream, U32 FileType = 0);
+		bool loadStream(KIStream &Stream, U32 FileType = 0);
 
 		bool saveFile(const std::string &FileName);
+
+		bool saveStream(KOStream &Stream);
 
 		// const access
 		inline const std::vector<KAtlasItem> *getItems() const { return &_kitems; }
@@ -54,7 +56,7 @@ namespace Kite {
 		// split your items in multiple JSON file with maximum size then merge them in single vector
 		// contents of the Atlas array will be deleted in first step
 		bool _loadJSON(const std::string &FileName);
-		bool _loadJSON(KInputStream &Stream);
+		bool _loadJSON(KIStream &Stream);
 		bool _jsonParser(std::string &Content);
 		std::vector<KAtlasItem> _kitems;
 		std::string _kimgName;

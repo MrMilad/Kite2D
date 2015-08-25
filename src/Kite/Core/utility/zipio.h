@@ -21,6 +21,7 @@
 #define ZIPIO_H
 
 #include "Kite/Core/system/ksystemdef.h"
+#include "Kite/Core/system/ksystemtypes.h"
 #include "Kite/Core/utility/kutilitystructs.h"
 #include "extlibs/headers/zip/miniz.h"
 #include <cstring>
@@ -34,40 +35,58 @@ namespace Internal{
 		~ZipIO();
 
 		// open from file
-		bool openArchive(const std::string &ArchiveName);
+		bool openArchive(const std::string &ArchiveName, KIOTypes Mode);
 
 		// open from memory
+		// only for reading 
+		// write not implemented yet
 		bool openArchive(const void *Memory, size_t Size);
 
 		inline const std::string &getArchiveName() const { return _kaname; }
 
 		// get total number of the files in the archive
+		// effective when archive opened in read mode
 		U32 getFilesNumber();
 
 		// return -1 if file not found
 		// else return the index of the file
+		// effective when archive opened in read mode
 		I32 searchFile(const std::string &FileName);
 
 		// get information of the file in the archive
+		// effective when archive opened in read mode
 		bool getFileInformation(U32 FileIndex, KArchiveFileInfo &FileInfo);
 
 		// open archived file by name
 		bool openFile(const std::string &FileName);
 
 		// open archived file by index
+		// effective when archive opened in read mode
 		bool openFile(U32 FileIndex);
 
 		inline const std::string &getFileName() const { return _kfname; }
+		inline KIOTypes getArchiveOpenMode() const { return _kmode; }
 
 		// read a portion of the file (stream - allowed only for uncompressed files in the archive)
 		// read entire file with a single call (allowed for both compressed/uncompressed files in the archive)
 		// note: to read a compressed file, the DataSize must be equal to or greater than the uncompressed size
+		// effective when archive opened in read mode
 		U64 readFile(void *Data, U64 DataSize);
 
+		// write entire data to a single file
+		bool writeFile(void *Data, U64 DataSize, bool Compress);
+
+		// use foreward slash "/" after directory name
+		// create sub-directories one bye one (one call for each sub-directory)
+		// effective when archive opened in write mode
+		bool addDirectory(const std::string &Name);
+
 		// set read offset (stream - allowed only for uncompressed files in the archive)
+		// effective when archive opened in read mode
 		I32 setReadOffset(I64 Offset, I32 Origin);
 
 		// get read offset (stream - allowed only for uncompressed files in the archive)
+		// effective when archive opened in read mode
 		I64 getReadOffset();
 
 		bool isArchiveOpen() const;
@@ -76,6 +95,7 @@ namespace Internal{
 
 		I32 eof() const;
 
+		// effective when archive opened in read mode
 		U64 getStreamSize() const;
 
 		void closeArchive();
@@ -95,6 +115,7 @@ namespace Internal{
 		bool _kisCmprsd;
 		std::string _kaname;
 		std::string _kfname;
+		KIOTypes _kmode;
 	};
 }
 }

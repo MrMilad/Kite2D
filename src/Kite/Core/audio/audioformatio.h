@@ -22,7 +22,7 @@
 
 #include "Kite/Core/system/ksystemdef.h"
 #include "Kite/Core/audio/kaudiostructs.h"
-#include "Kite/Core/utility/kinputstream.h"
+#include "Kite/Core/utility/kistream.h"
 
 namespace Kite{
 namespace Internal{
@@ -39,7 +39,7 @@ namespace Internal{
         virtual bool openFile(const char *FileName) = 0;
 
 		/// read the PCM data from input stream
-		virtual bool openFile(KInputStream &InputStream) = 0;
+		virtual bool openFile(KIStream &InputStream) = 0;
 
         /// read and decode data then fill buffer with data
         /// return: indicates actual number of bytes read

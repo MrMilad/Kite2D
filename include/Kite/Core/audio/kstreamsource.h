@@ -49,7 +49,7 @@ namespace Kite{
 		bool loadFile(const std::string &FileName, U32 FileType = 0);
 
 		/// load from stream
-		bool loadStream(KInputStream &InputStream, U32 FileType = 0);
+		bool loadStream(KIStream &InputStream, U32 FileType = 0);
 
 		/// load from memory
 		bool loadMemory(const void *Data, std::size_t Size, U32 FileType = 0);

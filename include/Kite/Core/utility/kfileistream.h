@@ -17,25 +17,37 @@ License along with this library; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 USA
 */
-#ifndef KMEMORYSTREAM_H
-#define KMEMORYSTREAM_H
+#ifndef KFILEISTREAM_H
+#define KFILEISTREAM_H
 
 #include "Kite/Core/system/ksystemdef.h"
-#include "Kite/Core/utility/kstream.h"
-#include "Kite/Core/utility/kmeminputstream.h"
-#include <unordered_map>
+#include "Kite/Core/utility/kistream.h"
+#include <cstring>
+#include <cstdio>
 
 namespace Kite{
-	class KITE_FUNC_EXPORT KMemoryStream : public KStream{
+	class KITE_FUNC_EXPORT KFileIStream : public KIStream{
 	public:
-		void addSection(const std::string &SectionName, void *Data, size_t DataSize);
-		void removeSection(const std::string &SectionName);
-		void clear();
-		KIStream *openRead(const std::string &Name);
+		KFileIStream(const std::string &FileName);
+		~KFileIStream();
+
+		U64 read(void *Data, U64 DataSize);
+
+		I32 seek(I64 Offset, I32 Origin);
+
+		I64 tell();
+
+		bool isOpen();
+
+		U64 getSize();
+
+		I32 eof();
+
+		I32 close();
 
 	private:
-		std::unordered_map<std::string, std::pair<void *, size_t>> _kmap;
+		FILE *_kfile;
 	};
 }
 
-#endif // KMEMORYSTREAM_H
+#endif // KFILEISTREAM_H

@@ -37,7 +37,7 @@ namespace Internal{
         bool openFile(const char *FileName);
 
 		/// read the PCM data from input stream
-		bool openFile(KInputStream &InputStream);
+		bool openFile(KIStream &InputStream);
 
         /// read and decode data then fill buffer with data
         /// return: indicates actual number of bytes read

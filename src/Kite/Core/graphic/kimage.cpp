@@ -81,7 +81,7 @@ namespace Kite{
 		return Internal::ImageIO::readFromMemory(Data, Size, _kpixels, _ksize);
     }
 
-	bool KImage::loadStream(KInputStream &Stream, U32 FileType) {
+	bool KImage::loadStream(KIStream &Stream, U32 FileType) {
 		return Internal::ImageIO::readFromStream(Stream, _kpixels, _ksize);
 	}
 

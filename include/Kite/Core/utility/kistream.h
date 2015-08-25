@@ -17,15 +17,15 @@
     Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
     USA
 */
-#ifndef KINPUTSTREAM_H
-#define KINPUTSTREAM_H
+#ifndef KISTREAM_H
+#define KISTREAM_H
 
 #include "Kite/Core/system/ksystemdef.h"
 
 namespace Kite{
-	class KITE_FUNC_EXPORT KInputStream{
+	class KITE_FUNC_EXPORT KIStream{
 	public:
-		virtual ~KInputStream(){}
+		virtual ~KIStream(){}
 
 		virtual U64 read(void *Data, U64 DataSize) = 0;
 
@@ -44,4 +44,4 @@ namespace Kite{
 	};
 }
 
-#endif // KINPUTSTREAM_H
+#endif // KISTREAM_H

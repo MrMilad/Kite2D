@@ -21,7 +21,7 @@ USA
 #define KSTREAM_H
 
 #include "Kite/Core/system/ksystemdef.h"
-#include "Kite/Core/utility/kinputstream.h"
+#include "Kite/Core/utility/kistream.h"
 #include <cstring>
 
 namespace Kite{
@@ -29,7 +29,7 @@ namespace Kite{
 	public:
 		// return an input stream
 		// return 0 on error
-		virtual KInputStream *openRead(const std::string &Name) = 0;
+		virtual KIStream *openRead(const std::string &Name) = 0;
 	};
 }
 

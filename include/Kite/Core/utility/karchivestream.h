@@ -22,7 +22,8 @@ USA
 
 #include "Kite/Core/system/ksystemdef.h"
 #include "Kite/Core/utility/kstream.h"
-#include "Kite/Core/utility/karchive.h"
+#include "Kite/Core/utility/karchiveistream.h"
+#include "Kite/Core/utility/karchiveostream.h"
 
 namespace Kite{
 	class KITE_FUNC_EXPORT KArchiveStream : public KStream{
@@ -33,7 +34,9 @@ namespace Kite{
 		// open from memory
 		void openArchive(const void *Data, size_t Size);
 
-		KInputStream *openRead(const std::string &Name);
+		KIStream *openRead(const std::string &Name);
+
+		KOStream *openWrite(const std::string &Name, KIOTypes Mode);
 
 	private:
 		std::string _karchive;

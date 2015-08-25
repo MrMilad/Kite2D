@@ -36,7 +36,7 @@ namespace Internal{
         bool openFile(const char *FileName, KAudioFileTypes FileTypes);
 
 		/// read the PCM data from input stream
-		bool openFile(KInputStream &InputStream, KAudioFileTypes FileTypes);
+		bool openFile(KIStream &InputStream, KAudioFileTypes FileTypes);
 
         /// read and decode data then fill buffer with data
         /// return: indicates actual number of bytes read

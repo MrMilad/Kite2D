@@ -57,13 +57,15 @@ namespace Kite{
 			std::transform(FileName.begin(), FileName.end(), tempKey.begin(), ::tolower);
 
 			// first, check our resource catch
-			std::unordered_map<std::string, std::pair<KResource *, KInputStream *>>::iterator found = _kmap.find(tempKey);
-			if (found != _kmap.end())
+			std::unordered_map<std::string, std::pair<KResource *, KIStream *>>::iterator found = _kmap.find(tempKey);
+			if (found != _kmap.end()) {
+				found->second.first->incRef();
 				return (T *)found->second.first;
+			}
 
 			// trying to load resource
 			KResource *resource = new T;
-			KInputStream *stream = _kstream->openRead(FileName);
+			KIStream *stream = _kstream->openRead(FileName);
 			if (stream == 0){
 				KDEBUG_PRINT("can't create stream");
 				delete resource;
@@ -77,12 +79,12 @@ namespace Kite{
 			}
 
 			// stream lifetime
-			std::pair<KResource *, KInputStream *> pair;
+			std::pair<KResource *, KIStream *> pair;
 			if (CatchStream){
 				pair = std::make_pair(resource, stream);
 			}else{
 				delete stream;
-				pair = std::make_pair(resource, (KInputStream *)0);
+				pair = std::make_pair(resource, (KIStream *)0);
 			}
 
 			// increment refrence count
@@ -106,7 +108,7 @@ namespace Kite{
 			std::transform(FileName.begin(), FileName.end(), tempKey.begin(), ::tolower);
 
 			// check resource catch
-			std::unordered_map<std::string, std::pair<KResource *, KInputStream *>>::iterator found = _kmap.find(tempKey);
+			std::unordered_map<std::string, std::pair<KResource *, KIStream *>>::iterator found = _kmap.find(tempKey);
 			if (found != _kmap.end()){
 				found->second.first->decRef();
 
@@ -127,7 +129,7 @@ namespace Kite{
 
 		// clear all resources
 		static void clear() {
-			std::unordered_map<std::string, std::pair<KResource *, KInputStream *>>::iterator it;
+			std::unordered_map<std::string, std::pair<KResource *, KIStream *>>::iterator it;
 			for (it = _kmap.begin(); it != _kmap.end(); ++it){
 				// free resource
 				delete it->second.first;
@@ -143,11 +145,11 @@ namespace Kite{
 
 	private:
 		static KStream *_kstream;
-		static std::unordered_map<std::string, std::pair<KResource *, KInputStream *>> _kmap;
+		static std::unordered_map<std::string, std::pair<KResource *, KIStream *>> _kmap;
 	};
 
 	KStream *KResourceManager::_kstream = 0;
-	std::unordered_map<std::string, std::pair<KResource *, KInputStream *>> KResourceManager::_kmap;
+	std::unordered_map<std::string, std::pair<KResource *, KIStream *>> KResourceManager::_kmap;
 }
 
 #endif // KRESOURCEMANAGER_H

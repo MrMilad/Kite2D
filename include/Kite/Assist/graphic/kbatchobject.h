@@ -44,6 +44,9 @@ namespace Kite{
         inline const U16 *getIndex() const {return _kindex;}
 		inline const KPointSprite *getPoint() const { return _kpsprite; }
 
+		inline const std::string &getName() const { return _kname; }
+		inline void setName(const std::string &Name) { _kname = Name; }
+
 		inline void setShader(const KShaderProgram *Shader) { _kshader = Shader; }
 		inline const KShaderProgram *getShader() const { return _kshader; }
 
@@ -69,6 +72,9 @@ namespace Kite{
 
 		inline bool getIndexed() const { return _kindexed; }
 		inline bool getSpriteEnabled() const { return _kpoint; }
+
+		inline void setReverseRender(bool Reverse) { _kreverse = Reverse; }
+		inline bool getReverseRender() const { return _kreverse; }
 
 		// return model-view teansform
 		virtual const KTransform &getModelViewTransform() const = 0;
@@ -96,6 +102,7 @@ namespace Kite{
 		std::string _kname;
 		bool _kindexed;
 		bool _kpoint;
+		bool _kreverse;
     };
 }
 

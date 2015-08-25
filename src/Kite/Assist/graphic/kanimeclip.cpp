@@ -17,10 +17,11 @@ License along with this library; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 USA
 */
-#include "Kite/Assist/graphic/kanimeclip.h"
 #include "Kite/Core/utility/kutilitystructs.h"
 #include "Kite/Core/utility/kmeminputstream.h"
+#include "Kite/Core/utility/kserialize.h"
 #include "Kite/Core/math/ktransformable.h"
+#include "Kite/Assist/graphic/kanimeclip.h"
 #include "extlibs/headers/xml/rapidxml.hpp"
 #include <fstream>
 
@@ -34,46 +35,29 @@ namespace Kite {
 		if (FileType == KAF_XML)
 			return _loadXML(FileName);
 
-		bool ret = false;
+		KSerialize serial;
+		if (serial.loadFile(FileName)) {
 
-		// open file
-		FILE *file = fopen(FileName.c_str(), "rb");
+			// check format
+			std::string format;
+			serial >> format;
 
-		if (file != NULL) {
+			if (format.compare("kanimekey") == 0) {
+				// check size
+				U32 size = 0;
+				serial >> size;
 
-			// file header
-			KArrayHeader header;
-			size_t rsize;
-
-			// set read pointer to begin of file
-			fseek(file, 0, SEEK_SET);
-
-			// read header
-			rsize = fread(&header, sizeof(KArrayHeader), 1, file);
-			if (rsize == 1) {
-
-				// check file format
-				if (strcmp(header.format, "kanimek\0") == 0) {
-
-					// check size of array objects
-					if (header.objCount > 0) {
-
-						// temp object
-						KAnimeKey temp;
-
-						// read objects one bye one
-						for (U32 i = 0; i < header.objCount; i++) {
-							rsize = fread(&temp, (size_t)header.objSize, 1, file);
-							_kkeys.push_back(temp);
-						}
-						ret = true;
-					}
+				for (U32 i = 0; i < size; i++){
+					KAnimeKey item;
+					serial >> item;
+					_kkeys.push_back(item);
 				}
+				return true;
+			} else {
+				KDEBUG_PRINT("wrong file format");
 			}
 		}
-
-		fclose(file);
-		return ret;
+		return false;
 	}
 
 	bool KAnimeClip::loadMemory(const void *Data, std::size_t Size, U32 FileType) {
@@ -85,92 +69,66 @@ namespace Kite {
 		return loadStream(temp);
 	}
 
-	bool KAnimeClip::loadStream(KInputStream &Stream, U32 FileType) {
+	bool KAnimeClip::loadStream(KIStream &Stream, U32 FileType) {
 		// just in case
 		_kkeys.clear();
 
 		if (FileType == KAF_XML)
 			return _loadXML(Stream);
 
-		// checking file types
-		if (FileType == KAF_XML)
-			return _loadXML(Stream);
+		KSerialize serial;
+		if (serial.loadStream(Stream)) {
 
-		bool ret = false;
+			// check format
+			std::string format;
+			serial >> format;
 
-		if (Stream.isOpen()) {
+			if (format.compare("kanimekey") == 0) {
+				// check size
+				U32 size = 0;
+				serial >> size;
 
-			// file header
-			KArrayHeader header;
-			U64 rsize = 0;
-
-			// set read pointer to begin of file
-			Stream.seek(0, SEEK_SET);
-
-			// read header
-			rsize = Stream.read(&header, sizeof(KArrayHeader));
-			if (rsize == sizeof(KArrayHeader)) {
-
-				// check file format
-				if (strcmp(header.format, "kanimek\0") == 0) {
-
-					// check size of array objects
-					if (header.objCount > 0) {
-
-						// temp object
-						KAnimeKey temp;
-
-						// read objects one bye one
-						for (U32 i = 0; i < header.objCount; i++) {
-							Stream.read(&temp, header.objSize);
-							_kkeys.push_back(temp);
-						}
-						ret = true;
-					}
+				for (U32 i = 0; i < size; i++) {
+					KAnimeKey item;
+					serial >> item;
+					_kkeys.push_back(item);
 				}
+				return true;
+			} else {
+				KDEBUG_PRINT("wrong file format");
 			}
 		}
-
-		return ret;
+		return false;
 	}
 
 	bool KAnimeClip::saveFile(const std::string &FileName) {
 		if (_kkeys.empty())
-			return false;
+			return true;
 
-		bool ret = false;
+		KSerialize serial;
+		serial << std::string("kanimekey");
+		serial << _kkeys.size();
 
-		// open file
-		FILE *file = fopen(FileName.c_str(), "wb");
-		if (file != NULL) {
-
-			// inite header
-			KArrayHeader header;
-			header.format[0] = 'k';
-			header.format[1] = 'a';
-			header.format[2] = 'n';
-			header.format[3] = 'i';
-			header.format[4] = 'm';
-			header.format[5] = 'e';
-			header.format[6] = 'k';
-			header.format[7] = '\0';
-			header.objCount = _kkeys.size();
-			header.objSize = sizeof(KAnimeKey);
-
-			// write header
-			fwrite(&header, sizeof(KArrayHeader), 1, file);
-
-			// write array elements 
-			for (U32 i = 0; i < _kkeys.size(); i++) {
-				fwrite(&_kkeys[i], sizeof(KAnimeKey), 1, file);
-			}
-
-			ret = true;
+		for (U32 i = 0; i < _kkeys.size(); i++) {
+			serial << _kkeys[i];
 		}
 
-		// cleanup
-		fclose(file);
-		return ret;
+		return serial.saveFile(FileName);
+	}
+
+	bool KAnimeClip::saveStream(KOStream &Stream) {
+		if (_kkeys.empty())
+			return true;
+
+		KSerialize serial;
+		serial << std::string("kanimekey");
+		serial << _kkeys.size();
+
+		for (U32 i = 0; i < _kkeys.size(); i++) {
+			serial << _kkeys[i];
+		}
+
+		return serial.saveStream(Stream);
 	}
 
 	bool KAnimeClip::_loadXML(const std::string &FileName) {
@@ -188,7 +146,7 @@ namespace Kite {
 		return _xmlParser(content);
 	}
 
-	bool KAnimeClip::_loadXML(KInputStream &Stream) {
+	bool KAnimeClip::_loadXML(KIStream &Stream) {
 		// open file
 		if (!Stream.isOpen()) {
 			return false;

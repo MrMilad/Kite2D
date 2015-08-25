@@ -22,6 +22,22 @@
 #include <cmath>
 
 namespace Kite{
+	KSerialize &operator<<(KSerialize &Out, const KTransformable &Value) {
+		Out << Value._ktransform << Value._kneedUpdate;
+		Out << Value._kcenter << Value._kposition;
+		Out << Value._krotation << Value._kscale;
+		Out << Value._kskew;
+		return Out;
+	}
+
+	KSerialize &operator>>(KSerialize &In, KTransformable &Value) {
+		In >> Value._ktransform >> Value._kneedUpdate;
+		In >> Value._kcenter	>> Value._kposition;
+		In >> Value._krotation	>> Value._kscale;
+		In >> Value._kskew;
+		return In;
+	}
+
     KTransformable::KTransformable():
         _kposition(0,0),
         _krotation(0.0f),

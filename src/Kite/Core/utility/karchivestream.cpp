@@ -31,9 +31,9 @@ namespace Kite{
 		_kloadmemory = true;
 	}
 	
-	KInputStream *KArchiveStream::openRead(const std::string &Name){
+	KIStream *KArchiveStream::openRead(const std::string &Name){
 		if (!_karchive.empty()){
-			KArchive *archive = new KArchive;
+			KArchiveIStream *archive = new KArchiveIStream;
 			bool ret = false;
 
 			if (_kloadmemory){
@@ -51,6 +51,37 @@ namespace Kite{
 		}
 
 		KDEBUG_PRINT("error in archive stream");
+		return 0;
+	}
+
+	KOStream *KArchiveStream::openWrite(const std::string &Name, KIOTypes Mode) {
+		if (_kloadmemory) {
+			KDEBUG_PRINT("memory archive for write operation not supported");
+			return 0;
+		}
+
+		if (Mode != KIO_WRITE && Mode != KIO_WRITE_APPEND) {
+			KDEBUG_PRINT("invalid write mode");
+			return 0;
+		}
+
+		if (!_karchive.empty()) {
+			KDEBUG_PRINT("empty archive");
+			return 0;
+		}
+
+		KArchiveOStream *archive = new KArchiveOStream;
+		bool ret = false;
+
+		ret = archive->openArchive(_karchive, Mode);
+
+		if (ret) {
+			if (archive->openFile(Name)) {
+				return archive;
+			}
+		}
+
+		delete archive;
 		return 0;
 	}
 }

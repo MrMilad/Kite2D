@@ -84,7 +84,7 @@ namespace Kite{
 		return ret;
     }
 
-	bool KSoundBuffer::loadStream(KInputStream &InputStream, U32 FileType) {
+	bool KSoundBuffer::loadStream(KIStream &InputStream, U32 FileType) {
 		Internal::SoundIO sound;
 		char *Data;
 		bool ret = false;

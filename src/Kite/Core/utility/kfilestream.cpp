@@ -20,9 +20,9 @@ USA
 #include "Kite/core/utility/kfilestream.h"
 
 namespace Kite{
-	KInputStream *KFileStream::openRead(const std::string &FileName){
+	KIStream *KFileStream::openRead(const std::string &FileName){
 		if (!FileName.empty()){
-			KFileInputStream *finstream = new KFileInputStream(FileName);
+			KFileIStream *finstream = new KFileIStream(FileName);
 			if (finstream->isOpen())
 				return finstream;
 

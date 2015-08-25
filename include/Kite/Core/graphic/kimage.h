@@ -101,7 +101,7 @@ namespace Kite{
 
 			\return True if loading was successful
 		*/
-		bool loadStream(KInputStream &Stream, U32 FileType = 0);
+		bool loadStream(KIStream &Stream, U32 FileType = 0);
 
 		//! Load the image to a file on disk
 		/*!

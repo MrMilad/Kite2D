@@ -81,6 +81,7 @@ namespace Kite{
 
 		/// combining the position/rotation/scale/center
 		const KTransform *getTransform() const;
+		inline KTransformable &getTransformable() { return *this; }
 
     private:
         KVector2F32 _kposition;

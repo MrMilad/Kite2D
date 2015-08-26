@@ -48,6 +48,8 @@ namespace Kite{
 
 	KITE_FUNC_EXPORT extern F64 convertStrToDouble(const char *Value);
 
+	KITE_FUNC_EXPORT extern bool isBigEndian();
+
 }
 
 #endif // KSYSTEMUTIL_H

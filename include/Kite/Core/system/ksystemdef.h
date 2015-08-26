@@ -22,6 +22,7 @@
 
 #include <cstdio>
 #include <iostream>
+#include <cstdint>
 
 /// identify the Little/Big endian
 #if defined(__m68k__) || defined(mc68000) || defined(_M_M68K) || (defined(__MIPS__) && defined(__MISPEB__)) || \
@@ -190,6 +191,7 @@ typedef unsigned long DWORD;
 #define KOGG_BUFF_SIZE 4096
 
 namespace Kite{
+	/*
     // 8 bits integer types
     typedef signed char I8;
     typedef unsigned char U8;
@@ -214,6 +216,29 @@ namespace Kite{
 
     // 64 bits floating types
     typedef double F64;
+	*/
+
+	// 8 bits integer types
+	typedef int8_t I8;
+	typedef uint8_t U8;
+
+	// 16 bits integer types
+	typedef int16_t I16;
+	typedef uint16_t U16;
+
+	// 32 bits integer types
+	typedef int32_t I32;
+	typedef uint32_t U32;
+
+	// 64 bits integer types
+	typedef int64_t I64;
+	typedef uint64_t U64;
+
+	// 32 bits floating types
+	typedef float F32;
+
+	// 64 bits floating types
+	typedef double F64;
 
     // glfw window handle
     typedef void *KWindowHandle;

@@ -24,28 +24,29 @@ USA
 #include "Kite/Core/utility/kistream.h"
 #include "Kite/Core/utility/kostream.h"
 #include <string>
+#include <vector>
 #include <utility>
 
 namespace Kite {
 	class KITE_FUNC_EXPORT KSerialize{
 		// integers
-		friend KSerialize &operator<<(KSerialize &Out, IL32 Value);
+		friend KSerialize &operator<<(KSerialize &Out, I64 Value);
 		friend KSerialize &operator<<(KSerialize &Out, I32 Value);
 		friend KSerialize &operator<<(KSerialize &Out, I16 Value);
 		friend KSerialize &operator<<(KSerialize &Out, I8 Value);
 
-		friend KSerialize &operator>>(KSerialize &In, IL32 &Value);
+		friend KSerialize &operator>>(KSerialize &In, I64 &Value);
 		friend KSerialize &operator>>(KSerialize &In, I32 &Value);
 		friend KSerialize &operator>>(KSerialize &In, I16 &Value);
 		friend KSerialize &operator>>(KSerialize &In, I8 &Value);
 
 		// unsighned integers
-		friend KSerialize &operator<<(KSerialize &Out, UL32 Value);
+		friend KSerialize &operator<<(KSerialize &Out, U64 Value);
 		friend KSerialize &operator<<(KSerialize &Out, U32 Value);
 		friend KSerialize &operator<<(KSerialize &Out, U16 Value);
 		friend KSerialize &operator<<(KSerialize &Out, U8 Value);
 
-		friend KSerialize &operator>>(KSerialize &In, UL32 &Value);
+		friend KSerialize &operator>>(KSerialize &In, U64 &Value);
 		friend KSerialize &operator>>(KSerialize &In, U32 &Value);
 		friend KSerialize &operator>>(KSerialize &In, U16 &Value);
 		friend KSerialize &operator>>(KSerialize &In, U8 &Value);
@@ -61,17 +62,13 @@ namespace Kite {
 		friend KSerialize &operator<<(KSerialize &Out, bool Value);
 		friend KSerialize &operator>>(KSerialize &In, bool &Value);
 
-		// char
-		friend KSerialize &operator<<(KSerialize &Out, const char *Value);
-		friend KSerialize &operator>>(KSerialize &In, char *Value);
-
 		// string
 		friend KSerialize &operator<<(KSerialize &Out, const std::string &Value);
 		friend KSerialize &operator>>(KSerialize &In, std::string &Value);
 
 		// KSerialize itself!
-		friend KSerialize &operator<<(KSerialize &Out, const KSerialize &Value);
-		friend KSerialize &operator>>(KSerialize &In, KSerialize &Value);
+		/*friend KSerialize &operator<<(KSerialize &Out, const KSerialize &Value);
+		friend KSerialize &operator>>(KSerialize &In, KSerialize &Value);*/
 
 		//std::pair
 		template <typename X, typename Y>
@@ -102,7 +99,9 @@ namespace Kite {
 		void clear();
 
 	private:
-		std::string _kdata;
+		void _convertAndSave(void *Value, U8 Size);
+		void _readAndConvert(void *Value, U8 Size);
+		std::vector<U8> _kdata;
 		U32 _kpos;
 		bool _kendfile;
 	};

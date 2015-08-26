@@ -30,8 +30,6 @@
 #include "Kite/core/graphic/kshader.h"
 #include "Kite/Core/graphic/ktexture.h"
 #include "Kite/Core/math/ktransform.h"
-#include <map>
-#include <vector>
 #include <string>
 
 /*! \namespace Kite
@@ -56,6 +54,10 @@ namespace Kite{
 		bool loadMemory(const void *Data, std::size_t Size, U32 FileType = 0);
 
 		bool loadStream(KIStream &Stream, U32 FileType = 0);
+
+		bool saveFile(const std::string &FileName);
+
+		bool saveStream(KOStream &Stream);
 
 		//! Attach a shader (vertex or fragment) to the shader program
 		/*!
@@ -166,6 +168,8 @@ namespace Kite{
 		U32 _kshaderCount; 
 		U32 _kprogId;	//!< ID of shader program
 		static U32 _klastProgId;	//!< Last id of shader program 
+		std::string _kvert;
+		std::string _kfrag;
 	};
 }
 

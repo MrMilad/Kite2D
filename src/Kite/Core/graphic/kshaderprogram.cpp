@@ -20,6 +20,7 @@
 #include "Kite/core/graphic/kshaderprogram.h"
 #include "Kite/core/graphic/kshaderprogram.h"
 #include "Kite/core/graphic/kgraphicutil.h"
+#include "Kite/Core/utility/kmeminputstream.h"
 #include "src/Kite/core/graphic/glcall.h"
 #include <cstdio>
 
@@ -48,18 +49,75 @@ namespace Kite{
 	}
 
 	bool KShaderProgram::loadFile(const std::string &FileName, U32 FileType) {
+		// checking file types
+		KSerialize serial;
+		if (serial.loadFile(FileName)) {
+
+			// check format
+			std::string format;
+			serial >> format;
+
+			if (format.compare("kshaderprog") == 0) {
+				// vertex
+				serial >> _kvert >> _kfrag;
+				return _createShaders(_kvert, _kfrag);
+			} else {
+				KDEBUG_PRINT("wrong file format");
+			}
+		}
 		return false;
 	}
 
 	bool KShaderProgram::loadMemory(const void *Data, std::size_t Size, U32 FileType) {
-		return false;
+		KMemInputStream temp(Data, Size);
+
+		return loadStream(temp);
 	}
 
 	bool KShaderProgram::loadStream(KIStream &Stream, U32 FileType) {
+		// checking file types
+		KSerialize serial;
+		if (serial.loadStream(Stream)) {
+
+			// check format
+			std::string format;
+			serial >> format;
+
+			if (format.compare("kshaderprog") == 0) {
+				// vertex
+				serial >> _kvert >> _kfrag;
+				return _createShaders(_kvert, _kfrag);
+			} else {
+				KDEBUG_PRINT("wrong file format");
+			}
+		}
 		return false;
 	}
 
+	bool KShaderProgram::saveFile(const std::string &FileName) {
+		KSerialize serial;
+		serial << std::string("kshaderprog");
+		
+		serial << _kvert << _kfrag;
+
+		return serial.saveFile(FileName);
+	}
+
+	bool KShaderProgram::saveStream(KOStream &Stream) {
+		KSerialize serial;
+		serial << std::string("kshaderprog");
+
+		serial << _kvert << _kfrag;
+
+		return serial.saveStream(Stream);
+	}
+
 	void KShaderProgram::attachShader(const KShader &Shader){
+		if (Shader.getType() == KS_VERTEX) {
+			_kvert = Shader.getCode();
+		} else if (Shader.getType() == KS_FRAGMENT) {
+			_kfrag = Shader.getCode();
+		}
 		// Attach the shader to the program
 		DGL_CALL(glAttachShader(_kprogId, Shader.getGLID()));
 

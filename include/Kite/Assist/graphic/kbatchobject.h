@@ -76,7 +76,7 @@ namespace Kite{
 		inline void setReverseRender(bool Reverse) { _kreverse = Reverse; }
 		inline bool getReverseRender() const { return _kreverse; }
 
-		// return model-view teansform
+		// return model-view transform
 		virtual const KTransform &getModelViewTransform() const = 0;
 
     protected:

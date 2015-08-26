@@ -24,6 +24,7 @@
 #include <string>
 #include "Kite/core/system/ksystemdef.h"
 #include "Kite/core/window/kwindowtypes.h"
+#include "Kite/core/utility/kserialize.h"
 
 namespace Kite{
     struct KWindowState{
@@ -48,6 +49,22 @@ namespace Kite{
             showCursor(ShowCursor), fullscreen(Fullscreen),
             border(Border), resizable(Resizable)
         {}
+
+		friend KSerialize &operator>>(KSerialize &In, KWindowState &Value) {
+			In >> Value.title >> Value.oglMajor >> Value.oglMinor;
+			In >> Value.swapInterval >> Value.width >> Value.height;
+			In >> Value.xpos >> Value.ypos >> Value.showCursor;
+			In >> Value.fullscreen >> Value.border >> Value.resizable;
+			return In;
+		}
+
+		friend KSerialize &operator<<(KSerialize &Out, const KWindowState &Value) {
+			Out << Value.title << Value.oglMajor << Value.oglMinor;
+			Out << Value.swapInterval << Value.width << Value.height;
+			Out << Value.xpos << Value.ypos << Value.showCursor;
+			Out << Value.fullscreen << Value.border << Value.resizable;
+			return Out;
+		}
     };
 
     struct KEnumDisplay{
@@ -72,6 +89,16 @@ namespace Kite{
         bool operator !=(const KEnumDisplay &right) const {
             return !(*this == right);
         }
+
+		friend KSerialize &operator>>(KSerialize &In, KEnumDisplay &Value) {
+			In >> Value.width >> Value.height >> Value.refreshRate >> Value.colorDepth;
+			return In;
+		}
+
+		friend KSerialize &operator<<(KSerialize &Out, const KEnumDisplay &Value) {
+			Out << Value.width << Value.height << Value.refreshRate << Value.colorDepth;
+			return Out;
+		}
     };
 
 }

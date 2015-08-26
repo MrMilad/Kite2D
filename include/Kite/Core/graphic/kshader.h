@@ -78,6 +78,9 @@ namespace Kite{
 		*/
 		bool loadStream(KIStream &ShaderStream, U32 FileType = 0);
 
+		inline KShaderTypes getType() const { return _ktype; }
+		inline const std::string &getCode() const { return _kcode; }
+
 		//! Load both the vertex and fragment shaders directly from source
 		/*!
 		\param Null-terminated (\0) source code of the sahder
@@ -113,6 +116,7 @@ namespace Kite{
     private:
 		KShaderTypes _ktype;
 		U32 _kglid;
+		std::string _kcode;
     };
 }
 

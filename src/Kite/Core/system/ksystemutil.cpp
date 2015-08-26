@@ -132,4 +132,9 @@ void cpuid(unsigned int CPUInfo[4],int InfoType){
 		}
 		return r;
 	}
+
+	bool isBigEndian() {
+		const I32 i = 1;
+		return ((*(char*)&i) == 0);
+	}
 }

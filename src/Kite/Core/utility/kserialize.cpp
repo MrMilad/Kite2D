@@ -22,10 +22,9 @@ USA
 #include "Kite/Core/system/ksystemutil.h"
 #include "Kite/Core/utility/kmeminputstream.h"
 #include <cstdio>
-#include <cstdlib>
 
 namespace Kite {
-	KSerialize &operator<<(KSerialize &Out, const KSerialize &Value) {
+	/*KSerialize &operator<<(KSerialize &Out, const KSerialize &Value) {
 		Out << Value._kpos << Value._kendfile << Value._kdata;
 		return Out;
 	}
@@ -33,7 +32,7 @@ namespace Kite {
 	KSerialize &operator>>(KSerialize &In, KSerialize &Value) {
 		In >> Value._kpos >> Value._kendfile >> Value._kdata;
 		return In;
-	}
+	}*/
 
 	KSerialize::KSerialize() :
 		_kpos(0),
@@ -48,12 +47,12 @@ namespace Kite {
 
 		if (file != NULL) {
 			// read header
-			char header[9];
-			if (fread(&header, sizeof(header), 1, file) == 1) {
-				header[8] = '\0';
+			char header[8];
+			if (fread(&header, sizeof(header) - 1, 1, file) == 1) {
+				header[7] = '\0';
 
 				// check header
-				if (strcmp("kserial\x1f\0", header) == 0) {
+				if (strcmp("kserial\0", header) == 0) {
 
 					// get file size
 					fseek(file, 0, SEEK_END);
@@ -65,7 +64,7 @@ namespace Kite {
 					_kdata.resize(size);
 					_kpos = 0;
 					if (fread(&_kdata[0], (size_t)size, 1, file) == 1) {
-						_kdata.erase(0, 8);
+						_kdata.erase(_kdata.begin(), _kdata.begin() + 7);
 						_kendfile = false;
 						ret = true;
 					} else {
@@ -90,12 +89,12 @@ namespace Kite {
 
 		if (Stream.isOpen()) {
 			// read header
-			char header[9];
-			if (Stream.read(&header, sizeof(header)) == sizeof(header)) {
-				header[8] = '\0';
+			char header[8];
+			if (Stream.read(&header, 7) == 7) {
+				header[7] = '\0';
 
 				// check header
-				if (strcmp("kserial\x1f\0", header) == 0) {
+				if (strcmp("kserial\0", header) == 0) {
 
 					// get file size
 					U64 size = Stream.getSize();
@@ -106,7 +105,7 @@ namespace Kite {
 					_kdata.resize((U32)size);
 					_kpos = 0;
 					if (Stream.read(&_kdata[0], size) == size) {
-						_kdata.erase(0, 8);
+						_kdata.erase(_kdata.begin(), _kdata.begin() + 7);
 						_kendfile = false;
 						ret = true;
 					} else {
@@ -139,9 +138,10 @@ namespace Kite {
 		if (file != NULL) {
 
 			// inite header 
-			_kdata.insert(0, "kserial\x1f");
+			char format[] = { 'k', 's', 'e', 'r', 'i', 'a', 'l' };
+			_kdata.insert(_kdata.begin(), &format[0], &format[7]);
 			// write data
-			if (fwrite(_kdata.c_str(), _kdata.size(), 1, file) == 1) {
+			if (fwrite(&_kdata[0], _kdata.size(), 1, file) == 1) {
 				ret = true;
 			} else {
 				KDEBUG_PRINT("write data error")
@@ -162,10 +162,11 @@ namespace Kite {
 		if (Stream.isOpen()) {
 
 			// inite header (30 bytes lenght)
-			_kdata.insert(0, "kserial\x1f");
+			char format[] = { 'k', 's', 'e', 'r', 'i', 'a', 'l' };
+			_kdata.insert(_kdata.begin(), &format[0], &format[7]);
 
 			// write data
-			if (Stream.write((void *)_kdata.c_str(), _kdata.size())) {
+			if (Stream.write((void *)&_kdata[0], _kdata.size())) {
 				ret = true;
 			} else {
 				KDEBUG_PRINT("write data error")
@@ -177,196 +178,159 @@ namespace Kite {
 		return ret;
 	}
 
-	KSerialize &operator<<(KSerialize &Out, IL32 Value){
-		char buf[50];
-		char tok[2] = { '\x1f', '\0' };
-		Out._kdata.append(_ltoa(Value, buf, 10));
-		Out._kdata.append(tok);
-		Out._kendfile = false;
+	void KSerialize::_convertAndSave(void *Value, U8 Size) {
+		// always we write data in little endian format
+		U8 buf[8];
+		U8 *fin;
+
+		// convert to little endian
+		if (isBigEndian()) {
+			U8 *ptr = (U8 *)Value;
+			for (U8 i = 0; i < Size; i++) {
+				buf[i] = ptr[(Size - 1) - i];
+			}
+			fin = buf;
+		} else {
+			fin = (U8 *)Value;
+		}
+
+		for (U32 i = 0; i < Size; i++) {
+			_kdata.push_back(fin[i]);
+		}
+
+		_kendfile = false;
+	}
+
+	void KSerialize::_readAndConvert(void *Value, U8 Size) {
+		if (endOfFile() || _kdata.empty()) {
+			return;
+		}
+
+		memcpy(Value, &_kdata[_kpos], (size_t)Size);
+
+		// convert to big endian
+		if (isBigEndian()) {
+			U8 *ptr = (U8 *)Value;
+			for (U8 i = 0; i < Size; i++) {
+				ptr[i] = _kdata[_kpos + ((Size - 1) - i)];
+			}
+		}
+
+		// move read pointer
+		_kpos += Size;
+
+		// check end of data
+		if (_kpos >= _kdata.size())
+			_kendfile = true;
+	}
+
+	KSerialize &operator<<(KSerialize &Out, I64 Value){
+		Out._convertAndSave(&Value, 8);
 		return Out;
 	}
 
 	KSerialize &operator<<(KSerialize &Out, I32 Value) {
-		return Out << (IL32)Value;
+		Out._convertAndSave(&Value, 4);
+		return Out;
 	}
 
 	KSerialize &operator<<(KSerialize &Out, I16 Value) {
-		return Out << (IL32)Value;
+		Out._convertAndSave(&Value, 2);
+		return Out;
 	}
 
 	KSerialize &operator<<(KSerialize &Out, I8 Value) {
-		return Out << (IL32)Value;
+		Out._kdata.push_back(Value);
+		return Out;
 	}
 
-	KSerialize &operator<<(KSerialize &Out, UL32 Value) {
-		char buf[50];
-		char tok[2] = { '\x1f', '\0' };
-		sprintf(buf, "%lu", Value);
-		Out._kdata.append(buf);
-		Out._kdata.append(tok);
-		Out._kendfile = false;
+	KSerialize &operator<<(KSerialize &Out, U64 Value) {
+		Out._convertAndSave(&Value, 8);
 		return Out;
 	}
 
 	KSerialize &operator<<(KSerialize &Out, U32 Value) {
-		return Out << (UL32)Value;
+		Out._convertAndSave(&Value, 4);
+		return Out;
 	}
 
 	KSerialize &operator<<(KSerialize &Out, U16 Value) {
-		return Out << (UL32)Value;
+		Out._convertAndSave(&Value, 2);
+		return Out;
 	}
 
 	KSerialize &operator<<(KSerialize &Out, U8 Value) {
-		return Out << (UL32)Value;
+		Out._kdata.push_back(Value);
+		return Out;
 	}
 
-	KSerialize &operator>>(KSerialize &In, IL32 &Value){
-		if (In.endOfFile() || In._kdata.empty()) {
-			Value = 0;
-			return In;
-		}
-		
-		// read value
-		Value = atoi(&In._kdata[In._kpos]);
-
-		// move read pointer
-		char tok[2] = { '\x1f', '\0' };
-		size_t tpos = In._kdata.find(tok, In._kpos);
-		if (tpos == std::string::npos) {
-			In._kpos = In._kdata.size();
-			In._kendfile = true;
-		} else {
-			In._kpos = tpos;
-
-			// skip token chracter
-			++In._kpos;
-		}
-
-		if (In._kpos >= In._kdata.size())
-			In._kendfile = true;
-
+	KSerialize &operator>>(KSerialize &In, I64 &Value){
+		In._readAndConvert(&Value, 8);
 		return In;
 	}
 
 	KSerialize &operator>>(KSerialize &In, I32 &Value) {
-		IL32 temp;
-		In >> temp;
-		Value = (I32)temp;
+		In._readAndConvert(&Value, 4);
 		return In;
 	}
 
 	KSerialize &operator>>(KSerialize &In, I16 &Value) {
-		IL32 temp;
-		In >> temp;
-		Value = (I16)temp;
+		In._readAndConvert(&Value, 2);
 		return In;
 	}
 
 	KSerialize &operator>>(KSerialize &In, I8 &Value) {
-		IL32 temp;
-		In >> temp;
-		Value = (I8)temp;
+		Value = In._kdata[In._kpos];
+		++In._kpos;
 		return In;
 	}
 	
-	KSerialize &operator>>(KSerialize &In, UL32 &Value) {
-		if (In.endOfFile() || In._kdata.empty()) {
-			Value = 0;
-			return In;
-		}
-
-		// read value
-		Value = strtoul(&In._kdata[In._kpos], 0, 0);
-
-		// move read pointer
-		char tok[2] = { '\x1f', '\0' };
-		size_t tpos = In._kdata.find(tok, In._kpos);
-		if (tpos == std::string::npos) {
-			In._kpos = In._kdata.size();
-			In._kendfile = true;
-		} else {
-			In._kpos = tpos;
-
-			// skip token chracter
-			++In._kpos;
-		}
-
-		if (In._kpos >= In._kdata.size())
-			In._kendfile = true;
-
+	KSerialize &operator>>(KSerialize &In, U64 &Value) {
+		In._readAndConvert(&Value, 8);
 		return In;
 	}
 
 	KSerialize &operator>>(KSerialize &In, U32 &Value) {
-		UL32 temp;
-		In >> temp;
-		Value = (U32)temp;
+		In._readAndConvert(&Value, 4);
 		return In;
 	}
 
 	KSerialize &operator>>(KSerialize &In, U16 &Value) {
-		UL32 temp;
-		In >> temp;
-		Value = (U16)temp;
+		In._readAndConvert(&Value, 2);
 		return In;
 	}
 
 	KSerialize &operator>>(KSerialize &In, U8 &Value) {
-		UL32 temp;
-		In >> temp;
-		Value = (U8)temp;
+		Value = In._kdata[In._kpos];
+		++In._kpos;
 		return In;
 	}
 
 	KSerialize &operator<<(KSerialize &Out, F64 Value) {
-		char tok[2] = { '\x1f', '\0' };
-		Out._kdata.append(std::to_string(Value));
-		Out._kdata.append(tok);
-		Out._kendfile = false;
+		Out._convertAndSave(&Value, 8);
 		return Out;
 	}
 
 	KSerialize &operator>>(KSerialize &In, F64 &Value) {
-		if (In.endOfFile() || In._kdata.empty()) {
-			Value = 0;
-			return In;
-		}
-
-		// read value
-		Value = convertStrToDouble(&In._kdata[In._kpos]);
-
-		// move read pointer
-		char tok[2] = { '\x1f', '\0' };
-		size_t tpos = In._kdata.find(tok, In._kpos);
-		if (tpos == std::string::npos) {
-			In._kpos = In._kdata.size();
-			In._kendfile = true;
-		} else {
-			In._kpos = tpos;
-
-			// skip token chracter
-			++In._kpos;
-		}
-
-		if (In._kpos >= In._kdata.size())
-			In._kendfile = true;
-
+		In._readAndConvert(&Value, 8);
 		return In;
 	}
 
 	KSerialize &operator<<(KSerialize &Out, F32 Value) {
-		return Out << (F64)Value;
+		Out._convertAndSave(&Value, 4);
+		return Out;
 	}
 
 	KSerialize &operator>>(KSerialize &In, F32 &Value) {
-		F64 temp;
-		In >> temp;
-		Value = (F32)temp;
+		In._readAndConvert(&Value, 4);
 		return In;
 	}
 
 	KSerialize &operator<<(KSerialize &Out, const std::string &Value) {
-		Out << Value.c_str();
+		Out << (U32)Value.size();
+		Out._kdata.reserve(Out._kdata.size() + Value.size());
+		Out._kdata.insert(Out._kdata.end(), &Value[0], &Value[Value.size()]);
+
 		return Out;
 	}
 
@@ -376,85 +340,39 @@ namespace Kite {
 			return In;
 		}
 
-		// string lenght
-		char tok[2] = { '\x1f', '\0' };
-		size_t tpos = In._kdata.find(tok, In._kpos);
-		if (tpos == std::string::npos) {
-			In._kpos = In._kdata.size();
-			In._kendfile = true;
-			Value.clear();
-		} else {
+		U32 size = 0;
+		In >> size;
+		Value.clear();
+		Value.reserve(size);
+		Value.insert(0, (const char *)&In._kdata[In._kpos], size);
 
-			Value.assign(&In._kdata[In._kpos], (tpos - In._kpos));
+		In._kpos += size;
 
-			In._kpos = tpos;
-
-			// skip token chracter
-			++In._kpos;
-		}
-
+		// check end of data
 		if (In._kpos >= In._kdata.size())
 			In._kendfile = true;
-
-		return In;
-	}
-
-	KSerialize &operator<<(KSerialize &Out, const char *Value) {
-		char tok[2] = { '\x1f', '\0' };
-		Out._kdata.append(Value);
-		Out._kdata.append(tok);
-		Out._kendfile = false;
-		return Out;
-	}
-
-	KSerialize &operator>>(KSerialize &In, char *Value) {
-		if (In.endOfFile() || In._kdata.empty()) {
-			Value = 0;
-			return In;
-		}
-
-		//  string lenght
-		char tok[2] = { '\x1f', '\0' };
-		size_t tpos = In._kdata.find(tok, In._kpos);
-		if (tpos == std::string::npos) {
-			In._kpos = In._kdata.size();
-			In._kendfile = true;
-			Value = 0;
-		} else {
-
-			strncpy(Value, &In._kdata[In._kpos], (tpos - In._kpos));
-			Value[(tpos - In._kpos)] = '\0';
-
-			In._kpos = tpos;
-
-			// skip token chracter
-			++In._kpos;
-		}
-
-		if (In._kpos >= In._kdata.size())
-			In._kendfile = true;
-
+		
 		return In;
 	}
 
 	KSerialize &operator<<(KSerialize &Out, bool Value) {
-		char tok[2] = { '\x1f', '\0' };
 		if (Value) {
-			Out << (const char *)"1";
+			Out << (U8)1;
 		} else {
-			Out << (const char *)"0";
+			Out << (U8)0;
 		}
 		return Out;
 	}
 
 	KSerialize &operator>>(KSerialize &In, bool &Value) {
-		char temp[2];
+		U8 temp;
 		In >> temp;
-		if (temp[0] == '1') {
+		if (temp == 1) {
 			Value = true;
 		} else {
 			Value = false;
 		}
+
 		return In;
 	}
 

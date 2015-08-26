@@ -85,6 +85,9 @@ namespace Kite{
 		// get the source as a pointer to an array of characters
 		const GLchar *cod = &shCod[0];
 
+		// store code
+		_kcode.assign(&cod[0]);
+
 		// associate the source with the shader id
 		DGL_CALL(glShaderSource(_kglid, 1, &cod, NULL));
 		return true;
@@ -103,6 +106,9 @@ namespace Kite{
 
 		// get the source as a pointer to an array of characters
 		const char *cod = (char *)Data;
+
+		// store code
+		_kcode.assign((char *)Data);
 
 		// associate the source with the shader id
 		DGL_CALL(glShaderSource(_kglid, 1, &cod, NULL));
@@ -127,6 +133,9 @@ namespace Kite{
 		// append '\0' at the end of cod
 		data.push_back('\0');
 
+		// store code
+		_kcode.assign(&data[0]);
+
 		// get the source as a pointer to an array of characters
 		const GLchar *cod = &data[0];
 
@@ -143,6 +152,7 @@ namespace Kite{
 
 		// get the source as a pointer to an array of characters
 		const GLchar *cod = &Source[0];
+		_kcode = Source;
 
 		// associate the source with the shader id
 		DGL_CALL(glShaderSource(_kglid, 1, &cod, NULL));

@@ -94,7 +94,7 @@ namespace Kite{
 
         // finally fill all the Buffers with audio data
         // our buffers are ready for streaming now
-        UL32 read = 0;
+        U32 read = 0;
         for (U16 i = 0; i < 4; ++i){
             read = _kreader->readData((void *)_kdata, KOGG_BUFF_SIZE * 4);
             DAL_CALL(alBufferData(_kbuffers[i], format, _kdata, read, (ALsizei)_kreader->getInfo().sampleRate));

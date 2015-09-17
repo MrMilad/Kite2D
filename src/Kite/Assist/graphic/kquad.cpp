@@ -21,6 +21,11 @@
 #include <vector>
 
 namespace Kite{
+	KMETA_DEF(KQuad, KMFLAG_CLASS) {
+		KMETA_ADD_MEMBER(_kcolor);
+		KMETA_ADD_MEMBER(_kuv);
+	}
+
 	KQuad::KQuad() :
 		KBatchObject(4, 6, "quad")
 	{

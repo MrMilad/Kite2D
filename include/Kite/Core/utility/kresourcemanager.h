@@ -23,10 +23,10 @@ USA
 #include "Kite/Core/system/ksystemdef.h"
 #include "Kite/core/utility/kstream.h"
 #include "Kite/core/utility/kresource.h"
-#include <cstring>
 #include <unordered_map>
 #include <algorithm>
 #include <utility>
+#include <string>
 
 namespace Kite{
 	class KITE_FUNC_EXPORT KResourceManager{
@@ -35,11 +35,52 @@ namespace Kite{
 			clear();
 		}
 
-		static inline void setInputStream(KStream *Stream) { _kstream = Stream; }
+		inline void setInputStream(KStream *Stream) { _kstream = Stream; }
+
+		// add a loadded resource to resource manager
+		// pass stream if resource hase a catched stream 
+		// replace current loaded resource not allowed
+		bool add(const std::string &FileName, KResource *Resource, KIStream *CatchStream = 0) {
+			// checking file name
+			if (FileName.empty()) {
+				KDEBUG_PRINT("empty file name is not valid");
+				return false;
+			}
+
+			if (!Resource) {
+				KDEBUG_PRINT("bad or null resource pointer");
+				return false;
+			}
+
+			// create key from file name
+			std::string tempKey(FileName);
+			std::transform(FileName.begin(), FileName.end(), tempKey.begin(), ::tolower);
+
+			// first, check our resource catch
+			std::unordered_map<std::string, std::pair<KResource *, KIStream *>>::iterator found = _kmap.find(tempKey);
+			if (found != _kmap.end()) {
+				// replace current loaded resource not allowed
+				KDEBUG_PRINT("replace loaded resource not allowed");
+				return false;
+			}
+
+			// stream lifetime
+			std::pair<KResource *, KIStream *> pair;
+			if (CatchStream) {
+				pair = std::make_pair(Resource, CatchStream);
+			} else {
+				pair = std::make_pair(Resource, (KIStream *)0);
+			}
+
+			// storing resource
+			_kmap.insert({ tempKey, pair });
+			_kptrMap.insert({ Resource, FileName });
+			return true;
+		}
 
 		// use catch stream for stream resource eg: KStreamSource
 		template <typename T>
-		static T *load(const std::string &FileName, bool CatchStream, U32 FileType = 0){
+		T *load(const std::string &FileName, bool CatchStream, U32 FileType = 0){
 			// checking input stream
 			if (!_kstream) {
 				KDEBUG_PRINT("there is no input stream");
@@ -83,6 +124,7 @@ namespace Kite{
 			if (CatchStream){
 				pair = std::make_pair(resource, stream);
 			}else{
+				stream->close();
 				delete stream;
 				pair = std::make_pair(resource, (KIStream *)0);
 			}
@@ -92,11 +134,12 @@ namespace Kite{
 
 			// storing resource
 			_kmap.insert({ tempKey, pair });
+			_kptrMap.insert({ resource, FileName });
 			return (T *)resource;
 		}
 
 		// unload any resource with any type
-		static void unload(const std::string &FileName) {
+		void unload(const std::string &FileName) {
 			// checking file name
 			if (FileName.empty()){
 				KDEBUG_PRINT("empty file name is not valid");
@@ -118,8 +161,10 @@ namespace Kite{
 					delete found->second.first;
 
 					// free associated input stream 
-					if (found->second.second)
+					if (found->second.second) {
+						found->second.second->close();
 						delete found->second.second;
+					}
 
 					// erase pair from catch
 					_kmap.erase(found);
@@ -127,16 +172,70 @@ namespace Kite{
 			}
 		}
 
+		// unload any resource with any type
+		void unload(KResource *Resource) {
+			// checking ptr
+			if (!Resource) {
+				return;
+			}
+
+
+			// check resource catch
+			std::unordered_map<KResource *, std::string>::iterator found = _kptrMap.find(Resource);
+			if (found != _kptrMap.end()) {
+
+				// unload
+				unload(found->second);
+
+				// erase pair from catch
+				_kptrMap.erase(found);
+			}
+		}
+
+		const std::string &getResourceName(KResource *Resource) {
+			// checking ptr
+			static std::string rname;
+			if (!Resource) {
+				return rname;
+			}
+
+			// check resource catch
+			std::unordered_map<KResource *, std::string>::iterator found = _kptrMap.find(Resource);
+			if (found != _kptrMap.end()) {
+
+				rname = found->second;
+			}
+
+			return rname;
+		}
+
+		void dump(std::string &Names, std::vector<U8> &Types) {
+			Names.clear();
+			Types.clear();
+
+			std::unordered_map<std::string, std::pair<KResource *, KIStream *>>::iterator it;
+			for (it = _kmap.begin(); it != _kmap.end(); ++it) {
+				// names
+				Names.append(it->first);
+				Names.append("\n");
+
+				// types
+				Types.push_back(it->second.first->getResourceType());
+			}
+		}
+
 		// clear all resources
-		static void clear() {
+		void clear() {
 			std::unordered_map<std::string, std::pair<KResource *, KIStream *>>::iterator it;
 			for (it = _kmap.begin(); it != _kmap.end(); ++it){
 				// free resource
 				delete it->second.first;
 
 				// free associated input stream 
-				if (it->second.second)
+				if (it->second.second) {
+					it->second.second->close();
 					delete it->second.second;
+				}
 			}
 
 			// clear map
@@ -144,12 +243,10 @@ namespace Kite{
 		}
 
 	private:
-		static KStream *_kstream;
-		static std::unordered_map<std::string, std::pair<KResource *, KIStream *>> _kmap;
+		KStream *_kstream;
+		std::unordered_map<std::string, std::pair<KResource *, KIStream *>> _kmap;
+		std::unordered_map<KResource *, std::string> _kptrMap;
 	};
-
-	KStream *KResourceManager::_kstream = 0;
-	std::unordered_map<std::string, std::pair<KResource *, KIStream *>> KResourceManager::_kmap;
 }
 
 #endif // KRESOURCEMANAGER_H

@@ -24,6 +24,7 @@
 namespace Kite{
     KImage::KImage():
 		KCoreInstance(KCI_IMAGE),
+		KResource(KRT_IMAGE),
         _ksize(0,0)
     {}
 

@@ -17,11 +17,40 @@ License along with this library; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 USA
 */
-#include "Kite/core/utility/kresourcemanager.h"
+#ifndef KVARIANTBASE_H
+#define KVARIANTBASE_H
+
+#include "Kite/Core/system/ksystemdef.h"
 
 namespace Kite {
-	template <typename T>;
-	KStream *KResourceManager<T>::_kstream = 0;
-	std::unordered_map<std::string, std::pair<T *, KInputStream *>> KResourceManager<T>::_kmap;
-	T *KResourceManager<T>::_kdefault = 0;
+	class KMetaObject;
+	class KITE_FUNC_EXPORT KVariantBase {
+	public:
+		template <typename T>
+		T& getValue() {
+			return *reinterpret_cast<T *>(_kdata);
+		}
+
+		template <typename T>
+		const T&getValue() const {
+			return *reinterpret_cast<T *>(_kdata);
+		}
+
+		inline void *getData() const { return _kdata; }
+		inline const KMetaObject *getMeta() const { return _kobject; }
+
+	protected:
+		KVariantBase() :
+			_kobject(NULL), _kdata(NULL) 
+		{}
+
+		KVariantBase(const KMetaObject* Object, void* Data) :
+			_kobject(Object), _kdata(Data)
+		{}
+
+		const KMetaObject *_kobject;
+		void *_kdata;
+	};
 }
+
+#endif // KVARIANTBASE_H

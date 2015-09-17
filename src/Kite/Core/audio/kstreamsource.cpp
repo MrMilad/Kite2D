@@ -27,6 +27,7 @@
 
 namespace Kite{
     KStreamSource::KStreamSource():
+		KResource(KRT_AUDIOSOURCE),
         _kreader(new Internal::SoundIO),
         _kthread(0),
         _kdata(0),

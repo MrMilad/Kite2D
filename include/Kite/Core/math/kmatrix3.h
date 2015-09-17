@@ -21,18 +21,18 @@
 #define KMATRIX3_H
 
 #include "Kite/Core/system/ksystemdef.h"
-#include "Kite/Core/utility/kserialize.h"
+#include "Kite/Core/utility/KBytesArray.h"
 
 namespace Kite{
     class KMatrix3{
-		friend KSerialize &operator<<(KSerialize &Out, const KMatrix3 &Value) {
+		friend KBytesArray &operator<<(KBytesArray &Out, const KMatrix3 &Value) {
 			Out << Value[0] << Value[1] << Value[2];
 			Out << Value[3] << Value[4] << Value[5];
 			Out << Value[6] << Value[7] << Value[8];
 			return Out;
 		}
 
-		friend KSerialize &operator>>(KSerialize &In, KMatrix3 &Value) {
+		friend KBytesArray &operator>>(KBytesArray &In, KMatrix3 &Value) {
 			In >> Value[0] >> Value[1] >> Value[2];
 			In >> Value[3] >> Value[4] >> Value[5];
 			In >> Value[6] >> Value[7] >> Value[8];

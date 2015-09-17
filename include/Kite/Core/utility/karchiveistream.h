@@ -101,7 +101,7 @@ namespace Kite{
 
 		//! Open a file in the archive for reading operations
 		/*!
-			\param FileName Name of the file
+			\param FileName Name of the file. use back slash "/" for directory path.
 
 			\return True if operation was successful
 		*/

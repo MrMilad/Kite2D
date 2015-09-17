@@ -21,7 +21,7 @@ USA
 #define KTIMELINE_H
 
 #include "Kite/Core/system/ksystemdef.h"
-#include "Kite/Core/utility/kserialize.h"
+#include "Kite/Core/utility/KBytesArray.h"
 #include <utility>
 #include <set>
 
@@ -32,7 +32,7 @@ namespace Kite {
 	class KTimeLine {
 
 		// Ktimeline
-		friend KSerialize &operator<<(KSerialize &Out, const KTimeLine<Y, X> &Value) {
+		friend KBytesArray &operator<<(KBytesArray &Out, const KTimeLine<Y, X> &Value) {
 			std::set<std::pair<Y, X>, bool(*)(const std::pair<Y, X> &, const std::pair<Y, X> &)>::const_iterator it = Value._knodes.begin();
 			Out << Value._knodes.size();
 			for (it; it != Value._knodes.end(); ++it)
@@ -40,7 +40,7 @@ namespace Kite {
 			return Out;
 		}
 
-		friend KSerialize &operator>>(KSerialize &In, KTimeLine<Y, X> &Value) {
+		friend KBytesArray &operator>>(KBytesArray &In, KTimeLine<Y, X> &Value) {
 			U32 size;
 			std::pair<Y, X> pair;
 			In >> size;

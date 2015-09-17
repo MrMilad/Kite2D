@@ -19,7 +19,7 @@ USA
 */
 #include "Kite/Core/utility/kutilitystructs.h"
 #include "Kite/Core/utility/kmeminputstream.h"
-#include "Kite/Core/utility/kserialize.h"
+#include "Kite/Core/utility/KBytesArray.h"
 #include "Kite/Core/math/ktransformable.h"
 #include "Kite/Assist/graphic/kanimeclip.h"
 #include "extlibs/headers/xml/rapidxml.hpp"
@@ -28,37 +28,9 @@ USA
 using namespace rapidxml;
 
 namespace Kite {
-	bool KAnimeClip::loadFile(const std::string &FileName, U32 FileType) {
-		_kkeys.clear();
-
-		// checking file types
-		if (FileType == KAF_XML)
-			return _loadXML(FileName);
-
-		KSerialize serial;
-		if (serial.loadFile(FileName)) {
-
-			// check format
-			std::string format;
-			serial >> format;
-
-			if (format.compare("kanimekey") == 0) {
-				// check size
-				U32 size = 0;
-				serial >> size;
-
-				for (U32 i = 0; i < size; i++){
-					KAnimeKey item;
-					serial >> item;
-					_kkeys.push_back(item);
-				}
-				return true;
-			} else {
-				KDEBUG_PRINT("wrong file format");
-			}
-		}
-		return false;
-	}
+	KAnimeClip::KAnimeClip() :
+		KResource(KRT_ANIMCLIP)
+	{}
 
 	bool KAnimeClip::loadMemory(const void *Data, std::size_t Size, U32 FileType) {
 		KMemInputStream temp(Data, Size);
@@ -76,7 +48,7 @@ namespace Kite {
 		if (FileType == KAF_XML)
 			return _loadXML(Stream);
 
-		KSerialize serial;
+		KBytesArray serial;
 		if (serial.loadStream(Stream)) {
 
 			// check format
@@ -101,26 +73,11 @@ namespace Kite {
 		return false;
 	}
 
-	bool KAnimeClip::saveFile(const std::string &FileName) {
-		if (_kkeys.empty())
-			return true;
-
-		KSerialize serial;
-		serial << std::string("kanimekey");
-		serial << _kkeys.size();
-
-		for (U32 i = 0; i < _kkeys.size(); i++) {
-			serial << _kkeys[i];
-		}
-
-		return serial.saveFile(FileName);
-	}
-
 	bool KAnimeClip::saveStream(KOStream &Stream) {
 		if (_kkeys.empty())
 			return true;
 
-		KSerialize serial;
+		KBytesArray serial;
 		serial << std::string("kanimekey");
 		serial << _kkeys.size();
 

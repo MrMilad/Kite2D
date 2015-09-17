@@ -22,7 +22,7 @@
 
 #include <cmath>
 #include "Kite/Core/system/ksystemdef.h"
-#include "Kite/Core/utility/kserialize.h"
+#include "Kite/Core/utility/KBytesArray.h"
 
 namespace Kite{
 
@@ -36,12 +36,12 @@ namespace Kite{
 
 		T x, y;
 
-		friend KSerialize &operator>>(KSerialize &In, KVector2<T> &Value) {
+		friend KBytesArray &operator>>(KBytesArray &In, KVector2<T> &Value) {
 			In >> Value.x >> Value.y;
 			return In;
 		}
 
-		friend KSerialize &operator<<(KSerialize &Out, const KVector2<T> &Value) {
+		friend KBytesArray &operator<<(KBytesArray &Out, const KVector2<T> &Value) {
 			Out << Value.x << Value.y;
 			return Out;
 		}
@@ -209,12 +209,12 @@ namespace Kite{
 
 		T x, y, z;
 
-		friend KSerialize &operator>>(KSerialize &In, KVector3<T> &Value) {
+		friend KBytesArray &operator>>(KBytesArray &In, KVector3<T> &Value) {
 			In >> Value.x >> Value.y >> Value.z;
 			return In;
 		}
 
-		friend KSerialize &operator<<(KSerialize &Out, const KVector3<T> &Value) {
+		friend KBytesArray &operator<<(KBytesArray &Out, const KVector3<T> &Value) {
 			Out << Value.x << Value.y << Value.z;
 			return Out;
 		}
@@ -343,12 +343,12 @@ namespace Kite{
 			left(Left), right(Right), bottom(Bottom), top(Top)
 		{}
 
-		friend KSerialize &operator>>(KSerialize &In, KRect<T> &Value) {
+		friend KBytesArray &operator>>(KBytesArray &In, KRect<T> &Value) {
 			In >> Value.left >> Value.right >> Value.bottom >> Value.top;
 			return In;
 		}
 
-		friend KSerialize &operator<<(KSerialize &Out, const KRect<T> &Value) {
+		friend KBytesArray &operator<<(KBytesArray &Out, const KRect<T> &Value) {
 			Out << Value.left << Value.right << Value.bottom << Value.top;
 			return Out;
 		}
@@ -389,12 +389,12 @@ namespace Kite{
 			leftBottom(LeftBottom), leftTop(LeftTop), rightBottom(RightBottom), rightTop(RightTop)
 		{}
 
-		friend KSerialize &operator>>(KSerialize &In, KRect2<T> &Value) {
+		friend KBytesArray &operator>>(KBytesArray &In, KRect2<T> &Value) {
 			In >> Value.leftBottom >> Value.leftTop >> Value.rightBottom >> Value.rightTop;
 			return In;
 		}
 
-		friend KSerialize &operator<<(KSerialize &Out, const KRect2<T> &Value) {
+		friend KBytesArray &operator<<(KBytesArray &Out, const KRect2<T> &Value) {
 			Out << Value.leftBottom << Value.leftTop << Value.rightBottom << Value.rightTop;
 			return Out;
 		}

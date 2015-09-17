@@ -20,7 +20,7 @@ USA
 #include "Kite/Assist/graphic/katlas.h"
 #include "Kite/Core/utility/kutilitystructs.h"
 #include "Kite/Core/utility/kmeminputstream.h"
-#include "Kite/Core/utility/kserialize.h"
+#include "Kite/Core/utility/KBytesArray.h"
 #include "Kite/Core/graphic/kgraphicdef.h"
 #include <fstream>
 
@@ -28,37 +28,9 @@ USA
 #include "extlibs/headers/json/jsmn.h"
 
 namespace Kite {
-	bool KAtlas::loadFile(const std::string &FileName, U32 FileType) {
-		_kitems.clear();
-
-		// checking file types
-		if (FileType == KAF_JSON)
-			return _loadJSON(FileName);
-
-		KSerialize serial;
-		if (serial.loadFile(FileName)) {
-
-			// check format
-			std::string format;
-			serial >> format;
-
-			if (format.compare("katlas") == 0) {
-				// check size
-				U32 size = 0;
-				serial >> size;
-
-				for (U32 i = 0; i < size; i++){
-					KAtlasItem item;
-					serial >> item;
-					_kitems.push_back(item);
-				}
-				return true;
-			} else {
-				KDEBUG_PRINT("wrong file format");
-			}
-		}
-		return false;
-	}
+	KAtlas::KAtlas() :
+		KResource(KRT_ATLAS) 
+	{}
 
 	bool KAtlas::loadMemory(const void *Data, std::size_t Size, U32 FileType) {
 		KMemInputStream temp(Data, Size);
@@ -77,7 +49,7 @@ namespace Kite {
 		if (FileType == KAF_JSON)
 			return _loadJSON(Stream);
 
-		KSerialize serial;
+		KBytesArray serial;
 		if (serial.loadStream(Stream)) {
 
 			// check format
@@ -102,26 +74,11 @@ namespace Kite {
 		return false;
 	}
 
-	bool KAtlas::saveFile(const std::string &FileName) {
-		if (_kitems.empty())
-			return true;
-		
-		KSerialize serial;
-		serial << std::string("katlas");
-		serial << _kitems.size();
-
-		for (U32 i = 0; i < _kitems.size(); i++) {
-			serial << _kitems[i];
-		}
-
-		return serial.saveFile(FileName);
-	}
-
 	bool KAtlas::saveStream(KOStream &Stream) {
 		if (_kitems.empty())
 			return true;
 
-		KSerialize serial;
+		KBytesArray serial;
 		serial << std::string("katlas");
 		serial << _kitems.size();
 

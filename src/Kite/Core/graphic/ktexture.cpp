@@ -24,6 +24,7 @@ namespace Kite{
     U32 Kite::KTexture::_klastTexId = 0;
 	KTexture::KTexture() :
 		KCoreInstance(KCI_TEXTURE),
+		KResource(KRT_TEXTURE),
         _ktexId(0),
         _kfilter(KTF_LINEAR),
         _kwrap(KTW_CLAMP_TO_EDGE),

@@ -21,12 +21,12 @@
 #include <cmath>
 
 namespace Kite{
-	KSerialize &operator<<(KSerialize &Out, const KTransform &Value) {
+	KBytesArray &operator<<(KBytesArray &Out, const KTransform &Value) {
 		Out << Value._kmatrix;
 		return Out;
 	}
 
-	KSerialize &operator>>(KSerialize &In, KTransform &Value) {
+	KBytesArray &operator>>(KBytesArray &In, KTransform &Value) {
 		In >> Value._kmatrix;
 		return In;
 	}

@@ -28,16 +28,13 @@ USA
 namespace Kite {
 	class KITE_FUNC_EXPORT KAnimeClip : public KResource {
 	public:
-		// pas KAF_XML for adobeflash XML motion files
-		bool loadFile(const std::string &FileName, U32 FileType = 0);
+		KAnimeClip();
 
 		// pas KAF_XML for adobeflash XML motion files
 		bool loadMemory(const void *Data, std::size_t Size, U32 FileType = 0);
 
 		// pas KAF_XML for adobeflash XML motion files
 		bool loadStream(KIStream &Stream, U32 FileType = 0);
-
-		bool saveFile(const std::string &FileName);
 
 		bool saveStream(KOStream &Stream);
 

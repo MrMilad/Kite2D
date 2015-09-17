@@ -22,6 +22,7 @@
 
 #include "Kite/Core/system/ksystemdef.h"
 #include "Kite/Core/graphic/kgraphicstructs.h"
+#include "Kite/Core/utility/kutilitydef.h"
 #include "Kite/Core/math/kmathstructs.h"
 #include "Kite/Core/math/ktransformable.h"
 #include "kite/Assist/graphic/kbatchobject.h"
@@ -51,6 +52,8 @@ namespace Kite{
 		// from KIndexBatchObject (output/send)
 		const KTransform &getModelViewTransform() const;
 
+		KMETA_DATA(KQuad);
+			
 	protected:
 		// from KAnimeObject (input/recive)
 		void animeUpdate(const KAnimeValue *AnimatedValue);

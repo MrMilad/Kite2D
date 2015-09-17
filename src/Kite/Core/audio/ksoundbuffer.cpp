@@ -28,6 +28,7 @@
 namespace Kite{
     KSoundBuffer::KSoundBuffer():
 		KCoreInstance(KCI_AUDIOBUFFER),
+		KResource(KRT_AUDIOBUFFER),
         _ksampleRate(0),
         _kchannelCount(0),
         _kbitsPerSample(0),

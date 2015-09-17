@@ -29,6 +29,7 @@ namespace Kite{
 
 	KShaderProgram::KShaderProgram() :
 		KCoreInstance(KCI_SHPROGRAM),
+		KResource(KRT_SHPROGRAM),
 		_kshaderCount(0)
 	{
 		// Generate a unique Id / handle for the shader program
@@ -50,7 +51,7 @@ namespace Kite{
 
 	bool KShaderProgram::loadFile(const std::string &FileName, U32 FileType) {
 		// checking file types
-		KSerialize serial;
+		KBytesArray serial;
 		if (serial.loadFile(FileName)) {
 
 			// check format
@@ -76,7 +77,7 @@ namespace Kite{
 
 	bool KShaderProgram::loadStream(KIStream &Stream, U32 FileType) {
 		// checking file types
-		KSerialize serial;
+		KBytesArray serial;
 		if (serial.loadStream(Stream)) {
 
 			// check format
@@ -95,7 +96,7 @@ namespace Kite{
 	}
 
 	bool KShaderProgram::saveFile(const std::string &FileName) {
-		KSerialize serial;
+		KBytesArray serial;
 		serial << std::string("kshaderprog");
 		
 		serial << _kvert << _kfrag;
@@ -104,7 +105,7 @@ namespace Kite{
 	}
 
 	bool KShaderProgram::saveStream(KOStream &Stream) {
-		KSerialize serial;
+		KBytesArray serial;
 		serial << std::string("kshaderprog");
 
 		serial << _kvert << _kfrag;

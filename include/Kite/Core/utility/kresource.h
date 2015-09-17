@@ -30,20 +30,13 @@ namespace Kite{
 	class KITE_FUNC_EXPORT KResource : KNonCopyable{
 	friend class KResourceManager;
 	public:
-		KResource(const std::string &Name = ""):
+		KResource(U8 Type, const std::string &Name = ""):
+			_ktype(Type),
 			_kref(0),
 			_kname(Name)
 		{}
 
 		virtual ~KResource(){};
-
-		//! Load the resource from a file on disk
-		/*!
-		\param FileName Address of the image file on the disk
-
-		\return True if loading was successful
-		*/
-		virtual bool loadFile(const std::string &FileName, U32 FileType = 0) = 0;
 
 		//! Load the resource from a memory block
 		/*!
@@ -68,8 +61,11 @@ namespace Kite{
 		inline void setResourceName(const std::string &Name) { _kname = Name; }
 		inline const std::string &getResourceName() const { return _kname; }
 
+		inline U8 getResourceType() const { return _ktype; }
+
 	private:
 		U32 _kref;
+		U8 _ktype;
 		std::string _kname;
 		inline void incRef() { ++_kref; }
 		inline void decRef() { _kref > 0 ? --_kref : _kref; }

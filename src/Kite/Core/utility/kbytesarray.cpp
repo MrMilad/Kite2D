@@ -18,28 +18,28 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 USA
 */
 
-#include "Kite/Core/utility/kserialize.h"
+#include "Kite/Core/utility/KBytesArray.h"
 #include "Kite/Core/system/ksystemutil.h"
 #include "Kite/Core/utility/kmeminputstream.h"
 #include <cstdio>
 
 namespace Kite {
-	/*KSerialize &operator<<(KSerialize &Out, const KSerialize &Value) {
+	/*KBytesArray &operator<<(KBytesArray &Out, const KBytesArray &Value) {
 		Out << Value._kpos << Value._kendfile << Value._kdata;
 		return Out;
 	}
 
-	KSerialize &operator>>(KSerialize &In, KSerialize &Value) {
+	KBytesArray &operator>>(KBytesArray &In, KBytesArray &Value) {
 		In >> Value._kpos >> Value._kendfile >> Value._kdata;
 		return In;
 	}*/
 
-	KSerialize::KSerialize() :
+	KBytesArray::KBytesArray() :
 		_kpos(0),
 		_kendfile(true)
 	{}
 
-	bool KSerialize::loadFile(const std::string &FileName, U32 FileType) {
+	bool KBytesArray::loadFile(const std::string &FileName, U32 FileType) {
 		bool ret = false;
 
 		// open file
@@ -84,7 +84,7 @@ namespace Kite {
 		return ret;
 	}
 
-	bool KSerialize::loadStream(KIStream &Stream, U32 FileType) {
+	bool KBytesArray::loadStream(KIStream &Stream, U32 FileType) {
 		bool ret = false;
 
 		if (Stream.isOpen()) {
@@ -124,13 +124,13 @@ namespace Kite {
 		return ret;
 	}
 
-	bool KSerialize::loadMemory(const void *Data, std::size_t Size, U32 FileType) {
+	bool KBytesArray::loadMemory(const void *Data, std::size_t Size, U32 FileType) {
 		KMemInputStream temp(Data, Size);
 
 		return loadStream(temp);
 	}
 
-	bool KSerialize::saveFile(const std::string &FileName) {
+	bool KBytesArray::saveFile(const std::string &FileName) {
 		bool ret = false;
 
 		// open file
@@ -155,7 +155,7 @@ namespace Kite {
 		return ret;
 	}
 
-	bool KSerialize::saveStream(KOStream &Stream) {
+	bool KBytesArray::saveStream(KOStream &Stream) {
 		bool ret = false;
 
 		// open file
@@ -178,7 +178,7 @@ namespace Kite {
 		return ret;
 	}
 
-	void KSerialize::_convertAndSave(void *Value, U8 Size) {
+	void KBytesArray::_convertAndSave(void *Value, U8 Size) {
 		// always we write data in little endian format
 		U8 buf[8];
 		U8 *fin;
@@ -201,7 +201,7 @@ namespace Kite {
 		_kendfile = false;
 	}
 
-	void KSerialize::_readAndConvert(void *Value, U8 Size) {
+	void KBytesArray::_readAndConvert(void *Value, U8 Size) {
 		if (endOfFile() || _kdata.empty()) {
 			return;
 		}
@@ -224,109 +224,7 @@ namespace Kite {
 			_kendfile = true;
 	}
 
-	KSerialize &operator<<(KSerialize &Out, I64 Value){
-		Out._convertAndSave(&Value, 8);
-		return Out;
-	}
-
-	KSerialize &operator<<(KSerialize &Out, I32 Value) {
-		Out._convertAndSave(&Value, 4);
-		return Out;
-	}
-
-	KSerialize &operator<<(KSerialize &Out, I16 Value) {
-		Out._convertAndSave(&Value, 2);
-		return Out;
-	}
-
-	KSerialize &operator<<(KSerialize &Out, I8 Value) {
-		Out._kdata.push_back(Value);
-		return Out;
-	}
-
-	KSerialize &operator<<(KSerialize &Out, U64 Value) {
-		Out._convertAndSave(&Value, 8);
-		return Out;
-	}
-
-	KSerialize &operator<<(KSerialize &Out, U32 Value) {
-		Out._convertAndSave(&Value, 4);
-		return Out;
-	}
-
-	KSerialize &operator<<(KSerialize &Out, U16 Value) {
-		Out._convertAndSave(&Value, 2);
-		return Out;
-	}
-
-	KSerialize &operator<<(KSerialize &Out, U8 Value) {
-		Out._kdata.push_back(Value);
-		return Out;
-	}
-
-	KSerialize &operator>>(KSerialize &In, I64 &Value){
-		In._readAndConvert(&Value, 8);
-		return In;
-	}
-
-	KSerialize &operator>>(KSerialize &In, I32 &Value) {
-		In._readAndConvert(&Value, 4);
-		return In;
-	}
-
-	KSerialize &operator>>(KSerialize &In, I16 &Value) {
-		In._readAndConvert(&Value, 2);
-		return In;
-	}
-
-	KSerialize &operator>>(KSerialize &In, I8 &Value) {
-		Value = In._kdata[In._kpos];
-		++In._kpos;
-		return In;
-	}
-	
-	KSerialize &operator>>(KSerialize &In, U64 &Value) {
-		In._readAndConvert(&Value, 8);
-		return In;
-	}
-
-	KSerialize &operator>>(KSerialize &In, U32 &Value) {
-		In._readAndConvert(&Value, 4);
-		return In;
-	}
-
-	KSerialize &operator>>(KSerialize &In, U16 &Value) {
-		In._readAndConvert(&Value, 2);
-		return In;
-	}
-
-	KSerialize &operator>>(KSerialize &In, U8 &Value) {
-		Value = In._kdata[In._kpos];
-		++In._kpos;
-		return In;
-	}
-
-	KSerialize &operator<<(KSerialize &Out, F64 Value) {
-		Out._convertAndSave(&Value, 8);
-		return Out;
-	}
-
-	KSerialize &operator>>(KSerialize &In, F64 &Value) {
-		In._readAndConvert(&Value, 8);
-		return In;
-	}
-
-	KSerialize &operator<<(KSerialize &Out, F32 Value) {
-		Out._convertAndSave(&Value, 4);
-		return Out;
-	}
-
-	KSerialize &operator>>(KSerialize &In, F32 &Value) {
-		In._readAndConvert(&Value, 4);
-		return In;
-	}
-
-	KSerialize &operator<<(KSerialize &Out, const std::string &Value) {
+	KBytesArray &operator<<(KBytesArray &Out, const std::string &Value) {
 		Out << (U32)Value.size();
 		Out._kdata.reserve(Out._kdata.size() + Value.size());
 		Out._kdata.insert(Out._kdata.end(), &Value[0], &Value[Value.size()]);
@@ -334,7 +232,7 @@ namespace Kite {
 		return Out;
 	}
 
-	KSerialize &operator>>(KSerialize &In, std::string &Value) {
+	KBytesArray &operator>>(KBytesArray &In, std::string &Value) {
 		if (In.endOfFile() || In._kdata.empty()) {
 			Value.clear();
 			return In;
@@ -355,7 +253,7 @@ namespace Kite {
 		return In;
 	}
 
-	KSerialize &operator<<(KSerialize &Out, bool Value) {
+	KBytesArray &operator<<(KBytesArray &Out, bool Value) {
 		if (Value) {
 			Out << (U8)1;
 		} else {
@@ -364,7 +262,7 @@ namespace Kite {
 		return Out;
 	}
 
-	KSerialize &operator>>(KSerialize &In, bool &Value) {
+	KBytesArray &operator>>(KBytesArray &In, bool &Value) {
 		U8 temp;
 		In >> temp;
 		if (temp == 1) {
@@ -376,7 +274,7 @@ namespace Kite {
 		return In;
 	}
 
-	void KSerialize::clear() {
+	void KBytesArray::clear() {
 		_kdata.clear();
 		_kendfile = true;
 		_kpos = 0;

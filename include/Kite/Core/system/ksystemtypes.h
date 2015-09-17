@@ -43,6 +43,20 @@ namespace Kite{
 		KIO_WRITE_APPEND
 	};
 
+	enum KVariantTypes : U8 {
+		KVT_I8 = 0,
+		KVT_U8,
+		KVT_I16,
+		KVT_U16,
+		KVT_I32,
+		KVT_U32,
+		KVT_I64,
+		KVT_U64,
+		KVT_F32,
+		KVT_F64,
+		KVT_VPTR
+	};
+
 	enum KVectorComponentTypes{
 		KVC_X = 0,
 		KVC_Y = 1,
@@ -63,6 +77,18 @@ namespace Kite{
 		KCI_SHADER,
 		KCI_SHPROGRAM,
 		KCI_WINDOW
+	};
+
+	enum KResourceTypes : U8 {
+		KRT_TEXTURE = 0,
+		KRT_IMAGE,
+		KRT_AUDIOBUFFER,
+		KRT_AUDIOSOURCE,
+		KRT_SHADER,
+		KRT_SHPROGRAM,
+		KRT_ATLAS,
+		KRT_ANIMCLIP,
+		KRT_SCENE
 	};
 
 	enum KGridMapTriggerTypes {

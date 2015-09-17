@@ -25,7 +25,8 @@
 namespace Kite{
 
 	KShader::KShader(KShaderTypes Types):
-		KCoreInstance(KCI_SHADER)
+		KCoreInstance(KCI_SHADER),
+		KResource(KRT_SHADER)
 	{
 		_ktype = Types;
 		switch (Types){

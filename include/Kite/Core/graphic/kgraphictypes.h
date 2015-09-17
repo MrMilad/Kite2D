@@ -162,16 +162,16 @@ namespace Kite{
 	/*! \enum KTextureFilterTypes
 		\brief Magnification texture filtering options
 	*/
-    enum KTextureFilterTypes{
-		KTF_NEAREST,	//!< Select the texel nearest the texture coordinate
+    enum KTextureFilterTypes : U8{
+		KTF_NEAREST = 0,	//!< Select the texel nearest the texture coordinate
         KTF_LINEAR		//!< Perform a weighted linear blend between the nearest adjacent samples
     };
 
 	/*! \enum KTextureWrapTypes
 		\brief The possible heuristic when a texture coordinate is not within the [0, 1] range
 	*/
-    enum KTextureWrapTypes{
-		KTW_REPEAT,				//!< The texture coordinate wraps around the texture
+    enum KTextureWrapTypes : U8{
+		KTW_REPEAT = 0,				//!< The texture coordinate wraps around the texture
         KTW_MIRRORED_REPEAT,	//!< The texture coordinate wraps around like a mirror
         KTW_CLAMP_TO_EDGE		//!< The texture coordinate is clamped to the [0, 1] range
      // KTW_CLAMP_TO_BORDER		// border not supported (see KTexture::create())

@@ -24,11 +24,12 @@
 	\brief All core graphic structs.
 */
 
+#include "Kite/Core/system/ksystemdef.h"
 #include "Kite/Core/system/ksystemtypes.h"
+#include "Kite/Core/system/ksystemstructs.h"
 #include "Kite/Core/graphic/kgraphictypes.h"
 #include "Kite/Core/math/kmath.h"
-#include "Kite/Core/system/ksystemdef.h"
-#include "Kite/Core/utility/kserialize.h"
+#include "Kite/Core/utility/kutilitydef.h"
 #include <cstdint>
 
 /*! \namespace Kite
@@ -92,15 +93,7 @@ namespace Kite{
 		//! Set A component. range [0 to 255]
 		inline U8 getA() const { return (U8)(a * 255.0f); }
 
-		friend KSerialize &operator>>(KSerialize &In, KColor &Value) {
-			In >> Value.r >> Value.g >> Value.b >> Value.a;
-			return In;
-		}
-
-		friend KSerialize &operator<<(KSerialize &Out, const KColor &Value) {
-			Out << Value.r << Value.g << Value.b << Value.a;
-			return Out;
-		}
+		KMETA_DATA(KColor);
 	};
 
 	//! Utility struct for manipulating vertex attributes.
@@ -124,15 +117,7 @@ namespace Kite{
             pos(Pos), uv(UV), color(Color)
         {}
 
-		friend KSerialize &operator>>(KSerialize &In, KVertex &Value) {
-			In >> Value.pos >> Value.uv >> Value.color;
-			return In;
-		}
-
-		friend KSerialize &operator<<(KSerialize &Out, const KVertex &Value) {
-			Out << Value.pos << Value.uv << Value.color;
-			return Out;
-		}
+		KMETA_DATA(KVertex);
     };
 
 	struct KPointSprite {
@@ -147,15 +132,7 @@ namespace Kite{
 			pointSize(PointSize), textureSize(TextureSize) 
 		{}
 
-		friend KSerialize &operator>>(KSerialize &In, KPointSprite &Value) {
-			In >> Value.pointSize >> Value.textureSize;
-			return In;
-		}
-
-		friend KSerialize &operator<<(KSerialize &Out, const KPointSprite &Value) {
-			Out << Value.pointSize << Value.textureSize;
-			return Out;
-		}
+		KMETA_DATA(KPointSprite);
 	};
 
 	//! Utility struct for representing a atlas object.
@@ -180,16 +157,26 @@ namespace Kite{
 			w(W), h(H)
 		{}
 
-		friend KSerialize &operator>>(KSerialize &In, KAtlasItem &Value) {
-			In >> Value.id >> Value.blu >> Value.blv >> Value.tru >> Value.trv >> Value.w >> Value.h;
+		KMETA_DATA(KAtlasItem);
+	};
+
+	/*struct KAnimeKey {
+		F32 time;
+		std::string name;
+		KVariant value;
+		U8 interp;
+		U8 change;
+
+		KAnimeKey() :
+			time(0), interp(0), change(0) 
+		{}
+
+		friend KBytesArray &operator>>(KBytesArray &In, KAnimeKey &Value) {
+			In >> Value.time >> Value.name >> Value.value >> Value.position >>
+
 			return In;
 		}
-
-		friend KSerialize &operator<<(KSerialize &Out, const KAtlasItem &Value) {
-			Out << Value.id << Value.blu << Value.blv << Value.tru << Value.trv << Value.w << Value.h;
-			return Out;
-		}
-	};
+	};*/
 
 	//! State of a key in key-based animations for user classes.
 	/*!
@@ -225,7 +212,7 @@ namespace Kite{
 			tchange(KAV_SET), schange(KAV_SET), skchange(KAV_SET), rchange(KAV_SET)
 		{}
 
-		friend KSerialize &operator>>(KSerialize &In, KAnimeValue &Value) {
+		friend KBytesArray &operator>>(KBytesArray &In, KAnimeValue &Value) {
 			In >> Value.translate >> Value.scale >> Value.skew >> Value.position >>
 				Value.rotate >> Value.center >> Value.uv >> Value.trChannel >>
 				Value.scaleChannel >> Value.skewChannel >> Value.rotateChannel >>
@@ -234,7 +221,7 @@ namespace Kite{
 			return In;
 		}
 
-		friend KSerialize &operator<<(KSerialize &Out, const KAnimeValue &Value) {
+		friend KBytesArray &operator<<(KBytesArray &Out, const KAnimeValue &Value) {
 			Out << Value.translate << Value.scale << Value.skew << Value.position <<
 				Value.rotate << Value.center << Value.uv << Value.trChannel <<
 				Value.scaleChannel << Value.skewChannel << Value.rotateChannel <<
@@ -271,7 +258,7 @@ namespace Kite{
 		U8 rchange;		//!< Rotate state-change mode (KAnimeValueChangeTypes)
 		U8 tinterp;		//!< Translate interpolation type (KAnimeValueChangeTypes)
 		U8 sinterp;		//!< Scale interpolation type (KInterpolationTypes)
-		U8 skinterp;		//!< Skew interpolation type
+		U8 skinterp;	//!< Skew interpolation type
 		U8 rinterp;		//!< Rotate interpolation type
 		U8 cinterp;		//!< Origin interpolation type
 
@@ -286,7 +273,7 @@ namespace Kite{
 			rotateChannel(false), uvChannel(false), colorChannel(false)
 		{}
 
-		friend KSerialize &operator>>(KSerialize &In, KAnimeKey &Value) {
+		friend KBytesArray &operator>>(KBytesArray &In, KAnimeKey &Value) {
 			In >> Value.translate >> Value.scale >> Value.skew >> Value.position >>
 				Value.rotate >> Value.center >> Value.uv >> Value.trChannel >>
 				Value.scaleChannel >> Value.skewChannel >> Value.rotateChannel >>
@@ -297,7 +284,7 @@ namespace Kite{
 			return In;
 		}
 
-		friend KSerialize &operator<<(KSerialize &Out, const KAnimeKey &Value) {
+		friend KBytesArray &operator<<(KBytesArray &Out, const KAnimeKey &Value) {
 			Out << Value.translate << Value.scale << Value.skew << Value.position <<
 				Value.rotate << Value.center << Value.uv << Value.trChannel <<
 				Value.scaleChannel << Value.skewChannel << Value.rotateChannel <<
@@ -313,6 +300,12 @@ namespace Kite{
     struct KOGLVersion{
         U8 major;	//!< OpenGL major version
         U8 minor;	//!< OpenGL minor version
+
+		KOGLVersion(U8 Major, U8 Minor) :
+			major(Major), minor(Minor) 
+		{}
+
+		KMETA_DATA(KOGLVersion);
     };
 
 	//! Particle attribute
@@ -341,17 +334,7 @@ namespace Kite{
 				  timer(Timer), uv(UV)
 		{}
 
-		friend KSerialize &operator>>(KSerialize &In, KParticle &Value) {
-			In >> Value.pos >> Value.size >> Value.angle >> Value.color >>
-				Value.speed >> Value.life >> Value.timer >> Value.uv >> Value.spin;
-			return In;
-		}
-
-		friend KSerialize &operator<<(KSerialize &Out, const KParticle &Value) {
-			Out << Value.pos << Value.size << Value.angle << Value.color <<
-				Value.speed << Value.life << Value.timer << Value.uv << Value.spin;
-			return Out;
-		}
+		KMETA_DATA(KParticle);
     };
 
 	//! Configuration of Batch objects.
@@ -370,15 +353,7 @@ namespace Kite{
             index(Index), vertex(Vertex) , point(Point)
         {}
 
-		friend KSerialize &operator>>(KSerialize &In, KBatchConfig &Value) {
-			In >> Value.index >> Value.vertex >> Value.point;
-			return In;
-		}
-
-		friend KSerialize &operator<<(KSerialize &Out, const KBatchConfig &Value) {
-			Out << Value.index << Value.vertex << Value.point;
-			return Out;
-		}
+		KMETA_DATA(KBatchConfig);
     };
 
 	struct KBatchUpdate{
@@ -392,31 +367,19 @@ namespace Kite{
 					 point(Point)
 		{}
 
-		friend KSerialize &operator>>(KSerialize &In, KBatchUpdate &Value) {
-			In >> Value.vertex >> Value.point;
-			return In;
-		}
-
-		friend KSerialize &operator<<(KSerialize &Out, const KBatchUpdate &Value) {
-			Out << Value.vertex << Value.point;
-			return Out;
-		}
+		KMETA_DATA(KBatchUpdate);
 	};
 
 	struct KTileMapInfo{
-		U8 mapType;	//!< type of map (KTileMapTypes)
+		U8 mapType;				//!< type of map (KTileMapTypes)
 		KVector2F32 tileSize;	//!< x = width, y = height
 		KVector2U32 mapSize;	//!< x = number of tiles in row, y = number of tiles in column
 
-		friend KSerialize &operator>>(KSerialize &In, KTileMapInfo &Value) {
-			In >> Value.mapType >> Value.tileSize >> Value.mapSize;
-			return In;
-		}
+		KTileMapInfo(U8 Type, const KVector2F32 &TileSize, const KVector2U32 &MapSize) :
+			mapType(Type), tileSize(TileSize), mapSize(MapSize) 
+		{}
 
-		friend KSerialize &operator<<(KSerialize &Out, const KTileMapInfo &Value) {
-			Out << Value.mapType << Value.tileSize << Value.mapSize;
-			return Out;
-		}
+		KMETA_DATA(KTileMapInfo);
 	};
 
 	//! isometric tile structure for drawing purpose

@@ -25,11 +25,12 @@
 */
 
 #include "Kite/Core/system/ksystemdef.h"
-#include "Kite/Core/system/ksystemtypes.h"
-#include "Kite/Core/system/ksystemstructs.h"
 #include "Kite/Core/graphic/kgraphictypes.h"
 #include "Kite/Core/math/kmath.h"
 #include "Kite/Core/utility/kutilitydef.h"
+#include "Kite/Core/utility/kmetaobject.h"
+#include "Kite/Core/utility/kmetamanager.h"
+#include "Kite/Core/utility/kutilitystructs.h"
 #include <cstdint>
 
 /*! \namespace Kite
@@ -70,6 +71,9 @@ namespace Kite{
 		}
 
 		//! Set R component. range [0 to 255]
+		inline U8 getR() const { return (U8)(r * 255.0f); }
+
+		//! Set R component. range [0 to 255]
 		inline void setR(U8 R) { r = (R / 255.0f); }
 
 		//! Set G component. range [0 to 255]
@@ -81,9 +85,6 @@ namespace Kite{
 		//! Set A component. range [0 to 255]
 		inline void setA(U8 A) { a = (A / 255.0f); }
 
-		//! Set R component. range [0 to 255]
-		inline U8 getR() const { return (U8)(r * 255.0f); }
-
 		//! Set G component. range [0 to 255]
 		inline U8 getG() const { return (U8)(g * 255.0f); }
 
@@ -93,8 +94,15 @@ namespace Kite{
 		//! Set A component. range [0 to 255]
 		inline U8 getA() const { return (U8)(a * 255.0f); }
 
-		KMETA_DATA(KColor);
+		KMETA_DEF(KColor, KMFLAG_CLASS)
+			KMETA_ADD_MEMBER(KColor, r, F32)
+			KMETA_ADD_MEMBER(KColor, g, F32)
+			KMETA_ADD_MEMBER(KColor, b, F32)
+			KMETA_ADD_MEMBER(KColor, a, F32)
+		KMETA_DEF_END
 	};
+
+
 
 	//! Utility struct for manipulating vertex attributes.
 	/*!
@@ -117,7 +125,7 @@ namespace Kite{
             pos(Pos), uv(UV), color(Color)
         {}
 
-		KMETA_DATA(KVertex);
+		//KMETA_DATA(KVertex);
     };
 
 	struct KPointSprite {
@@ -132,7 +140,7 @@ namespace Kite{
 			pointSize(PointSize), textureSize(TextureSize) 
 		{}
 
-		KMETA_DATA(KPointSprite);
+		//KMETA_DATA(KPointSprite);
 	};
 
 	//! Utility struct for representing a atlas object.
@@ -140,7 +148,7 @@ namespace Kite{
 		KAtlas is a simple and compact struct for managing objects in atlas textures.
 	*/
 	struct KAtlasItem{
-		uint32_t id;		//!< Unique ID
+		U32 id;		//!< Unique ID
 		F32 blu;	//!< Bottom-left U texture position with range [0, 1]
 		F32 blv;	//!< Bottom-left V texture position with range [0, 1]
 		F32 tru;	//!< Top-right U texture position with range [0, 1]
@@ -157,7 +165,15 @@ namespace Kite{
 			w(W), h(H)
 		{}
 
-		KMETA_DATA(KAtlasItem);
+		KMETA_DEF(KAtlasItem, KMFLAG_CLASS)
+			KMETA_ADD_MEMBER(KAtlasItem, id, U32)
+			KMETA_ADD_MEMBER(KAtlasItem, blu, F32)
+			KMETA_ADD_MEMBER(KAtlasItem, blv, F32)
+			KMETA_ADD_MEMBER(KAtlasItem, tru, F32)
+			KMETA_ADD_MEMBER(KAtlasItem, trv, F32)
+			KMETA_ADD_MEMBER(KAtlasItem, w, F32)
+			KMETA_ADD_MEMBER(KAtlasItem, h, F32)
+		KMETA_DEF_END
 	};
 
 	/*struct KAnimeKey {
@@ -305,7 +321,7 @@ namespace Kite{
 			major(Major), minor(Minor) 
 		{}
 
-		KMETA_DATA(KOGLVersion);
+		//KMETA_DATA(KOGLVersion);
     };
 
 	//! Particle attribute
@@ -334,7 +350,7 @@ namespace Kite{
 				  timer(Timer), uv(UV)
 		{}
 
-		KMETA_DATA(KParticle);
+		//KMETA_DATA(KParticle);
     };
 
 	//! Configuration of Batch objects.
@@ -353,7 +369,7 @@ namespace Kite{
             index(Index), vertex(Vertex) , point(Point)
         {}
 
-		KMETA_DATA(KBatchConfig);
+		//KMETA_DATA(KBatchConfig);
     };
 
 	struct KBatchUpdate{
@@ -367,19 +383,7 @@ namespace Kite{
 					 point(Point)
 		{}
 
-		KMETA_DATA(KBatchUpdate);
-	};
-
-	struct KTileMapInfo{
-		U8 mapType;				//!< type of map (KTileMapTypes)
-		KVector2F32 tileSize;	//!< x = width, y = height
-		KVector2U32 mapSize;	//!< x = number of tiles in row, y = number of tiles in column
-
-		KTileMapInfo(U8 Type, const KVector2F32 &TileSize, const KVector2U32 &MapSize) :
-			mapType(Type), tileSize(TileSize), mapSize(MapSize) 
-		{}
-
-		KMETA_DATA(KTileMapInfo);
+		//KMETA_DATA(KBatchUpdate);
 	};
 
 	//! isometric tile structure for drawing purpose
@@ -418,28 +422,6 @@ namespace Kite{
 			KUpdateSender(U32 ArraySize = 0, void *FirstObject = 0) :
 				arraySize(ArraySize), firstObject(FirstObject) 
 			{}
-		};
-
-		struct KLinkedPoint{
-			KVector2F32 point;
-			void *next;
-			void *prev;
-			KLinkedPoint() :
-				point(),
-				next(0),
-				prev(0) {}
-		};
-
-		struct KTile {
-			void *first;
-			void *second;
-			void *sender;
-			KCallTileTrigger trigger;
-			KTile() :
-				first(0),
-				second(0),
-				sender(0),
-				trigger(0) {}
 		};
 
 		//! Catch last OpenGL state. (internally use)

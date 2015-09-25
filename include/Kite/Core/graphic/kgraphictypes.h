@@ -242,33 +242,6 @@ namespace Kite{
 		KAC_DETACHED	//!< When detach from AnimeController list
 	};*/
 
-	/*! \enum KTileMapTypes
-		\brief Types of tile-based maps
-	*/
-	enum KTileMapTypes : U8{
-		KTM_ISOMETRIC = 0,	//!< Isometric map
-		KTM_FLAT		//!< Flat (rectangular) map
-	};
-
-	/*! \enum KTileBitmapTypes
-		\brief Isometric tiles - mouse detection (Internally use)
-	*/
-	enum KTileBitmapTypes : U8{
-		KTB_CENTER = 0,
-		KTB_BOTTOM_LEFT,
-		KTB_BOTTOM_RIGHT,
-		KTB_TOP_LEFT,
-		KTB_TOP_RIGHT
-	};
-
-	enum KTileBitmapObjectTypes {
-		KTO_QUAD = 0,
-		KTO_TEXT,
-		KTO_LINE,
-		KTO_EMITTER,
-		KTO_CUSTOM
-	};
-
 	enum KBuiltinShaderTypes {
 		KBS_VERT,
 		KBS_FRAG_COLOR,
@@ -312,15 +285,7 @@ namespace Kite{
 		\brief Function handle for animation states
 	*/
 	typedef void(*KCallAnimeStatechange)(void *Parameter);
-
-	/*! \typedef KCallTileQuery
-	\brief Function handle for tile objects 
-	*/
-	typedef void(*KCallTileQuery)(void *Parameter, void *Sender);
-
-	typedef void(*KCallTileTrigger)(U32 TileID, void *Sender);
 	
-
 	/*! \namespace Kite::Internal
 		\brief Private namespace.
 	*/

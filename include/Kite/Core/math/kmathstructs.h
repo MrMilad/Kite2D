@@ -22,7 +22,6 @@
 
 #include <cmath>
 #include "Kite/Core/system/ksystemdef.h"
-#include "Kite/Core/utility/KBytesArray.h"
 
 namespace Kite{
 
@@ -35,16 +34,6 @@ namespace Kite{
 		{}
 
 		T x, y;
-
-		friend KBytesArray &operator>>(KBytesArray &In, KVector2<T> &Value) {
-			In >> Value.x >> Value.y;
-			return In;
-		}
-
-		friend KBytesArray &operator<<(KBytesArray &Out, const KVector2<T> &Value) {
-			Out << Value.x << Value.y;
-			return Out;
-		}
 	}; //class
 
 	template <typename T>
@@ -208,16 +197,6 @@ namespace Kite{
 		{}
 
 		T x, y, z;
-
-		friend KBytesArray &operator>>(KBytesArray &In, KVector3<T> &Value) {
-			In >> Value.x >> Value.y >> Value.z;
-			return In;
-		}
-
-		friend KBytesArray &operator<<(KBytesArray &Out, const KVector3<T> &Value) {
-			Out << Value.x << Value.y << Value.z;
-			return Out;
-		}
 	};
 
 	template <typename T>
@@ -342,16 +321,6 @@ namespace Kite{
 		KRect(T Left = 0, T Right = 0, T Bottom = 0, T Top = 0) :
 			left(Left), right(Right), bottom(Bottom), top(Top)
 		{}
-
-		friend KBytesArray &operator>>(KBytesArray &In, KRect<T> &Value) {
-			In >> Value.left >> Value.right >> Value.bottom >> Value.top;
-			return In;
-		}
-
-		friend KBytesArray &operator<<(KBytesArray &Out, const KRect<T> &Value) {
-			Out << Value.left << Value.right << Value.bottom << Value.top;
-			return Out;
-		}
 	};
 
 	template <typename T>
@@ -388,16 +357,6 @@ namespace Kite{
 		KRect2(KVector2<T> LeftBottom, KVector2<T> LeftTop, KVector2<T> RightBottom, KVector2<T> RightTop) :
 			leftBottom(LeftBottom), leftTop(LeftTop), rightBottom(RightBottom), rightTop(RightTop)
 		{}
-
-		friend KBytesArray &operator>>(KBytesArray &In, KRect2<T> &Value) {
-			In >> Value.leftBottom >> Value.leftTop >> Value.rightBottom >> Value.rightTop;
-			return In;
-		}
-
-		friend KBytesArray &operator<<(KBytesArray &Out, const KRect2<T> &Value) {
-			Out << Value.leftBottom << Value.leftTop << Value.rightBottom << Value.rightTop;
-			return Out;
-		}
 	};
 
 	template <typename T>

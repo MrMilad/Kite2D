@@ -20,15 +20,19 @@
 #ifndef KUTILITY_H
 #define KUTILITY_H
 
+#include "Kite/Core/utility/kutilitytypes.h"
 #include "Kite/Core/utility/kutilitystructs.h"
+#include "Kite/Core/utility/kutilitydef.h"
+#include "Kite/Core/utility/kdelegate.h"
 #include "Kite/Core/utility/krandom.h"
 #include "Kite/Core/utility/ktimeline.h"
 #include "Kite/core/utility/kbytesarray.h"
 #include "Kite/core/utility/kdictionary.h"
 #include "Kite/core/utility/kmetaobject.h"
-#include "Kite/core/utility/kmetacreator.h"
+#include "Kite/Core/utility/kmetamanager.h"
 #include "Kite/core/utility/kvariant.h"
 #include "Kite/core/utility/krefvariant.h"
+#include "Kite/core/utility/kproperty.h"
 #include "Kite/core/utility/kstream.h"
 #include "Kite/core/utility/kistream.h"
 #include "Kite/core/utility/kostream.h"
@@ -41,9 +45,10 @@
 #include "Kite/Core/utility/kmemorystream.h"
 #include "Kite/core/utility/kmeminputstream.h"
 #include "Kite/core/utility/kresource.h"
-#include "Kite/core/utility/kresource.h"
 #include "Kite/core/utility/kresourcemanager.h"
 #include "Kite/core/utility/ktimer.h"
 #include "Kite/core/utility/klayersort.h"
+#include "Kite/core/utility/kgridbsp.h"
+#include "Kite/core/utility/kgridbspobject.h"
 
 #endif // KUTILITY_H

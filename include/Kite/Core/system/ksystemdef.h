@@ -86,6 +86,11 @@
 
 #endif
 
+// cpp version
+#if (__cplusplus > 199711L)
+	#define KITE_CPP_VER11
+#endif
+
 
 /// import / export macros (static/shared(dynamic) 
 #if !defined(KITE_STATIC)

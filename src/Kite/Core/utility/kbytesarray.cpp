@@ -24,16 +24,6 @@ USA
 #include <cstdio>
 
 namespace Kite {
-	/*KBytesArray &operator<<(KBytesArray &Out, const KBytesArray &Value) {
-		Out << Value._kpos << Value._kendfile << Value._kdata;
-		return Out;
-	}
-
-	KBytesArray &operator>>(KBytesArray &In, KBytesArray &Value) {
-		In >> Value._kpos >> Value._kendfile >> Value._kdata;
-		return In;
-	}*/
-
 	KBytesArray::KBytesArray() :
 		_kpos(0),
 		_kendfile(true)
@@ -222,56 +212,6 @@ namespace Kite {
 		// check end of data
 		if (_kpos >= _kdata.size())
 			_kendfile = true;
-	}
-
-	KBytesArray &operator<<(KBytesArray &Out, const std::string &Value) {
-		Out << (U32)Value.size();
-		Out._kdata.reserve(Out._kdata.size() + Value.size());
-		Out._kdata.insert(Out._kdata.end(), &Value[0], &Value[Value.size()]);
-
-		return Out;
-	}
-
-	KBytesArray &operator>>(KBytesArray &In, std::string &Value) {
-		if (In.endOfFile() || In._kdata.empty()) {
-			Value.clear();
-			return In;
-		}
-
-		U32 size = 0;
-		In >> size;
-		Value.clear();
-		Value.reserve(size);
-		Value.insert(0, (const char *)&In._kdata[In._kpos], size);
-
-		In._kpos += size;
-
-		// check end of data
-		if (In._kpos >= In._kdata.size())
-			In._kendfile = true;
-		
-		return In;
-	}
-
-	KBytesArray &operator<<(KBytesArray &Out, bool Value) {
-		if (Value) {
-			Out << (U8)1;
-		} else {
-			Out << (U8)0;
-		}
-		return Out;
-	}
-
-	KBytesArray &operator>>(KBytesArray &In, bool &Value) {
-		U8 temp;
-		In >> temp;
-		if (temp == 1) {
-			Value = true;
-		} else {
-			Value = false;
-		}
-
-		return In;
 	}
 
 	void KBytesArray::clear() {

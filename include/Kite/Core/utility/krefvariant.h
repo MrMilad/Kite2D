@@ -28,7 +28,7 @@ USA
 #include "Kite/Core/utility/kbytesarray.h"
 
 namespace Kite {
-	class KITE_FUNC_EXPORT KRefVariant : public KVariantBase {
+	class KRefVariant : public KVariantBase {
 		// KrefVariant
 		friend KBytesArray &operator<<(KBytesArray &Out, const KRefVariant &Value) {
 			const KMetaObject *meta = Value.getMeta();
@@ -36,12 +36,27 @@ namespace Kite {
 
 			// primitive data
 			if (meta->getFlag() & KMFLAG_POD) {
+
+				// bool
+				if (meta->getFlag() & KMFLAG_POD_BOOL) {
+					const bool *pointer = (const bool *)data;
+					Out << *pointer;
+					return Out;
+
+				// string 
+				} else if (meta->getFlag() & KMFLAG_POD_STRING) {
+					const std::string *pointer = (const std::string *)data;
+					Out << *pointer;
+					return Out;
+				}
+
+				// integers
 				Out << KVoidStream(meta->getSize(), data);
 				return Out;
 
 			// non-primitive with memeber (recursive)
 			} else if (meta->hasMembers()) {
-				const KMember *mem = meta->getMembers();
+				const KMetaMember *mem = meta->getMembers();
 				while (mem) {
 					void *offsetData = KPTR_GET_ADD(Value.getData(), mem->offset);
 					Out << KRefVariant(mem->meta, offsetData);
@@ -59,12 +74,27 @@ namespace Kite {
 
 			// primitive data
 			if (meta->getFlag() & KMFLAG_POD) {
+
+				// bool
+				if (meta->getFlag() & KMFLAG_POD_BOOL) {
+					bool *pointer = (bool *)data;
+					In >> *pointer;
+					return In;
+
+					// string 
+				} else if (meta->getFlag() & KMFLAG_POD_STRING) {
+					std::string *pointer = (std::string *)data;
+					In >> *pointer;
+					return In;
+				}
+
+				// integers
 				In >> KVoidStream(meta->getSize(), data);
 				return In;
 
 				// non-primitive with memeber (recursive)
 			} else if (meta->hasMembers()) {
-				const KMember *mem = meta->getMembers();
+				const KMetaMember *mem = meta->getMembers();
 				while (mem) {
 					void *offsetData = KPTR_GET_ADD(Value.getData(), mem->offset);
 					In >> KRefVariant(mem->meta, offsetData);

@@ -21,7 +21,6 @@ USA
 #define KBYTESARRAY_H
 
 #include "Kite/Core/system/ksystemdef.h"
-#include "Kite/Core/utility/kutilitystructs.h"
 #include "Kite/Core/utility/kistream.h"
 #include "Kite/Core/utility/kostream.h"
 #include <string>
@@ -29,6 +28,14 @@ USA
 #include <utility>
 
 namespace Kite {
+	struct KVoidStream {
+		U32 size;
+		void *pointer;
+
+		KVoidStream(U32 Size = 0, void *Pointer = 0) :
+			size(Size), pointer(Pointer) {}
+	};
+
 	class KITE_FUNC_EXPORT KBytesArray{
 		// use case: only primitive types (U8, I8, U32, F32, ...)
 		// non-pointers
@@ -55,17 +62,56 @@ namespace Kite {
 			return In;
 		}
 
-		// bool
-		friend KBytesArray &operator<<(KBytesArray &Out, bool Value);
-		friend KBytesArray &operator>>(KBytesArray &In, bool &Value);
 
-		// string
-		friend KBytesArray &operator<<(KBytesArray &Out, const std::string &Value);
-		friend KBytesArray &operator>>(KBytesArray &In, std::string &Value);
+		friend KBytesArray &operator<<(KBytesArray &Out, const std::string &Value) {
+			Out << (U32)Value.size();
+			Out._kdata.reserve(Out._kdata.size() + Value.size());
+			Out._kdata.insert(Out._kdata.end(), &Value[0], &Value[Value.size()]);
 
-		// KBytesArray itself!
-		/*friend KBytesArray &operator<<(KBytesArray &Out, const KBytesArray &Value);
-		friend KBytesArray &operator>>(KBytesArray &In, KBytesArray &Value);*/
+			return Out;
+		}
+
+		friend KBytesArray &operator>>(KBytesArray &In, std::string &Value) {
+			if (In.endOfFile() || In._kdata.empty()) {
+				Value.clear();
+				return In;
+			}
+
+			U32 size = 0;
+			In >> size;
+			Value.clear();
+			Value.reserve(size);
+			Value.insert(0, (const char *)&In._kdata[In._kpos], size);
+
+			In._kpos += size;
+
+			// check end of data
+			if (In._kpos >= In._kdata.size())
+				In._kendfile = true;
+
+			return In;
+		}
+
+		friend KBytesArray &operator<<(KBytesArray &Out, bool Value) {
+			if (Value) {
+				Out << (U8)1;
+			} else {
+				Out << (U8)0;
+			}
+			return Out;
+		}
+
+		friend KBytesArray &operator>>(KBytesArray &In, bool &Value) {
+			U8 temp;
+			In >> temp;
+			if (temp == 1) {
+				Value = true;
+			} else {
+				Value = false;
+			}
+
+			return In;
+		}
 
 		//std::pair
 		template <typename X, typename Y>

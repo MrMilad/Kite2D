@@ -23,7 +23,7 @@ USA
 #include "Kite/Core/system/ksystemdef.h"
 #include "Kite/Core/utility/kutilitydef.h"
 #include "Kite/Core/utility/kvariantbase.h"
-#include "Kite/Core/utility/kmetaobject.h"
+#include "Kite/Core/utility/kmeta.h"
 
 namespace Kite {
 	class KITE_FUNC_EXPORT KVariant : public KVariantBase {
@@ -36,13 +36,18 @@ namespace Kite {
 			memcpy(_kdata, Value, _kobject->getSize());
 		}
 
-		KVariant(const KMetaObject *Object, void *Data) :
+		KVariant(const KMeta *Object, void *Data) :
 			KVariantBase(Object, Data) 
 		{}
 
 		KVariant() :
 			KVariantBase(NULL, NULL) 
 		{}
+
+		~KVariant() {
+			delete[] reinterpret_cast<char *>(_kdata);
+			_kdata = NULL;
+		}
 
 		KVariant& operator=(const KVariant& Right) {
 			if (this == &Right)

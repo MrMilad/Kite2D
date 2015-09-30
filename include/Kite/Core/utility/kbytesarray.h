@@ -51,6 +51,22 @@ namespace Kite {
 			return In;
 		}
 
+		// use case: only primitive types (U8, I8, U32, F32, ...)
+		// pointers
+		template <typename T>
+		friend KBytesArray &operator<<(KBytesArray &Out, T *Value) {
+			if (Value)
+				Out._convertAndSave((void *)Value, sizeof(T));
+			return Out;
+		}
+
+		template <typename T>
+		friend KBytesArray &operator>>(KBytesArray &In, T *Value) {
+			if (Value)
+				In._readAndConvert((void *)Value, sizeof(T));
+			return In;
+		}
+
 		// void pointers
 		friend KBytesArray &operator<<(KBytesArray &Out, const KVoidStream &Value) {
 			Out._convertAndSave(Value.pointer, Value.size);
@@ -62,7 +78,7 @@ namespace Kite {
 			return In;
 		}
 
-
+		// std::string
 		friend KBytesArray &operator<<(KBytesArray &Out, const std::string &Value) {
 			Out << (U32)Value.size();
 			Out._kdata.reserve(Out._kdata.size() + Value.size());
@@ -88,6 +104,21 @@ namespace Kite {
 			// check end of data
 			if (In._kpos >= In._kdata.size())
 				In._kendfile = true;
+
+			return In;
+		}
+
+		// std::string pointer
+		friend KBytesArray &operator<<(KBytesArray &Out, const std::string *Value) {
+			if (Value)
+				return Out << (*Value);
+
+			return Out;
+		}
+
+		friend KBytesArray &operator>>(KBytesArray &In, std::string *Value) {
+			if (Value)
+				return In >> (*Value);
 
 			return In;
 		}

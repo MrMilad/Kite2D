@@ -27,10 +27,12 @@
 #include "Kite/Core/system/ksystemdef.h"
 #include "Kite/Core/graphic/kgraphictypes.h"
 #include "Kite/Core/math/kmath.h"
-#include "Kite/Core/utility/kutilitydef.h"
-#include "Kite/Core/utility/kmetaobject.h"
+#include "Kite/Core/utility/kmetadef.h"
+#include "Kite/Core/utility/kmetaclass.h"
 #include "Kite/Core/utility/kmetamanager.h"
-#include "Kite/Core/utility/kutilitystructs.h"
+#include "Kite/Core/utility/kutilitytypes.h"
+#include "Kite/Core/utility/kproperty.h"
+#include "Kite/Core/utility/kbytesarray.h"
 #include <cstdint>
 
 /*! \namespace Kite
@@ -43,45 +45,43 @@ namespace Kite{
 		each component is an float in the range [0, 1],
 		use KCOLOR_TO_* macro for convert from opengl[0 to 1] range to RGB[0 to 255] range.
 	*/
-    struct KColor{
-		F32 r;	//!< Red component
-		F32 g;	//!< Green component
-		F32 b;	//!< Blue component
-		F32 a;	//!< Alpha component (opacity)
-
+	struct KColor : public KProperty<KColor> {
 		//! Construct the color from its 4 RGBA components.
 		/*!
-			Range [0 to 255]
-			default value is (255, 255, 255, 255)
-		*/
+	Range [0 to 255]
+	default value is (255, 255, 255, 255)
+	*/
 		KColor(U8 R = 255, U8 G = 255, U8 B = 255, U8 A = 255) :
-            r(R/255.0f), g(G/255.0f), b(B/255.0f), a(A/255.0f)
-        {}
+		r(R / 255.0f), g(G / 255.0f), b(B / 255.0f), a(A / 255.0f) {}
 
 		//! Construct the color from a hexadecimal color code.
 		/*!
-			A large number of color codes defined in KColorTypes 
-			However, the hexadecimal code can be passed directly
-		*/
-		KColor(KColorTypes HexCode){
+	A large number of color codes defined in KColorTypes
+	However, the hexadecimal code can be passed directly
+	*/
+		KColor(KColorTypes HexCode) {
 			r = ((U8)((HexCode >> 16) & 0xFF)) / 255.0f;
 			g = ((U8)((HexCode >> 8) & 0xFF)) / 255.0f;
 			b = ((U8)((HexCode)& 0xFF)) / 255.0f;
 			a = 1.0;
 		}
 
+		inline F32 getGLR() const { return r; }
 		//! Set R component. range [0 to 255]
 		inline U8 getR() const { return (U8)(r * 255.0f); }
 
 		//! Set R component. range [0 to 255]
 		inline void setR(U8 R) { r = (R / 255.0f); }
 
+		inline F32 getGLG() const { return g; }
 		//! Set G component. range [0 to 255]
 		inline void setG(U8 G) { g = (G / 255.0f); }
 
+		inline F32 getGLB() const { return b; }
 		//! Set B component. range [0 to 255]
 		inline void setB(U8 B) { b = (B / 255.0f); }
 
+		inline F32 getGLA() const { return a; }
 		//! Set A component. range [0 to 255]
 		inline void setA(U8 A) { a = (A / 255.0f); }
 
@@ -94,14 +94,29 @@ namespace Kite{
 		//! Set A component. range [0 to 255]
 		inline U8 getA() const { return (U8)(a * 255.0f); }
 
-		KMETA_DEF(KColor, KMFLAG_CLASS)
-			KMETA_ADD_MEMBER(KColor, r, F32)
-			KMETA_ADD_MEMBER(KColor, g, F32)
-			KMETA_ADD_MEMBER(KColor, b, F32)
-			KMETA_ADD_MEMBER(KColor, a, F32)
-		KMETA_DEF_END
-	};
+	private:
+		F32 r;	//!< Red component
+		F32 g;	//!< Green component
+		F32 b;	//!< Blue component
+		F32 a;	//!< Alpha component (opacity)
 
+		KMETACLASS_PROPERTY_SG(U8, R, setR, getR);
+		KMETACLASS_PROPERTY_SG(U8, G, setG, getG);
+		KMETACLASS_PROPERTY_SG(U8, B, setB, getB);
+		KMETACLASS_PROPERTY_SG(U8, A, setA, getA);
+
+		KMETACLASS_DEF(KColor, 0)
+			KMETACLASS_ADD_MEMBER(r)
+			KMETACLASS_ADD_MEMBER(g)
+			KMETACLASS_ADD_MEMBER(b)
+			KMETACLASS_ADD_MEMBER(a)
+
+			KMETACLASS_ADD_SG(U8, R)
+			KMETACLASS_ADD_SG(U8, G)
+			KMETACLASS_ADD_SG(U8, B)
+			KMETACLASS_ADD_SG(U8, A)
+			KMETACLASS_END(KColor)
+	};
 
 
 	//! Utility struct for manipulating vertex attributes.
@@ -165,7 +180,7 @@ namespace Kite{
 			w(W), h(H)
 		{}
 
-		KMETA_DEF(KAtlasItem, KMFLAG_CLASS)
+		/*KMETA_DEF(KAtlasItem, KMFLAG_CLASS)
 			KMETA_ADD_MEMBER(KAtlasItem, id, U32)
 			KMETA_ADD_MEMBER(KAtlasItem, blu, F32)
 			KMETA_ADD_MEMBER(KAtlasItem, blv, F32)
@@ -173,7 +188,7 @@ namespace Kite{
 			KMETA_ADD_MEMBER(KAtlasItem, trv, F32)
 			KMETA_ADD_MEMBER(KAtlasItem, w, F32)
 			KMETA_ADD_MEMBER(KAtlasItem, h, F32)
-		KMETA_DEF_END
+		KMETA_DEF_END*/
 	};
 
 	/*struct KAnimeKey {

@@ -31,8 +31,11 @@ namespace Kite {
 	class KProperty {
 	public:
 		bool setProperty(const std::string &Name, KRefVariant Value) {
-			auto found = setterMap()->find(Name);
-			if (found != setterMap()->end()) {
+			std::string real = Name;
+			real.append("set");
+
+			auto found = getPrpMap()->find(real);
+			if (found != getPrpMap()->end()) {
 				(this->*(found->second))(Value);
 				return true;
 			}
@@ -40,24 +43,23 @@ namespace Kite {
 			return false;
 		}
 
-		const KRefVariant getProperty(const std::string &Name) const {
-			auto found = getterMap()->find(Name);
-			if (found != getterMap()->end()) {
-				return (this->*(found->second))();
+		bool getProperty(const std::string &Name, KRefVariant Value) {
+			std::string real = Name;
+			real.append("get");
+
+			auto found = getPrpMap()->find(real);
+			if (found != getPrpMap()->end()) {
+				(this->*(found->second))(Value);
+				return true;
 			}
 
-			return KRefVariant;
+			return false;
 		}
 
 	protected:
-		static std::unordered_map<std::string, void (KProperty::*)(KRefVariant)> *setterMap() {
-			static std::unordered_map<std::string, void (KProperty::*)(KRefVariant)> setMap;
-			return &setMap;
-		}
-
-		static std::unordered_map<std::string, KRefVariant(KProperty::*)() const> *getterMap() {
-			static std::unordered_map<std::string, KRefVariant(KProperty::*)() const> getMap;
-			return &getMap;
+		static std::unordered_map<std::string, void (KProperty::*)(KRefVariant)> *getPrpMap() {
+			static std::unordered_map<std::string, void (KProperty::*)(KRefVariant)> prpMap;
+			return &prpMap;
 		}
 	};
 }

@@ -20,6 +20,10 @@
 #ifndef KGRAPHICTYPES_H
 #define KGRAPHICTYPES_H
 
+#include "Kite/Core/utility/kmetadef.h"
+#include "Kite/Core/utility/kmetaenum.h"
+#include "Kite/Core/utility/kmetamanager.h"
+
 /*! \file kgraphictypes.h
 	\brief All core graphic types.
 */
@@ -28,15 +32,19 @@
 	\brief Public namespace.
 */
 namespace Kite{
-	/*! \enum Pixel blend 
-		\brief Blend types
+
+#define KBLENDTYPES(ELEM) \
+	ELEM(KB_ALPHA, 0) \
+	ELEM(KB_ADD, 1) \
+	ELEM(KB_MULTIPLY, 2) \
+	ELEM(KB_NONE, 3) 
+
+	/*! \enum Pixel blend
+	\brief Blend types
 	*/
-    enum KBlendTypes{
-        KB_ALPHA,    //!< Pixel = Source * Source.a + Dest * (1 - Source.a)
-        KB_ADD,      //!< Pixel = Source + Dest
-        KB_MULTIPLY, //!< Pixel = Source * Dest
-        KB_NONE      //!< Pixel = Source
-    };
+	KMETAENUM_DEF(KBlendTypes,0, KBLENDTYPES)
+#undef KBLENDTYPES
+
 
 //    enum KTextureEnvMode{
 //        KTE_ADD = 0,

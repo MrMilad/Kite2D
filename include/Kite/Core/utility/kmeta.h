@@ -17,40 +17,32 @@ License along with this library; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 USA
 */
-#ifndef KVARIANTBASE_H
-#define KVARIANTBASE_H
+#ifndef KMETA_H
+#define KMETA_H
 
 #include "Kite/Core/system/ksystemdef.h"
+#include "Kite/Core/utility/kutilitytypes.h"
+#include <string>
 
 namespace Kite {
-	class KMeta;
-	class KITE_FUNC_EXPORT KVariantBase {
+	class KITE_FUNC_EXPORT KMeta {
 	public:
-		template <typename T>
-		T& getValue() {
-			return *reinterpret_cast<T *>(_kdata);
-		}
+		KMeta(const std::string & Name, U32 Flag, U32 Size, KMetaTypes MetaType);
 
-		template <typename T>
-		const T&getValue() const {
-			return *reinterpret_cast<T *>(_kdata);
-		}
+		virtual ~KMeta();
 
-		inline void *getData() const { return _kdata; }
-		inline const KMeta *getMeta() const { return _kobject; }
+		inline const std::string &getName() const { return _kname; }
+		inline U32 getFlag() const { return _kflag; }
+		inline U32 getSize() const { return _ksize; }
+		inline KMetaTypes getMetaType() const { return _kmetatype; }
 
 	protected:
-		KVariantBase() :
-			_kobject(NULL), _kdata(NULL) 
-		{}
-
-		KVariantBase(const KMeta* Object, void* Data) :
-			_kobject(Object), _kdata(Data)
-		{}
-
-		const KMeta *_kobject;
-		void *_kdata;
+		std::string _kname;
+		U32 _kflag;
+		U32 _ksize;
+		KMetaTypes _kmetatype;
 	};
 }
 
-#endif // KVARIANTBASE_H
+
+#endif // KMETA_H

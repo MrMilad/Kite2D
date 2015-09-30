@@ -17,40 +17,24 @@ License along with this library; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 USA
 */
-#ifndef KVARIANTBASE_H
-#define KVARIANTBASE_H
+#ifndef KMETAPOD_H
+#define KMETAPOD_H
 
 #include "Kite/Core/system/ksystemdef.h"
+#include "Kite/Core/utility/kutilitytypes.h"
+#include "Kite/Core/utility/kmeta.h"
+#include <string>
 
 namespace Kite {
-	class KMeta;
-	class KITE_FUNC_EXPORT KVariantBase {
+	class KITE_FUNC_EXPORT KMetaPOD : public KMeta {
 	public:
-		template <typename T>
-		T& getValue() {
-			return *reinterpret_cast<T *>(_kdata);
-		}
+		KMetaPOD(const std::string &Name, U32 Flag, U32 Size, KMetaPODTypes PODType);
 
-		template <typename T>
-		const T&getValue() const {
-			return *reinterpret_cast<T *>(_kdata);
-		}
+		inline KMetaPODTypes getType() const { return _ktype; }
 
-		inline void *getData() const { return _kdata; }
-		inline const KMeta *getMeta() const { return _kobject; }
-
-	protected:
-		KVariantBase() :
-			_kobject(NULL), _kdata(NULL) 
-		{}
-
-		KVariantBase(const KMeta* Object, void* Data) :
-			_kobject(Object), _kdata(Data)
-		{}
-
-		const KMeta *_kobject;
-		void *_kdata;
+	private:
+		KMetaPODTypes _ktype;
 	};
 }
 
-#endif // KVARIANTBASE_H
+#endif // KMETAPOD_H

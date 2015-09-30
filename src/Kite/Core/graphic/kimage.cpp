@@ -97,7 +97,7 @@ namespace Kite{
             U8* ptr = &_kpixels[0];
             U8* end = ptr + _kpixels.size();
             while (ptr < end){
-                if ((ptr[0] == Color.r) && (ptr[1] == Color.g) && (ptr[2] == Color.b) && (ptr[3] == Color.a))
+				if ((ptr[0] == Color.getGLR() && (ptr[1] == Color.getGLG()) && (ptr[2] == Color.getGLB()) && (ptr[3] == Color.getGLA())))
                     ptr[3] = Alpha;
                 ptr += 4;
             }

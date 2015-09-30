@@ -73,10 +73,10 @@ namespace Kite{
         DGL_CALL(glDrawElementsInstanced(geoTypes[Primitive], Count, GL_UNSIGNED_SHORT, Indices, InstanceCount));
     }
     void KRender::setClearColor(const KColor &Color){
-        DGL_CALL(glClearColor((GLclampf)(Color.r),
-                              (GLclampf)(Color.g),
-                              (GLclampf)(Color.b),
-                              (GLclampf)(Color.a)));
+        DGL_CALL(glClearColor((GLclampf)(Color.getGLR()),
+			(GLclampf)(Color.getGLG()),
+			(GLclampf)(Color.getGLB()),
+			(GLclampf)(Color.getGLA())));
     }
 
 	void KRender::setPointSize(F32 Size){

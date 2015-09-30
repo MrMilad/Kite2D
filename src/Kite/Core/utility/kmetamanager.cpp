@@ -21,9 +21,9 @@ USA
 #include "Kite/Core/utility/kutilitydef.h"
 
 namespace Kite {
-	std::unordered_map<std::type_index, const KMetaObject *> KMetaManager::_kmetamap;
+	std::unordered_map<std::type_index, const KMeta *> KMetaManager::_kmetamap;
 
-	const KMetaObject *KMetaManager::getMeta(const std::type_index &Type) {
+	const KMeta *KMetaManager::getMeta(const std::type_index &Type) {
 		auto found = _kmetamap.find(Type);
 		if (found != _kmetamap.end()) {
 			return found->second;
@@ -32,7 +32,7 @@ namespace Kite {
 		return 0;
 	}
 
-	bool KMetaManager::setMeta(const std::type_index &Type, const KMetaObject *Meta) {
+	bool KMetaManager::setMeta(const std::type_index &Type, const KMeta *Meta) {
 		auto found = _kmetamap.find(Type);
 		if (found != _kmetamap.end()) {
 			// registered!
@@ -41,6 +41,16 @@ namespace Kite {
 
 		_kmetamap.insert({ Type, Meta });
 		return true;
+	}
+
+	void KMetaManager::dump(std::vector<const KMeta *> &DumpList) {
+		auto iter = _kmetamap.begin();
+		DumpList.clear();
+		DumpList.reserve(_kmetamap.size());
+		for (iter; iter != _kmetamap.end(); ++iter) {
+			if (iter->second)
+				DumpList.push_back(iter->second);
+		}
 	}
 
 }

@@ -21,18 +21,21 @@ USA
 #define KMETAMANAGER_H
 
 #include "Kite/Core/system/ksystemdef.h"
-#include "Kite/Core/utility/kmetaobject.h"
+#include "Kite/Core/utility/kmeta.h"
+#include <vector>
 #include <typeindex>
 #include <unordered_map>
 
 namespace Kite {
 	class KITE_FUNC_EXPORT KMetaManager {
 	public:
-		static const KMetaObject *getMeta(const std::type_index &Type);
-		static bool setMeta(const std::type_index &Type, const KMetaObject *Meta);
+		static const KMeta *getMeta(const std::type_index &Type);
+		static bool setMeta(const std::type_index &Type, const KMeta *Meta);
+
+		static void dump(std::vector<const KMeta *> &DumpList);
 
 	private:
-		static std::unordered_map<std::type_index, const KMetaObject *> _kmetamap;
+		static std::unordered_map<std::type_index, const KMeta *> _kmetamap;
 	};
 }
 

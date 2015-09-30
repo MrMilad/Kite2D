@@ -24,14 +24,14 @@ USA
 #include "Kite/Core/utility/kutilitydef.h"
 #include "Kite/Core/utility/kvariantbase.h"
 #include "Kite/Core/utility/kvariant.h"
-#include "Kite/Core/utility/kmetaobject.h"
+#include "Kite/Core/utility/kmeta.h"
 #include "Kite/Core/utility/kbytesarray.h"
 
 namespace Kite {
 	class KRefVariant : public KVariantBase {
 		// KrefVariant
-		friend KBytesArray &operator<<(KBytesArray &Out, const KRefVariant &Value) {
-			const KMetaObject *meta = Value.getMeta();
+		/*friend KBytesArray &operator<<(KBytesArray &Out, const KRefVariant &Value) {
+			const KMeta *meta = Value.getMeta();
 			void *data = Value.getData();
 
 			// primitive data
@@ -69,7 +69,7 @@ namespace Kite {
 		}
 
 		friend KBytesArray &operator>>(KBytesArray &In, KRefVariant &Value) {
-			const KMetaObject *meta = Value.getMeta();
+			const KMeta *meta = Value.getMeta();
 			void *data = Value.getData();
 
 			// primitive data
@@ -103,7 +103,7 @@ namespace Kite {
 			}
 
 			return In;
-		}
+		}*/
 
 	public:
 		template <typename T>
@@ -119,7 +119,7 @@ namespace Kite {
 			KVariantBase(Right.getMeta(), Right.getData())
 		{}
 
-		KRefVariant(const KMetaObject *Object, void *Data) :
+		KRefVariant(const KMeta *Object, void *Data) :
 			KVariantBase(Object, Data)
 		{}
 
@@ -143,6 +143,14 @@ namespace Kite {
 		KRefVariant& operator=(const T& Right) {
 			_kobject = KMETA_GET_TYPE(T);
 			_kdata = const_cast<T *>(&Right);
+			return *this;
+		}
+
+		template <typename T>
+		KRefVariant& copyByVal(const T& Right) {
+			_kobject = KMETA_GET_TYPE(T);
+			T *ptr = (T *)_kdata;
+			(*ptr) = Right;
 			return *this;
 		}
 	};

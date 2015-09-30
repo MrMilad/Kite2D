@@ -17,40 +17,20 @@ License along with this library; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 USA
 */
-#ifndef KVARIANTBASE_H
-#define KVARIANTBASE_H
-
-#include "Kite/Core/system/ksystemdef.h"
+#include "Kite/Core/utility/kmetaenum.h"
 
 namespace Kite {
-	class KMeta;
-	class KITE_FUNC_EXPORT KVariantBase {
-	public:
-		template <typename T>
-		T& getValue() {
-			return *reinterpret_cast<T *>(_kdata);
-		}
+	KMetaEnum::KMetaEnum(const std::string &Name, U32 Flag, U32 Size, const std::type_info &EnumType) :
+		KMeta(Name, Flag, Size, KMT_ENUM), _ktypeHandle(EnumType),
+		_kmembers(NULL), _klastMember(NULL) 
+	{}
 
-		template <typename T>
-		const T&getValue() const {
-			return *reinterpret_cast<T *>(_kdata);
-		}
+	void KMetaEnum::addMember(const KMetaEnumMember *Member) {
+		if (!_kmembers)
+			_kmembers = const_cast<KMetaEnumMember *>(Member);
+		else
+			_klastMember->next = const_cast<KMetaEnumMember *>(Member);
 
-		inline void *getData() const { return _kdata; }
-		inline const KMeta *getMeta() const { return _kobject; }
-
-	protected:
-		KVariantBase() :
-			_kobject(NULL), _kdata(NULL) 
-		{}
-
-		KVariantBase(const KMeta* Object, void* Data) :
-			_kobject(Object), _kdata(Data)
-		{}
-
-		const KMeta *_kobject;
-		void *_kdata;
-	};
+		_klastMember = const_cast<KMetaEnumMember *>(Member);
+	}
 }
-
-#endif // KVARIANTBASE_H

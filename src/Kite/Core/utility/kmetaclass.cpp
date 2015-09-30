@@ -17,16 +17,16 @@ License along with this library; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 USA
 */
-#include "Kite/Core/utility/kmetaobject.h"
+#include "Kite/Core/utility/kmetaclass.h"
 
 namespace Kite {
-	KMetaObject::KMetaObject(const std::string &Name, U32 Size, U32 Flag) :
-		_kname(Name), _ksize(Size), _kflag(Flag),
+	KMetaClass::KMetaClass(const std::string &Name, U32 Flag, U32 Size) :
+		KMeta(Name, Flag, Size, KMT_CLASS),
 		_kmembers(NULL), _klastMember(NULL),
-		_kproperties(NULL), _klastProperties(NULL) 
+		_kproperties(NULL), _klastProperties(NULL)
 	{}
 
-	KMetaObject::~KMetaObject() {
+	KMetaClass::~KMetaClass() {
 		// free members
 		if (hasMembers()) {
 			KMetaMember *mem = _kmembers;
@@ -58,7 +58,7 @@ namespace Kite {
 		}
 	}
 
-	void KMetaObject::addMember(const KMetaMember *Member) {
+	void KMetaClass::addMember(const KMetaMember *Member) {
 		if (!_kmembers)
 			_kmembers = const_cast<KMetaMember *>(Member);
 		else
@@ -67,7 +67,7 @@ namespace Kite {
 		_klastMember = const_cast<KMetaMember *>(Member);
 	}
 
-	void KMetaObject::addProperty(const KMetaProperty *Property) {
+	void KMetaClass::addProperty(const KMetaProperty *Property) {
 		if (!_kproperties)
 			_kproperties = const_cast<KMetaProperty *>(Property);
 		else
@@ -76,7 +76,7 @@ namespace Kite {
 		_klastProperties = const_cast<KMetaProperty *>(Property);
 	}
 
-	void KMetaObject::addBase(const KMetaBase *Base) {
+	void KMetaClass::addBase(const KMetaBase *Base) {
 		if (!_kbases)
 			_kbases = const_cast<KMetaBase *>(Base);
 		else

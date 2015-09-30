@@ -197,7 +197,7 @@ namespace Kite{
 	}
 
 	void KShaderProgram::setParam(Kite::I16 Location, const KColor& Color) const{
-		setParam(Location, Color.r / 255.f, Color.g / 255.f, Color.b / 255.f, Color.a / 255.f);
+		setParam(Location, Color.getGLR(), Color.getGLG(), Color.getGLB(), Color.getGLA());
 	}
 
 	void KShaderProgram::bind() const{

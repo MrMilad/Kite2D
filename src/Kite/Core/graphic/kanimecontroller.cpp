@@ -191,11 +191,12 @@ namespace Kite{
 			_kvalue.rotate = (F32)tweenFunction[type](_ktime - key1->time, key1->rotate, key2->rotate, key2->time - key1->time);
 
 			// color
+			// bekhater taghis animation be property animation in ghesmato ke baiad color haro be getGL...() taghir name bedim ro dorost nemikonam
 			type = key1->cinterp;
-			_kvalue.color.a = (F32)tweenFunction[type](_ktime - key1->time, key1->color.a, key2->color.a, key2->time - key1->time);
+			/*_kvalue.color.a = (F32)tweenFunction[type](_ktime - key1->time, key1->color.a, key2->color.a, key2->time - key1->time);
 			_kvalue.color.r = (F32)tweenFunction[type](_ktime - key1->time, key1->color.r, key2->color.r, key2->time - key1->time);
 			_kvalue.color.g = (F32)tweenFunction[type](_ktime - key1->time, key1->color.g, key2->color.g, key2->time - key1->time);
-			_kvalue.color.b = (F32)tweenFunction[type](_ktime - key1->time, key1->color.b, key2->color.b, key2->time - key1->time);
+			_kvalue.color.b = (F32)tweenFunction[type](_ktime - key1->time, key1->color.b, key2->color.b, key2->time - key1->time);*/
 
 			_kvalue.trChannel = key2->trChannel;
 			_kvalue.scaleChannel = key2->scaleChannel;

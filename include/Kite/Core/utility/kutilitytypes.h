@@ -51,16 +51,43 @@ namespace Kite {
 		KCB_TOP_RIGHT
 	};
 
-	enum KMetaBaseInheriType : U8 {
+	enum KMetaTypes : U8{
+		KMT_POD = 0,	//!< Is POD (plain old data types)
+		KMT_CLASS,		//!< Is Class
+		KMT_ENUM,		//!< Is Enum
+		KMT_OTHER		//!< Other types (we dont care about other types because we dont need them)
+	};
+
+	enum KSerialStateTypes : U8 {
+		KST_SERIALIZE = 0,
+		KST_DESERIALIZE
+	};
+
+	enum KMetaTypeInfoTypes : U8 {
+		KPT_POINTER = 0,	//!< Is pointer
+		KPT_ARRAY,			//!< Is Array
+		KPT_REFERENCE,		//!< Is Refrence
+		KPT_OTHER			//!< Other types (we dont care about other types because we dont need them)
+	};
+
+	enum KMetaBaseInheriTypes : U8 {
 		KMB_PUBLIC = 0,
 		KMB_PRIVATE,
 		KMB_PROTECTED
 	};
 
-	enum KMetaPropertyType : U8 {
+	enum KMetaPropertyTypes : U8 {
 		KMP_SETTER = 0,
-		KMB_GETTER,
-		KMB_BOTH
+		KMP_GETTER,
+		KMP_BOTH
+	};
+
+	enum KMetaPODTypes : U8 {
+		KPO_UINTEGER = 0,
+		KPO_IINTEGER,
+		KPO_FLOAT,
+		KPO_BOOL,
+		KPO_STRING
 	};
 
 }

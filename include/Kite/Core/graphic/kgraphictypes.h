@@ -45,7 +45,6 @@ namespace Kite{
 	KMETAENUM_DEF(KBlendTypes,0, KBLENDTYPES)
 #undef KBLENDTYPES
 
-
 //    enum KTextureEnvMode{
 //        KTE_ADD = 0,
 //        KTE_MODULATE,

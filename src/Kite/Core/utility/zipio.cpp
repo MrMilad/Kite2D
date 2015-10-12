@@ -19,7 +19,7 @@
 */
 #include "Kite/Core/utility/kutilitydef.h"
 #include "src/Kite/Core/utility/zipio.h"
-#include "src/Kite/Core/utility/tp/miniz.c"
+#include "src/Kite/Core/utility/tp/src/miniz.c"
 
 namespace Kite{
 namespace Internal{

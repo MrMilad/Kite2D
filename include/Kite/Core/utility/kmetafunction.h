@@ -17,20 +17,31 @@ License along with this library; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 USA
 */
-#include "Kite/Core/utility/kmetaenum.h"
+#ifndef KMETAFUNCTION_H
+#define KMETAFUNCTION_H
+
+#include "Kite/Core/system/ksystemdef.h"
+#include "Kite/Core/utility/kutilitytypes.h"
+#include "Kite/Core/utility/kmeta.h"
+#include <string>
 
 namespace Kite {
-	KMetaEnum::KMetaEnum(const std::string &Name, U32 Flag, U32 Size, const std::type_info &EnumType) :
-		KMeta(Name, Flag, Size, KMT_ENUM), _ktypeHandle(EnumType),
-		_kmembers(nullptr), _klastMember(nullptr)
-	{}
+	struct KMetaFuncParam {
+		std::string name;		//!< Name of the member
+		I32 value;				//!< Value of the member
+		U32 number;				//!< Number of the member in given order
+		KMetaFuncParam *next;	//!< Pointer to next member
 
-	void KMetaEnum::addMember(const KMetaEnumMember *Member) {
-		if (!_kmembers)
-			_kmembers = const_cast<KMetaEnumMember *>(Member);
-		else
-			_klastMember->next = const_cast<KMetaEnumMember *>(Member);
+		KMetaFuncParam(const std::string &Name, I32 Value, U32 Number) :
+			name(Name), value(Value), number(Number) {
+		}
+	};
 
-		_klastMember = const_cast<KMetaEnumMember *>(Member);
-	}
+	class KITE_FUNC_EXPORT KMetaFunction : public KMeta {
+	public:
+
+	};
 }
+
+#endif // KMETAFUNCTION_H
+

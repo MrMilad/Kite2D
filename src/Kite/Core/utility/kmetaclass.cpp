@@ -22,15 +22,15 @@ USA
 namespace Kite {
 	KMetaClass::KMetaClass(const std::string &Name, U32 Flag, U32 Size) :
 		KMeta(Name, Flag, Size, KMT_CLASS),
-		_kmembers(NULL), _klastMember(NULL),
-		_kproperties(NULL), _klastProperties(NULL)
+		_kmembers(nullptr), _klastMember(nullptr),
+		_kproperties(nullptr), _klastProperties(nullptr)
 	{}
 
 	KMetaClass::~KMetaClass() {
 		// free members
 		if (hasMembers()) {
 			KMetaMember *mem = _kmembers;
-			while (mem != NULL) {
+			while (mem != nullptr) {
 				KMetaMember *temp = mem->next;
 				delete mem;
 				mem = temp;
@@ -40,7 +40,7 @@ namespace Kite {
 		// free properties
 		if (hasProperties()) {
 			KMetaProperty *prp = _kproperties;
-			while (prp != NULL) {
+			while (prp != nullptr) {
 				KMetaProperty *temp = prp->next;
 				delete prp;
 				prp = temp;
@@ -50,7 +50,7 @@ namespace Kite {
 		// free base
 		if (hasBase()) {
 			KMetaBase *base = _kbases;
-			while (base != NULL) {
+			while (base != nullptr) {
 				KMetaBase *temp = base->next;
 				delete base;
 				base = temp;

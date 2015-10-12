@@ -55,6 +55,7 @@ namespace Kite {
 		KMT_POD = 0,	//!< Is POD (plain old data types)
 		KMT_CLASS,		//!< Is Class
 		KMT_ENUM,		//!< Is Enum
+		KMT_FUNCTION,	//!< Is Function
 		KMT_OTHER		//!< Other types (we dont care about other types because we dont need them)
 	};
 

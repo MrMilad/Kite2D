@@ -17,20 +17,23 @@ License along with this library; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 USA
 */
-#include "Kite/Core/utility/kmetaenum.h"
+#include "Kite/Engine/startup/kregistery.h"
+#include "Kite/Core/graphic/kgraphic.h"
+#include <luaintf\LuaIntf.h>
 
 namespace Kite {
-	KMetaEnum::KMetaEnum(const std::string &Name, U32 Flag, U32 Size, const std::type_info &EnumType) :
-		KMeta(Name, Flag, Size, KMT_ENUM), _ktypeHandle(EnumType),
-		_kmembers(nullptr), _klastMember(nullptr)
-	{}
+	bool KRegistery::registerKite(bool Script){
+		lua_State *lstate = nullptr;
+		if (Script)
+			lstate = getScriptState();
 
-	void KMetaEnum::addMember(const KMetaEnumMember *Member) {
-		if (!_kmembers)
-			_kmembers = const_cast<KMetaEnumMember *>(Member);
-		else
-			_klastMember->next = const_cast<KMetaEnumMember *>(Member);
+		KColor::registerMetaData(nullptr, false, KST_SERIALIZE, nullptr, lstate);
 
-		_klastMember = const_cast<KMetaEnumMember *>(Member);
+		return true;
+	}
+
+	lua_State *KRegistery::getScriptState(){
+		static lua_State* L = luaL_newstate();
+		return L;
 	}
 }

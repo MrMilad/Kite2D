@@ -28,22 +28,20 @@
 #include "Kite/Core/graphic/kgraphictypes.h"
 #include "Kite/Core/math/kmath.h"
 #include "Kite/Core/utility/kmetadef.h"
-#include "Kite/Core/utility/kmetaclass.h"
-#include "Kite/Core/utility/kmetamanager.h"
 #include "Kite/Core/utility/kutilitytypes.h"
 #include "Kite/Core/utility/kproperty.h"
 #include "Kite/Core/utility/kbytesarray.h"
-#include <cstdint>
+
 
 /*! \namespace Kite
 	\brief Public namespace.
 */
+KMETA
 namespace Kite{
 	//! Utility struct for manipulating RGBAs color.
 	/*! 
 		KColor is a simple color struct composed of 4 components: r, g, b, a (opacity)
-		each component is an float in the range [0, 1],
-		use KCOLOR_TO_* macro for convert from opengl[0 to 1] range to RGB[0 to 255] range.
+		each component is an byte in the range [0, 255] (set*()/get*()), also in OpenGL Range [0, 1] (setGL*()/getGL*())
 	*/
 	struct KColor : public KProperty<KColor> {
 		//! Construct the color from its 4 RGBA components.
@@ -94,28 +92,17 @@ namespace Kite{
 		//! Set A component. range [0 to 255]
 		inline U8 getA() const { return (U8)(a * 255.0f); }
 
+		KMETACLASS_PROPERTY(U8, r, getR, setR)
+		KMETACLASS_PROPERTY(U8, g, getG, setG)
+		KMETACLASS_PROPERTY(U8, b, getB, setB)
+		KMETACLASS_PROPERTY(U8, a, getA, setA)
+		KMETACLASS(KColor)
+
 	private:
 		F32 r;	//!< Red component
 		F32 g;	//!< Green component
 		F32 b;	//!< Blue component
 		F32 a;	//!< Alpha component (opacity)
-
-		KMETACLASS_PROPERTY_SG(U8, R, setR, getR);
-		KMETACLASS_PROPERTY_SG(U8, G, setG, getG);
-		KMETACLASS_PROPERTY_SG(U8, B, setB, getB);
-		KMETACLASS_PROPERTY_SG(U8, A, setA, getA);
-
-		KMETACLASS_DEF(KColor, 0)
-			KMETACLASS_ADD_MEMBER(r)
-			KMETACLASS_ADD_MEMBER(g)
-			KMETACLASS_ADD_MEMBER(b)
-			KMETACLASS_ADD_MEMBER(a)
-
-			KMETACLASS_ADD_SG(U8, R)
-			KMETACLASS_ADD_SG(U8, G)
-			KMETACLASS_ADD_SG(U8, B)
-			KMETACLASS_ADD_SG(U8, A)
-			KMETACLASS_END(KColor)
 	};
 
 

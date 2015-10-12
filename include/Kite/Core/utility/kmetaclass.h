@@ -46,18 +46,20 @@ namespace Kite {
 					U32 ArraySize, const std::type_info& TypeHandle) :
 			name(Name), offset(Offset),
 			typeInfo(TypeInfo), arraySize(ArraySize),
-			typeHandle(TypeHandle), next(NULL)
+			typeHandle(TypeHandle), next(nullptr)
 			 {}
 	};
 
 	struct KMetaProperty {
 		std::string name;			//!< Name of property
+		std::string comment;		//!< A Short comment about the property
 		KMetaPropertyTypes type;	//!< Available properties
 		std::type_index typeHandle;	//!< Type handle
 		KMetaProperty *next;		//!< Pointer to the next member
 
-		KMetaProperty(const std::string &Name, KMetaPropertyTypes Type, const std::type_info& TypeHandle) :
-			name(Name), type(Type), typeHandle(TypeHandle), next(NULL) {}
+		KMetaProperty(const std::string &Name, const std::string &Comment,
+					  KMetaPropertyTypes Type, const std::type_info& TypeHandle) :
+			name(Name), comment(Comment), type(Type), typeHandle(TypeHandle), next(nullptr) {}
 	};
 
 	struct KMetaBase {
@@ -67,7 +69,7 @@ namespace Kite {
 		KMetaBase *next;			//!< Pointer to the next member
 
 		KMetaBase(const std::string &Name, KMetaBaseInheriTypes BaseType, const std::type_info& TypeHandle) :
-			name(Name), type(BaseType), typeHandle(TypeHandle), next(NULL) {}
+			name(Name), type(BaseType), typeHandle(TypeHandle), next(nullptr) {}
 	};
 
 	//! Object for holding various info about any C++ type for the MetaData reflection system.

@@ -25,14 +25,19 @@ USA
 #include <type_traits>
 
 namespace Kite {
-// general meta flags 
+	// general meta flags 
 #define KMFLAG_EDITABLE		1
 #define KMFLAG_SCRIPTABLE	2
 
-// property flags
+	// property flags
 #define KMFLAG_FINAL		1024
 
 #define nullCast(T) (reinterpret_cast<T *>(NULL))
+
+#define MERGE_STR(w1, w2) #w1#w2
+
+#define KOPT(TYPE) LuaIntf::_opt<TYPE>
+#define KDEF(TYPE, VAL) LuaIntf::_def<TYPE, VAL>
 
 #define KREM_QUAL(TYPE) std::remove_pointer<std::remove_all_extents<std::remove_reference<std::remove_cv<TYPE>::type>::type>::type>::type
 
@@ -48,40 +53,52 @@ namespace Kite {
 
 #define KMETA_GET_OBJECT(OBJECT) KMetaManager::getMeta(typeid(KREM_QUAL(decltype(OBJECT))))
 
-#define KMETACLASS_DEF(TYPE, FLAG) \
+#define KMETA \
+	namespace Kite{\
+	class KMeta;\
+	class KMetaClass;\
+	class KMetaEnum;\
+		}\
+	struct lua_State;
+
+
+#define KMETACLASS(TYPE)\
 public:\
-	static const KMetaClass *registerMetaData(TYPE *thisPtr = 0, bool serial = false,\
-	KSerialStateTypes State = KST_SERIALIZE, KBytesArray *Serializer = 0) {\
+	KITE_FUNC_EXPORT static const KMetaClass *registerMetaData(TYPE *thisPtr = nullptr, bool serial = false, \
+	KSerialStateTypes State = KST_SERIALIZE, KBytesArray *Serializer = nullptr, lua_State *Lua = nullptr); \
+	friend KBytesArray &operator<<(KBytesArray &Out, TYPE &Value) {\
+	registerMetaData(&Value, true, KST_SERIALIZE, &Out); return Out;}\
+	friend KBytesArray &operator>>(KBytesArray &In, TYPE &Value) {\
+	registerMetaData(&Value, true, KST_DESERIALIZE, &In); return In;}\
+	friend KBytesArray &operator<<(KBytesArray &Out, TYPE *Value) {\
+	registerMetaData(Value, true, KST_SERIALIZE, &Out); return Out;}\
+	friend KBytesArray &operator>>(KBytesArray &In, TYPE *Value) {\
+	registerMetaData(Value, true, KST_DESERIALIZE, &In); return In;}
+
+#define KMETACLASS_DEF(TYPE, FLAG, ...) \
+	const KMetaClass *TYPE::registerMetaData(TYPE *thisPtr, bool serial,\
+	KSerialStateTypes State, KBytesArray *Serializer, lua_State *Lua) {\
 	typedef TYPE parrent;\
+	static const char pname[] = #TYPE;\
 	static bool registered = false; \
 	static KMetaClass instance(#TYPE, FLAG, sizeof(TYPE)); \
 	KMetaTypeInfoTypes metaTypeInfo; \
 	U32 arraySize = 0; \
-	if (!registered) { KMetaManager::setMeta(std::type_index(typeid(TYPE)), (KMeta *)&instance); }
+	const U32 flag = FLAG;\
+	if (!registered) { KMetaManager::setMeta(std::type_index(typeid(TYPE)), (KMeta *)&instance); }\
+	if (!registered && (flag & KMFLAG_SCRIPTABLE) && Lua != nullptr) { LuaIntf::LuaBinding(Lua).beginModule("Kite").beginClass<TYPE>(#TYPE)\
+	.addConstructor(LUA_ARGS(##__VA_ARGS__)).endClass().endModule(); }
 
-#define KMETACLASS_END(TYPE) registered = true; return &instance; }\
-		friend KBytesArray &operator<<(KBytesArray &Out, TYPE &Value) {\
-		registerMetaData(&Value, true, KST_SERIALIZE, &Out); return Out;}\
-		friend KBytesArray &operator>>(KBytesArray &In, TYPE &Value) {\
-		registerMetaData(&Value, true, KST_DESERIALIZE, &In); return In;}\
-		friend KBytesArray &operator<<(KBytesArray &Out, TYPE *Value) {\
-		registerMetaData(Value, true, KST_SERIALIZE, &Out); return Out;}\
-		friend KBytesArray &operator>>(KBytesArray &In, TYPE *Value) {\
-		registerMetaData(Value, true, KST_DESERIALIZE, &In); return In;}
+#define KMETACLASS_END(TYPE)\
+	registered = true; return &instance; }
 
-#define KMETACLASS_PROPERTY_SET(TYPE, NAME, SET)\
+#define KMETACLASS_PROPERTY(TYPE, NAME, GET, SET)\
 private:\
-	inline void _prpset##NAME(KRefVariant Value) {\
-	SET(Value.getValue<TYPE>());}
-
-#define KMETACLASS_PROPERTY_GET(TYPE, NAME, GET)\
-private:\
-	inline void _prpget##NAME(KRefVariant Value) const {\
-	Value.copyByVal(GET());}
-
-#define KMETACLASS_PROPERTY_SG(TYPE, NAME, SET, GET)\
-	KMETACLASS_PROPERTY_SET(TYPE, NAME, SET)\
-	KMETACLASS_PROPERTY_GET(TYPE, NAME, GET)
+	typedef TYPE _prptype##NAME;\
+	inline static decltype(&SET) _prpsetPtr##NAME(){ return  &SET; }\
+	inline static decltype(&GET) _prpgetPtr##NAME(){ return  &GET; }\
+	inline void _prpset##NAME(KRefVariant Value) { SET(Value.getValue<TYPE>()); }\
+	inline void _prpget##NAME(KRefVariant Value) const { Value.copyByVal(GET()); }
 
 #define KMETACLASS_ADD_BASE(TYPE, ACCESS)\
 	if (serial) { TYPE *basePtr = (TYPE *)thisPtr;\
@@ -89,7 +106,7 @@ private:\
 	if (!registered) { instance.addBase(new KMetaBase(#TYPE, ACCESS, typeid(KREM_QUAL(TYPE)))); }
 
 #define KMETACLASS_ADD_MEMBER(NAME) \
-	if (serial && thisPtr != 0) {\
+	if (serial && thisPtr != nullptr) {\
 	if (State == KST_SERIALIZE) { (*Serializer) << thisPtr->NAME; } else { (*Serializer) >> thisPtr->NAME; }}\
 	if (!registered) {\
 	if (std::is_array<decltype(parrent::NAME)>::value) { metaTypeInfo = KPT_ARRAY; }\
@@ -100,27 +117,15 @@ private:\
 	instance.addMember(new KMetaMember(#NAME, (U32)offsetof(parrent, NAME), metaTypeInfo, arraySize, \
 	typeid(KREM_QUAL(decltype(parrent::NAME)))));}
 
-#define INTERNAL_KMETA_ADD_SETTER(TYPE, NAME, SETNAME)\
-	instance.addProperty(new KMetaProperty(#NAME, KMP_SETTER, typeid(TYPE))); \
-	getPrpMap()->insert({ #NAME#SETNAME, (void (KProperty::*)(KRefVariant)) &parrent::_prpset##NAME });
+#define KMETACLASS_ADD_PROPERTY(NAME, COMMENT)\
+	if (!registered) {\
+	instance.addProperty(new KMetaProperty(#NAME, #COMMENT, KMP_BOTH, typeid(parrent::_prptype##NAME))); \
+	getPrpMap()->insert({ MERGE_STR(NAME, set), (void (KProperty::*)(KRefVariant)) &parrent::_prpset##NAME }); \
+	getPrpMap()->insert({ MERGE_STR(NAME, get), (void (KProperty::*)(KRefVariant)) &parrent::_prpget##NAME });}\
+	if (!registered && (flag & KMFLAG_SCRIPTABLE) && Lua != nullptr) { LuaIntf::LuaBinding(Lua).beginModule("Kite").beginClass<parrent>(pname)\
+	.addProperty(#NAME, _prpgetPtr##NAME(), _prpsetPtr##NAME()).endClass().endModule(); }
 
-#define KMETACLASS_ADD_SETTER(TYPE, NAME)\
-	INTERNAL_KMETA_ADD_SETTER(TYPE, NAME, set)
-
-#define INTERNAL_KMETA_ADD_GETTER(TYPE, NAME, GETNAME)\
-	instance.addProperty(new KMetaProperty(#NAME, KMP_GETTER, typeid(TYPE))); \
-	getPrpMap()->insert({ #NAME#GETNAME, (void (KProperty::*)(KRefVariant)) &parrent::_prpget##NAME });
-
-#define KMETACLASS_ADD_GETTER(TYPE, NAME)\
-	INTERNAL_KMETA_ADD_GETTER(TYPE, NAME, get)
-
-#define INTERNAL_META_ADD_SG(TYPE, NAME, SETNAME, GETNAME)\
-	instance.addProperty(new KMetaProperty(#NAME, KMP_BOTH, typeid(TYPE))); \
-	getPrpMap()->insert({ #NAME#SETNAME, (void (KProperty::*)(KRefVariant)) &parrent::_prpset##NAME }); \
-	getPrpMap()->insert({ #NAME#GETNAME, (void (KProperty::*)(KRefVariant)) &parrent::_prpget##NAME });
-
-#define KMETACLASS_ADD_SG(TYPE, NAME)\
-	INTERNAL_META_ADD_SG(TYPE, NAME, set, get)
+#define KMETACLASS_ADD_METHODE(NAME) 
 
 #define ENUMELEM(NAME, VALUE) NAME = VALUE,
 

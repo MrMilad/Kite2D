@@ -26,8 +26,6 @@ struct lua_State;
 namespace Kite {
 	class KITE_FUNC_EXPORT KRegistery {
 	public:
-		static bool registerKite(bool Script);
-		
 		static lua_State *getScriptState();
 	};
 }

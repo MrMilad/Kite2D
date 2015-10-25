@@ -40,6 +40,7 @@ namespace Kite {
 	class KITE_FUNC_EXPORT KMetaEnum : public KMeta {
 	public:
 		KMetaEnum(const std::string &Name, U32 Flag, U32 Size, const std::type_info& EnumType);
+		~KMetaEnum();
 
 		void addMember(const KMetaEnumMember *Member);
 

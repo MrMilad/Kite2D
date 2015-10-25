@@ -24,6 +24,7 @@ USA
 #include "Kite/Core/utility/kutilitytypes.h"
 #include "Kite/Core/utility/kmeta.h"
 #include <string>
+#include <vector>
 #include <typeindex>
 
 namespace Kite {
@@ -33,22 +34,20 @@ namespace Kite {
 	This class can stores information (name and offset of member) about a data member of a specific class. Multiple
 	member objects can be stored in KMetaData objects within a std::vector.
 	*/
-	struct KMetaMember {
+	/*struct KMetaMember {
 		std::string name;			//!< Name of member
-		U32 offset;					//!< Offset of memeber in bytes		
+		// U32 offset;				// its not safe and not portable!
 		KMetaTypeInfoTypes typeInfo;
 		U32 arraySize;				//!< Size of array
 		std::type_index typeHandle;	//!< Type handle
 		KMetaMember *next;			//!< Pointer to the next member
 
-		KMetaMember(const std::string &Name, U32 Offset,
-					 KMetaTypeInfoTypes TypeInfo,
+		KMetaMember(const std::string &Name, KMetaTypeInfoTypes TypeInfo,
 					U32 ArraySize, const std::type_info& TypeHandle) :
-			name(Name), offset(Offset),
-			typeInfo(TypeInfo), arraySize(ArraySize),
+			name(Name), typeInfo(TypeInfo), arraySize(ArraySize),
 			typeHandle(TypeHandle), next(nullptr)
 			 {}
-	};
+	};*/
 
 	struct KMetaProperty {
 		std::string name;			//!< Name of property
@@ -60,6 +59,18 @@ namespace Kite {
 		KMetaProperty(const std::string &Name, const std::string &Comment,
 					  KMetaPropertyTypes Type, const std::type_info& TypeHandle) :
 			name(Name), comment(Comment), type(Type), typeHandle(TypeHandle), next(nullptr) {}
+	};
+
+	struct KMetaFunction {
+		std::string name;							//!< Name of the function
+		bool isStatic;
+		std::type_index returnType;					//!< Type handle
+		std::vector<std::type_index> paramsType;
+		KMetaFunction *next;						//!< Pointer to the next member
+
+		KMetaFunction(const std::string &Name, bool IsStatic, const std::type_info& ReturnType) :
+			name(Name), isStatic(IsStatic), returnType(ReturnType)
+		{}
 	};
 
 	struct KMetaBase {
@@ -81,14 +92,16 @@ namespace Kite {
 
 		~KMetaClass();
 
-		void addMember(const KMetaMember *Member);
+		//void addMember(const KMetaMember *Member);
 
 		void addProperty(const KMetaProperty *Property);
 
 		void addBase(const KMetaBase *Base);
 
-		inline const KMetaMember *getMembers() const { return _kmembers; }
-		inline bool hasMembers() const { return (_kmembers) ? true : false;}
+		void addFunction(const KMetaFunction *Base);
+
+		//inline const KMetaMember *getMembers() const { return _kmembers; }
+		//inline bool hasMembers() const { return (_kmembers) ? true : false;}
 
 		inline const KMetaProperty *getProperties() const { return _kproperties; }
 		inline bool hasProperties() const { return (_kproperties) ? true : false; }
@@ -96,13 +109,18 @@ namespace Kite {
 		inline const KMetaBase *getBase() const { return _kbases; }
 		inline bool hasBase() const { return (_kbases) ? true : false; }
 
+		inline const KMetaFunction *getFunctions() const { return _kfunctions; }
+		inline bool hasFunction() const { return (_kfunctions) ? true : false; }
+
 	private:
-		KMetaMember *_kmembers;
-		KMetaMember *_klastMember;
+		//KMetaMember *_kmembers;
+		//KMetaMember *_klastMember;
 		KMetaProperty *_kproperties;
 		KMetaProperty *_klastProperties;
 		KMetaBase *_kbases;
 		KMetaBase *_klastBase;
+		KMetaFunction *_kfunctions;
+		KMetaFunction *_klastFunc;
 	};
 }
 #endif // KMETACLASS_H

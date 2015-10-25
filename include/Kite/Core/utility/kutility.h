@@ -31,7 +31,7 @@
 #include "Kite/core/utility/kmeta.h"
 #include "Kite/core/utility/kmetaclass.h"
 #include "Kite/core/utility/kmetapod.h"
-#include "Kite/core/utility/kmetafunction.h"
+#include "Kite/core/utility/kmetaenum.h"
 #include "Kite/core/utility/kftraits.h"
 #include "Kite/Core/utility/kmetamanager.h"
 #include "Kite/Core/utility/kmetadef.h"

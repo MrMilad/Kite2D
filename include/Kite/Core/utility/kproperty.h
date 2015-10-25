@@ -26,41 +26,14 @@ USA
 #include <string>
 
 namespace Kite {
-	// here we use CRTP pattern because we want each derived class to have it's own static map
-	template<typename T>
-	class KProperty {
+	class KITE_FUNC_EXPORT KProperty {
 	public:
-		bool setProperty(const std::string &Name, KRefVariant Value) {
-			std::string real = Name;
-			real.append("set");
+		bool setProperty(const std::string &Class, const std::string &Name, KRefVariant Value);
 
-			auto found = getPrpMap()->find(real);
-			if (found != getPrpMap()->end()) {
-				(this->*(found->second))(Value);
-				return true;
-			}
-
-			return false;
-		}
-
-		bool getProperty(const std::string &Name, KRefVariant Value) {
-			std::string real = Name;
-			real.append("get");
-
-			auto found = getPrpMap()->find(real);
-			if (found != getPrpMap()->end()) {
-				(this->*(found->second))(Value);
-				return true;
-			}
-
-			return false;
-		}
+		bool getProperty(const std::string &Class, const std::string &Name, KRefVariant Value);
 
 	protected:
-		static std::unordered_map<std::string, void (KProperty::*)(KRefVariant)> *getPrpMap() {
-			static std::unordered_map<std::string, void (KProperty::*)(KRefVariant)> prpMap;
-			return &prpMap;
-		}
+		static std::unordered_map<std::string, void (KProperty::*)(KRefVariant)> prpMap;
 	};
 }
 

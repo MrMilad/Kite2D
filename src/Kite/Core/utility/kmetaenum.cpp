@@ -25,6 +25,18 @@ namespace Kite {
 		_kmembers(nullptr), _klastMember(nullptr)
 	{}
 
+	KMetaEnum::~KMetaEnum() {
+		// free members
+		if (hasMembers()) {
+			KMetaEnumMember *mem = _kmembers;
+			while (mem != nullptr) {
+				KMetaEnumMember *temp = mem->next;
+				delete mem;
+				mem = temp;
+			}
+		}
+	}
+
 	void KMetaEnum::addMember(const KMetaEnumMember *Member) {
 		if (!_kmembers)
 			_kmembers = const_cast<KMetaEnumMember *>(Member);

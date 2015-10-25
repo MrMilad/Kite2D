@@ -32,27 +32,17 @@
 	\brief Public namespace.
 */
 namespace Kite{
-
-#define KBLENDTYPES(ELEM) \
-	ELEM(KB_ALPHA, 0) \
-	ELEM(KB_ADD, 1) \
-	ELEM(KB_MULTIPLY, 2) \
-	ELEM(KB_NONE, 3) 
-
 	/*! \enum Pixel blend
 	\brief Blend types
 	*/
-	KMETAENUM_DEF(KBlendTypes,0, KBLENDTYPES)
-#undef KBLENDTYPES
-
-//    enum KTextureEnvMode{
-//        KTE_ADD = 0,
-//        KTE_MODULATE,
-//        KTE_DECAL,
-//        KTE_BLEND,
-//        KTE_REPLACE,
-//        KTE_COMBINE
-//    };
+    enum KTextureEnvMode{
+        KTE_ADD = 0,
+        KTE_MODULATE,
+        KTE_DECAL,
+        KTE_BLEND,
+        KTE_REPLACE,
+        KTE_COMBINE
+    };
 
 	/*! \enum KVertexBufferTypes
 		\brief Performance hint for VBO to provide how the buffer object is going to be used.

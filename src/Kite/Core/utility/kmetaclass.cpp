@@ -22,20 +22,20 @@ USA
 namespace Kite {
 	KMetaClass::KMetaClass(const std::string &Name, U32 Flag, U32 Size) :
 		KMeta(Name, Flag, Size, KMT_CLASS),
-		_kmembers(nullptr), _klastMember(nullptr),
+		//_kmembers(nullptr), _klastMember(nullptr),
 		_kproperties(nullptr), _klastProperties(nullptr)
 	{}
 
 	KMetaClass::~KMetaClass() {
 		// free members
-		if (hasMembers()) {
+		/*if (hasMembers()) {
 			KMetaMember *mem = _kmembers;
 			while (mem != nullptr) {
 				KMetaMember *temp = mem->next;
 				delete mem;
 				mem = temp;
 			}
-		}
+		}*/
 
 		// free properties
 		if (hasProperties()) {
@@ -58,14 +58,14 @@ namespace Kite {
 		}
 	}
 
-	void KMetaClass::addMember(const KMetaMember *Member) {
+	/*void KMetaClass::addMember(const KMetaMember *Member) {
 		if (!_kmembers)
 			_kmembers = const_cast<KMetaMember *>(Member);
 		else
 			_klastMember->next = const_cast<KMetaMember *>(Member);
 
 		_klastMember = const_cast<KMetaMember *>(Member);
-	}
+	}*/
 
 	void KMetaClass::addProperty(const KMetaProperty *Property) {
 		if (!_kproperties)
@@ -83,5 +83,14 @@ namespace Kite {
 			_klastBase->next = const_cast<KMetaBase *>(Base);
 
 		_klastBase = const_cast<KMetaBase *>(Base);
+	}
+	
+	void KMetaClass::addFunction(const KMetaFunction * Base) {
+		if (!_kfunctions)
+			_kfunctions = const_cast<KMetaFunction *>(Base);
+		else
+			_klastFunc->next = const_cast<KMetaFunction *>(Base);
+
+		_klastFunc = const_cast<KMetaFunction *>(Base);
 	}
 }

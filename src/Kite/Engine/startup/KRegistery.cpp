@@ -27,7 +27,7 @@ namespace Kite {
 		if (Script)
 			lstate = getScriptState();
 
-		KColor::registerMetaData(nullptr, false, KST_SERIALIZE, nullptr, lstate);
+		//KColor::registerMetaData(nullptr, false, KST_SERIALIZE, nullptr, lstate);
 
 		return true;
 	}

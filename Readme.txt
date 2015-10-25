@@ -6,29 +6,6 @@ written in C++ by Milad Rasaneh and published under the LGPL license.
 Kite2D provides a simple and highly-optimized interface to the various components of your PC,
 to ease the development of games.
 
----------------------[ Features ]---------------------
-[+]
-+ multi-platform (Windows - Linux - Mac OSX)
-+ Based on modern OpenGL v3.3
-+ Easy to use VAO, VBO, PBO, Shader and Texture classes
-+ 2D transformation class
-+ 2D Skeletal and sprite-sheet animation system
-+ Support PNG, BMP, TGA image file formats
-+ Support ZIP archives
-+ 2D sprite batch rendering and instancing
-+ 2D\3D audio options (pitch, pan, ...)
-+ Support wav, ogg file formats
-+ Audio effects (reverb, ...)
-+ Audio Streaming
-+ Flexible and powerful resource manager, can load and manage any resource from anywhere (hard disk, memory, network, databases and ....)
-+ Support mouse, keyboard, joystick
-+ Easy window creation and handling
-+ Fast and basic 2D physique functions (hit-testing, bounding box, ...)
-+ Powerful particle system
-+ Powerful tile-based map engine
-+ Flexible serializer class and custom binary-compatible file format
-+ ...
-
 ---------------------[ LICENSE ]---------------------
     Kite2D Game Framework.
     Copyright (C) 2010-2015  Milad Rasaneh <milad_rasaneh2000@yahoo.com>

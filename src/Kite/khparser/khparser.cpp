@@ -946,6 +946,7 @@ bool procClass(const std::string &Content, MClass &Cls, unsigned int Pos) {
 	// checking base classes
 	// with base(s)
 	if (checkNext(Content, pos) == PS_TOKEN) {
+		bool kobj = false;
 		if (!checkTok(Content, pos, ':')) {
 			printf("error: missing \":\" token.\n");
 			return false;
@@ -983,10 +984,24 @@ bool procClass(const std::string &Content, MClass &Cls, unsigned int Pos) {
 				base.name = output;
 				Cls.bases.push_back(base);
 			}
-		}
-	} 
 
-	// without base(s)
+			// check KObject
+			if (base.name == "KObject") {
+				kobj = true;
+			}
+		}
+
+		if (!kobj) {
+			printf("error: missing KObject base class.\n");
+			return false;
+		}
+	} else {
+		printf("error: missing KObject base class.\n");
+		return false;
+	}
+
+	
+	// class body
 	size_t cpos = 0;
 	if (checkNext(Content, pos) == PS_BODY_START) {
 
@@ -1304,7 +1319,7 @@ void createMacros(const std::vector<MClass> &Cls, const std::vector<MEnum> &Enms
 					  "Value->serial(Out, KST_SERIALIZE); return Out;}\\\n"
 					  "friend KBytesArray &operator>>(KBytesArray &In, " + Cls[i].name + "* Value) {\\\n"
 					  "Value->serial(In, KST_DESERIALIZE); return In;}\\\n"
-					  "private:\\\n"
+					  "protected:\\\n"
 					  "KITE_FUNC_EXPORT void serial(KBytesArray &Serializer, KSerialStateTypes State);\n");
 
 		// registerMeta()
@@ -1333,11 +1348,11 @@ void createMacros(const std::vector<MClass> &Cls, const std::vector<MEnum> &Enms
 
 			// insert to property map
 			Output.append("prpMap.insert({ \"_prp" + Cls[i].name + "get" + Cls[i].props[count].name 
-						  + "\", (void (KProperty::*)(KRefVariant)) &" + Cls[i].name + "::" 
+						  + "\", (void (KObject::*)(KRefVariant)) &" + Cls[i].name + "::" 
 						  + "_prp" + Cls[i].name + "get" + Cls[i].props[count].name+ "});\\\n");
 
 			Output.append("prpMap.insert({ \"_prp" + Cls[i].name + "set" + Cls[i].props[count].name
-						  + "\", (void (KProperty::*)(KRefVariant)) &" + Cls[i].name + "::"
+						  + "\", (void (KObject::*)(KRefVariant)) &" + Cls[i].name + "::"
 						  + "_prp" + Cls[i].name + "set" + Cls[i].props[count].name + "});\\\n");
 		}
 
@@ -1623,6 +1638,7 @@ int main(int argc, char* argv[]) {
 	// create register function
 	std::string header;
 	std::string source;
+	hadrs.push_back("kitemeta.khgen.h");
 	if (!cls.empty() || !ens.empty()) {
 		createHead(header);
 		createSource(hadrs, cls, ens, source);

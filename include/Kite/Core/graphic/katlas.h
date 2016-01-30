@@ -22,6 +22,7 @@ USA
 
 #include "Kite/Core/system/ksystemdef.h"
 #include "Kite/Core/utility/kresource.h"
+#include "Kite/Core/utility/kostream.h"
 #include "Kite/Core/graphic/kgraphicstructs.h"
 #include <vector>
 

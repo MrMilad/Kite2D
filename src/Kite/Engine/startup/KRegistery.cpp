@@ -22,16 +22,6 @@ USA
 #include <luaintf\LuaIntf.h>
 
 namespace Kite {
-	bool KRegistery::registerKite(bool Script){
-		lua_State *lstate = nullptr;
-		if (Script)
-			lstate = getScriptState();
-
-		//KColor::registerMetaData(nullptr, false, KST_SERIALIZE, nullptr, lstate);
-
-		return true;
-	}
-
 	lua_State *KRegistery::getScriptState(){
 		static lua_State* L = luaL_newstate();
 		return L;

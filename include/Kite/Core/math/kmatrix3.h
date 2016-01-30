@@ -21,11 +21,10 @@
 #define KMATRIX3_H
 
 #include "Kite/Core/system/ksystemdef.h"
-#include "Kite/Core/utility/KBytesArray.h"
 
 namespace Kite{
     class KMatrix3{
-		friend KBytesArray &operator<<(KBytesArray &Out, const KMatrix3 &Value) {
+		/*friend KBytesArray &operator<<(KBytesArray &Out, const KMatrix3 &Value) {
 			Out << Value[0] << Value[1] << Value[2];
 			Out << Value[3] << Value[4] << Value[5];
 			Out << Value[6] << Value[7] << Value[8];
@@ -37,7 +36,7 @@ namespace Kite{
 			In >> Value[3] >> Value[4] >> Value[5];
 			In >> Value[6] >> Value[7] >> Value[8];
 			return In;
-		}
+		}*/
     public:
 		KMatrix3(F32 E00 = 1.0f, F32 E01 = 0.0f, F32 E02 = 0.0f,
 			F32 E10 = 0.0f, F32 E11 = 1.0f, F32 E12 = 0.0f,

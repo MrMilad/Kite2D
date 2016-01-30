@@ -29,7 +29,7 @@ namespace Kite{
 		KO_CCLOCKWISE = 1
 	};
 
-	enum KInterpolationTypes : U8{
+	enum class KInterpolationTypes : U8{
 		KIN_LINEAR = 0,
 		KIN_QUADRATICIN,
 		KIN_QUADRATICOUT,

@@ -27,6 +27,7 @@
 #include "Kite/Core/graphic/kgraphictypes.h"
 #include "Kite/Core/graphic/kgraphicstructs.h"
 #include "Kite/Core/utility/kresource.h"
+#include "Kite/Core/utility/kostream.h"
 #include "Kite/core/graphic/kshader.h"
 #include "Kite/Core/graphic/ktexture.h"
 #include "Kite/Core/math/ktransform.h"

@@ -50,6 +50,10 @@ namespace Kite{
 
 	KITE_FUNC_EXPORT extern bool isBigEndian();
 
+	KITE_FUNC_EXPORT extern void getHash32(void *Data, U32 Lenght, U32 Seed, void *Out);
+
+	KITE_FUNC_EXPORT extern void getHash128(void *Data, U32 Lenght, U32 Seed, void *Out);
+
 }
 
 #endif // KSYSTEMUTIL_H

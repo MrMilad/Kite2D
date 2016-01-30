@@ -20,9 +20,9 @@
 #ifndef KGRAPHICTYPES_H
 #define KGRAPHICTYPES_H
 
-#include "Kite/Core/utility/kmetadef.h"
-#include "Kite/Core/utility/kmetaenum.h"
-#include "Kite/Core/utility/kmetamanager.h"
+#include "Kite/Core/meta/kmetadef.h"
+#include "Kite/Core/meta/kmetaenum.h"
+#include "Kite/Core/meta/kmetamanager.h"
 
 /*! \file kgraphictypes.h
 	\brief All core graphic types.
@@ -209,36 +209,6 @@ namespace Kite{
         KAT_FLOAT
     };
 
-	/*! \enum KAnimeStateTypes
-		\brief Current state of a animation controller
-	*/
-	enum KAnimeStateTypes{
-		KAS_PLAY,	//!< Play
-		KAS_PAUSE,	//!< Pause
-		KAS_STOP	//!< Stop
-	};
-
-	/*! \enum KAnimeDirectionTypes
-		\brief Direction of the animation
-	*/
-	enum KAnimeDirectionTypes{
-		KAD_FOREWARD,
-		KAD_BACKWARD
-	};
-
-	/*! \enum KAnimeValueChangeTypes
-		\brief Property animation methodes
-	*/
-	enum KAnimeValueChangeTypes{
-		KAV_SET,	//!< override current value(s)
-		KAV_APPEND	//!< append to current value(s) (recomended: use + and - value(s) when using KAV_APPEND)
-	};
-
-	/*enum KAnimeCallbackTypes{
-		KAC_ATTACHED,	//!< When attach to AnimeController list
-		KAC_DETACHED	//!< When detach from AnimeController list
-	};*/
-
 	enum KBuiltinShaderTypes {
 		KBS_VERT,
 		KBS_FRAG_COLOR,
@@ -258,31 +228,11 @@ namespace Kite{
 		KAF_JSON	//!< Adobe Flash created JSON 
 	};
 
-	enum KAnimeClipFileTypes {
-		KAF_ANIMEKEY,	//!< Default KAtlas format (compact format in speed and size)
-		KAF_XML	//!< Adobe Flash created JSON 
-	};
-
 	/*! \typedef KCallVBUpdate
 		\brief Function handle for mapping and updating VBO buffers
 	*/
 	typedef void (KCallVBUpdate)(void *Data, U32 Offset, U32 DataSize, void *Sender);
 
-	/*! \typedef KCallAnimeTrigger
-		\brief Function handle for animation triggers
-	*/
-	typedef void(*KCallAnimeTrigger)(void *Parameter);
-
-	/*! \typedef KCallKeyChange
-	\brief Function handle for animation key change
-	*/
-	typedef void(*KCallKeyChange)(void *Parameter, U32 KeyNumber);
-
-	/*! \typedef KCallAnimeStatechange
-		\brief Function handle for animation states
-	*/
-	typedef void(*KCallAnimeStatechange)(void *Parameter);
-	
 	/*! \namespace Kite::Internal
 		\brief Private namespace.
 	*/

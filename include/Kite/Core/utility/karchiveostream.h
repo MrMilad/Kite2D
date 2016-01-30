@@ -81,7 +81,7 @@ namespace Kite {
 
 		// writing compressed
 		inline void setCompressWrite(bool Compress) { _kcomp = Compress; }
-		inline bool setCompressWrite() const { return _kcomp; }
+		inline bool getCompressWrite() const { return _kcomp; }
 
 		bool write(void *Data, U64 DataSize);
 

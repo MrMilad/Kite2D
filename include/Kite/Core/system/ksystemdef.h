@@ -23,6 +23,7 @@
 #include <cstdio>
 #include <iostream>
 #include <cstdint>
+#include <limits>
 
 /// identify the Little/Big endian
 #if defined(__m68k__) || defined(mc68000) || defined(_M_M68K) || (defined(__MIPS__) && defined(__MISPEB__)) || \
@@ -151,15 +152,16 @@
 #if defined(KITE_DEV_DEBUG) // break in source cod.
     #include <assert.h>
     #define KDEBUG_BREAK assert(0);
-    #define KDEBUG_PRINT(x) printf (x); printf("\n     Line: %u \n     File: %s \n", __LINE__, __FILE__);
+    #define KDEBUG_PRINT(expr) printf("%s\n     Line: %u \n     File: %s \n", expr, __LINE__, __FILE__);
     #define KDEBUG_ASSERT(expr) assert(expr);
     #define KDEBUG_ASSERT_T(expr) assert(expr);
     #define KDEBUG_ASSERT_EQ(expr, eq) assert(expr != eq);
     #define KDEBUG_TEMP(expr) expr
+	#define KDEBUG_TODO(expr) printf("TODO: %s\n     Line: %u \n     File: %s \n", expr, __LINE__, __FILE__);
 
 #elif defined(KITE_USER_DEBUG) // print debug output (without break).
     #define KDEBUG_BREAK
-    #define KDEBUG_PRINT(x) printf (x); printf("\n     Line: %u \n     File: %s \n", __LINE__, __FILE__);
+    #define KDEBUG_PRINT(expr) printf("%s\n     Line: %u \n     File: %s \n", expr, __LINE__, __FILE__);
     #define KDEBUG_ASSERT(expr) if (!(expr)) {KDEBUG_PRINT(#expr)}
     #define KDEBUG_ASSERT_T(expr) if (!(expr)) {KDEBUG_PRINT(#expr)}
     #define KDEBUG_ASSERT_EQ(expr, eq) if(expr != eq) {KDEBUG_PRINT(#expr)}
@@ -168,7 +170,7 @@
 #else /// release state. (without debug output and break)
     #define KDEBUG_PRINT(x)
     #define KDEBUG_BREAK
-    #define KDEBUG_ASSERT(expr) expr;
+    #define KDEBUG_ASSERT(expr)
     #define KDEBUG_ASSERT_T(expr)
     #define KDEBUG_ASSERT_EQ(expr, eq) expr
     #define KDEBUG_TEMP(expr)
@@ -194,6 +196,7 @@ typedef unsigned long DWORD;
 
 /// max audio buffer (ogg vorbis)
 #define KOGG_BUFF_SIZE 4096
+#define KHASH_SEED 13711010
 
 namespace Kite{
 	/*
@@ -223,27 +226,56 @@ namespace Kite{
     typedef double F64;
 	*/
 
+	// int pointer
+	typedef uintptr_t UPTR;
+
 	// 8 bits integer types
 	typedef int8_t I8;
 	typedef uint8_t U8;
+	const I8 MAX_I8 = std::numeric_limits<I8>::max();
+	const I8 MIN_I8 = std::numeric_limits<I8>::min();
+	const U8 MAX_U8 = std::numeric_limits<U8>::max();
+	const U8 MIN_U8 = std::numeric_limits<U8>::min();
 
 	// 16 bits integer types
 	typedef int16_t I16;
 	typedef uint16_t U16;
+	const I16 MAX_I16 = std::numeric_limits<I16>::max();
+	const I16 MIN_I16 = std::numeric_limits<I16>::min();
+	const U16 MAX_U16 = std::numeric_limits<U16>::max();
+	const U16 MIN_U16 = std::numeric_limits<U16>::min();
+
 
 	// 32 bits integer types
 	typedef int32_t I32;
 	typedef uint32_t U32;
+	const I32 MAX_I32 = std::numeric_limits<I32>::max();
+	const I32 MIN_I32 = std::numeric_limits<I32>::min();
+	const U32 MAX_U32 = std::numeric_limits<U32>::max();
+	const U32 MIN_U32 = std::numeric_limits<U32>::min();
 
 	// 64 bits integer types
 	typedef int64_t I64;
 	typedef uint64_t U64;
+	const I64 MAX_I64 = std::numeric_limits<I64>::max();
+	const I64 MIN_I64 = std::numeric_limits<I64>::min();
+	const U64 MAX_U64 = std::numeric_limits<U64>::max();
+	const U64 MIN_U64 = std::numeric_limits<U64>::min();
 
 	// 32 bits floating types
 	typedef float F32;
+	const F32 MAX_F32 = std::numeric_limits<F32>::max();
+	const F32 MIN_F32 = -std::numeric_limits<F32>::min();
 
 	// 64 bits floating types
 	typedef double F64;
+	const F64 MAX_F64 = std::numeric_limits<F64>::max();
+	const F64 MIN_F64 = -std::numeric_limits<F64>::min();
+
+	// size_t
+	typedef size_t SIZE;
+	const SIZE MAX_PTR_SIZE = std::numeric_limits<SIZE>::max();
+	const SIZE MIN_PTR_SIZE = std::numeric_limits<SIZE>::min();
 
     // glfw window handle
     typedef void *KWindowHandle;

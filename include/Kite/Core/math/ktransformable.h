@@ -28,8 +28,8 @@
 
 namespace Kite{
     class KITE_FUNC_EXPORT KTransformable{
-		friend KBytesArray &operator<<(KBytesArray &Out, const KTransformable &Value);
-		friend KBytesArray &operator>>(KBytesArray &In, KTransformable &Value);
+		/*friend KBytesArray &operator<<(KBytesArray &Out, const KTransformable &Value);
+		friend KBytesArray &operator>>(KBytesArray &In, KTransformable &Value);*/
     public:
         KTransformable();
         virtual ~KTransformable();

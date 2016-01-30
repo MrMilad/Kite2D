@@ -27,7 +27,7 @@ USA
 
 namespace Kite {
 	template <typename T>
-	class KITE_FUNC_EXPORT KDictionary {
+	class KDictionary {
 	public:
 		// duplicate, null objects and empty key is not valid
 		bool addObject(const std::string &Key, T *Object) {

@@ -35,6 +35,8 @@ namespace Kite {
 	#define KMATH_PIsub240 0.01308996939f
 	#define KMATH_PIsub360 0.00872664626f
 
+	template <typename T, typename P>
+	using KCallTween = P(*)(T Time, P Start, P End, T Duration);
 	typedef F64(*KCallEasingFloat)(F64 Time, F32 Start, F32 End, F32 Duration);
 	typedef I64(*KCallEasingInt)(I64 Time, I32 Start, I32 End, I32 Duration);
 }

@@ -24,12 +24,11 @@
 #include "Kite/Core/math/kmathdef.h"
 #include "Kite/Core/math/kmathstructs.h"
 #include "Kite/Core/math/kmatrix3.h"
-#include "Kite/Core/utility/KBytesArray.h"
 
 namespace Kite{
     class KITE_FUNC_EXPORT KTransform{
-		friend KBytesArray &operator<<(KBytesArray &Out, const KTransform &Value);
-		friend KBytesArray &operator>>(KBytesArray &In, KTransform &Value);
+		/*friend KBytesArray &operator<<(KBytesArray &Out, const KTransform &Value);
+		friend KBytesArray &operator>>(KBytesArray &In, KTransform &Value);*/
     public:
 		/// construct a transform (unit matrix)
 		KTransform();

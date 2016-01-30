@@ -20,7 +20,6 @@ USA
 #include "Kite/Core/graphic/katlas.h"
 #include "Kite/Core/utility/kutilitystructs.h"
 #include "Kite/Core/utility/kmeminputstream.h"
-#include "Kite/Core/utility/KBytesArray.h"
 #include "Kite/Core/graphic/kgraphicdef.h"
 #include <fstream>
 
@@ -43,7 +42,8 @@ namespace Kite {
 	}
 
 	bool KAtlas::loadStream(KIStream &Stream, U32 FileType) {
-		_kitems.clear();
+		KDEBUG_PRINT("TODO: fix it. remove kbyte array dependency.");
+		/*_kitems.clear();
 
 		// checking file types
 		if (FileType == KAF_JSON)
@@ -70,12 +70,13 @@ namespace Kite {
 			} else {
 				KDEBUG_PRINT("wrong file format");
 			}
-		}
+		}*/
 		return false;
 	}
 
 	bool KAtlas::saveStream(KOStream &Stream) {
-		if (_kitems.empty())
+		KDEBUG_PRINT("TODO: fix it. remove kbyte array dependency.");
+		/*if (_kitems.empty())
 			return true;
 
 		KBytesArray serial;
@@ -86,7 +87,8 @@ namespace Kite {
 			serial << _kitems[i];
 		}
 
-		return serial.saveStream(Stream);
+		return serial.saveStream(Stream);*/
+		return false;
 	}
 
 	bool KAtlas::_loadJSON(const std::string &FileName) {

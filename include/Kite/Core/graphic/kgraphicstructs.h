@@ -27,11 +27,11 @@
 #include "Kite/Core/system/ksystemdef.h"
 #include "Kite/Core/graphic/kgraphictypes.h"
 #include "Kite/Core/math/kmath.h"
-#include "Kite/Core/utility/kmetadef.h"
-#include "Kite/Core/utility/kproperty.h"
-#include "Kite/Core/utility/kbytesarray.h"
+#include "Kite/Core/system/kobject.h"
+#include "Kite/Core/system/krefvariant.h"
+#include "Kite/Core/meta/kmetadef.h"
+#include "Kite/Core/serialization/kbaseserial.h"
 #include <kgraphicstructs.khgen.h>
-
 
 KMETA
 /*! \namespace Kite
@@ -39,7 +39,7 @@ KMETA
 */
 namespace Kite{
 
-	KMETA_ENUM(EDITABLE)
+	KMETA_ENUM(EDITABLE, SCRIPTABLE)
 	enum class myEnum : U32 {
 		EN1_MEM1 = 10,
 		EN1_MEM2 = 22,
@@ -47,7 +47,7 @@ namespace Kite{
 	};
 	KMETA_MYENUM_BODY()
 
-	KMETA_ENUM(EDITABLE)
+	KMETA_ENUM(EDITABLE, SCRIPTABLE)
 	enum class myEnum2 {
 		EN2_MEM1,
 		EN2_MEM2,
@@ -60,23 +60,24 @@ namespace Kite{
 		KColor is a simple color struct composed of 4 components: r, g, b, a (opacity)
 		each component is an byte in the range [0, 255] (set*()/get*()), also in OpenGL Range [0, 1] (setGL*()/getGL*())
 	*/
-	KMETA_CLASS(EDITABLE)
-	struct KColor : public KProperty {
+	KMETA_CLASS(SERIALIZABLE, EDITABLE, SCRIPTABLE)
+	struct KColor : public KObject {
 	//! Construct the color from its 4 RGBA components.
 	/*!
 	Range [0 to 255]
 	default value is (255, 255, 255, 255)
 	*/
 		KMETA_CONSTRUCTURE()
-		KColor(U8 R = 255, U8 G = 255, U8 B = 255, U8 A = 255) :
-		r(R / 255.0f), g(G / 255.0f), b(B / 255.0f), a(A / 255.0f) {}
+		KColor(U8 R = 255, U8 G = 255, U8 B = 255, U8 A = 255):
+			r(R / 255.0f), g(G / 255.0f), b(B / 255.0f), a(A / 255.0f) {}
 
 	//! Construct the color from a hexadecimal color code.
 	/*!
 	A large number of color codes defined in KColorTypes
 	However, the hexadecimal code can be passed directly
 	*/
-		KColor(KColorTypes HexCode) {
+		KColor(KColorTypes HexCode)
+		{
 			r = ((U8)((HexCode >> 16) & 0xFF)) / 255.0f;
 			g = ((U8)((HexCode >> 8) & 0xFF)) / 255.0f;
 			b = ((U8)((HexCode)& 0xFF)) / 255.0f;
@@ -89,44 +90,44 @@ namespace Kite{
 		inline F32 getGLA() const { return a; }
 
 		//! Set R component. range [0 to 255]
-		KMETA_PROPERTY("R", "r component")
+		KMETA_PROPERTY("r", "r component")
 		inline U8 getR() const { return (U8)(r * 255.0f); }
 
 		//! Set R component. range [0 to 255]
-		KMETA_PROPERTY("R")
+		KMETA_PROPERTY("r")
 		inline void setR(U8 R) { r = (R / 255.0f); }
 
 		//! Set G component. range [0 to 255]
-		KMETA_PROPERTY("G", "g component")
+		KMETA_PROPERTY("g", "g component")
 		inline U8 getG() const { return (U8)(g * 255.0f); }
 
 		//! Set G component. range [0 to 255]
-		KMETA_PROPERTY("G")
+		KMETA_PROPERTY("g")
 		inline void setG(U8 G) { g = (G / 255.0f); }
 
 		//! Set B component. range [0 to 255]
-		KMETA_PROPERTY("B", "b component")
+		KMETA_PROPERTY("b", "b component")
 		inline U8 getB() const { return (U8)(b * 255.0f); }
 
 		//! Set B component. range [0 to 255]
-		KMETA_PROPERTY("B")
+		KMETA_PROPERTY("b")
 		inline void setB(U8 B) { b = (B / 255.0f); }
 
 		//! Set A component. range [0 to 255]
-		KMETA_PROPERTY("A", "a component")
+		KMETA_PROPERTY("a", "a component")
 		inline U8 getA() const { return (U8)(a * 255.0f); }
 
 		//! Set A component. range [0 to 255]
-		KMETA_PROPERTY("A")
+		KMETA_PROPERTY("a")
 		inline void setA(U8 A) { a = (A / 255.0f); }
 
 		KMETA_KCOLOR_BODY()
 
 	private:
-		KMETA_VARIABLE() F32 r;	//!< Red component
-		KMETA_VARIABLE() F32 g;	//!< Green component
-		KMETA_VARIABLE() F32 b;	//!< Blue component
-		KMETA_VARIABLE() F32 a;	//!< Alpha component (opacity)
+		KMETA_VARIABLE(SERIALIZABLE) F32 r;	//!< Red component
+		KMETA_VARIABLE(SERIALIZABLE) F32 g;	//!< Green component
+		KMETA_VARIABLE(SERIALIZABLE) F32 b;	//!< Blue component
+		KMETA_VARIABLE(SERIALIZABLE) F32 a;	//!< Alpha component (opacity)
 	};
 
 
@@ -150,8 +151,6 @@ namespace Kite{
 		KVertex(const KVector2F32 &Pos, const KVector2F32 &UV, const KColor &Color) :
             pos(Pos), uv(UV), color(Color)
         {}
-
-		KMETA_KVERTEX_BODY()
     };
 
 	struct KPointSprite {
@@ -190,16 +189,6 @@ namespace Kite{
 			tru(TRU), trv(TRV),
 			w(W), h(H)
 		{}
-
-		/*KMETA_DEF(KAtlasItem, KMFLAG_CLASS)
-			KMETA_ADD_MEMBER(KAtlasItem, id, U32)
-			KMETA_ADD_MEMBER(KAtlasItem, blu, F32)
-			KMETA_ADD_MEMBER(KAtlasItem, blv, F32)
-			KMETA_ADD_MEMBER(KAtlasItem, tru, F32)
-			KMETA_ADD_MEMBER(KAtlasItem, trv, F32)
-			KMETA_ADD_MEMBER(KAtlasItem, w, F32)
-			KMETA_ADD_MEMBER(KAtlasItem, h, F32)
-		KMETA_DEF_END*/
 	};
 
 	/*struct KAnimeKey {
@@ -251,10 +240,10 @@ namespace Kite{
 			rotate(0), center(), color(), uv(),
 			trChannel(false), scaleChannel(false), skewChannel(false),
 			rotateChannel(false), uvChannel(false), colorChannel(false),
-			tchange(KAV_SET), schange(KAV_SET), skchange(KAV_SET), rchange(KAV_SET)
+			tchange(0), schange(0), skchange(0), rchange(0)
 		{}
 
-		friend KBytesArray &operator>>(KBytesArray &In, KAnimeValue &Value) {
+		/*friend KBytesArray &operator>>(KBytesArray &In, KAnimeValue &Value) {
 			In >> Value.translate >> Value.scale >> Value.skew >> Value.position >>
 				Value.rotate >> Value.center >> Value.uv >> Value.trChannel >>
 				Value.scaleChannel >> Value.skewChannel >> Value.rotateChannel >>
@@ -270,7 +259,7 @@ namespace Kite{
 				Value.uvChannel << Value.colorChannel << (U32)Value.tchange <<
 				(U32)Value.schange << (U32)Value.skchange << (U32)Value.rchange;
 			return Out;
-		}
+		}*/
 	};
 
 	//! State of a key in key-based animations with extra options for animation controller classes.
@@ -308,14 +297,14 @@ namespace Kite{
 		KAnimeKey() :
 			time(0), translate(), scale(1.0f, 1.0f), position(0.0f, 0.0f),
 			skew(0.0f, 0.0f), rotate(0.0f), center(), uv(0), color(),
-			tinterp(KIN_LINEAR), sinterp(KIN_LINEAR), skinterp(KIN_LINEAR),
-			rinterp(KIN_LINEAR), cinterp(KIN_LINEAR),
-			tchange(KAV_SET), schange(KAV_SET), skchange(KAV_SET), rchange(KAV_SET),
+			//tinterp(KIN_LINEAR), sinterp(KIN_LINEAR), skinterp(KIN_LINEAR),
+			//rinterp(KIN_LINEAR), cinterp(KIN_LINEAR),
+			tchange(0), schange(0), skchange(0), rchange(0),
 			trChannel(false), scaleChannel(false), skewChannel(false),
 			rotateChannel(false), uvChannel(false), colorChannel(false)
 		{}
 
-		friend KBytesArray &operator>>(KBytesArray &In, KAnimeKey &Value) {
+		/*friend KBytesArray &operator>>(KBytesArray &In, KAnimeKey &Value) {
 			In >> Value.translate >> Value.scale >> Value.skew >> Value.position >>
 				Value.rotate >> Value.center >> Value.uv >> Value.trChannel >>
 				Value.scaleChannel >> Value.skewChannel >> Value.rotateChannel >>
@@ -335,7 +324,7 @@ namespace Kite{
 				Value.tinterp << Value.sinterp << Value.skinterp <<
 				Value.rinterp << Value.cinterp;
 			return Out;
-		}
+		}*/
 	};
 
 	//! OpenGL vecrsion holder
@@ -426,28 +415,13 @@ namespace Kite{
 		\brief Private namespace.
 	*/
     namespace Internal{
-		//! Animation time trigger. (internally use)
-		struct KAnimeTimeTrigger{
-			F32 start;				//!< Start time
-			F32 end;				//!< End time
-			KCallAnimeTrigger func; //!< Callback
-			bool called;			//!< Called once in duration
-			void *sender;			//!< Opaque pointer
-
-			//! Default constructors
-			KAnimeTimeTrigger(F32 Start = 0, F32 End = 0,
-				KCallAnimeTrigger Functor = 0, bool Called = false, void *Sender = 0) :
-				start(Start), end(End), func(Functor), called(Called), sender(Sender)
-			{}
-		};
 
 		struct KUpdateSender {
 			U32 arraySize;
 			const void *firstObject;
 
 			KUpdateSender(U32 ArraySize = 0, void *FirstObject = 0) :
-				arraySize(ArraySize), firstObject(FirstObject) 
-			{}
+				arraySize(ArraySize), firstObject(FirstObject) {}
 		};
 
 		//! Catch last OpenGL state. (internally use)

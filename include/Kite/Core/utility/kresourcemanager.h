@@ -29,7 +29,7 @@ USA
 #include <string>
 
 namespace Kite{
-	class KITE_FUNC_EXPORT KResourceManager{
+	class KResourceManager{
 	public:
 		~KResourceManager() {
 			clear();

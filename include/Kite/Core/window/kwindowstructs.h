@@ -24,7 +24,6 @@
 #include <string>
 #include "Kite/core/system/ksystemdef.h"
 #include "Kite/core/window/kwindowtypes.h"
-#include "Kite/core/utility/KBytesArray.h"
 
 namespace Kite{
     struct KWindowState{
@@ -50,7 +49,7 @@ namespace Kite{
             border(Border), resizable(Resizable)
         {}
 
-		friend KBytesArray &operator>>(KBytesArray &In, KWindowState &Value) {
+		/*friend KBytesArray &operator>>(KBytesArray &In, KWindowState &Value) {
 			In >> Value.title >> Value.oglMajor >> Value.oglMinor;
 			In >> Value.swapInterval >> Value.width >> Value.height;
 			In >> Value.xpos >> Value.ypos >> Value.showCursor;
@@ -64,7 +63,7 @@ namespace Kite{
 			Out << Value.xpos << Value.ypos << Value.showCursor;
 			Out << Value.fullscreen << Value.border << Value.resizable;
 			return Out;
-		}
+		}*/
     };
 
     struct KEnumDisplay{
@@ -90,7 +89,7 @@ namespace Kite{
             return !(*this == right);
         }
 
-		friend KBytesArray &operator>>(KBytesArray &In, KEnumDisplay &Value) {
+		/*friend KBytesArray &operator>>(KBytesArray &In, KEnumDisplay &Value) {
 			In >> Value.width >> Value.height >> Value.refreshRate >> Value.colorDepth;
 			return In;
 		}
@@ -98,7 +97,7 @@ namespace Kite{
 		friend KBytesArray &operator<<(KBytesArray &Out, const KEnumDisplay &Value) {
 			Out << Value.width << Value.height << Value.refreshRate << Value.colorDepth;
 			return Out;
-		}
+		}*/
     };
 
 }

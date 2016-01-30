@@ -36,15 +36,10 @@
 #include "Kite/Core/graphic/kvertexbuffer.h"
 #include "Kite/Core/graphic/kframebuffer.h"
 #include "Kite/Core/graphic/kgraphicutil.h"
-
 #include "Kite/Core/graphic/ktransformablegroup.h"
 #include "Kite/Core/graphic/kcamera.h"
-#include "Kite/Core/graphic/kanimeobject.h"
-#include "Kite/Core/graphic/kanimecontrollergroup.h"
-#include "Kite/Core/graphic/kanimecontroller.h"
 #include "Kite/Core/graphic/kbatch.h"
 #include "Kite/Core/graphic/kbatchobject.h"
 #include "Kite/Core/graphic/katlas.h"
-#include "Kite/Core/graphic/kanimeclip.h"
 
 #endif // KGRAPHIC_H

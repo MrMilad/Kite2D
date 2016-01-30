@@ -18,6 +18,7 @@
     USA
 */
 #include "Kite/core/system/ksystemutil.h"
+#include <hash\mmhash3.h>
 #include "ctime"
 
 namespace Kite{
@@ -136,5 +137,13 @@ void cpuid(unsigned int CPUInfo[4],int InfoType){
 	bool isBigEndian() {
 		const I32 i = 1;
 		return ((*(char*)&i) == 0);
+	}
+
+	void getHash32(void *Data, U32 Lenght, U32 Seed, void *Out) {
+		MurmurHash3_x86_32(Data, Lenght, Seed, Out);
+	}
+
+	void getHash128(void *Data, U32 Lenght, U32 Seed, void *Out) {
+		MurmurHash3_x86_128(Data, Lenght, Seed, Out);
 	}
 }

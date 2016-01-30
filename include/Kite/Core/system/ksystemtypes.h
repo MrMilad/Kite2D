@@ -43,18 +43,22 @@ namespace Kite{
 		KIO_WRITE_APPEND
 	};
 
-	enum KVariantTypes : U8 {
-		KVT_I8 = 0,
-		KVT_U8,
-		KVT_I16,
-		KVT_U16,
-		KVT_I32,
-		KVT_U32,
-		KVT_I64,
-		KVT_U64,
-		KVT_F32,
-		KVT_F64,
-		KVT_VPTR
+	enum KPrimitiveTypes : U8 {
+		KPT_I8 = 0,
+		KPT_U8,
+		KPT_I16,
+		KPT_U16,
+		KPT_I32,
+		KPT_U32,
+		KPT_I64,
+		KPT_U64,
+		KPT_F32,
+		KPT_F64,
+		KPT_BOOL,
+		KPT_STR,
+		KPT_VOID,
+		KPT_VPTR,
+		KPT_UNKNOWN
 	};
 
 	enum KVectorComponentTypes{
@@ -94,6 +98,11 @@ namespace Kite{
 	enum KGridMapTriggerTypes {
 		KST_ENTER,
 		KST_LEAVE
+	};
+
+	enum KMSGReceiveTypes : U8 {
+		KMR_RECEIVED = 0,
+		KMR_IGNORED
 	};
 
 	typedef void(*KCallGridMapTrigger)(void *Data, KGridMapTriggerTypes State);

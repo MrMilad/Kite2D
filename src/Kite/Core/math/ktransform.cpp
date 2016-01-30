@@ -21,16 +21,6 @@
 #include <cmath>
 
 namespace Kite{
-	KBytesArray &operator<<(KBytesArray &Out, const KTransform &Value) {
-		Out << Value._kmatrix;
-		return Out;
-	}
-
-	KBytesArray &operator>>(KBytesArray &In, KTransform &Value) {
-		In >> Value._kmatrix;
-		return In;
-	}
-
 	KTransform::KTransform() :
 		_kmatrix()
 	{}

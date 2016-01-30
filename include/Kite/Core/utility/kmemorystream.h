@@ -26,12 +26,12 @@ USA
 #include <unordered_map>
 
 namespace Kite{
-	class KITE_FUNC_EXPORT KMemoryStream : public KStream{
+	class KMemoryStream : public KStream{
 	public:
-		void addSection(const std::string &SectionName, void *Data, size_t DataSize);
-		void removeSection(const std::string &SectionName);
-		void clear();
-		KIStream *openRead(const std::string &Name);
+		KITE_FUNC_EXPORT void addSection(const std::string &SectionName, void *Data, size_t DataSize);
+		KITE_FUNC_EXPORT void removeSection(const std::string &SectionName);
+		KITE_FUNC_EXPORT void clear();
+		KITE_FUNC_EXPORT KIStream *openRead(const std::string &Name);
 
 	private:
 		std::unordered_map<std::string, std::pair<void *, size_t>> _kmap;

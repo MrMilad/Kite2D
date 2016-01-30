@@ -51,7 +51,8 @@ namespace Kite{
 
 	bool KShaderProgram::loadFile(const std::string &FileName, U32 FileType) {
 		// checking file types
-		KBytesArray serial;
+		KDEBUG_PRINT("TODO: fix it");
+		/*KBytesArray serial;
 		if (serial.loadFile(FileName)) {
 
 			// check format
@@ -65,7 +66,7 @@ namespace Kite{
 			} else {
 				KDEBUG_PRINT("wrong file format");
 			}
-		}
+		}*/
 		return false;
 	}
 
@@ -77,7 +78,8 @@ namespace Kite{
 
 	bool KShaderProgram::loadStream(KIStream &Stream, U32 FileType) {
 		// checking file types
-		KBytesArray serial;
+		KDEBUG_PRINT("TODO: fix it");
+		/*KBytesArray serial;
 		if (serial.loadStream(Stream)) {
 
 			// check format
@@ -91,26 +93,28 @@ namespace Kite{
 			} else {
 				KDEBUG_PRINT("wrong file format");
 			}
-		}
+		}*/
 		return false;
 	}
 
 	bool KShaderProgram::saveFile(const std::string &FileName) {
-		KBytesArray serial;
+		/*KBytesArray serial;
 		serial << std::string("kshaderprog");
 		
 		serial << _kvert << _kfrag;
 
-		return serial.saveFile(FileName);
+		return serial.saveFile(FileName);*/
+		return false;
 	}
 
 	bool KShaderProgram::saveStream(KOStream &Stream) {
-		KBytesArray serial;
+		/*KBytesArray serial;
 		serial << std::string("kshaderprog");
 
 		serial << _kvert << _kfrag;
 
-		return serial.saveStream(Stream);
+		return serial.saveStream(Stream);*/
+		return false;
 	}
 
 	void KShaderProgram::attachShader(const KShader &Shader){

@@ -34,56 +34,56 @@ namespace Kite{
 		// Start = start point
 		// End = end point
 		// Duration = duration between start and end point
-		static inline TIME linear(TIME Time, PARAM Start, PARAM End, PARAM Duration) {
+		static inline PARAM linear(TIME Time, PARAM Start, PARAM End, TIME Duration) {
 			Time /= Duration;
-			return (End - Start) * Time + Start;
+			return (PARAM)((End - Start) * Time + Start);
 		}
 
-		static inline TIME quadraticIn(TIME Time, PARAM Start, PARAM End, PARAM Duration) {
+		static inline PARAM quadraticIn(TIME Time, PARAM Start, PARAM End, TIME Duration) {
 			Time /= Duration;
-			return (End - Start) * (Time * Time) + Start;
+			return (PARAM)((End - Start) * (Time * Time) + Start);
 		}
 
 
-		static inline TIME quadraticOut(TIME Time, PARAM Start, PARAM End, PARAM Duration) {
+		static inline PARAM quadraticOut(TIME Time, PARAM Start, PARAM End, TIME Duration) {
 			Time /= Duration;
-			return (End - Start) * (Time * (2 - Time)) + Start;
+			return ((PARAM)(End - Start) * (Time * (2 - Time)) + Start);
 		}
 
-		static inline TIME quadraticInOut(TIME Time, PARAM Start, PARAM End, PARAM Duration) {
+		static inline PARAM quadraticInOut(TIME Time, PARAM Start, PARAM End, TIME Duration) {
 			Time /= Duration / 2;
 			if (Time < 1) return (((End - Start) / 2) * (Time * Time)) + Start;
-			return -(End - Start) / 2 * (((Time - 2) * (--Time)) - 1) + Start;
+			return (PARAM)(-(End - Start) / 2 * (((Time - 2) * (--Time)) - 1) + Start);
 		}
 
-		static inline TIME sinusoidalIn(TIME Time, PARAM Start, PARAM End, PARAM Duration) {
+		static inline PARAM sinusoidalIn(TIME Time, PARAM Start, PARAM End, TIME Duration) {
 			Time /= Duration;
-			return -(End - Start) * cos(Time * KMATH_PI_2) + (End - Start) + Start;
+			return (PARAM)(-(End - Start) * cos(Time * KMATH_PI_2) + (End - Start) + Start);
 		}
 
-		static inline TIME sinusoidalOut(TIME Time, PARAM Start, PARAM End, PARAM Duration) {
+		static inline PARAM sinusoidalOut(TIME Time, PARAM Start, PARAM End, TIME Duration) {
 			Time /= Duration;
-			return (End - Start) * sin(Time * KMATH_PI_2) + Start;
+			return (PARAM)((End - Start) * sin(Time * KMATH_PI_2) + Start);
 		}
 
-		static inline TIME sinusoidalInOut(TIME Time, PARAM Start, PARAM End, PARAM Duration) {
+		static inline PARAM sinusoidalInOut(TIME Time, PARAM Start, PARAM End, TIME Duration) {
 			Time /= Duration;
-			return -(End - Start) / 2 * (cos(KMATH_PI * Time) - 1) + Start;
+			return (PARAM)(-(End - Start) / 2 * (cos(KMATH_PI * Time) - 1) + Start);
 		}
 
-		static inline TIME exponentialIn(TIME Time, PARAM Start, PARAM End, PARAM Duration) {
-			return (Time == 0) ? Start : (End - Start) * pow(2, 10 * (Time / Duration - 1)) + Start;
+		static inline PARAM exponentialIn(TIME Time, PARAM Start, PARAM End, TIME Duration) {
+			return (PARAM)((Time == 0) ? Start : (End - Start) * pow(2, 10 * (Time / Duration - 1)) + Start);
 		}
 
-		static inline TIME exponentialOut(TIME Time, PARAM Start, PARAM End, PARAM Duration) {
-			return (Time == Duration) ? Start + (End - Start) : (End - Start) * (-pow(2, -10 * Time / Duration) + 1) + Start;
+		static inline PARAM exponentialOut(TIME Time, PARAM Start, PARAM End, TIME Duration) {
+			return (PARAM)((Time == Duration) ? Start + (End - Start) : (End - Start) * (-pow(2, -10 * Time / Duration) + 1) + Start);
 		}
 
-		static inline TIME exponentialInOut(TIME Time, PARAM Start, PARAM End, PARAM Duration) {
+		static inline PARAM exponentialInOut(TIME Time, PARAM Start, PARAM End, TIME Duration) {
 			if (Time == 0) return Start;
 			if (Time == Duration) return Start + (End - Start);
 			if ((Time /= Duration / 2) < 1) return (End - Start) / 2 * pow(2, 10 * (Time - 1)) + Start;
-			return (End - Start) / 2 * (-pow(2, -10 * --Time) + 2) + Start;
+			return (PARAM)((End - Start) / 2 * (-pow(2, -10 * --Time) + 2) + Start);
 
 		}
 	};

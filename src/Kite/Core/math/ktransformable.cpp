@@ -22,22 +22,6 @@
 #include <cmath>
 
 namespace Kite{
-	KBytesArray &operator<<(KBytesArray &Out, const KTransformable &Value) {
-		Out << Value._ktransform << Value._kneedUpdate;
-		Out << Value._kcenter << Value._kposition;
-		Out << Value._krotation << Value._kscale;
-		Out << Value._kskew;
-		return Out;
-	}
-
-	KBytesArray &operator>>(KBytesArray &In, KTransformable &Value) {
-		In >> Value._ktransform >> Value._kneedUpdate;
-		In >> Value._kcenter	>> Value._kposition;
-		In >> Value._krotation	>> Value._kscale;
-		In >> Value._kskew;
-		return In;
-	}
-
     KTransformable::KTransformable():
         _kposition(0,0),
         _krotation(0.0f),

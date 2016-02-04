@@ -113,13 +113,19 @@ namespace Kite {
 			PUBLISH,
 			SEND
 		};
-		void _configQueue(const KMessage &Message, KMessageScopeTypes Scope, F32 WaitTime, SendType Type);
 		struct TableHolder {
 			LuaIntf::LuaRef dataTable;
 			F32 waitTime;
 			SendType stype;
+			KMessageScopeTypes scope;
 			KMessage msg;
 		};
+		void _configQueue(const KMessage &Message, KMessageScopeTypes Scope, F32 WaitTime,
+						  SendType Type, KMessageScopeTypes SType);
+
+		void _setLuaData(const KMessage &Msg);
+
+		KLinkNode<TableHolder> *_freeTopNode();
 		std::unordered_map<U32, Internal::MSGHandlerHolder> _kregMap;
 		std::unordered_multimap<U32, KMessageHandler *> _khndlMap;
 		std::list<KMessageHandler *> _kpubList;

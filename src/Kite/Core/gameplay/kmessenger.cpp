@@ -50,6 +50,35 @@ namespace Kite {
 		deletePoolAllocator(*_kmsgPool, *_kbasePool);
 	}
 
+	void KMessenger::update(F32 DeltaTime) {
+		if (_kfirstNode == nullptr) {
+			return;
+		}
+
+		// iterate over queue and update message wait times
+		auto iter = _kfirstNode;
+		while (iter != nullptr) {
+			iter->data.waitTime -= DeltaTime;
+
+			// dispatch message
+			if (iter->data.waitTime <= 0) {
+				if (iter->data.stype == SEND) {
+					_setLuaData(iter->data.msg);
+					send(iter->data.msg, iter->data.scope);
+				} else {
+					_setLuaData(iter->data.msg);
+					publish(iter->data.msg, iter->data.scope);
+				}
+
+				// remove processed message from the queue
+				// its always first message in the queue because queue is sorted
+				iter = _freeTopNode();
+				continue;
+			}
+			iter = iter->NextNode();
+		}
+	}
+
 	bool KMessenger::publicSubscribe(KMessageHandler &Handler) {
 		// check duplication
 		auto duplicate = _kregMap.find(Handler.getMsgHandlerID());
@@ -187,14 +216,15 @@ namespace Kite {
 	}
 
 	void KMessenger::sendToQueue(const KMessage &Message, KMessageScopeTypes Scope, F32 WaitTime) {
-		_configQueue(Message, Scope, WaitTime, SEND);
+		_configQueue(Message, Scope, WaitTime, SEND, Scope);
 	}
 
 	void KMessenger::publishToQueue( const KMessage &Message, KMessageScopeTypes Scope, F32 WaitTime) {
-		_configQueue(Message, Scope, WaitTime, PUBLISH);
+		_configQueue(Message, Scope, WaitTime, PUBLISH, Scope);
 	}
 
-	void KMessenger::_configQueue(const KMessage &Message, KMessageScopeTypes Scope, F32 WaitTime,SendType Type) {
+	void KMessenger::_configQueue(const KMessage &Message, KMessageScopeTypes Scope, F32 WaitTime,
+								  SendType Type, KMessageScopeTypes SType) {
 		KDEBUG_ASSERT(_kusedPool < _kmsgPoolSize);
 		if (WaitTime < 0) WaitTime = 0.0f;
 
@@ -203,6 +233,7 @@ namespace Kite {
 		msgNode->data.msg = Message;
 		msgNode->data.waitTime = WaitTime;
 		msgNode->data.stype = Type;
+		msgNode->data.scope = SType;
 		++_kusedPool;
 
 		// first we check c++ data side
@@ -253,6 +284,39 @@ namespace Kite {
 				iter = iter->NextNode();
 			}
 		}
+	}
+
+	void KMessenger::_setLuaData(const KMessage &Msg) {
+		if (_klua != nullptr && _kdataTable.isValid() && !Msg.getLuaTable().empty()) {
+			LuaIntf::LuaRef oldTable(_klua, Msg.getLuaTable().c_str());
+			if (oldTable.isValid() && oldTable.isTable()) {
+				// set message data to Kite.MessageData table 
+				_kdataTable = oldTable;
+
+				// release old table
+				oldTable.~LuaRef();
+			}
+		}
+	}
+
+	KLinkNode<KMessenger::TableHolder> *KMessenger::_freeTopNode() {
+		if (_kfirstNode != nullptr) {
+			auto node = _kfirstNode;
+			_kfirstNode = _kfirstNode->NextNode();
+
+			// freemsg data
+			void *data = node->data.msg.getData();
+			if (data != nullptr) {
+				_kbasePool->deallocate(data);
+			}
+
+			// free node itself
+			_kmsgPool->deallocate((void *)&node);
+			--_kusedPool;
+			return _kfirstNode;
+		}
+
+		return nullptr;
 	}
 
 	void KMessenger::discardQueue() {

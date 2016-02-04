@@ -27,9 +27,11 @@ USA
 #include "Kite/Core/gameplay/kgameplaystructs.h"
 #include "Kite/Core/gameplay/kmessagehandler.h"
 #include "Kite/Core/gameplay/kmessage.h"
-#include "kite/Core/memory/kpoolallocator.h"
+#include "kite/Core/memory/kpoolstorage.h"
 #include "Kite/Core/meta/kmetadef.h"
 #include "Kite/Core/serialization/kbaseserial.h"
+#include "Kite/Core/continers/kcontinerstructs.h"
+#include <luaintf\LuaIntf.h>
 #include <unordered_map>
 #include <vector>
 #include <memory>
@@ -40,17 +42,14 @@ namespace Kite {
 	KMETA_CLASS(SCRIPTABLE)
 	class KITE_FUNC_EXPORT KMessenger : public KObject, KNonCopyable{
 	public:
-		// MessagePoolSize: message pool capacity
-		// DataPoolSize: data pool capacity
-		// the messenger will use default c++ allocator
-		KMETA_CONSTRUCTURE()
-		KMessenger(U32 MessagePoolSize, U32 DataPoolSize);
-
-		// MessagePoolSize: message pool capacity
-		// DataPoolSize: data pool capacity
-		KMessenger(U32 MessagePoolSize, U32 DataPoolSize, KBaseAllocator &Allocator);
+		/// MessagePoolSize: message pool capacity
+		/// pass lua state if you want send message from lua
+		//KMETA_CONSTRUCTURE()
+		KMessenger(U32 MessagePoolSize, KBaseStorage &Allocator, lua_State *Lua = nullptr);
 
 		virtual ~KMessenger();
+
+		void update(F32 DeltaTime);
 
 		// recieve section
 		KMETA_FUNCTION()
@@ -59,47 +58,78 @@ namespace Kite {
 		KMETA_FUNCTION()
 		bool typeSubscribe(KMessageHandler &Handler, const std::string &Type);
 
-		// always use enable/disable option in KMessageHandler is better than unsubscribe it
-		// unsubscribe a handle, specialy a public handle is a heavy task
+		/// always use enable/disable option in KMessageHandler is better than unsubscribe it
+		/// unsubscribe a handle, specialy a public handle is a heavy task
 		KMETA_FUNCTION()
 		void publicUnsubscribe(KMessageHandler &Handler);
 
 		KMETA_FUNCTION()
 		void typeUnsubscribe(KMessageHandler &Handler, const std::string &Type);
 
-		// send message by its type (immediately)
-		// return number of components that recieved message
+		/// send message by its type (immediately)
+		/// return number of components that recieved message
 		KMETA_FUNCTION()
 		U32 send(KMessage &Message, KMessageScopeTypes Scope);
 
-		// send message to all public subscribers (ignore message types - immediately)
-		// return number of components that recieved message 
+		/// send message to all public subscribers (ignore message type - immediately)
+		/// return number of components that recieved message 
 		KMETA_FUNCTION()
 		U32 publish(KMessage &Message, KMessageScopeTypes Scope);
 
-		// send message by its type 
-		// SendTime in seconds. message will send after SendTime seconds
+		/// send message by its type 
+		/// WaitTime in seconds.
+		/// if the WaitTime set to zero, the message will be sent in the next frame.(Regardless of the frame time)
+		/// a copy of the message with its data will be placed in queue so
+		/// you can delete the message and its data (in c++ or lua) after posting
 		KMETA_FUNCTION()
-		void sendToQueue(KMessage &Message, KMessageScopeTypes Scope, F32 SendTime);
+		void sendToQueue(const KMessage &Message, KMessageScopeTypes Scope, F32 WaitTime);
 
-		// send message to all public subscribers (ignore message types)
-		// SendTime in seconds. message will send after SendTime seconds
+		/// send message to all public subscribers (ignore message type)
+		/// WaitTime in seconds
+		/// if the WaitTime set to zero, the message will be sent in the next frame.(Regardless of the frame time)
+		/// a copy of the message with its data will be placed in queue so
+		/// you can delete the message and its data (in c++ or lua) after posting
 		KMETA_FUNCTION()
-		void publishToQueue(KMessage &Message, KMessageScopeTypes Scope, F32 SendTime);
+		void publishToQueue(const KMessage &Message, KMessageScopeTypes Scope, F32 WaitTime);
 
-		// remove all subscribers and types
+		KMETA_FUNCTION()
+		inline U32 getPoolSize() const { return _kmsgPoolSize; }
+
+		KMETA_FUNCTION()
+		inline U32 getUsedPoolSize() const { return _kusedPool; }
+
+		/// remove all subscribers and types and message queue
 		KMETA_FUNCTION()
 		void reset();
+		
+		/// discard queue
+		KMETA_FUNCTION()
+		void discardQueue();
 
 		KMETA_KMESSENGER_BODY();
 
 	private:
+		enum SendType {
+			PUBLISH,
+			SEND
+		};
+		void _configQueue(const KMessage &Message, KMessageScopeTypes Scope, F32 WaitTime, SendType Type);
+		struct TableHolder {
+			LuaIntf::LuaRef dataTable;
+			F32 waitTime;
+			SendType stype;
+			KMessage msg;
+		};
 		std::unordered_map<U32, Internal::MSGHandlerHolder> _kregMap;
 		std::unordered_multimap<U32, KMessageHandler *> _khndlMap;
 		std::list<KMessageHandler *> _kpubList;
-		KBaseAllocator *_kbaseAlloc;
-		U32 _kmsgPoolSize;
-		U32 _kdataPoolSize;
+		KBaseStorage *_kbasePool;
+		KPoolStorage *_kmsgPool;
+		const U32 _kmsgPoolSize;
+		U32 _kusedPool;
+		KLinkNode<TableHolder> *_kfirstNode;
+		lua_State *_klua;
+		LuaIntf::LuaRef _kdataTable;
 	};
 }
 

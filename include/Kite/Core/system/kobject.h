@@ -25,7 +25,7 @@ USA
 #include "Kite/Core/meta/kmetadef.h"
 #include "Kite/Core/serialization/kbaseserial.h"
 #include "Kite/Core/serialization/kserializationtypes.h"
-#include "Kite/Core/memory/kbaseallocator.h"
+#include "Kite/Core/memory/kbaseStorage.h"
 #include <unordered_map>
 #include <string>
 
@@ -52,8 +52,6 @@ namespace Kite {
 
 		static std::unordered_map<std::string, void (KObject::*)(KRefVariant)> prpMap;
 
-	private:
-		std::string _kname;
 	};
 }
 

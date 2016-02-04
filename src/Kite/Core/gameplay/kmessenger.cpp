@@ -21,23 +21,32 @@ USA
 #include "Kite/Core/system/ksystemutil.h"
 #include "Kite/Core/meta/kmetamanager.h"
 #include "Kite/Core/meta/kmetaclass.h"
-#include "kite/Core/memory/kpoolallocator.h"
+#include "kite/Core/memory/kpoolstorage.h"
 #include <luaintf\LuaIntf.h>
 #include <cstdlib>
 #include <kmessenger.khgen.h>
 
 namespace Kite {
-	KMessenger::KMessenger(U32 MessagePoolSize, U32 DataPoolSize) {
-
-	}
-
-	KMessenger::KMessenger(U32 MessagePoolSize, U32 DataPoolSize, KBaseAllocator &Allocator) 
+	KMessenger::KMessenger(U32 MessagePoolSize, KBaseStorage &Allocator, lua_State *Lua):
+		_kbasePool(&Allocator), _kmsgPool(nullptr),
+		_kmsgPoolSize(MessagePoolSize), _kusedPool(0),
+		_kfirstNode(nullptr), _klua(Lua)
 	{
+		KDEBUG_ASSERT(MessagePoolSize > 0);
 
+		SIZE pSize = MessagePoolSize * sizeof(KLinkNode<TableHolder>);
+		_kmsgPool = newPoolAllocator(sizeof(KLinkNode<TableHolder>), alignof(KLinkNode<TableHolder>), pSize, Allocator);
+		KDEBUG_ASSERT(_kmsgPool != nullptr);
+
+		// register messenger table to lua
+		// this tbale is used for transfering data between scripts
+		if (Lua != nullptr) {
+			_kdataTable = LuaIntf::LuaRef::createTableWithMeta(Lua, "Kite.MessageData");
+		}
 	}
 
 	KMessenger::~KMessenger() {
-
+		deletePoolAllocator(*_kmsgPool, *_kbasePool);
 	}
 
 	bool KMessenger::publicSubscribe(KMessageHandler &Handler) {
@@ -176,18 +185,95 @@ namespace Kite {
 		return recvCount;
 	}
 
-	void KMessenger::sendToQueue(KMessage &Message, KMessageScopeTypes Scope, F32 SendTime) {
-
+	void KMessenger::sendToQueue(const KMessage &Message, KMessageScopeTypes Scope, F32 WaitTime) {
+		_configQueue(Message, Scope, WaitTime, SEND);
 	}
 
-	void KMessenger::publishToQueue(KMessage &Message, KMessageScopeTypes Scope, F32 SendTime) {
+	void KMessenger::publishToQueue( const KMessage &Message, KMessageScopeTypes Scope, F32 WaitTime) {
+		_configQueue(Message, Scope, WaitTime, PUBLISH);
+	}
 
+	void KMessenger::_configQueue(const KMessage &Message, KMessageScopeTypes Scope, F32 WaitTime,SendType Type) {
+		KDEBUG_ASSERT(_kusedPool < _kmsgPoolSize);
+		if (WaitTime < 0) WaitTime = 0.0f;
+
+		// copy meesage 
+		KLinkNode<TableHolder> *msgNode = allocateNew<KLinkNode<TableHolder>>(*_kmsgPool);
+		msgNode->data.msg = Message;
+		msgNode->data.waitTime = WaitTime;
+		msgNode->data.stype = Type;
+		++_kusedPool;
+
+		// first we check c++ data side
+		if (Message.getData() != nullptr) {
+			// copy its data
+			void *data = _kbasePool->allocate(Message.getDataSize());
+			memcpy(data, Message.getData(), Message.getDataSize());
+
+			// assocate new message with its new data
+			msgNode->data.msg.setData(data, Message.getDataSize());
+
+		// check lua table data
+		} else if (!Message.getLuaTable().empty() && _klua != nullptr) {
+			LuaIntf::LuaRef table(_klua, Message.getLuaTable().c_str());
+			if (table.isTable()) {
+				// copy table into our table holder by ref
+				msgNode->data.dataTable = table;
+				// and release user table
+				table.~LuaRef();
+			}
+		}
+
+		// put the message in the appropriate place in queue (sort by its time)
+		// queue is empty
+		if (_kfirstNode == nullptr) {
+			_kfirstNode = msgNode;
+			return;
+
+		// check first object in the queue
+		} else if (_kfirstNode->data.waitTime > msgNode->data.waitTime){
+			_kfirstNode->InsertAfter(msgNode);
+			msgNode->InsertAfter(_kfirstNode);
+			_kfirstNode = msgNode;
+			return;
+
+		// check entire objects in the queue
+		} else {
+			KLinkNode<TableHolder> *iter = _kfirstNode;
+			while (iter != nullptr) {
+				 if (iter->NextNode() == nullptr) {
+					iter->InsertAfter(msgNode);
+					break;
+				}else if (iter->NextNode()->data.waitTime > msgNode->data.waitTime) {
+					iter->InsertAfter(msgNode);
+					break;
+				} 
+
+				iter = iter->NextNode();
+			}
+		}
 	}
 
 	void KMessenger::reset() {
 		_kregMap.clear();
 		_khndlMap.clear();
 		_kpubList.clear();
+		_kusedPool = 0;
+	}
+
+	void KMessenger::discardQueue() {
+		if (_kfirstNode == nullptr) {
+			return;
+		}
+
+		auto iter = _kfirstNode;
+		while (iter != nullptr) {
+			deallocateDelete<KLinkNode<TableHolder>>(*_kmsgPool, *iter);
+			iter = iter->NextNode();
+		}
+
+		_kfirstNode = nullptr;
+		_kusedPool = 0;
 	}
 
 	KMETA_KMESSENGER_SOURCE();

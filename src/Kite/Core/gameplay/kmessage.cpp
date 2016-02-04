@@ -27,12 +27,12 @@ USA
 namespace Kite {
 	KMessage::KMessage() :
 		_ksize(0), _kused(0), _khash(0),
-		_kconsume(false), _ktype("")
+		_kdata(nullptr),_kconsume(false), _ktype("")
 		{}
 
 	KMessage::KMessage(const std::string &Type) :
 		_ksize(0), _kused(0), _khash(0),
-		_kconsume(false), _ktype(Type)
+		_kdata(nullptr), _kconsume(false), _ktype(Type)
 	{
 		getHash32((void *)Type.c_str(), Type.size(), KHASH_SEED, (void *)&_khash);
 	}
@@ -41,6 +41,27 @@ namespace Kite {
 
 	void KMessage::setType(const std::string &Type) {
 		getHash32((void *)Type.c_str(), Type.size(), KHASH_SEED, (void *)&_khash);
+		_ktype = Type;
+	}
+
+	void KMessage::setData(void *Data, SIZE Size) {
+		if (Data != nullptr && Size > 0) {
+			_kdata = Data;
+			_ksize = Size;
+		}
+	}
+
+	KMessage& KMessage::operator=(const KMessage& other){
+		if (this != &other) { // self-assignment check expected
+			_khash = other.getHash();
+			_kused = other.getUse();
+			_ksize = other.getDataSize();
+			_kdata = other.getData();
+			_kconsume = other.getConsume();
+			_ktype = other.getType();
+			_ktblName = other.getLuaTable();
+		}
+		return *this;
 	}
 
 	KMETA_KMESSAGE_SOURCE();

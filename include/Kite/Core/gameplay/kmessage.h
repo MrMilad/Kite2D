@@ -24,6 +24,7 @@ USA
 #include "Kite/Core/system/kobject.h"
 #include "Kite/Core/system/krefvariant.h"
 #include "Kite/Core/meta/kmetadef.h"
+#include <memory>
 #include <string>
 #include <kmessage.khgen.h>
 
@@ -63,13 +64,32 @@ namespace Kite {
 		KMETA_PROPERTY("getSize", "size of message")
 		inline U32 getSize() const { return _ksize; }
 
-		KMETA_KMESSAGE_BODY();
+		// c++ only
+		inline void *getData() const { return _kdata; }
+		inline SIZE getDataSize() const { return _ksize; }
+
+		// set massege data. (c++ only)
+		void setData(void *Data, SIZE Size);
+
+		// internal use only (in KMessenger)
+		inline const std::string &getLuaTable() const { return _ktblName; }
+
+		// copy assignment
+		KMessage& operator=(const KMessage& other);
+
+		KMETA_KMESSAGE_BODY()
 	private:
+		// set lua data table. (script only)
+		KMETA_FUNCTION()
+		inline void setDataTable(const std::string &TableName) { _ktblName = TableName; }
+
 		U32 _khash;
 		U32 _kused;
 		SIZE _ksize;
+		void *_kdata;
 		bool _kconsume;
 		std::string _ktype;
+		std::string _ktblName;
 	};
 }
 

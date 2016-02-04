@@ -22,28 +22,27 @@ USA
 
 #include "Kite/Core/system/ksystemdef.h"
 #include "Kite/Core/meta/kmetaobject.h"
-#include "Kite/Core/memory/kbaseallocator.h"
+#include "Kite/Core/memory/kbasestorage.h"
 #include <memory>
 #include <vector>
 #include <unordered_map>
 
 namespace Kite {
 	class KObject;
-	class KMetaManager {
+	class KITE_FUNC_EXPORT KMetaManager {
 	public:
-		KITE_FUNC_EXPORT static const KMetaObject *getMeta(const std::string &Name);
-		KITE_FUNC_EXPORT static bool setMeta(const KMetaObject *Meta);
+		static const KMetaObject *getMeta(const std::string &Name);
+		static bool setMeta(const KMetaObject *Meta);
 		
-		KITE_FUNC_EXPORT static bool setFactory(const std::string &Name, KObject *(*Function)(KBaseAllocator *));
+		static bool setFactory(const std::string &Name, KObject *(*Function)(KBaseStorage &));
 
-		// always set a custom deleter (eg: customDeleter<T>) when initialize a shared_pointer with return value
-		KITE_FUNC_EXPORT static std::shared_ptr<KObject> createClass(const std::string &Name, KBaseAllocator *Allocator = nullptr);
+		static std::shared_ptr<KObject> createClass(const std::string &Name, KBaseStorage &Allocator);
 
-		KITE_FUNC_EXPORT static void dump(std::vector<const KMetaObject *> &DumpList);
+		static void dump(std::vector<const KMetaObject *> &DumpList);
 
 	private:
 		static std::unordered_map<std::string, const KMetaObject *> _kmetamap;
-		static std::unordered_map<std::string, KObject *(*)(Kite::KBaseAllocator *)> _kfactorymap;
+		static std::unordered_map<std::string, KObject *(*)(Kite::KBaseStorage &)> _kfactorymap;
 	};
 }
 

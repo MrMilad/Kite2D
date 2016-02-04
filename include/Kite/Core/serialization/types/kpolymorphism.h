@@ -57,7 +57,7 @@ namespace Kite {
 
 				if (!empty) {
 					In >> name;
-					Value = KMetaManager::createClass(name, In.getAllocator());
+					Value = KMetaManager::createClass(name, *In.getAllocator());
 					In >> (*Value);
 				}
 			}

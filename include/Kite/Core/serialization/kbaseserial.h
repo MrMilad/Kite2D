@@ -22,7 +22,7 @@ USA
 
 #include "Kite/Core/system/ksystemdef.h"
 #include "Kite/Core/system/ksystemtypes.h"
-#include "Kite/Core/memory/kbaseallocator.h"
+#include "Kite/Core/memory/kbasestorage.h"
 #include <type_traits>
 
 #define CHECK_VALIDATION(T) static_assert(std::is_arithmetic<T>::value, "non-pod, unregistered or unserializable types and raw pointers are not allowed for serialization.")
@@ -35,13 +35,13 @@ namespace Kite {
 		KBaseSerial();
 
 		// use custom allocator and deleter
-		KBaseSerial(KBaseAllocator *Allocator);
+		KBaseSerial(KBaseStorage *Allocator);
 		virtual void writePOD(const void *Value, SIZE Size, bool Str) = 0;
 		virtual void readPOD(void *Value, SIZE Size, bool Str) = 0;
 
-		inline KBaseAllocator *getAllocator() const { return _kallocator; }
+		inline KBaseStorage *getAllocator() const { return _kallocator; }
 	protected:
-		KBaseAllocator *_kallocator;
+		KBaseStorage *_kallocator;
 	};
 
 // type validation 

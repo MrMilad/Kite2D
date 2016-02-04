@@ -46,6 +46,7 @@ namespace Kite {
 	}
 
 	KMessenger::~KMessenger() {
+		reset();
 		deletePoolAllocator(*_kmsgPool, *_kbasePool);
 	}
 
@@ -254,13 +255,6 @@ namespace Kite {
 		}
 	}
 
-	void KMessenger::reset() {
-		_kregMap.clear();
-		_khndlMap.clear();
-		_kpubList.clear();
-		_kusedPool = 0;
-	}
-
 	void KMessenger::discardQueue() {
 		if (_kfirstNode == nullptr) {
 			return;
@@ -268,12 +262,23 @@ namespace Kite {
 
 		auto iter = _kfirstNode;
 		while (iter != nullptr) {
+			void *msgData = iter->data.msg.getData();
+			if (msgData != nullptr) {
+				_kbasePool->deallocate(msgData);
+			}
 			deallocateDelete<KLinkNode<TableHolder>>(*_kmsgPool, *iter);
 			iter = iter->NextNode();
 		}
 
 		_kfirstNode = nullptr;
 		_kusedPool = 0;
+	}
+
+	void KMessenger::reset() {
+		_kregMap.clear();
+		_khndlMap.clear();
+		_kpubList.clear();
+		discardQueue();
 	}
 
 	KMETA_KMESSENGER_SOURCE();

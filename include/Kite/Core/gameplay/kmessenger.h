@@ -98,13 +98,13 @@ namespace Kite {
 		KMETA_FUNCTION()
 		inline U32 getUsedPoolSize() const { return _kusedPool; }
 
-		/// remove all subscribers and types and message queue
-		KMETA_FUNCTION()
-		void reset();
-		
 		/// discard queue
 		KMETA_FUNCTION()
 		void discardQueue();
+
+		/// remove all subscribers and types and message queue
+		KMETA_FUNCTION()
+		void reset();
 
 		KMETA_KMESSENGER_BODY();
 

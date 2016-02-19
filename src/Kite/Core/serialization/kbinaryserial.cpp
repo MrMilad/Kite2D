@@ -24,7 +24,7 @@ USA
 #include <cstdio>
 
 namespace Kite {
-	KBinarySerial::KBinarySerial(KBaseStorage *Allocator) :
+	KBinarySerial::KBinarySerial(KBaseStorage &Allocator) :
 		KBaseSerial(Allocator),
 		_kpos(0),
 		_kendfile(true) {}

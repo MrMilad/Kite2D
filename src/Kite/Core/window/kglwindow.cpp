@@ -18,140 +18,120 @@
     USA
 */
 #include "Kite/core/window/kglwindow.h"
-#include "src/Kite/Core/window/fwcall.h"
+#include "src/Kite/Core/window/sdlcall.h"
+#include "sdl/SDL_events.h"
 
 namespace Kite{
-    KGLWindow::KGLWindow():
-		KCoreInstance(KCI_WINDOW),
-        _kwindow(0)
-    {}
 
     KGLWindow::KGLWindow(KWindowState &WindowState):
 		KCoreInstance(KCI_WINDOW),
+		_kcallb(0),
         _kwindow(0),
-        _kwinstate(WindowState)
+        _kwinstate(WindowState),
+		_kcontext(0)
     {}
 
     KGLWindow::~KGLWindow(){
-        if (_kwindow){
-            glfwDestroyWindow((GLFWwindow *)_kwindow);
-            _kwindow = 0;
-        }
-    }
-
-    bool KGLWindow::update(){
-        if (!glfwWindowShouldClose((GLFWwindow *)_kwindow)){
-            glfwPollEvents();
-            return true;
-        }
-        return false;
-    }
-
-    void KGLWindow::display(){
-        glfwSwapBuffers((GLFWwindow *)_kwindow);
+		close();
     }
 
     void KGLWindow::open(){
         // initialize glfe
-        Internal::initeGLFW();
+        Internal::initeSDL();
 
         // destroy currently window
         if (_kwindow){
-            glfwDestroyWindow((GLFWwindow *)_kwindow);
-            _kwindow = 0;
+			KDEBUG_PRINT("this window is currently opened!");
+			return;
         }
 
-        glfwWindowHint(GLFW_RESIZABLE, _kwinstate.resizable);
+		// make flags
+		U32 flag = SDL_WINDOW_OPENGL;
+		if (_kwinstate.fullscreen) {
+			_kwinstate.xpos = 0;
+			_kwinstate.ypos = 0;
+			flag = flag | SDL_WINDOW_FULLSCREEN;
+		} else {
+			if (_kwinstate.resizable) {
+				flag = flag | SDL_WINDOW_RESIZABLE;
+			}
+		}
 
-        glfwWindowHint(GLFW_DECORATED, _kwinstate.border);
+		// Set our OpenGL version.
+		// SDL_GL_CONTEXT_CORE gives us only the newer version, deprecated functions are disabled
+		DSDL_CALL(SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE));
 
-        glfwWindowHint(GLFW_DEPTH_BITS , 0);
-        glfwWindowHint(GLFW_STENCIL_BITS, 0);
+		// OGL version
+		// opengl 3.3 or greater
+		if (_kwinstate.oglMajor <= 3) {
+			_kwinstate.oglMajor = 3;
+			if (_kwinstate.oglMinor < 3)
+				_kwinstate.oglMinor = 3;
+		}
+		DSDL_CALL(SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, _kwinstate.oglMajor));
+		DSDL_CALL(SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, _kwinstate.oglMinor));
 
-        // opengl 3.3 or greater
-        if (_kwinstate.oglMajor <= 3){
-            _kwinstate.oglMajor = 3;
-            if (_kwinstate.oglMinor < 3)
-                _kwinstate.oglMinor = 3;
-        }
+		// optimize for 2D purpose
+		DSDL_CALL(SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 0));
+		DSDL_CALL(SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 0));
 
-        glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, _kwinstate.oglMajor);
-        glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, _kwinstate.oglMinor);
-        glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-        glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GL_FALSE);
+		// Create our window centered at 512x512 resolution
+		DSDL_CALL(_kwindow = SDL_CreateWindow(_kwinstate.title.c_str(), _kwinstate.xpos, _kwinstate.ypos,
+											  _kwinstate.width, _kwinstate.height, flag));
 
-        // full screen
-        GLFWmonitor *monitor = NULL;
-        if (_kwinstate.fullscreen){
-            monitor = glfwGetPrimaryMonitor();
-            _kwinstate.xpos = 0;
-            _kwinstate.ypos = 0;
-        }
+		// Create an OpenGL context associated with the window.
+		DSDL_CALL(_kcontext = SDL_GL_CreateContext(_kwindow));
 
-        // create window
-        _kwindow = (void *)glfwCreateWindow(_kwinstate.width, _kwinstate.height,
-                                        _kwinstate.title.c_str(), monitor, NULL);
 
-        // make context current
-        glfwMakeContextCurrent((GLFWwindow *)_kwindow);
+		DSDL_CALL(SDL_GL_SetSwapInterval(_kwinstate.swapInterval));
 
-        // set position
-        if (!_kwinstate.fullscreen){
-            glfwSetWindowPos((GLFWwindow *)_kwindow, _kwinstate.xpos, _kwinstate.ypos);
-        }
-
-        // show cursor
-        if (!_kwinstate.showCursor)
-            glfwSetInputMode((GLFWwindow *)_kwindow, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
-
-        // swap interval (vsync)
-        glfwSwapInterval(_kwinstate.swapInterval);
-    }
-
-    void KGLWindow::open(KWindowState &WindowState){
-        _kwinstate = WindowState;
-        open();
+		if (!_kwinstate.showCursor) {
+			DSDL_CALL(SDL_ShowCursor(SDL_DISABLE));
+		}
     }
 
     void KGLWindow::close(){
-        glfwSetWindowShouldClose((GLFWwindow *)_kwindow, GL_TRUE);
+		if (_kwindow) {
+			// Delete our OpengL context
+			DSDL_CALL(SDL_GL_DeleteContext(_kcontext));
+
+			// Destroy our window
+			DSDL_CALL(SDL_DestroyWindow(_kwindow));
+			_kwindow = 0;
+		}
     }
 
     void KGLWindow::setTitle(const std::string &Title){
-        glfwSetWindowTitle((GLFWwindow *)_kwindow, Title.c_str());
-        _kwinstate.title = Title;
+		if (_kwindow) {
+			DSDL_CALL(SDL_SetWindowTitle(_kwindow, Title.c_str()));
+			_kwinstate.title = Title;
+		}
     }
 
     void KGLWindow::setSize(U32 Width, U32 Height){
-        glfwSetWindowSize((GLFWwindow *)_kwindow, Width, Height);
-        _kwinstate.width = Width;
-        _kwinstate.height = Height;
+		if (_kwindow) {
+			DSDL_CALL(SDL_SetWindowSize(_kwindow, Width, Height));
+			_kwinstate.width = Width;
+			_kwinstate.height = Height;
+		}
     }
 
     void KGLWindow::setPosition(U32 XPosition, U32 YPosition){
-        glfwSetWindowPos((GLFWwindow *)_kwindow, XPosition, YPosition);
-        _kwinstate.xpos = XPosition;
-        _kwinstate.ypos = YPosition;
+		if (_kwindow) {
+			DSDL_CALL(SDL_SetWindowPosition(_kwindow, XPosition, YPosition));
+			_kwinstate.xpos = XPosition;
+			_kwinstate.ypos = YPosition;
+		}
     }
 
     void KGLWindow::setShowCursor(bool Enable){
         if (Enable){
-            glfwSetInputMode((GLFWwindow *)_kwindow, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+			DSDL_CALL(SDL_ShowCursor(SDL_ENABLE));
         }else{
-            glfwSetInputMode((GLFWwindow *)_kwindow, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
+			DSDL_CALL(SDL_ShowCursor(SDL_DISABLE));
         }
         _kwinstate.showCursor = Enable;
     }
-
-    KVector2I32 KGLWindow::getFrameBufferSize(){
-        KVector2I32 bufSize;
-        glfwGetFramebufferSize((GLFWwindow *)_kwindow, &bufSize.x, &bufSize.y);
-        return bufSize;
-    }
-
-//    bool KGLWindow::setFullscreen(bool Enable){
-
-//    }
 
     bool KGLWindow::isOpen() const{
         if (_kwindow)
@@ -159,56 +139,106 @@ namespace Kite{
         return false;
     }
 
-    void KGLWindow::registerCallback(void *Callback, KWindowCallbackTypes CallbackType){
-        switch (CallbackType){
-        case KWC_CLOSE:
-            glfwSetWindowCloseCallback((GLFWwindow *)_kwindow, (GLFWwindowclosefun) Callback);
-            break;
-        case KWC_FOCUSCHANGE:
-            glfwSetWindowFocusCallback((GLFWwindow *)_kwindow, (GLFWwindowfocusfun) Callback);
-            break;
-        case KWC_FBCHANGE:
-            glfwSetFramebufferSizeCallback((GLFWwindow *)_kwindow, (GLFWframebuffersizefun) Callback);
-            break;
-        case KWC_POSCHANGE:
-            glfwSetWindowPosCallback((GLFWwindow *)_kwindow, (GLFWwindowposfun) Callback);
-            break;
-        case KWC_SIZECHANGE:
-            glfwSetWindowSizeCallback((GLFWwindow *)_kwindow, (GLFWwindowsizefun) Callback);
-            break;
-        default:
-            KDEBUG_PRINT("invalid window callback");
-            break;
-        }
-    }
+	bool KGLWindow::update() {
+		static SDL_Event event;
+		if (_kwindow == 0) {
+			return false;
+		}
+		DSDL_CALL(SDL_PollEvent(&event));
+		if (event.type == SDL_WINDOWEVENT) {
+			switch (event.window.event) {
+			case SDL_WINDOWEVENT_SHOWN:
+				if (_kcallb) {
+					(_kcallb)(KWE_SHOWN);
+				}
+				break;
+			case SDL_WINDOWEVENT_HIDDEN:
+				if (_kcallb) {
+					(_kcallb)(KWE_HIDDEN);
+				}
+				break;
+			case SDL_WINDOWEVENT_EXPOSED:
+				if (_kcallb) {
+					(_kcallb)(KWE_EXPOSED);
+				}
+				break;
+			case SDL_WINDOWEVENT_MOVED:
+				DSDL_CALL(SDL_GetWindowPosition(_kwindow, &_kwinstate.xpos, &_kwinstate.ypos));
+				if (_kcallb) {
+					(_kcallb)(KWE_MOVED);
+				}
+				break;
+			case SDL_WINDOWEVENT_RESIZED:
+				DSDL_CALL(SDL_GetWindowSize(_kwindow, &_kwinstate.width, &_kwinstate.height));
+				if (_kcallb) {
+					(_kcallb)(KWE_RESIZED);
+				}
+				break;
+			case SDL_WINDOWEVENT_SIZE_CHANGED:
+				DSDL_CALL(SDL_GetWindowSize(_kwindow, &_kwinstate.width, &_kwinstate.height));
+				if (_kcallb) {
+					(_kcallb)(KWE_SIZE_CHANGED);
+				}
+				break;
+			case SDL_WINDOWEVENT_MINIMIZED:
+				if (_kcallb) {
+					(_kcallb)(KWE_MINIMIZED);
+				}
+				break;
+			case SDL_WINDOWEVENT_MAXIMIZED:
+				if (_kcallb) {
+					(_kcallb)(KWE_MAXIMIZED);
+				}
+				break;
+			case SDL_WINDOWEVENT_RESTORED:
+				if (_kcallb) {
+					(_kcallb)(KWE_RESTORED);
+				}
+				break;
+			case SDL_WINDOWEVENT_ENTER:
+				if (_kcallb) {
+					(_kcallb)(KWE_ENTER);
+				}
+				break;
+			case SDL_WINDOWEVENT_LEAVE:
+				if (_kcallb) {
+					(_kcallb)(KWE_LEAVE);
+				}
+				break;
+			case SDL_WINDOWEVENT_FOCUS_GAINED:
+				if (_kcallb) {
+					(_kcallb)(KWE_FOCUS_GAINED);
+				}
+				break;
+			case SDL_WINDOWEVENT_FOCUS_LOST:
+				if (_kcallb) {
+					(_kcallb)(KWE_FOCUS_LOST);
+				}
+				break;
+			case SDL_WINDOWEVENT_CLOSE:
+				if (_kcallb) {
+					(_kcallb)(KWE_CLOSE);
+				}
+				return false;
+			default:
+				if (_kcallb) {
+					(_kcallb)(KWE_UNKNOWN);
+				}
+				break;
+			}
+		}
 
-    void KGLWindow::unregisterCallback(KWindowCallbackTypes CallbackType){
-        switch (CallbackType){
-        case KWC_ALL:
-            glfwSetWindowCloseCallback((GLFWwindow *)_kwindow, 0);
-            glfwSetWindowFocusCallback((GLFWwindow *)_kwindow, 0);
-            glfwSetWindowPosCallback((GLFWwindow *)_kwindow, 0);
-            glfwSetWindowSizeCallback((GLFWwindow *)_kwindow, 0);
-            break;
-        case KWC_CLOSE:
-            glfwSetWindowCloseCallback((GLFWwindow *)_kwindow, 0);
-            break;
-        case KWC_FOCUSCHANGE:
-            glfwSetWindowFocusCallback((GLFWwindow *)_kwindow, 0);
-            break;
-        case KWC_FBCHANGE:
-            glfwSetFramebufferSizeCallback((GLFWwindow *)_kwindow, 0);
-            break;
-        case KWC_POSCHANGE:
-            glfwSetWindowPosCallback((GLFWwindow *)_kwindow, 0);
-            break;
-        case KWC_SIZECHANGE:
-            glfwSetWindowSizeCallback((GLFWwindow *)_kwindow, 0);
-            break;
-        default:
-            KDEBUG_PRINT("invalid window callback");
-            break;
-        }
+		return true;
+	}
+
+	void KGLWindow::display() {
+		if (_kwindow) {
+			DSDL_CALL(SDL_GL_SwapWindow(_kwindow));
+		}
+	}
+
+    void KGLWindow::registerCallback(KCallWindowEvent Callback){
+		_kcallb = Callback;
     }
 
 	U64 KGLWindow::getInstanceSize() const{

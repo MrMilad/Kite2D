@@ -22,12 +22,67 @@ USA
 
 #include "Kite/Core/system/ksystemdef.h"
 #include "Kite/Core/system/kobject.h"
-#include "Kite/Core/gameplay/kmessagehandler.h"
+#include "Kite/Core/gameplay/kgameplaytypes.h"
+#include "Kite/Core/gameplay/kcomponent.h"
+#include "Kite/Core/meta/kmetadef.h"
+#include "Kite/Core/serialization/kbaseserial.h"
+#include <vector>
+#include <kentity.khgen.h>
 
+KMETA
 namespace Kite {
-	class KITE_FUNC_EXPORT KEntity : public KObject , public KMessageHandler {
+	class KEntityManager;
+	KMETA_CLASS(SCRIPTABLE, SERIALIZABLE)
+	class KITE_FUNC_EXPORT KEntity : public KObject{
+		friend KEntityManager;
 	public:
+		KMETA_CONSTRUCTURE()
+		KEntity(U32 ID = 0);
 
+		/// only non-script components
+		KMETA_FUNCTION()
+		void addComponentByType(KComponentTypes Type);
+
+		/// all types of components
+		KMETA_FUNCTION()
+		void addComponent(KComponent *Component);
+
+		/// only non-script components
+		KMETA_FUNCTION()
+		void removeComponentByType(KComponentTypes Type);
+
+		/// only script component
+		KMETA_FUNCTION()
+		void removeComponentByName(const char *Name);
+
+		/// all types of components
+		KMETA_FUNCTION()
+		void removeComponent(KComponent *Component);
+
+		/// only non-script components
+		KMETA_FUNCTION()
+		KComponent *getComponentByType(KComponentTypes type);
+
+		/// only script components
+		KMETA_FUNCTION()
+		KComponent *getComponentByName(const std::string &Name);
+
+		/// only non-script components
+		KMETA_FUNCTION()
+		bool hasComponentByType(KComponentTypes type);
+
+		/// only script components
+		KMETA_FUNCTION()
+		bool hasComponentByName(const std::string &Name);
+
+		KMETA_PROPERTY("ID", "entity unique ID")
+		inline U32 getID() const { return _kid; }
+
+		KMETA_KENTITY_BODY();
+	private:
+		KMETA_VARIABLE(SERIALIZABLE) U32 _kid;															// entity unique id
+		KMETA_VARIABLE(SERIALIZABLE) KComponent *_kfixedComp[(U8)KComponentTypes::KCT_MAX_COMP_SIZE]; 	// fixed components slots (built-in components)
+		KMETA_VARIABLE(SERIALIZABLE) std::vector<KComponent *> _klogicComp;								// dynamic components slots (logic components)
 	};
 }
 

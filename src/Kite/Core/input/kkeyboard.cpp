@@ -18,49 +18,37 @@
     USA
 */
 #include "Kite/core/input/kkeyboard.h"
-#include "src/Kite/Core/window/fwcall.h"
+#include "src/Kite/Core/window/sdlcall.h"
 
 namespace Kite{
-    KWindowHandle KKeyboard::_kwinHandle = 0;
-
-	void KKeyboard::setWindowHandle(KWindowHandle Window){
-		_kwinHandle = Window; 
+	void KKeyboard::initeKeyboard() {
+		Internal::initeSDL();
 	}
 
-    KButtonStateTypes KKeyboard::getButtonState(Kite::KKeyboardKeyTypes Button){
-        return (KButtonStateTypes)glfwGetKey((GLFWwindow *)_kwinHandle, Button);
+    bool KKeyboard::isButtonPressed(KKeyCodeTypes Button){
+		const Uint8 *state = DSDL_CALL(SDL_GetKeyboardState(NULL));
+		if (state[Button]) {
+			return true;
+		}
+		return false;
     }
 
-    void KKeyboard::registerCallback(void *Callback, KKeyboardCallbackTypes CallbackType){
-        switch (CallbackType){
-        case KKC_KEY:
-            glfwSetKeyCallback((GLFWwindow *)_kwinHandle, (GLFWkeyfun) Callback);
-            break;
-        case KKC_UNICODE:
-            glfwSetCharCallback((GLFWwindow *)_kwinHandle, (GLFWcharfun) Callback);
-            break;
-        default:
-            KDEBUG_PRINT("invalid keyboard callback type");
-            break;
-        }
-    }
+	const U8 *KKeyboard::getKeyboardState() {
+		const U8 *state = DSDL_CALL(SDL_GetKeyboardState(NULL));
+		return state;
+	}
 
-    void KKeyboard::unregisterCallback(KKeyboardCallbackTypes CallbackType){
-        switch (CallbackType){
-        case KKC_ALL:
-            glfwSetKeyCallback((GLFWwindow *)_kwinHandle, 0);
-            glfwSetCharCallback((GLFWwindow *)_kwinHandle, 0);
-            break;
-        case KKC_KEY:
-            glfwSetKeyCallback((GLFWwindow *)_kwinHandle, 0);
-            break;
-        case KKC_UNICODE:
-            glfwSetCharCallback((GLFWwindow *)_kwinHandle, 0);
-            break;
-        default:
-            KDEBUG_PRINT("invalid keyboard callback type");
-            break;
-        }
-    }
+	bool KKeyboard::isModifierPressed(KKeyModifierTypes Modifier) {
+		auto mod = DSDL_CALL(SDL_GetModState());
+		if (mod & (U32)Modifier) {
+			return true;
+		}
+		return false;
+	}
+
+	KKeyModifierTypes KKeyboard::getModifierState() {
+		auto mod = DSDL_CALL(SDL_GetModState());
+		return (KKeyModifierTypes) mod;
+	}
 }
 

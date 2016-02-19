@@ -19,11 +19,26 @@ USA
 */
 #include "Kite/Core/gameplay/kcomponent.h"
 #include "Kite/Core/system/ksystemutil.h"
+#include "Kite/Core/meta/kmetamanager.h"
+#include "Kite/Core/meta/kmetaclass.h"
+#include <luaintf\LuaIntf.h>
 
 namespace Kite {
-	KComponent::KComponent(KComponentTypes Type, bool NeedUpdate) :
+	KComponent::KComponent(KComponentTypes Type, const std::string &Name,
+						   U32 OwnerID, bool NeedUpdate) :
 		KMessageHandler(getUniqueNumber() + 1), // 0 reserved
-		_ktype(Type), _koid(0), _kneedup(NeedUpdate) {}
+		_ktype(Type), _kname(Name), _kownerID(OwnerID), _kneedup(NeedUpdate) 
+	{
+		for (U8 i = 0; i < (U8)KComponentTypes::KCT_MAX_COMP_SIZE; i++) {
+			_kdependency[i] = false;
+		}
+	}
 
 	KComponent::~KComponent() {}
+
+	void KComponent::setDependency(KComponentTypes Type, bool Value) {
+		_kdependency[(U8)Type] = Value;
+	}
+
+	KMETA_KMESSAGE_SOURCE();
 }

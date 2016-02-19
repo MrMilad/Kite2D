@@ -29,14 +29,14 @@ namespace Kite{
     struct KWindowState{
         std::string title;
         U8 oglMajor, oglMinor, swapInterval;
-        U32 width, height;
+        I32 width, height;
         I32 xpos, ypos;
-        bool showCursor, fullscreen, border, resizable;
+        bool showCursor, fullscreen, resizable;
 
         KWindowState(const std::string &Title = "",
                      U8 OGLMajorVer = 3, U8 OGLMinorVer = 3,    // minimum version is 3.3
                      U8 SwapInterval = 0,                       // Vsync is disabled by default
-                     U32 Width = 200, U32 Height = 200,
+                     I32 Width = 200, I32 Height = 200,
                      I32 XPosition = 0, I32 YPosition = 0,
                      bool ShowCursor = true, bool Fullscreen = false,
                      bool Border = true, bool Resizable = false):
@@ -46,7 +46,7 @@ namespace Kite{
             width(Width), height(Height),
             xpos(XPosition), ypos(YPosition),
             showCursor(ShowCursor), fullscreen(Fullscreen),
-            border(Border), resizable(Resizable)
+            resizable(Resizable)
         {}
 
 		/*friend KBytesArray &operator>>(KBytesArray &In, KWindowState &Value) {

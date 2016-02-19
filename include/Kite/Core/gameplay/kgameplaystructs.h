@@ -21,6 +21,7 @@ USA
 #define KGAMEPLAYSTRUCTS_H
 
 #include "Kite/Core/system/ksystemdef.h"
+#include "Kite/Core/gameplay/kgameplaytypes.h"
 
 namespace Kite {
 	namespace Internal {

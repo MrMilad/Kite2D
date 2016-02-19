@@ -42,7 +42,7 @@ namespace Kite {
 
 	private:
 		static std::unordered_map<std::string, const KMetaObject *> _kmetamap;
-		static std::unordered_map<std::string, KObject *(*)(Kite::KBaseStorage &)> _kfactorymap;
+		static std::unordered_map<std::string, KObject *(*)(KBaseStorage &)> _kfactorymap;
 	};
 }
 

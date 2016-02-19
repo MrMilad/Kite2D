@@ -31,7 +31,7 @@ USA
 KMETA
 namespace Kite {
 	KMETA_CLASS(SCRIPTABLE)
-	class KITE_FUNC_EXPORT KMessage : public KObject{
+	class KITE_FUNC_EXPORT KMessage{
 	public:
 		KMETA_CONSTRUCTURE()
 		KMessage();

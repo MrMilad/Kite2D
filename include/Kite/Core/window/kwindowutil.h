@@ -25,7 +25,7 @@
 namespace Kite{
 
     /// returns the available states
-    KITE_FUNC_EXPORT extern std::vector<KEnumDisplay> getFullscreenStates();
+    KITE_FUNC_EXPORT extern void getFullscreenStates(std::vector<KEnumDisplay> &DisplayList);
 
     /// returns the current desktop state
     KITE_FUNC_EXPORT extern KEnumDisplay getDesktopState();

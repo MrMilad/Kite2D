@@ -18,87 +18,77 @@
     USA
 */
 #include "Kite/core/input/kmouse.h"
-#include "src/Kite/Core/window/fwcall.h"
+#include "src/Kite/Core/window/sdlcall.h"
 
 namespace Kite{
-    KWindowHandle KMouse::_kwinHandle = 0;
-
-	void KMouse::setWindowHandle(KWindowHandle Window){
-		_kwinHandle = Window; 
+	KVector2I32 KMouse::_kwheelVal;
+	void KMouse::initeMouse() {
+		Internal::initeSDL();
+		// add our watcher for handling mouse wheel
+		DSDL_CALL(SDL_AddEventWatch(KMouse::_eventWatcher, NULL));
 	}
 
-	void KMouse::setMouseVisible(bool Visible){
-		KDEBUG_ASSERT_T(_kwinHandle);
-		if (Visible){
-			glfwSetInputMode((GLFWwindow *)_kwinHandle, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+	bool KMouse::isButtonPressed(KMouseButtonTypes Button) {
+		auto button = DSDL_CALL(SDL_GetMouseState(NULL, NULL));
+		switch (Button) {
+		case Kite::KMB_LEFT:
+			if (button & SDL_BUTTON(SDL_BUTTON_LEFT)) {
+				return true;
+			}
+			break;
+		case Kite::KMB_RIGHT:
+			if (button & SDL_BUTTON(SDL_BUTTON_RIGHT)) {
+				return true;
+			}
+			break;
+		case Kite::KMB_MIDDLE:
+			if (button & SDL_BUTTON(SDL_BUTTON_MIDDLE)) {
+				return true;
+			}
+			break;
+		case Kite::KMB_X1:
+			if (button & SDL_BUTTON(SDL_BUTTON_X1)) {
+				return true;
+			}
+			break;
+		case Kite::KMB_X2:
+			if (button & SDL_BUTTON(SDL_BUTTON_X2)) {
+				return true;
+			}
+			break;
 		}
-		else{
-			glfwSetInputMode((GLFWwindow *)_kwinHandle, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
-		}
+
+		return false;
 	}
 
-    KButtonStateTypes KMouse::getButtonState(KMouseButtonTypes Button){
-		KDEBUG_ASSERT_T(_kwinHandle);
-        return (KButtonStateTypes)glfwGetMouseButton((GLFWwindow *)_kwinHandle, Button);
-    }
 
-    KVector2F64 KMouse::getPosition(){
-		KDEBUG_ASSERT_T(_kwinHandle);
-        KVector2F64 pos;
-		glfwGetCursorPos((GLFWwindow *)_kwinHandle, &pos.x, &pos.y);
+    KVector2I32 KMouse::getPosition(){
+		KVector2I32 pos;
+		DSDL_CALL(SDL_GetMouseState(&pos.x, &pos.y));
         return pos;
     }
 
-    void KMouse::setPosition(const KVector2F64 &Position){
-		KDEBUG_ASSERT_T(_kwinHandle);
-        glfwSetCursorPos((GLFWwindow *)_kwinHandle, Position.x, Position.y);
+	KVector2I32 KMouse::getWheelValue() {
+		KVector2I32 temp = _kwheelVal;
+		_kwheelVal.x = 0;
+		_kwheelVal.y = 0;
+		return temp;
+	}
+
+    void KMouse::setWindowPosition(const KVector2I32 &Position, KWindowHandle Handle){
+		DSDL_CALL(SDL_WarpMouseInWindow((SDL_Window *) Handle,Position.x, Position.y));
     }
 
-    void KMouse::registerCallback(void *Callback, KMouseCallbackTypes CallbackType){
-		KDEBUG_ASSERT_T(_kwinHandle);
-        switch (CallbackType){
-        case KMC_MBUTTON:
-            glfwSetMouseButtonCallback((GLFWwindow *)_kwinHandle, (GLFWmousebuttonfun) Callback);
-            break;
-        case KMC_MENTER:
-            glfwSetCursorEnterCallback((GLFWwindow *)_kwinHandle, (GLFWcursorenterfun) Callback);
-            break;
-        case KMC_MPOSITION:
-            glfwSetCursorPosCallback((GLFWwindow *)_kwinHandle, (GLFWcursorposfun) Callback);
-            break;
-        case KMC_MSCROLL:
-            glfwSetScrollCallback((GLFWwindow *)_kwinHandle, (GLFWscrollfun) Callback);
-            break;
-        default:
-            KDEBUG_PRINT("invalid mouse callback type");
-            break;
-        }
-    }
+	void KMouse::setGlobalPosition(const KVector2I32 &Position) {
+		DSDL_CALL(SDL_WarpMouseGlobal(Position.x, Position.y));
+	}
 
-    void KMouse::unregisterCallback(Kite::KMouseCallbackTypes CallbackType){
-		KDEBUG_ASSERT_T(_kwinHandle);
-        switch (CallbackType){
-        case KMC_ALL:
-            glfwSetMouseButtonCallback((GLFWwindow *)_kwinHandle, 0);
-            glfwSetCursorEnterCallback((GLFWwindow *)_kwinHandle, 0);
-            glfwSetCursorPosCallback((GLFWwindow *)_kwinHandle, 0);
-            glfwSetScrollCallback((GLFWwindow *)_kwinHandle, 0);
-            break;
-        case KMC_MBUTTON:
-            glfwSetMouseButtonCallback((GLFWwindow *)_kwinHandle, 0);
-            break;
-        case KMC_MENTER:
-            glfwSetCursorEnterCallback((GLFWwindow *)_kwinHandle, 0);
-            break;
-        case KMC_MPOSITION:
-            glfwSetCursorPosCallback((GLFWwindow *)_kwinHandle, 0);
-            break;
-        case KMC_MSCROLL:
-            glfwSetScrollCallback((GLFWwindow *)_kwinHandle, 0);
-            break;
-        default:
-            KDEBUG_PRINT("invalid mouse callback type");
-            break;
-        }
-    }
+	int KMouse::_eventWatcher(void *Data, SDL_Event *Event) {
+		if (Event->type == SDL_MOUSEWHEEL) {
+			_kwheelVal.x = Event->wheel.x;
+			_kwheelVal.y = Event->wheel.y;
+		}
+		return 0;
+	}
+
 }

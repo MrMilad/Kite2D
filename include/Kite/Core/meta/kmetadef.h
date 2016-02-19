@@ -24,11 +24,14 @@ USA
 #include <cstddef>
 #include <type_traits>
 
-// general meta flags 
-#define EDITABLE		1
-#define SCRIPTABLE		2
-#define SERIALIZABLE	4
-#define INTERPOLATABLE	8
+// supported flags
+#define POD			1
+#define COMPONENT	2
+#define RESOURCE	4
+#define ENTITY		8
+#define SYSTEM		16
+#define ABSTRACT	32
+#define SCRIPTABLE	64
 
 // property flags
 #define KMFLAG_FINAL	1024
@@ -53,6 +56,7 @@ USA
 	class KMetaEnum;}\
 	struct lua_State;
 
+#define KMETA_IGNORED
 #define KMETA_ENUM(...)
 #define KMETA_CLASS(...)
 #define KMETA_CONSTRUCTURE(...)

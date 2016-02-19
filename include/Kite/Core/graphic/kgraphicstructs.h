@@ -27,8 +27,6 @@
 #include "Kite/Core/system/ksystemdef.h"
 #include "Kite/Core/graphic/kgraphictypes.h"
 #include "Kite/Core/math/kmath.h"
-#include "Kite/Core/system/kobject.h"
-#include "Kite/Core/system/krefvariant.h"
 #include "Kite/Core/meta/kmetadef.h"
 #include "Kite/Core/serialization/kbaseserial.h"
 #include <kgraphicstructs.khgen.h>
@@ -39,7 +37,7 @@ KMETA
 */
 namespace Kite{
 
-	KMETA_ENUM(EDITABLE, SCRIPTABLE)
+	KMETA_ENUM()
 	enum class myEnum : U32 {
 		EN1_MEM1 = 10,
 		EN1_MEM2 = 22,
@@ -47,7 +45,7 @@ namespace Kite{
 	};
 	KMETA_MYENUM_BODY()
 
-	KMETA_ENUM(EDITABLE, SCRIPTABLE)
+	KMETA_ENUM()
 	enum class myEnum2 {
 		EN2_MEM1,
 		EN2_MEM2,
@@ -60,8 +58,8 @@ namespace Kite{
 		KColor is a simple color struct composed of 4 components: r, g, b, a (opacity)
 		each component is an byte in the range [0, 255] (set*()/get*()), also in OpenGL Range [0, 1] (setGL*()/getGL*())
 	*/
-	KMETA_CLASS(SERIALIZABLE, EDITABLE, SCRIPTABLE)
-	struct KColor : public KObject {
+	KMETA_CLASS(POD)
+	struct KColor{
 	//! Construct the color from its 4 RGBA components.
 	/*!
 	Range [0 to 255]
@@ -124,10 +122,10 @@ namespace Kite{
 		KMETA_KCOLOR_BODY()
 
 	private:
-		KMETA_VARIABLE(SERIALIZABLE) F32 r;	//!< Red component
-		KMETA_VARIABLE(SERIALIZABLE) F32 g;	//!< Green component
-		KMETA_VARIABLE(SERIALIZABLE) F32 b;	//!< Blue component
-		KMETA_VARIABLE(SERIALIZABLE) F32 a;	//!< Alpha component (opacity)
+		KMETA_VARIABLE() F32 r;	//!< Red component
+		KMETA_VARIABLE() F32 g;	//!< Green component
+		KMETA_VARIABLE() F32 b;	//!< Blue component
+		KMETA_VARIABLE() F32 a;	//!< Alpha component (opacity)
 	};
 
 

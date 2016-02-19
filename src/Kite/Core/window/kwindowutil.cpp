@@ -18,46 +18,41 @@
     USA
 */
 #include "Kite/Core/window/kwindowutil.h"
-#include "src/Kite/Core/window/fwcall.h"
+#include "src/Kite/Core/window/sdlcall.h"
 
 namespace Kite{
-    std::vector<KEnumDisplay> getFullscreenStates(){
-        Internal::initeGLFW();
+    void getFullscreenStates(std::vector<KEnumDisplay> &DisplayList){
+        Internal::initeSDL();
+		DisplayList.clear();
 
-        I32 count = 0;
-        std::vector<KEnumDisplay> vdis;
-        const GLFWvidmode *vid = glfwGetVideoModes(glfwGetPrimaryMonitor(), &count);
+		// Declare display mode structure to be filled in.
+		SDL_DisplayMode current;
+		DisplayList.reserve(SDL_GetNumVideoDisplays());
 
-        if (vid){
-            KEnumDisplay dis;
-            for (U16 i = 0; i < count; i++){
-                dis.width = vid[i].width;
-                dis.height = vid[i].height;
-                dis.refreshRate = vid[i].refreshRate;
-                dis.colorDepth = vid[i].redBits + vid[i].greenBits + vid[i].blueBits;
-                vdis.push_back(dis);
-            }
-        }else{
-            KDEBUG_PRINT("glfwGetVideoModes failed.");
-        }
-        return vdis;
+		// Get current display mode of all displays.
+		for (I32 i = 0; i < SDL_GetNumVideoDisplays(); ++i) {
+			DSDL_CALL(SDL_GetCurrentDisplayMode(i, &current));
+			KEnumDisplay edis;
+			edis.width = current.w;
+			edis.height = current.h;
+			edis.refreshRate = current.refresh_rate;
+			edis.colorDepth = current.format;
+			DisplayList.push_back(edis);
+		}
     }
 
     KEnumDisplay getDesktopState(){
-        Internal::initeGLFW();
+		Internal::initeSDL();
 
-        KEnumDisplay dis;
-        const GLFWvidmode *vid = glfwGetVideoMode(glfwGetPrimaryMonitor());
+		SDL_DisplayMode dm;
+		DSDL_CALL(SDL_GetDesktopDisplayMode(0, &dm));
 
-        if (vid){
-            dis.width = vid->width;
-            dis.height = vid->height;
-            dis.refreshRate = vid->refreshRate;
-            dis.colorDepth = vid->redBits + vid->greenBits + vid->blueBits;
-        }else{
-            KDEBUG_PRINT("glfwGetVideoMode failed.");
-        }
+		KEnumDisplay edis;
+		edis.width = dm.w;
+		edis.height = dm.h;
+		edis.refreshRate = dm.refresh_rate;
+		edis.colorDepth = dm.format;
 
-        return dis;
+        return edis;
     }
 }

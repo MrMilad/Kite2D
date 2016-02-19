@@ -24,19 +24,36 @@ USA
 #include "Kite/Core/system/ksystemtypes.h"
 #include "Kite/Core/gameplay/kmessage.h"
 #include "Kite/Core/gameplay/kgameplaytypes.h"
+#include "Kite/Core/meta/kmetadef.h"
+#include <kmessagehandler.khgen.h>
 
 namespace Kite {
+	KMETA_CLASS(SCRIPTABLE)
 	class KITE_FUNC_EXPORT KMessageHandler {
+		// fake function 
+		// we need it for derived serializable class
+		friend KBaseSerial &operator<<(KBaseSerial &Out, KObject &Value) {
+			return Out;
+		}
+		friend KBaseSerial &operator>>(KBaseSerial &In, KObject &Value) {
+			return In;
+		}
 	public:
 		KMessageHandler(U32 OwnerID) :
 			_kid(OwnerID), _kenable(true) {}
 
 		virtual KMSGReceiveTypes onMessage(KMessage &Message, KMessageScopeTypes Scope) = 0;
 
+		KMETA_PROPERTY("ID", "Message handler owner ID (Entity or Component ID)")
 		inline U32 getMsgHandlerID() const { return _kid; }
 
+		KMETA_PROPERTY("Enable", "enable/disable recieving message")
 		inline bool getEnableRecieveMsg() const { return _kenable; }
+
+		KMETA_PROPERTY("Enable")
 		inline void setEnableRecieveMsg(bool Value) { _kenable = Value; }
+
+		KMETA_KMESSAGEHANDLER_BODY();
 
 	private:
 		U32 _kid;

@@ -24,32 +24,35 @@
 #include "Kite/Core/math/kmathstructs.h"
 #include "Kite/Core/input/kinputtypes.h"
 
+union SDL_Event;
 namespace Kite{
     class KITE_FUNC_EXPORT KMouse{
     public:
-        /// set window handle
-		static void setWindowHandle(KWindowHandle Window);
-
-		/// set visibility of mouse pointer
-		static void setMouseVisible(bool Visible);
-
-        /// returns the last reported state of a mouse button
-        static KButtonStateTypes getButtonState(KMouseButtonTypes Button);
+		static void initeMouse();
+        /// get the current state of a mouse button
+		/// usage: c++ and lua
+        static bool isButtonPressed(KMouseButtonTypes Button);
 
         /// retrieves the last reported cursor position,
         /// relative to the client area of the window
-        static KVector2F64 getPosition();
+        static KVector2I32 getPosition();
+
+		/// x: the amount scrolled horizontally, positive to the right and negative to the left
+		/// y: the amount scrolled vertically, positive away from the user and negative toward the user
+		static KVector2I32 getWheelValue();
 
         /// sets the position of the cursor,
         /// relative to the client area of the window
-        static void setPosition(const KVector2F64 &Position);
+        static void setWindowPosition(const KVector2I32 &Position, KWindowHandle Handle);
 
-        /// input callbacks
-        static void registerCallback(void *Callback, KMouseCallbackTypes CallbackType);
-        static void unregisterCallback(KMouseCallbackTypes CallbackType);
+		static void setGlobalPosition(const KVector2I32 &Position);
 
     private:
+		/// SDL dot support mouse wheel in mouse input sections
+		/// so we add an event watcher for catching wheel events
+		static int _eventWatcher(void *Data, SDL_Event *Event);
         static KWindowHandle _kwinHandle;
+		static KVector2I32 _kwheelVal;
     };
 }
 

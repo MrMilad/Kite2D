@@ -1,3 +1,22 @@
+/*
+Kite2D Game Framework.
+Copyright (C) 2010-2015  Milad Rasaneh <milad_rasaneh2000@yahoo.com>
+
+This library is free software; you can redistribute it and/or
+modify it under the terms of the GNU Lesser General Public
+License as published by the Free Software Foundation; either
+version 2.1 of the License, or (at your option) any later version.
+
+This library is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+Lesser General Public License for more details.
+
+You should have received a copy of the GNU Lesser General Public
+License along with this library; if not, write to the Free Software
+Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
+USA
+*/
 #include <stdio.h>
 #include <algorithm>
 #include <string>
@@ -7,6 +26,7 @@
 #include <streambuf>
 #include <stack>
 #include <utility>
+#include <cctype>
 #include <tinydir/tinydir.h>
 
 std::unordered_map<std::string, std::string> strmap;
@@ -17,7 +37,11 @@ std::unordered_map<std::string, std::string> strmap;
 
 enum ParsState {
 	PS_WORD = 0,	// all names (ex: class, void, myName, ...)
-	PS_TOKEN,		// all tokens (ex: ,+=-*&")
+	PS_ENDTOKEN,	// (;)
+	PS_MODTOKEN,	// (*&)
+	PS_SPLTOKEN,	// (,)
+	PS_COLTOKEN,	// (:)
+	PS_OTHTOKEN,	// (+-=!)
 	PS_STRING,		// string token (ex: @)
 	PS_BODY_START,	// all types of body (supported: (, [, {)
 	PS_BODY_END,	// all types of body (supported: ), ], })
@@ -54,11 +78,13 @@ struct MFunction {
 	bool inl;
 	bool ext;
 	bool cons;
+	bool vir;
+	bool explct;
 	std::vector<MFParam> params;
 
 	MFunction() :
 		ista(false), inl(false), ext(false),
-		cons(false)
+		cons(false), vir(false), explct(false)
 	{}
 };
 
@@ -74,11 +100,16 @@ struct MVariable {
 	std::string name;
 	std::string type;
 	std::string tokparam;
+	std::string arrSize;
 	bool cons;
 	bool ista;
+	bool isArray;
+	bool isRef;
+	bool isPtr;
 
 	MVariable() :
-		cons(false), ista(false) 
+		cons(false), ista(false), isArray(false),
+		isRef(false), isPtr(false)
 	{}
 };
 
@@ -112,6 +143,12 @@ struct MEnum {
 	std::string type;
 	std::vector<std::pair<std::string, std::string>> members;  // pair<name, value>
 };
+
+bool isNumber(const std::string& s) {
+	std::string::const_iterator it = s.begin();
+	while (it != s.end() && std::isdigit(*it)) ++it;
+	return !s.empty() && it == s.end();
+}
 
 unsigned int tokenCounter(const std::string &Content, const std::string &Token) {
 	if (Content.empty()) {
@@ -153,7 +190,7 @@ void removeTok(std::string &Content, const std::string Tok) {
 }
 
 void replaceTok(std::string &Content, char Target, char Replace) {
-	for (auto i = 0; i < Content.length(); i++) {
+	for (size_t i = 0; i < Content.length(); i++) {
 		if (Content[i] == Target)
 			Content[i] = Replace;
 	}
@@ -207,7 +244,7 @@ bool checkTok(const std::string &Content, unsigned int Pos, char tok) {
 }
 
 // checking next input (ignore space and new line)
-ParsState checkNext(const std::string &Content, unsigned int Pos) {
+ParsState checkNextRaw(const std::string &Content, unsigned int Pos, bool Colon) {
 	if (Content.empty())
 		return PS_END;
 
@@ -225,10 +262,20 @@ ParsState checkNext(const std::string &Content, unsigned int Pos) {
 		}else if (Content[i] == ')' || Content[i] == ']' || Content[i] == '}'){
 			return PS_BODY_END;
 
-		} else if (Content[i] == '=' || Content[i] == ',' || Content[i] == '*' ||
-				   Content[i] == '-' || Content[i] == '+' || Content[i] == '&' ||
-				   Content[i] == ':' || Content[i] == ';') {
-			return PS_TOKEN;
+		} else if (Content[i] == '=' || Content[i] == '-' || Content[i] == '+') {
+			return PS_OTHTOKEN;
+
+		} else if (Content[i] == ',') {
+			return PS_SPLTOKEN;
+
+		} else if ( Content[i] == ';') {
+			return PS_ENDTOKEN;
+
+		} else if (Content[i] == '&' || Content[i] == '*' ) {
+			return PS_MODTOKEN;
+
+		}else if (Colon && Content[i] == ':'){
+			return PS_COLTOKEN;
 
 		} else if (Content[i] == '@') {
 			return PS_STRING;
@@ -241,8 +288,12 @@ ParsState checkNext(const std::string &Content, unsigned int Pos) {
 	return PS_END;
 }
 
+ParsState checkNext(const std::string &Content, unsigned int Pos) {
+	return checkNextRaw(Content, Pos, true);
+}
+
 // get next word (token: sapce or new-line "=+-[]{}())
-unsigned int getNextWord(const std::string &Content, unsigned int Pos, std::string &OutTok) {
+unsigned int getNextWord(const std::string &Content, unsigned int Pos, std::string &OutTok, bool Colon) {
 	OutTok.clear();
 	if (Content.empty())
 		return 0;
@@ -257,8 +308,11 @@ unsigned int getNextWord(const std::string &Content, unsigned int Pos, std::stri
 			Content[i] == ',' || Content[i] == '=' ||
 			Content[i] == '+' || Content[i] == '-' ||
 			Content[i] == '&' || Content[i] == '|' ||
-			Content[i] == ':' || Content[i] == '*' ||
+			Content[i] == '*' ||
 			Content[i] == '\t' || Content[i] == ';') {
+			continue;
+
+		} else if(Colon && Content[i] == ':'){
 			continue;
 		}else{
 			begin = i;
@@ -267,15 +321,17 @@ unsigned int getNextWord(const std::string &Content, unsigned int Pos, std::stri
 	}
 
 	for (auto i = begin; i < Content.length(); i++) {
-		if (Content[i] == ' ' || Content[i] == '\n' ||
-			Content[i] == '(' || Content[i] == ')' ||
-			Content[i] == '[' || Content[i] == ']' ||
-			Content[i] == '{' || Content[i] == '}' ||
-			Content[i] == ',' || Content[i] == '=' ||
-			Content[i] == '+' || Content[i] == '-' ||
-			Content[i] == '&' || Content[i] == '|' ||
-			Content[i] == ':' || Content[i] == '*' ||
-			Content[i] == '\t' || Content[i] == ';') {
+		 if (Content[i] == ' ' || Content[i] == '\n' ||
+				   Content[i] == '(' || Content[i] == ')' ||
+				   Content[i] == '[' || Content[i] == ']' ||
+				   Content[i] == '{' || Content[i] == '}' ||
+				   Content[i] == ',' || Content[i] == '=' ||
+				   Content[i] == '+' || Content[i] == '-' ||
+				   Content[i] == '|' || Content[i] == ';' ||
+				   Content[i] == '\t'){
+			end = i;
+			break;
+		} else if (Colon && Content[i] == ':') {
 			end = i;
 			break;
 		}
@@ -491,8 +547,9 @@ void splitParamRaw(const std::string &Content, std::vector<std::string> &OutList
 	size_t pos = 0;
 	size_t tsize = strlen(",");
 	while ((pos = temp.find(",")) != std::string::npos) {
-		if (!temp.substr(0, pos).empty())
+		if (!temp.substr(0, pos).empty()) {
 			OutList.push_back(temp.substr(0, pos));
+		}
 		temp.erase(0, pos + tsize);
 	}
 }
@@ -515,18 +572,26 @@ bool procFunc(const std::string &Content, MFunction &Func, unsigned int Pos) {
 	Func.tokparam = output;
 
 	// check function attributes 
-	if (checkNext(Content, Pos) != PS_WORD) {
+	if (checkNextRaw(Content, Pos, false) != PS_WORD) {
 		printf("error: missing function name/attributes.\n");
 		return false;
 	}
 
-	unsigned int rpos[2];
-	rpos[0] = Pos;
+	std::vector<std::string> vList;
+	std::string retType;
+	vList.reserve(FUNC_ATTRIB);
 	for (auto i = 0; i < FUNC_ATTRIB; i++) {
-		if (checkNext(Content, Pos) != PS_BODY_START) {
-			rpos[1] = rpos[0]; // catch last 2 position for extreact return type
-			rpos[0] = Pos;
-			Pos = getNextWord(Content, Pos, output);
+		if (checkNextRaw(Content, Pos, false) != PS_BODY_START) {
+			Pos = getNextWord(Content, Pos, output, false);
+
+			// pointer or ref (return value)
+			/*if (checkNextRaw(Content, Pos, false) == PS_MODTOKEN) {
+				if (checkTok(Content, Pos, '*')) {
+					retType = " *";
+				} else if (checkTok(Content, Pos, '&')) {
+					retType = " &";
+				}
+			}*/
 
 			if (output == "inline") {
 				Func.inl = true;
@@ -534,31 +599,33 @@ bool procFunc(const std::string &Content, MFunction &Func, unsigned int Pos) {
 				Func.ista = true;
 			} else if (output == "extern") {
 				Func.ext = true;
+			} else if (output == "virtual") {
+				Func.vir = true;
+			} else if (output == "explicit") {
+				Func.explct = true;
 			}
+
+			vList.push_back(output);
 		} else {
-			// name
-			Func.name = output;
-
-			// return type
-			getNextWord(Content, rpos[1], output);
-
-			// without return type (constructures)
-			if (Func.name != output) {
-				Func.ret = output;
-			}
-
 			break;
 		}
 	}
 
-	if (Func.name.empty()) {
+	if (vList.empty()) {
 		printf("error: could not extract function name. something is wrong.");
 		return false;
 	}
 
+	Func.name = vList.back();
+
+	// return type
+	if (vList.size() > 1 && !Func.explct) {
+		Func.ret = vList[vList.size() - 2] + retType;
+	}
+
 	// get function parameter list
-	if (checkNext(Content, Pos) != PS_BODY_START) {
-		printf("error: missing () ==> function name: %s", Func.name);
+	if (checkNextRaw(Content, Pos, false) != PS_BODY_START) {
+		printf("error: missing \"()\" ==> function name: %s", Func.name.c_str());
 		return false;
 	}
 
@@ -567,7 +634,7 @@ bool procFunc(const std::string &Content, MFunction &Func, unsigned int Pos) {
 
 	std::vector<std::string> pinfo;
 	if (!params.empty()) {
-		for (auto i = 0; i < params.size(); i++) {
+		for (size_t i = 0; i < params.size(); i++) {
 
 			MFParam tpar;
 
@@ -582,6 +649,14 @@ bool procFunc(const std::string &Content, MFunction &Func, unsigned int Pos) {
 			}
 
 			// name and type
+			std::string tmod;
+			/*if (params[i].find("*") != std::string::npos) {
+				tmod = " *";
+			} else if (params[i].find("&") != std::string::npos) {
+				tmod = " &";
+			}*/
+			removeTok(params[i], "*");
+			removeTok(params[i], "&");
 			splitBy(params[i], " ", pinfo);
 			if (pinfo.size() < 2) {
 				printf("error: missing parameter name ==> function name: %s\n", Func.name.c_str());
@@ -591,21 +666,13 @@ bool procFunc(const std::string &Content, MFunction &Func, unsigned int Pos) {
 
 			// ex: char param
 			if (pinfo.size() == 2) {
-				removeTok(pinfo[0], "*");
-				removeTok(pinfo[0], "&");
-				tpar.type = pinfo[0]; // type
-				removeTok(pinfo[1], "*");
-				removeTok(pinfo[1], "&");
+				tpar.type = pinfo[0] + tmod; // type
 				tpar.name = pinfo[1]; // name
 			}
 
 			// ex: const char param
 			if (pinfo.size() == 3) {
-				removeTok(pinfo[1], "*");
-				removeTok(pinfo[1], "&");
-				tpar.type = pinfo[1]; // type
-				removeTok(pinfo[2], "*");
-				removeTok(pinfo[2], "&");
+				tpar.type = pinfo[1] + tmod; // type
 				tpar.name = pinfo[2]; // name
 			}
 			
@@ -617,7 +684,7 @@ bool procFunc(const std::string &Content, MFunction &Func, unsigned int Pos) {
 	if (checkNext(Content, Pos) == PS_WORD) {
 		for (auto i = 0; i < FUNC_ATTRIB; i++) {
 			if (checkNext(Content, Pos) == PS_WORD) {
-				Pos = getNextWord(Content, Pos, output);
+				Pos = getNextWord(Content, Pos, output, false);
 
 				if (output == "const") {
 					Func.cons = true;
@@ -668,7 +735,7 @@ bool procConstructure(const std::string &Content, MFunction &Func) {
 		}
 
 	} else {
-		// default contructure
+		// no constructure
 		return true;
 	}
 
@@ -684,23 +751,23 @@ bool procProp(const std::vector<MFunction> &Allprop, std::vector<MProperty> &Out
 		return true;
 	}
 
-	for (auto i = 0; i < Allprop.size(); i++) {
+	for (size_t i = 0; i < Allprop.size(); i++) {
 
 		// exteract token parameter
 		splitParam(Allprop[i].tokparam, param);
 		
 		if (param.empty()) {
-			printf("error: missing property info ==> function name: %s", Allprop[i].name);
+			printf("error: missing property info ==> function name: %s\n", Allprop[i].name.c_str());
 			return false;
 		} else if (param.size() > 2) {
-			printf("warning: extera property info (ignored) ==> function name: %s", Allprop[i].name);
+			printf("warning: extera property info (ignored) ==> function name: %s\n", Allprop[i].name.c_str());
 		}
 
 
 		// extract string name from string map
 		auto pname = strmap.find(param[0]);
 		if (pname == strmap.end()) {
-			printf("error: could not extract prperty name from string map ==> function name: %s", Allprop[i].name);
+			printf("error: could not extract prperty name from string map ==> function name: %s\n", Allprop[i].name.c_str());
 			return false;
 		}
 
@@ -717,7 +784,7 @@ bool procProp(const std::vector<MFunction> &Allprop, std::vector<MProperty> &Out
 
 			// check overload
 			if (prop->second.second) {
-				printf("error: property overload not supported ==> property name: %s", pname->second);
+				printf("error: property overload not supported ==> property name: %s\n", pname->second.c_str());
 				return false;
 			}
 
@@ -728,7 +795,7 @@ bool procProp(const std::vector<MFunction> &Allprop, std::vector<MProperty> &Out
 		if (param.size() > 1) {
 			pname = strmap.find(param[1]);
 			if (pname == strmap.end()) {
-				printf("error: could not extract prperty comment from string map ==> function name: %s", Allprop[i].name);
+				printf("error: could not extract prperty comment from string map ==> function name: %s\n", Allprop[i].name.c_str());
 				return false;
 			}
 			pptr->first.comment = pname->second;
@@ -747,22 +814,19 @@ bool procProp(const std::vector<MFunction> &Allprop, std::vector<MProperty> &Out
 
 			// more than 1 parameter (not supported)
 		} else {
-			printf("error: properties with more than 1 parameter not supported ==> function name: %s", Allprop[i].name);
+			printf("error: properties with more than 1 parameter not supported ==> function name: %s\n", Allprop[i].name.c_str());
 			return false;
 		}
-		
+
 	}
 
 	// type match - iterate over all registered properties
 	for (auto it = map.begin(); it != map.end(); ++it) {
-		if (it->second.first.get.ret != it->second.first.set.params[0].type) {
-			printf("error: setter/getter type mismatch ==> property name: %s", it->second.first.name);
-			return false;
-		}
-
-		if (!it->second.second) {
-			printf("error: missing setter/getter ==> property name: %s", it->second.first.name);
-			return false;
+		if (it->second.second) {
+			if (it->second.first.get.ret != it->second.first.set.params[0].type) {
+				printf("error: setter/getter type mismatch ==> property name: %s\n", it->second.first.name.c_str());
+				return false;
+			}
 		}
 
 		Output.push_back(it->second.first);
@@ -818,43 +882,61 @@ bool procVar(const std::string &Content, MVariable &Var, unsigned int Pos) {
 	Pos = getNextBody(Content, Pos, output);
 	Var.tokparam = output;
 
-	// check variable attributes 
-	if (checkNext(Content, Pos) != PS_WORD) {
-		printf("error: missing variable name/attributes.\n");
+	// check variable
+	if (checkNextRaw(Content, Pos, false) != PS_WORD) {
+		printf("error: missing variable name/modifiers.\n");
 		return false;
 	}
 
-	unsigned int rpos[2];
-	rpos[0] = Pos;
+	// exteract variable name/attribute/array/size/....
 	auto tpos = getTokPos(Content, Pos, ';', true);
 	--tpos;
+	std::vector<std::string> vList;
+	vList.reserve(VAR_ATTRIB);
 	for (auto i = 0; i < VAR_ATTRIB; i++) {
 		if (Pos < tpos) {
-			rpos[1] = rpos[0]; // catch last 2 position for extreact return type
-			rpos[0] = Pos;
-			Pos = getNextWord(Content, Pos, output);
+			if (checkNextRaw(Content, Pos, false) == PS_BODY_START){
+				Pos = getNextBody(Content, Pos, output);
+				Var.isArray = true;
+				removeTok(output, "[");
+				removeTok(output, "]");
+				Var.arrSize = output;
+				continue;
+
+			// pointer or reference
+			} else if (checkNextRaw(Content, Pos, false) == PS_MODTOKEN) {
+				if (checkTok(Content, Pos, '*')) {
+					Var.isPtr = true;
+				} else if (checkTok(Content, Pos, '&')) {
+					Var.isRef = true;
+				}
+			}
+
+			Pos = getNextWord(Content, Pos, output, false);
 
 			if (output == "static") {
 				Var.ista = true;
+				continue;
 			} else if (output == "const") {
 				Var.cons = true;
+				continue;
 			}
+
+			vList.push_back(output);
 		} else {
-			// name
-			Var.name = output;
-
-			//  type
-			getNextWord(Content, rpos[1], output);
-			Var.type = output;
-
 			break;
 		}
 	}
 
-	if (Var.name.empty() || Var.type.empty()) {
+	if (vList.empty() || vList.size() < 2) {
 		printf("error: could not extract variable name/type. something is wrong.");
 		return false;
 	}
+
+	// name
+	Var.name = vList.back();
+	// type
+	Var.type = vList[vList.size() - 2];
 
 	return true;
 }
@@ -908,7 +990,7 @@ bool procClass(const std::string &Content, MClass &Cls, unsigned int Pos) {
 		return false;
 	}
 
-	pos = getNextWord(Content, pos, output);
+	pos = getNextWord(Content, pos, output, true);
 	if (output == "class") {
 		Cls.type = CT_CLASS;
 
@@ -929,7 +1011,7 @@ bool procClass(const std::string &Content, MClass &Cls, unsigned int Pos) {
 	// search CLS_ATTRIB word for class name and its attributes
 	for (auto i = 0; i < CLS_ATTRIB; i++){
 		if (checkNext(Content, pos) == PS_WORD) {
-			pos = getNextWord(Content, pos, output);
+			pos = getNextWord(Content, pos, output, true);
 
 			if (output == "KITE_FUNC_EXPORT") {
 				Cls.exstate = ES_EXPORT;
@@ -945,36 +1027,37 @@ bool procClass(const std::string &Content, MClass &Cls, unsigned int Pos) {
 
 	// checking base classes
 	// with base(s)
-	if (checkNext(Content, pos) == PS_TOKEN) {
+	if (checkNext(Content, pos) == PS_COLTOKEN) {
+		bool kobj = false;
 		if (!checkTok(Content, pos, ':')) {
 			printf("error: missing \":\" token.\n");
 			return false;
 		}
 		pos = getTokPos(Content, pos, ':');
 
-		if (checkNext(Content, pos) != PS_WORD) {
+		if (checkNextRaw(Content, pos, false) != PS_WORD) {
 			printf("error: missing base(es).\n");
 			return false;
 		}
 
-		while (checkNext(Content, pos) == PS_WORD || checkNext(Content, pos) == PS_TOKEN) {
-			pos = getNextWord(Content, pos, output);
+		while (checkNextRaw(Content, pos, false) == PS_WORD || checkNextRaw(Content, pos, false) == PS_SPLTOKEN) {
+			pos = getNextWord(Content, pos, output, true);
 			MClassBase base;
 			if (output == "public") {
 				base.accs = CA_PUBLIC;
-				pos = getNextWord(Content, pos, output);
+				pos = getNextWord(Content, pos, output, true);
 				base.name = output;
 				Cls.bases.push_back(base);
 
 			} else if (output == "private") {
 				base.accs = CA_PRIVATE;
-				pos = getNextWord(Content, pos, output);
+				pos = getNextWord(Content, pos, output, true);
 				base.name = output;
 				Cls.bases.push_back(base);
 
 			} else if (output == "protected") {
 				base.accs = CA_PROTECTED;
-				pos = getNextWord(Content, pos, output);
+				pos = getNextWord(Content, pos, output, true);
 				base.name = output;
 				Cls.bases.push_back(base);
 
@@ -983,10 +1066,12 @@ bool procClass(const std::string &Content, MClass &Cls, unsigned int Pos) {
 				base.name = output;
 				Cls.bases.push_back(base);
 			}
-		}
-	} 
 
-	// without base(s)
+		}
+	}
+
+	
+	// class body
 	size_t cpos = 0;
 	if (checkNext(Content, pos) == PS_BODY_START) {
 
@@ -998,9 +1083,9 @@ bool procClass(const std::string &Content, MClass &Cls, unsigned int Pos) {
 		}
 
 		// default contructure
-		if (Cls.constructure.name.empty()) {
+		/*if (Cls.constructure.name.empty()) {
 			Cls.constructure.name = Cls.name;
-		}
+		}*/
 		
 		// parse all properties in the class body
 		if (!procAllProp(cbody, Cls.props)) {
@@ -1018,9 +1103,11 @@ bool procClass(const std::string &Content, MClass &Cls, unsigned int Pos) {
 
 	// incorrect structure
 	} else {
-		printf("error: missing class\structure body.\n");
+		printf("error: missing class\\structure body.\n");
 		return false;
 	}
+
+	return true;
 }
 
 // parse all CLASS tokens
@@ -1061,7 +1148,7 @@ bool procEnumMem(const std::string &Content, MEnum &Enm) {
 	}
 
 	// member value
-	for (auto i = 0; i < param.size(); i++) {
+	for (size_t i = 0; i < param.size(); i++) {
 		splitBy(param[i], "=", defval);
 
 		// without value
@@ -1109,9 +1196,9 @@ bool procEnum(const std::string &Content, MEnum &Enm, unsigned int Pos) {
 	}
 
 	// enum token
-	pos = getNextWord(Content, pos, output);
+	pos = getNextWord(Content, pos, output, true);
 	if (output != "enum") {
-		printf("error: incorrect type (%s)\n", output);
+		printf("error: incorrect type (%s)\n", output.c_str());
 		return false;
 	}
 
@@ -1121,9 +1208,9 @@ bool procEnum(const std::string &Content, MEnum &Enm, unsigned int Pos) {
 		return false;
 	}
 
-	pos = getNextWord(Content, pos, output);
+	pos = getNextWord(Content, pos, output, true);
 	if (output != "class") {
-		printf("error: only enum class (scoped enum) supported.\n", output);
+		printf("error: only enum class (scoped enum) supported.\n");
 		return false;
 	}
 
@@ -1132,19 +1219,19 @@ bool procEnum(const std::string &Content, MEnum &Enm, unsigned int Pos) {
 		printf("error: missing enum name.\n");
 		return false;
 	}
-	pos = getNextWord(Content, pos, output);
+	pos = getNextWord(Content, pos, output, true);
 	Enm.name = output;
 
 	// type
-	if (checkNext(Content, pos) == PS_TOKEN) {
+	if (checkNext(Content, pos) == PS_COLTOKEN) {
 		pos = getTokPos(Content, pos, ':');
 
-		if (checkNext(Content, pos) != PS_WORD) {
+		if (checkNextRaw(Content, pos, false) != PS_WORD) {
 			printf("error: missing enum type.\n");
 			return false;
 		}
 
-		pos = getNextWord(Content, pos, output);
+		pos = getNextWord(Content, pos, output, true);
 		Enm.type = output;
 	} else {
 		// int by default
@@ -1191,6 +1278,13 @@ bool procAllEnum(const std::string &Content, std::vector<MEnum> &Enums) {
 	return ret;
 }
 
+bool isIgnored(const std::string &Contetnt) {
+	if (Contetnt.find("KMETA_IGNORED") != std::string::npos) {
+		return true;
+	}
+	return false;
+}
+
 // main parser
 bool parse(std::string &Content, std::vector<MClass> &Classes, std::vector<MEnum> &Enums) {
 	Classes.clear();
@@ -1198,7 +1292,7 @@ bool parse(std::string &Content, std::vector<MClass> &Classes, std::vector<MEnum
 	if (Content.empty()) {
 		printf("empty file.\n");
 		return false;
-	}
+	}	
 
 	bool ret = true;
 
@@ -1208,6 +1302,11 @@ bool parse(std::string &Content, std::vector<MClass> &Classes, std::vector<MEnum
 	removeTok(Content, "public:");
 	removeTok(Content, "private:");
 	removeTok(Content, "protected:");
+
+	if (isIgnored(Content)) {
+		printf("ignored.\n");
+		return false;
+	}
 
 	if (!procAllClass(Content, Classes))
 		ret = false;
@@ -1222,7 +1321,7 @@ void createMacros(const std::vector<MClass> &Cls, const std::vector<MEnum> &Enms
 	Output.clear();
 
 	// enums
-	for (auto i = 0; i < Enms.size(); i++) {
+	for (size_t i = 0; i < Enms.size(); i++) {
 		std::string upname = Enms[i].name;
 
 		// declaration
@@ -1233,19 +1332,21 @@ void createMacros(const std::vector<MClass> &Cls, const std::vector<MEnum> &Enms
 					  "KITE_FUNC_EXPORT extern void registerMeta_" + Enms[i].name + "(lua_State *Lua = nullptr);}\n");
 
 		// definition
+		std::string eParam = Enms[i].tokparam;
+		replaceTok(eParam, ',', '|');
 		Output.append("\n// ----[auto generated: " + Enms[i].name + " source macro]----\n");
 		Output.append("#define KMETA_" + upname + "_SOURCE() \\\n"
 					  "namespace Internal{\\\n"
 					  "void registerMeta_" + Enms[i].name + "(lua_State *Lua){\\\n"
 					  "static bool inite = true;\\\n"
-					  "static KMetaEnum instance(\"" + Enms[i].name + "\"," + Enms[i].tokparam + ", sizeof(" + Enms[i].type + "), "
-					  "typeid(" + Enms[i].type + "));\\\n"
+					  "static KMetaEnum instance(\"" + Enms[i].name + "\"," + eParam + ", sizeof(" + Enms[i].type + "), "
+					  "\"" + Enms[i].type + "\");\\\n"
 					  "if (inite) {\\\n"
-					  "KMetaManager::setMeta(std::type_index(typeid(" + Enms[i].name + ")), (KMeta *)&instance);\\\n");
+					  "KMetaManager::setMeta((KMetaObject *)&instance);\\\n");
 
 		// enum members
 		Output.append("KMetaEnumMember *mem = 0;\\\n");
-		for (auto count = 0; count < Enms[i].members.size(); count++) {
+		for (size_t count = 0; count < Enms[i].members.size(); count++) {
 			std::string vc = std::to_string(count);
 			if (!Enms[i].members[count].second.empty())
 				vc = Enms[i].members[count].second;
@@ -1258,10 +1359,11 @@ void createMacros(const std::vector<MClass> &Cls, const std::vector<MEnum> &Enms
 
 		// lua binding
 		// enum members
-		Output.append("if (Lua != nullptr){\\\n"
+		Output.append("const KMetaObject *minfo = KMetaManager::getMeta(\"" + Enms[i].name + "\");\\\n"
+			"if (Lua != nullptr && (minfo->getFlag() & SCRIPTABLE)){\\\n"
 			"LuaIntf::LuaBinding(Lua).beginModule(\"Kite\")\\\n"
-					  ".beginModule(\"" + Enms[i].name + "\")\\\n");
-		for (auto count = 0; count < Enms[i].members.size(); count++) {
+			".beginModule(\"" + Enms[i].name + "\")\\\n");
+		for (size_t count = 0; count < Enms[i].members.size(); count++) {
 
 			Output.append(".addConstant(\"" + Enms[i].members[count].first + "\", " + Enms[i].name + "::" 
 						  + Enms[i].members[count].first + ")\\\n");
@@ -1275,145 +1377,276 @@ void createMacros(const std::vector<MClass> &Cls, const std::vector<MEnum> &Enms
 	}
 
 	// class
-	for (auto i = 0; i < Cls.size(); i++) {
+	for (size_t i = 0; i < Cls.size(); i++) {
 		std::string upname = Cls[i].name;
+		std::string cParam = Cls[i].tokparam;
+		replaceTok(cParam, '|', ',');
+		std::vector<std::string> ctags;
+		splitParam(cParam, ctags);
 
-		// declaration
+		// is seializable
+		bool isPOD = false;
+		if (std::find(ctags.begin(), ctags.end(), "POD") != ctags.end()) {
+			isPOD = true;
+		}
+
+		// is scriptable
+		bool isResource = false;
+		if (std::find(ctags.begin(), ctags.end(), "RESOURCE") != ctags.end()) {
+			isResource = true;
+		}
+
+		// is editable
+		bool isComponent = false;
+		if (std::find(ctags.begin(), ctags.end(), "COMPONENT") != ctags.end()) {
+			isComponent = true;
+		}
+
+		// is entity
+		bool isEntity = false;
+		if (std::find(ctags.begin(), ctags.end(), "ENTITY") != ctags.end()) {
+			isEntity = true;
+		}
+
+		// is system
+		bool isSystem = false;
+		if (std::find(ctags.begin(), ctags.end(), "SYSTEM") != ctags.end()) {
+			isSystem = true;
+		}
+
+		// is abstract
+		bool isAbstract = false;
+		if (std::find(ctags.begin(), ctags.end(), "ABSTRACT") != ctags.end()) {
+			isAbstract = true;
+		}
+
+		// is scriptable
+		bool isScriptable = false;
+		if (std::find(ctags.begin(), ctags.end(), "SCRIPTABLE") != ctags.end()) {
+			isScriptable = true;
+		}
+
+		// class without any flag will ignored
+		if (!isPOD && !isResource && !isComponent && !isSystem && !isScriptable) {
+			printf("message: class without any supported flags. %s ignored. \n", Cls[i].name.c_str());
+			continue;
+		}
+
+		// linkage state
+		std::string exstae;
+		if (Cls[i].exstate == ES_NONE) {
+			exstae = "KITE_FUNC_EXPORT ";
+		}
+
+		// class body
+		// private Section:
 		Output.append("\n// ----[auto generated: " + Cls[i].name + " body macro]----\n");
 		transform(upname.begin(), upname.end(), upname.begin(), toupper);
 		Output.append("#define KMETA_" + upname + "_BODY() \\\n"
 					  "private:\\\n");
 		
-		// define properties
-		for (auto count = 0; count < Cls[i].props.size(); count++) {
-			Output.append("inline void _prp" + Cls[i].name + "set" + Cls[i].props[count].name  + "(KRefVariant Value){ " +
-						  Cls[i].props[count].set.name + "(Value.getValue<" + Cls[i].props[count].type + ">()); }\\\n");
-
-			Output.append("inline void _prp" + Cls[i].name + "get" + Cls[i].props[count].name + "(KRefVariant Value) { " +
-						  "Value.copyByVal(" + Cls[i].props[count].get.name + "()); }\\\n");
+		// factory function (with default constructure)
+		if ((isPOD || isComponent) && !isAbstract) {
+			Output.append(exstae + "static KObject *_createNew(KBaseStorage &Allocator);\\\n");
 		}
 
-		// register functions
-		Output.append("public:\\\n"
-					  "KITE_FUNC_EXPORT static void registerMeta(lua_State *Lua = nullptr, U32 Flag = 0);\\\n"
-					  "friend KBytesArray &operator<<(KBytesArray &Out, " + Cls[i].name + "& Value) {\\\n"
-					  "Value.serial(Out, KST_SERIALIZE); return Out;}\\\n"
-					  "friend KBytesArray &operator>>(KBytesArray &In, " + Cls[i].name + "& Value) {\\\n"
-					  "Value.serial(In, KST_DESERIALIZE); return In;}\\\n"
-					  "friend KBytesArray &operator<<(KBytesArray &Out, " + Cls[i].name + "* Value) {\\\n"
-					  "Value->serial(Out, KST_SERIALIZE); return Out;}\\\n"
-					  "friend KBytesArray &operator>>(KBytesArray &In, " + Cls[i].name + "* Value) {\\\n"
-					  "Value->serial(In, KST_DESERIALIZE); return In;}\\\n"
-					  "private:\\\n"
-					  "KITE_FUNC_EXPORT void serial(KBytesArray &Serializer, KSerialStateTypes State);\n");
+		// properties (only editable classes allow properties)
+		if (isComponent) {
+			for (size_t count = 0; count < Cls[i].props.size(); count++) {
+				if (!Cls[i].props[count].set.name.empty()) {
+					Output.append("inline void _prp" + Cls[i].name + "set" + Cls[i].props[count].name + "(KRefVariant Value){ " +
+								  Cls[i].props[count].set.name + "(Value.getValue<" + Cls[i].props[count].type + ">()); }\\\n");
+				}
 
-		// registerMeta()
+				if (!Cls[i].props[count].get.name.empty()) {
+					Output.append("inline void _prp" + Cls[i].name + "get" + Cls[i].props[count].name + "(KRefVariant Value) { " +
+								  "Value.copyByVal(" + Cls[i].props[count].get.name + "()); }\\\n");
+				}
+			}
+		} 
+		
+		// public section:
+		// register functions
+		Output.append("public:\\\n" +
+					  exstae + "static void registerMeta(lua_State *Lua = nullptr);\\\n"
+					  "const std::string &getClassName() const { static std::string name(\"" + Cls[i].name + "\");\\\n"
+					  "return name;}\\\n");
+
+		// serializable
+		if (isPOD || isComponent || isEntity) {
+			Output.append("friend KBaseSerial &operator<<(KBaseSerial &Out, " + Cls[i].name + " &Value) {\\\n"
+						  "Value.serial(Out, KST_SERIALIZE); return Out;}\\\n"
+						  "friend KBaseSerial &operator>>(KBaseSerial &In, " + Cls[i].name + " &Value) {\\\n"
+						  "Value.serial(In, KST_DESERIALIZE); return In;}\\\n"
+						  "protected:\\\n" +
+						  exstae + "void serial(KBaseSerial &Serializer, KSerialStateTypes State);\n");
+		}
+
+		// defention
 		Output.append("\n// ----[auto generated: " + Cls[i].name + " source macro]----\n");
-		Output.append("#define KMETA_" + upname + "_SOURCE()\\\n"
-					"void " + Cls[i].name + "::registerMeta(lua_State *Lua, U32 Flag){\\\n"
+		Output.append("#define KMETA_" + upname + "_SOURCE()\\\n");
+
+		if ((isPOD || isComponent) && !isAbstract) {
+			Output.append("KObject *" + Cls[i].name + "::_createNew(KBaseStorage &Allocator){\\\n"
+							"return allocateNew<" + Cls[i].name + ">(Allocator);}\\\n");
+		}
+
+		replaceTok(cParam, ',', '|');
+		Output.append("void " + Cls[i].name + "::registerMeta(lua_State *Lua){\\\n"
 					  "static bool inite = true;\\\n"
-					  "static KMetaClass instance(\"" + Cls[i].name + "\"," + Cls[i].tokparam + ", sizeof(" + Cls[i].name + "));\\\n"
+					  "static KMetaClass instance(\"" + Cls[i].name + "\"," + cParam + ", sizeof(" + Cls[i].name + "));\\\n"
 					  "if (inite) {\\\n"
-					  "KMetaManager::setMeta(std::type_index(typeid(" + Cls[i].name + ")), (KMeta *)&instance);\\\n");
+					  "KMetaManager::setMeta((KMetaObject *)&instance);\\\n");
+
+		if ((isPOD || isComponent) && !isAbstract){
+			Output.append("KMetaManager::setFactory(\"" + Cls[i].name + "\", " + Cls[i].name + "::_createNew);\\\n");
+		}
 
 		// bases
-		for (auto count = 0; count < Cls[i].bases.size(); count++) {
+		for (size_t count = 0; count < Cls[i].bases.size(); count++) {
 			std::string acc;
 			if (Cls[i].bases[count].accs == CA_PUBLIC) { acc = "KMB_PUBLIC"; }
 			if (Cls[i].bases[count].accs == CA_PRIVATE) { acc = "KMB_PRIVATE"; }
 			if (Cls[i].bases[count].accs == CA_PROTECTED) { acc = "KMB_PROTECTED"; }
 			Output.append("instance.addBase(new KMetaBase(\"" + Cls[i].bases[count].name + "\", "
-						  + acc + ", typeid(" + Cls[i].bases[count].name + ")));\\\n");
+						  + acc + "));\\\n");
 		}
 
-		// properties
-		for (auto count = 0; count < Cls[i].props.size(); count++) {
+		// properties (meta)
+		for (size_t count = 0; count < Cls[i].props.size(); count++) {
+			std::string prpType("KMP_BOTH");
+			if (Cls[i].props[count].get.name.empty()) {
+				prpType = "KMP_SETTER";
+			} else if (Cls[i].props[count].set.name.empty()) {
+				prpType = "KMP_GETTER";
+			}
 			Output.append("instance.addProperty(new KMetaProperty(\"" + Cls[i].props[count].name + "\", \""
-						   + Cls[i].props[count].comment + "\", KMP_BOTH, typeid(" + Cls[i].props[count].type + ")));\\\n");
+							+ Cls[i].props[count].type + "\", \"" + Cls[i].props[count].comment + "\", " + prpType + "));\\\n");
 
 			// insert to property map
-			Output.append("prpMap.insert({ \"_prp" + Cls[i].name + "get" + Cls[i].props[count].name 
-						  + "\", (void (KProperty::*)(KRefVariant)) &" + Cls[i].name + "::" 
-						  + "_prp" + Cls[i].name + "get" + Cls[i].props[count].name+ "});\\\n");
+			// only allowed for components
+			if (isComponent) {
+				if (!Cls[i].props[count].get.name.empty()) {
+					Output.append("prpMap.insert({ \"_prp" + Cls[i].name + "get" + Cls[i].props[count].name
+								  + "\", (void (KComponent::*)(KRefVariant)) &" + Cls[i].name + "::"
+								  + "_prp" + Cls[i].name + "get" + Cls[i].props[count].name + "});\\\n");
+				}
 
-			Output.append("prpMap.insert({ \"_prp" + Cls[i].name + "set" + Cls[i].props[count].name
-						  + "\", (void (KProperty::*)(KRefVariant)) &" + Cls[i].name + "::"
-						  + "_prp" + Cls[i].name + "set" + Cls[i].props[count].name + "});\\\n");
+				if (!Cls[i].props[count].set.name.empty()) {
+					Output.append("prpMap.insert({ \"_prp" + Cls[i].name + "set" + Cls[i].props[count].name
+								  + "\", (void (KComponent::*)(KRefVariant)) &" + Cls[i].name + "::"
+								  + "_prp" + Cls[i].name + "set" + Cls[i].props[count].name + "});\\\n");
+				}
+			}
 		}
 
 		// functions
-		Output.append("KMetaFunction *fun;\\\n");
-		for (auto count = 0; count < Cls[i].funcs.size(); count++) {
+		if (!Cls[i].funcs.empty()) {
+			Output.append("KMetaFunction *fun;\\\n");
+		}
+		for (size_t count = 0; count < Cls[i].funcs.size(); count++) {
 			std::string ista = "false";
 			if (Cls[i].funcs[count].ista) {
 				ista = "true";
 			} 
-			Output.append("fun = new KMetaFunction(\"" + Cls[i].funcs[count].name + "\", " + ista + ", "
-						  + "typeid(" + Cls[i].funcs[count].ret + "));\\\n");
+			Output.append("fun = new KMetaFunction(\"" + Cls[i].funcs[count].name + "\", \"" + Cls[i].funcs[count].ret + "\", " + ista + ");\\\n");
 
 			// function parameters
-			for (auto pcount = 0; pcount < Cls[i].funcs[count].params.size(); pcount++) {
-				Output.append("fun->paramsType.push_back(typeid(" + Cls[i].funcs[count].params[pcount].type + "));\\\n");
+			for (size_t pcount = 0; pcount < Cls[i].funcs[count].params.size(); pcount++) {
+				//Output.append("fun->paramsName.push_back(\"" + Cls[i].funcs[count].params[pcount].name + "\");\\\n");
+				Output.append("fun->paramsType.push_back(\"" + Cls[i].funcs[count].params[pcount].type + "\");\\\n");
 			}
 			Output.append("instance.addFunction(fun);\\\n");
 		}
 
 		// lua binding 
-		Output.append("if (Lua != nullptr && (Flag & SCRIPTABLE)) { \\\n"
+		Output.append("const KMetaObject *minfo = KMetaManager::getMeta(\"" + Cls[i].name + "\");\\\n"
+					  "if (Lua != nullptr && (minfo->getFlag() & SCRIPTABLE)) { \\\n"
 					  "LuaIntf::LuaBinding(Lua).beginModule(\"Kite\").beginClass<"
 					  + Cls[i].name + ">(\"" + Cls[i].name + "\")\\\n");
 
 		// constructure
 		std::string param;
 		std::string tok;
-		if (!Cls[i].constructure.params.empty()) {
-			for (auto count = 0; count < Cls[i].constructure.params.size(); count++) {
-				if (!Cls[i].constructure.params[count].defval.empty()) {
-					param.append(tok + "LuaIntf::_def<" + Cls[i].constructure.params[count].type + ", " + Cls[i].constructure.params[count].defval + ">");
-				} else {
-					param.append(tok + "LuaIntf::_opt<" + Cls[i].constructure.params[count].type + ">");
+		if (!Cls[i].constructure.name.empty() && !isAbstract) {
+			if (!Cls[i].constructure.params.empty()) {
+				for (size_t count = 0; count < Cls[i].constructure.params.size(); count++) {
+					if (!Cls[i].constructure.params[count].defval.empty()) {
+
+						// nullptr not supported in lua binding so we change it with 0
+						std::string newDefVal = Cls[i].constructure.params[count].defval;
+						if (Cls[i].constructure.params[count].defval == "nullptr") {
+							newDefVal = "0";
+						}
+
+						param.append(tok + "LuaIntf::_def<" + Cls[i].constructure.params[count].type + ", " + newDefVal + ">");
+					} else {
+						param.append(tok + "LuaIntf::_opt<" + Cls[i].constructure.params[count].type + ">");
+					}
+					tok = ",";
 				}
-				tok = ",";
 			}
+			Output.append(".addConstructor(LUA_ARGS(" + param + "))\\\n");
 		}
-		Output.append(".addConstructor(LUA_ARGS(" + param + "))\\\n");
 
 		// properties
-		for (auto count = 0; count < Cls[i].props.size(); count++) {
-			Output.append(".addProperty(\"" + Cls[i].props[count].name + "\", &" + Cls[i].name + "::"
-						  + Cls[i].props[count].get.name + ", &" + Cls[i].name + "::" + Cls[i].props[count].set.name + ")\\\n");
+		for (size_t count = 0; count < Cls[i].props.size(); count++) {
+			if (!Cls[i].props[count].get.name.empty() && !Cls[i].props[count].set.name.empty()) {
+				Output.append(".addProperty(\"" + Cls[i].props[count].name + "\", &" + Cls[i].name + "::"
+							  + Cls[i].props[count].get.name + ", &" + Cls[i].name + "::" + Cls[i].props[count].set.name + ")\\\n");
+			} else if (Cls[i].props[count].set.name.empty()) {
+				Output.append(".addProperty(\"" + Cls[i].props[count].name + "\", &" + Cls[i].name + "::"
+							  + Cls[i].props[count].get.name +")\\\n");
+			}
 		}
 
 		// functions 
 		param = "";
 		tok = "";
 		std::string fista;
-		for (auto count = 0; count < Cls[i].funcs.size(); count++) {
+		for (size_t count = 0; count < Cls[i].funcs.size(); count++) {
 			
 			if (Cls[i].funcs[count].ista) {
 				fista = "addStaticFunction";
 			} else {
 				fista = "addFunction";
 			}
-			if (Cls[i].funcs[count].params.empty()) {
+			//if (Cls[i].funcs[count].params.empty()) {
+			std::vector<std::string> tpar;
+			splitParam(Cls[i].funcs[count].tokparam, tpar);
+			if (tpar.empty()) {
 				Output.append("." + fista + "(\"" + Cls[i].funcs[count].name + "\", &" + Cls[i].name + "::" + Cls[i].funcs[count].name + ")\\\n");
 			} else {
-				for (auto pcount = 0; pcount < Cls[i].funcs[count].params.size(); pcount++) {
-					if (Cls[i].funcs[count].params[pcount].defval.empty()) {
+				auto found = strmap.find(tpar[0]);
+				if (found != strmap.end()) {
+					Output.append("." + fista + "(\"" + found->second + "\", &" + Cls[i].name + "::" + Cls[i].funcs[count].name + ")\\\n");
+				} 
+			}
+			// we dont need register function parameters in lua
+			/*} else {
+				for (size_t pcount = 0; pcount < Cls[i].funcs[count].params.size(); pcount++) {
+					if (!Cls[i].funcs[count].params[pcount].defval.empty()) {
 						param.append(tok + Cls[i].funcs[count].params[pcount].type);
 					} else {
 						param.append(tok + "LuaIntf::_def<" + Cls[i].funcs[count].params[pcount].type + ", " + Cls[i].funcs[count].params[pcount].defval + ">");
 					}
 					tok = ",";
-					Output.append("." + fista + "(\"" + Cls[i].funcs[count].name + "\", &" + Cls[i].name + "::" + Cls[i].funcs[count].name
-								  + ", LUA_ARGS(" + param + "))\\\n");
 				}
-			}
+				Output.append("." + fista + "(\"" + Cls[i].funcs[count].name + "\", &" + Cls[i].name + "::" + Cls[i].funcs[count].name
+							  + ", LUA_ARGS(" + param + "))\\\n");
+			}*/
 		}
 
 		// variables
-		for (auto count = 0; count < Cls[i].vars.size(); count++) {
+		for (size_t count = 0; count < Cls[i].vars.size(); count++) {
 			std::string func;
+
+			// we dont support arrays in script
+			if (Cls[i].vars[count].isArray) {
+				continue;
+			}
+
+			// static/non-static variable
 			if (Cls[i].vars[count].ista) {
 				func = ".addStaticVariable";
 			} else {
@@ -1423,19 +1656,17 @@ void createMacros(const std::vector<MClass> &Cls, const std::vector<MEnum> &Enms
 			std::vector<std::string> vparam;
 			splitParam(Cls[i].vars[count].tokparam, vparam);
 
-			for (auto iter = 0; iter < vparam.size(); iter++) {
-				if (vparam[iter] == "SCRIPTABLE") {
-					std::string write;
-					if (Cls[i].vars[count].cons) {
-						write = "false";
-					} else {
-						write = "true";
-					}
-
-					Output.append(func + "(\"" + Cls[i].vars[count].name + "\", &" + Cls[i].name + "::" 
-								  + Cls[i].vars[count].name + ", " + write + ")");
-					break;
+			if (std::find(vparam.begin(), vparam.end(), "SCRIPTABLE") != vparam.end()) {
+				std::string write;
+				if (Cls[i].vars[count].cons) {
+					write = "false";
+				} else {
+					write = "true";
 				}
+
+				Output.append(func + "(\"" + Cls[i].vars[count].name + "\", &" + Cls[i].name + "::" 
+								+ Cls[i].vars[count].name + ", " + write + ")");
+				break;
 			}
 		}
 
@@ -1443,57 +1674,84 @@ void createMacros(const std::vector<MClass> &Cls, const std::vector<MEnum> &Enms
 		Output.append(".endClass().endModule();}\\\n");
 
 		// end of rgisterMeta
-		Output.append("} inite = false;}\\\n");
+		if (isPOD || isComponent || isEntity) {
+			Output.append("} inite = false;}\\\n");
+		} else {
+			Output.append("} inite = false;}\n");
+		}
 
 		// serial definition
-		Output.append("void " + Cls[i].name + "::serial(KBytesArray &Serializer, KSerialStateTypes State){\\\n");
+		if (isPOD || isComponent || isEntity) {
+			Output.append("void " + Cls[i].name + "::serial(KBaseSerial &Serializer, KSerialStateTypes State){\\\n");
 
-		// serialize base class(es)
-		std::string ser;
-		std::string dser;
-		for (auto bcount = 0; bcount < Cls[i].bases.size(); bcount++) {
-			ser.append(Cls[i].bases[bcount].name + " *bptr" + std::to_string(bcount)
-					   + " = (" + Cls[i].bases[bcount].name + " *)this; Serializer << bptr" + std::to_string(bcount) + ";\\\n");
-			dser.append(Cls[i].bases[bcount].name + " *bptr" + std::to_string(bcount)
-						+ " = (" + Cls[i].bases[bcount].name + " *)this; Serializer >> bptr" + std::to_string(bcount) + ";\\\n");
+			// serialize base class(es)
+			std::string ser;
+			std::string dser;
+			for (size_t bcount = 0; bcount < Cls[i].bases.size(); bcount++) {
+				ser.append(Cls[i].bases[bcount].name + " *bptr" + std::to_string(bcount)
+							+ " = (" + Cls[i].bases[bcount].name + " *)this; Serializer << bptr" + std::to_string(bcount) + ";\\\n");
+				dser.append(Cls[i].bases[bcount].name + " *bptr" + std::to_string(bcount)
+							+ " = (" + Cls[i].bases[bcount].name + " *)this; Serializer >> bptr" + std::to_string(bcount) + ";\\\n");
+			}
+
+			// serialize
+			Output.append("if (State == KST_SERIALIZE) {\\\n");
+			if (!Cls[i].bases.empty()) {
+				Output.append(ser);
+			}
+
+			// variables
+			for (size_t vcont = 0; vcont < Cls[i].vars.size(); vcont++) {
+
+				std::vector<std::string> vparam;
+				splitParam(Cls[i].vars[vcont].tokparam, vparam);
+				Output.append("Serializer << " + Cls[i].vars[vcont].name + ";\\\n");
+			}
+
+			// deserialize
+			Output.append("} else if (State == KST_DESERIALIZE) {\\\n");
+			Output.append(dser);
+
+			// variables
+			for (size_t vcont = 0; vcont < Cls[i].vars.size(); vcont++) {
+				std::vector<std::string> vparam;
+				splitParam(Cls[i].vars[vcont].tokparam, vparam);
+				Output.append("Serializer >> " + Cls[i].vars[vcont].name + ";\\\n");
+			}
+
+			// end of serial()
+			Output.append("}}\n");
+		} 
+
+		// interp()
+		/*Output.append("void KColor::interp(F32 Time, const KObject &Start, const KObject &End,\\\n"
+					  "F32 Duration, KInterpolationTypes FType) {\\\n"
+					  "const " + Cls[i].name + " &start = (const " + Cls[i].name + " &)Start;\\\n"
+					  "const " + Cls[i].name + " &end = (const " + Cls[i].name + " &)End;\\\n");
+		for (size_t count = 0; count < Cls[i].props.size(); count++) {
+			std::string val(Cls[i].props[count].name + "prp");
+			Output.append(Cls[i].props[count].type + " " + val + ";\\\n"
+						  + "interpolate(" + val + ", Time, start." + Cls[i].props[count].get.name
+						  + "(), end." + Cls[i].props[count].get.name + "(), Duration, FType);\\\n"
+						  + Cls[i].props[count].set.name + "(" + val + ");\\\n");
 		}
 
-		// serialize
-		Output.append("if (State == KST_SERIALIZE) {\\\n");
-		if (!Cls[i].bases.empty()) {
-			Output.append(ser);
-		}
-
-		// variables
-		for (auto vcont = 0; vcont < Cls[i].vars.size(); vcont++) {
-			Output.append("Serializer << " + Cls[i].vars[vcont].name + ";\\\n");
-		}
-
-		// deserialize
-		Output.append("} else if (State == KST_DESERIALIZE) {\\\n");
-		Output.append(dser);
-
-		// variables
-		for (auto vcont = 0; vcont < Cls[i].vars.size(); vcont++) {
-			Output.append("Serializer >> " + Cls[i].vars[vcont].name + ";\\\n");
-		}
-
-		// end of serial()
-		Output.append("}}\n");
+		// end of interp()
+		Output.append("}\n");*/
 	}
 }
 
 void createHead(std::string &Output) {
 	Output.clear();
 
+	Output.append("\n// ----[auto generated header file]----\n");
 	Output.append("#ifndef KITEMETA_H\n"
 				  "#define KITEMETA_H\n\n"
 				  "#include \"Kite/Core/system/ksystemdef.h\"\n"
-				  "#include \"Kite/Core/utility/kmetadef.h\"\n\n"
+				  "#include \"Kite/Core/meta/kmetadef.h\"\n\n"
 				  "KMETA\n"
 				  "namespace Kite{\n"
-				  "\n// ----[auto generated register function]----\n"
-				  "KITE_FUNC_EXPORT extern void registerKiteMeta(lua_State *Lua = nullptr, U32 Flag = 0);}\n"
+				  "KITE_FUNC_EXPORT extern void registerKiteMeta(lua_State *Lua = nullptr);}\n"
 				  "#endif // KITEMETA_H");
 }
 
@@ -1504,21 +1762,25 @@ void createSource(const std::vector<std::string> &Files, const std::vector<MClas
 	Output.clear();
 	Output.append("\n// ----[auto generated source file]----\n");
 
+	// POD header file
+	Output.append("#include \"Kite/Core/meta/kmetapod.h\"\n");
+
 	// add headers
-	for (auto i = 0; i < Files.size(); i++) {
+	for (size_t i = 0; i < Files.size(); i++) {
 		Output.append("#include \"" + Files[i] + "\"\n");
 	}
 
 	Output.append("namespace Kite{\n"
-				  "void registerKiteMeta(lua_State *Lua, U32 Flag){\n");
+				  "void registerKiteMeta(lua_State *Lua){\n"
+				  "Internal::registerMetaPOD();\n");
 
 	// register classes
-	for (auto i = 0; i < Cls.size(); i++) {
-		Output.append(Cls[i].name + "::registerMeta(Lua, Flag);\n");
+	for (size_t i = 0; i < Cls.size(); i++) {
+		Output.append(Cls[i].name + "::registerMeta(Lua);\n");
 	}
 
 	// register enums
-	for (auto i = 0; i < Ens.size(); i++) {
+	for (size_t i = 0; i < Ens.size(); i++) {
 		Output.append("Internal::registerMeta_" + Ens[i].name + "(Lua);\n");
 	}
 
@@ -1566,25 +1828,76 @@ bool procFile(const std::string &FAddress, const std::string &OAdress, std::vect
 	return true;
 }
 
+void createStaticName(std::vector<MClass> Cls, std::vector<MEnum> Enm, std::string &Output) {
+	Output.clear();
+
+	// headers
+	Output.append("\n// ----[auto generated header file]----\n");
+	Output.append("#include \"Kite/Core/meta/kmetadef.h\"\n");
+	Output.append("#include \"Kite/Core/system/ksystemdef.h\"\n\n");
+
+	Output.append("namespace Kite{\n");
+	Output.append("template<typename T>\n");
+	Output.append("struct getMetaName;\n\n");
+
+	Output.append("#define KMETA_REG_NAME(TYPE)\\\n");
+	Output.append("template<>\\\n");
+	Output.append("struct getMetaName<TYPE> {\\\n");
+	Output.append("static const char *name;};\\\n");
+	Output.append("const char *getMetaName<TYPE>::name = #TYPE\n\n");
+
+	// pod types
+	Output.append("KMETA_REG_NAME(I8);\n");
+	Output.append("KMETA_REG_NAME(I16);\n");
+	Output.append("KMETA_REG_NAME(I32);\n");
+	Output.append("KMETA_REG_NAME(I64);\n");
+	Output.append("KMETA_REG_NAME(U8);\n");
+	Output.append("KMETA_REG_NAME(U16);\n");
+	Output.append("KMETA_REG_NAME(U32);\n");
+	Output.append("KMETA_REG_NAME(U64);\n");
+	Output.append("KMETA_REG_NAME(F32);\n");
+	Output.append("KMETA_REG_NAME(F64);\n");
+	Output.append("KMETA_REG_NAME(bool);\n");
+
+	for (size_t i = 0; i < Cls.size(); i++) {
+		Output.append("KMETA_REG_NAME(" + Cls[i].name + ");\n");
+	}
+
+	for (size_t i = 0; i < Cls.size(); i++) {
+		Output.append("KMETA_REG_NAME(" + Enm[i].name + ");\n");
+	}
+
+	Output.append("}\n");
+}
+
 int main(int argc, char* argv[]) {
 
-	if (argc != 3) {
-		printf("missing input parameter\nusage: khparser.exe [includeDirectory] [outputDirectory]");
+	if (argc < 4) {
+		printf("missing input parameter\nusage: khparser.exe -i [includeDirectory] -o [outputDirectory]");
 		return 0;
 	}
 
-	std::string baseadr(argv[1]);
-	std::string outadr(argv[2]);
+	std::string baseadr;
+	std::string outadr;
+	for (int i = 0; i < argc; i++) {
+		if (std::string(argv[i]) == "-i" && i < (argc - 1)) {
+			baseadr = argv[i + 1];
+		} else if (std::string(argv[i]) == "-o" && i < (argc - 1)) {
+			outadr = argv[i + 1];
+		}
+	}
+
 	std::vector<std::string> hadrs;
 	std::vector<MClass> cls;
 	std::vector<MEnum> ens;
 	std::stack<std::string> dirstack;
 	tinydir_dir dir;
-	tinydir_open(&dir, argv[1]);
+	tinydir_open(&dir, baseadr.c_str());
 
 	unsigned int fcounter = 0;
 	unsigned int dcounter = 0;
 	unsigned int gcounter = 0;
+	unsigned int skipped = 0;
 	while (true) {
 		if (dir.has_next) {
 			tinydir_file file;
@@ -1595,6 +1908,12 @@ int main(int argc, char* argv[]) {
 					dirstack.push(file.path);
 					++dcounter;
 				}
+
+			} else if ((std::string(file.name).find(".khgen.") != std::string::npos) ||
+					   (std::string(file.name).find(".cpp") != std::string::npos)||
+					   (std::string(file.path).find("removed") != std::string::npos)) {
+				printf("skipped file: %s\n", file.path);
+				++skipped;
 
 			} else {
 				printf("parse file: %s\n", file.path);
@@ -1623,19 +1942,22 @@ int main(int argc, char* argv[]) {
 	// create register function
 	std::string header;
 	std::string source;
+	hadrs.push_back("kmeta.khgen.h");
 	if (!cls.empty() || !ens.empty()) {
 		createHead(header);
 		createSource(hadrs, cls, ens, source);
 	}
 
-	std::ofstream out(outadr + "/kitemeta.khgen.h");
+	std::ofstream out(outadr + "/kmeta.khgen.h");
 	out << header;
 	out.close();
 
-	out.open(outadr + "/kitemeta.khgen.cpp");
+	out.open(outadr + "/kmeta.khgen.cpp");
 	out << source;
 	out.close();
 
-	printf("\n---------[ Kite header parser log ]---------\n%u file(s) parsed\n%u directory searched\n%u file generated\n",
-		   fcounter, dcounter, gcounter);
+	printf("\n---------[ Kite header parser log ]---------\n%u\tfile(s) parsed\n%u\tdirectory searched\n%u\tfile skipped\n%u\tfile generated\n",
+		   fcounter, dcounter, skipped, gcounter);
+
+	return 0;
 }

@@ -20,7 +20,7 @@ USA
 
 #include <vector>
 #include <utility>
-#include "Kite/core/utility/krefvariant.h"
+#include "Kite/core/system/krefvariant.h"
 
 namespace Kite {
 	typedef std::pair<F32, KRefVariant> KAnimKey;

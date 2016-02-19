@@ -21,7 +21,6 @@ USA
 #define KMESSENGER_H
 
 #include "Kite/Core/system/ksystemdef.h"
-#include "Kite/Core/system/kobject.h"
 #include "Kite/Core/system/knoncopyable.h"
 #include "Kite/Core/gameplay/kgameplaytypes.h"
 #include "Kite/Core/gameplay/kgameplaystructs.h"
@@ -40,7 +39,7 @@ USA
 KMETA
 namespace Kite {
 	KMETA_CLASS(SCRIPTABLE)
-	class KITE_FUNC_EXPORT KMessenger : public KObject, KNonCopyable{
+	class KITE_FUNC_EXPORT KMessenger : KNonCopyable{
 	public:
 		/// MessagePoolSize: message pool capacity
 		/// pass lua state if you want send message from lua
@@ -122,10 +121,9 @@ namespace Kite {
 		};
 		void _configQueue(const KMessage &Message, KMessageScopeTypes Scope, F32 WaitTime,
 						  SendType Type, KMessageScopeTypes SType);
-
 		void _setLuaData(const KMessage &Msg);
-
 		KLinkNode<TableHolder> *_freeTopNode();
+
 		std::unordered_map<U32, Internal::MSGHandlerHolder> _kregMap;
 		std::unordered_multimap<U32, KMessageHandler *> _khndlMap;
 		std::list<KMessageHandler *> _kpubList;

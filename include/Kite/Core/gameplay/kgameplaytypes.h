@@ -24,13 +24,14 @@ USA
 
 namespace Kite {
 
-	enum KComponentTypes : U8 {
-		KCT_LOGIC = 0,
-		KCT_GRAPHIC,
+	enum class KComponentTypes : U8 {
+		KCT_GRAPHIC = 0,
 		KCT_AUDIO,
 		KCT_INPUT,
-		KCT_TRANSFORM
+		KCT_TRANSFORM,
+		KCT_MAX_COMP_SIZE,
 	};
+	// KCT_LOGIC // logic (scripts) components stored in another place
 
 	enum KMessageScopeTypes {
 		KMS_SELF,

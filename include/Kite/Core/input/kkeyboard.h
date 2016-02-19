@@ -22,22 +22,33 @@
 
 #include "Kite/Core/system/ksystemdef.h"
 #include "Kite/Core/input/kinputtypes.h"
+#include "Kite/Core/input/kinputstructs.h"
 
+struct SDL_Window;
+union SDL_Event;
 namespace Kite{
     class KITE_FUNC_EXPORT KKeyboard{
     public:
-        /// set window handle
-		static void setWindowHandle(KWindowHandle Window);
+		/// initialize keyboard module
+		static void initeKeyboard();
 
         /// returns the last state reported for the specified key
-        static KButtonStateTypes getButtonState(KKeyboardKeyTypes Button);
+		/// uasge: c++ and lua
+        static bool isButtonPressed(KKeyCodeTypes Button);
 
-        /// input callbacks
-        static void registerCallback(void *Callback, KKeyboardCallbackTypes CallbackType);
-        static void unregisterCallback(KKeyboardCallbackTypes CallbackType);
+		/// returns the last state of the keyboard
+		/// usage: c++ only
+		static const U8 *getKeyboardState();
 
-    private:
-        static KWindowHandle _kwinHandle;
+		/// get the current key modifier state for the keyboard
+		/// usage: c++ and lua
+		static bool isModifierPressed(KKeyModifierTypes Modifier);
+
+		/// get the current key modifier state for the keyboard
+		/// usage: c++
+		/// ex: if (KKeyboard::getKeyboardState()[KCT_U]) { u pressed TODO }
+		static KKeyModifierTypes getModifierState();
+
     };
 }
 

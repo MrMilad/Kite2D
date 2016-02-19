@@ -31,15 +31,12 @@ namespace Kite {
 
 	class KITE_FUNC_EXPORT KBaseSerial {
 	public:
-		// use default standard allocator
-		KBaseSerial();
-
 		// use custom allocator and deleter
-		KBaseSerial(KBaseStorage *Allocator);
+		KBaseSerial(KBaseStorage &Allocator);
 		virtual void writePOD(const void *Value, SIZE Size, bool Str) = 0;
 		virtual void readPOD(void *Value, SIZE Size, bool Str) = 0;
 
-		inline KBaseStorage *getAllocator() const { return _kallocator; }
+		inline KBaseStorage &getAllocator() const { return *_kallocator; }
 	protected:
 		KBaseStorage *_kallocator;
 	};

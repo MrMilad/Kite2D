@@ -32,20 +32,25 @@ enum KAspectRatioTypes{
 };
 
 /* Callbacks */
-enum KWindowCallbackTypes{
-    KWC_ALL = 0, // use only for unregistering callback
-    KWC_SIZECHANGE,
-    KWC_POSCHANGE,
-    KWC_FOCUSCHANGE,
-    KWC_CLOSE,
-    KWC_FBCHANGE, // frame buffer
+enum KWindowEventType{
+	KWE_SHOWN = 0, // window has been shown
+	KWE_HIDDEN,
+	KWE_EXPOSED,
+	KWE_MOVED,
+	KWE_RESIZED,
+	KWE_SIZE_CHANGED,
+	KWE_MINIMIZED,
+	KWE_MAXIMIZED,
+	KWE_RESTORED,
+	KWE_ENTER,
+	KWE_LEAVE,
+	KWE_FOCUS_GAINED,
+	KWE_FOCUS_LOST,
+	KWE_CLOSE,
+	KWE_UNKNOWN
 };
 
-typedef void (*KCallWinSizeChange)(KWindowHandle WinHandle, I32 Width, I32 Height);
-typedef void (*KCallWinPosChange)(KWindowHandle WinHandle, I32 Top, I32 Left);
-typedef void (*KCallWinFBChange)(KWindowHandle WinHandle, I32 Width, I32 Height);
-typedef void (*KCallWinFocusChange)(KWindowHandle WinHandle, bool Focus);
-typedef void (*KCallWinClose)(KWindowHandle WinHandle); // return false = close window
+typedef void (*KCallWindowEvent)(KWindowEventType EventType);
 
 }
 

@@ -27,11 +27,11 @@
 #include "Kite/core/window/kwindowtypes.h"
 #include "Kite/core/window/kwindowstructs.h"
 
+struct SDL_Window;
 namespace Kite{
     class KITE_FUNC_EXPORT KGLWindow : public KCoreInstance{
     public:
-        // window will be created after open() call
-        KGLWindow();
+        /// window will be created after open() call
         KGLWindow(KWindowState &WindowState);
         ~KGLWindow();
 
@@ -39,26 +39,22 @@ namespace Kite{
         void display(); // swap buffer
 
         void open();
-        void open(KWindowState &WindowState);
         void close();
 
         bool isOpen() const;
-        //static bool isAnyCreatedContext();
 
         /// manipulate window settings
         void setTitle(const std::string &Title);
         void setSize(U32 Width, U32 Height);
         void setPosition(U32 XPosition, U32 YPosition);
         void setShowCursor(bool Enable);
-        //bool setFullscreen(bool Enable);
 
-        inline KWindowHandle getWindowHandle() const {return (KWindowHandle)_kwindow;}
         inline const KWindowState &getWindowState() const {return _kwinstate;}
-        KVector2I32 getFrameBufferSize();
+
+		inline KWindowHandle getHandle() const { return _kwindow; }
 
         /// window callbacks
-        void registerCallback(void *Callback, KWindowCallbackTypes CallbackType);
-        void unregisterCallback(KWindowCallbackTypes CallbackType);
+        void registerCallback(KCallWindowEvent Callback);
 
 		//! Get size of resource in memory
 		/*!
@@ -67,8 +63,10 @@ namespace Kite{
 		U64 getInstanceSize() const;
 
     private:
-        void *_kwindow;
+		KCallWindowEvent _kcallb;
         KWindowState _kwinstate;
+		SDL_Window *_kwindow;
+		void *_kcontext;
     };
 }
 

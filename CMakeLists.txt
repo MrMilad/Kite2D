@@ -66,9 +66,6 @@ if(WINDOWS)
     endif()
 endif()
 
-# Core
-add_subdirectory(src/Kite/core)
-
-# test
-add_subdirectory(test)
+# Kite2D
+add_subdirectory(src)
 

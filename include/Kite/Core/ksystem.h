@@ -17,28 +17,24 @@ License along with this library; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 USA
 */
-#ifndef KCOMMANAGER_H
-#define KCOMMANAGER_H
+#ifndef KSYSTEM_H
+#define KSYSTEM_H
 
 #include "Kite/core/kcoredef.h"
-#include "kite/memory/kbasestorage.h"
-#include "Kite/core/kcomponent.h"
-#include "Kite/core/kgameplaytypes.h"
-#include <vector>
+#include "Kite/core/kentitymanager.h"
+#include "Kite/core/klistener.h"
+#include "Kite/core/kmessenger.h"
+#include "Kite/meta/kmetadef.h"
 
-KMETA
 namespace Kite {
-	KMETA_CLASS()
-	class KITE_FUNC_EXPORT KComManager {
+	class KITE_FUNC_EXPORT KSystem: public KMessenger, public KListener {
 	public:
-		KComManager(KBaseStorage &Storage);
+		virtual ~KSystem() {}
 
-		KComponent *createComponent();
+		virtual void update(F32 Delta, KEntityManager &EManager) = 0;
 
-	private:
-		std::vector<KComponent> _kcomponents[(U8)KComponentTypes::KCT_MAX_COMP_SIZE];
-		KBaseStorage *_kbaseAlloc;
+		virtual void inite() = 0;
 	};
 }
 
-#endif // KCOMMANAGER_H
+#endif // KSYSTEM_H

@@ -17,8 +17,8 @@
     Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
     USA
 */
-#ifndef KSYSTEMUTIL_H
-#define KSYSTEMUTIL_H
+#ifndef KCOREUTIL_H
+#define KCOREUTIL_H
 
 #include "Kite/core/kcoredef.h"
 #include "Kite/core/kcoretypes.h"
@@ -50,10 +50,10 @@ namespace Kite{
 
 	KITE_FUNC_EXPORT extern bool isBigEndian();
 
-	KITE_FUNC_EXPORT extern void getHash32(void *Data, U32 Lenght, U32 Seed, void *Out);
+	KITE_FUNC_EXPORT extern U32 getHash32(const void *Data, U32 Lenght, U32 Seed);
 
 	KITE_FUNC_EXPORT extern void getHash128(void *Data, U32 Lenght, U32 Seed, void *Out);
 
 }
 
-#endif // KSYSTEMUTIL_H
+#endif // KCOREUTIL_H

@@ -21,7 +21,7 @@
 #define KMATHSTRUCTS_H
 
 #include <cmath>
-#include "Kite/Core/kcoredef.h"
+#include "Kite/core/kcoredef.h"
 
 namespace Kite{
 

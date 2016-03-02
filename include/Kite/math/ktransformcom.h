@@ -20,30 +20,29 @@
 #ifndef KTRANSFORMABLE_H
 #define KTRANSFORMABLE_H
 
-#include "Kite/Core/system/ksystemdef.h"
-#include "Kite/Core/math/kmathdef.h"
-#include "Kite/Core/math/kmathstructs.h"
-#include "Kite/Core/math/ktransform.h"
-#include "Kite/Core/math/kmatrix3.h"
+#include "Kite/core/kcoredef.h"
+#include "Kite/core/kcomponent.h"
+#include "Kite/math/kmathstructs.h"
+#include "Kite/math/kmatrix3.h"
 
 namespace Kite{
-    class KITE_FUNC_EXPORT KTransformable{
-		/*friend KBytesArray &operator<<(KBytesArray &Out, const KTransformable &Value);
-		friend KBytesArray &operator>>(KBytesArray &In, KTransformable &Value);*/
+    class KITE_FUNC_EXPORT KTransformCom: public KComponent{
+		friend class KTransformSys;
     public:
-        KTransformable();
-        virtual ~KTransformable();
+		KTransformCom(const std::string &Name, U32 Index);
+
+		/// construct a transform (unit matrix)
+		void inite(const std::string &EntityName);
+
+		void remove(const std::string &EntityName);
+
+		KRecieveTypes onMessage(KMessage &Message, KMessageScopeTypes Scope);
+
         /// set position
         /// completely restore the previous position
         /// default (0, 0)
         void setPosition(const KVector2F32& Position);
-		void setPosition(F32 X, F32 Y);
-        inline const KVector2F32 *getPosition() const {return &_kposition;}
-
-        /// move object
-        /// adds to the current position
-        void move(const KVector2F32 &Steps);
-		void move(F32 X, F32 Y);
+        inline const KVector2F32 &getPosition() const {return _kposition;}
 
         /// completely restore the previous Rotation
         /// range [0, 360]
@@ -51,37 +50,30 @@ namespace Kite{
         void setRotation(F32 Angle);
         inline F32 getRotation() const {return _krotation;}
 
-        /// adds to the current rotation
-        void rotate(F32 Angle);
 
         /// set scale
         /// completely restore the previous scale
         /// default (1, 1)
         void setScale(const KVector2F32 &Scale);
-		void setScale(F32 X, F32 Y);
-        inline const KVector2F32 *getScale() const {return &_kscale;}
+        inline const KVector2F32 &getScale() const {return _kscale;}
 
-        /// multiplies the current scale
-        void scale(const KVector2F32 &Scale);
-		void scale(F32 X, F32 Y);
-
+		/// set scale
+		/// completely restore the previous scale
+		/// default (0, 0)
 		void setSkew(const KVector2F32 &Skew);
-		void setSkew(F32 X, F32 Y);
-		inline const KVector2F32 *getSkew() const { return &_kskew; }
-
-		void skew(const KVector2F32 &Skew);
-		void skew(F32 X, F32 Y);
+		inline const KVector2F32 &getSkew() const { return _kskew; }
 
         /// set center of (position, scale, rotation)
         /// relative to the top-left
         /// default (0, 0)
         void setCenter(const KVector2F32 &Center);
-		void setCenter(F32 X, F32 Y);
-        inline const KVector2F32 *getCenter() const {return &_kcenter;}
+        inline const KVector2F32 &getCenter() const {return _kcenter;}
 
-		/// combining the position/rotation/scale/center
-		const KTransform *getTransform() const;
-		inline KTransformable &getTransformable() { return *this; }
+		/// return the combined matrix
+		inline const KMatrix3 *getMatrix() const { return &_kmatrix; }
+
+		/// return the combined matrix for direct manipulation
+		inline KMatrix3 *manipulateMatrix() { return &_kmatrix; }
 
     private:
         KVector2F32 _kposition;
@@ -89,8 +81,7 @@ namespace Kite{
         KVector2F32 _kscale;
 		KVector2F32 _kskew;
         KVector2F32 _kcenter;
-        mutable KTransform _ktransform;
-        mutable bool _kneedUpdate;
+		KMatrix3 _kmatrix;
     };
 }
 

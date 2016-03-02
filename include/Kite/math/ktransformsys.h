@@ -17,24 +17,31 @@ License along with this library; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 USA
 */
-#include "Kite/core/kcomponent.h"
-#include "Kite/core/kcoreutil.h"
-#include "Kite/meta/kmetamanager.h"
-#include "Kite/meta/kmetaclass.h"
-#include <luaintf\LuaIntf.h>
+#ifndef KTRANSFORMSYS_H
+#define KTRANSFORMSYS_H
 
+#include "Kite/core/kcoredef.h"
+#include "Kite/core/ksystem.h"
+#include "Kite/math/kmathdef.h"
+#include "Kite/math/kmathstructs.h"
+#include "Kite/math/ktransformcom.h"
+#include <vector>
+
+KMETA
 namespace Kite {
-	KComponent::KComponent(KComponentTypes Type, const std::string &Name, U32 Index) :
-		_ktype(Type), _kname(Name), _kindex(Index)
-	{
-		for (U8 i = 0; i < (U8)KComponentTypes::KCT_MAX_COMP_SIZE; i++) {
-			_kdependency[i] = false;
-		}
-	}
+	KMETA_CLASS(SYSTEM)
+	class KITE_FUNC_EXPORT KTransformSys: public KSystem {
+	public:
+		void update(F32 Delta, KEntityManager &EManager);
 
-	KComponent::~KComponent() {}
+		void inite();
 
-	void KComponent::setDependency(KComponentTypes Type, bool Value) {
-		_kdependency[(U8)Type] = Value;
-	}
+		KRecieveTypes onMessage(KMessage &Message, KMessageScopeTypes Scope);
+
+		void computeMatrix(KTransformCom &Component);
+	private:
+		std::vector<KTransformCom> _kcomponents;
+	};
 }
+
+#endif // KTRANSFORMSYS_H

@@ -20,10 +20,10 @@
 #ifndef KMATHTYPES_H
 #define KMATHTYPES_H
 
-#include "Kite/Core/system/ksystemdef.h"
+#include "Kite/core/kcoredef.h"
 
 namespace Kite{
-	enum KOrientationTypes : I8{
+	enum class KOrientationTypes : I8{
 		KO_COLLINEAR = 0,
 		KO_CLOCKWISE = -1,
 		KO_CCLOCKWISE = 1

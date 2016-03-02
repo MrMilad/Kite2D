@@ -20,45 +20,28 @@
 #ifndef KTRANSFORM_H
 #define KTRANSFORM_H
 
-#include "Kite/Core/system/ksystemdef.h"
-#include "Kite/Core/math/kmathdef.h"
-#include "Kite/Core/math/kmathstructs.h"
-#include "Kite/Core/math/kmatrix3.h"
+#include "Kite/core/kcoredef.h"
+#include "Kite/math/kmathdef.h"
+#include "Kite/math/kmathstructs.h"
+#include "Kite/math/kmatrix3.h"
 
 namespace Kite{
     class KITE_FUNC_EXPORT KTransform{
-		/*friend KBytesArray &operator<<(KBytesArray &Out, const KTransform &Value);
-		friend KBytesArray &operator>>(KBytesArray &In, KTransform &Value);*/
     public:
-		/// construct a transform (unit matrix)
-		KTransform();
-
-		/// construct a transform from a 3x3 matrix
-		KTransform(const KMatrix3 &Matrix);
-
-		/// return the transform as a 3x3 matrix
-		inline const KMatrix3 *getMatrix() const { return &_kmatrix; }
-
 		/// transform a 2D point
-		KVector2F32 transformPoint(const KVector2F32 &Point) const;
+		static KVector2F32 transformPoint(const KMatrix3 &Matrix, const KVector2F32 &Point);
 
-		/// transform a rectangle
-		KRect2F32 transformQuad(const KRect2F32 &Quad) const;
+		/// transform a 2D quad
+		static KRect2F32 transformQuad(const KMatrix3 &Matrix, const KRect2F32 &Quad);
 
-		/// combine the current transform with another one
-		KTransform &combine(const KTransform &Transform);
+		/// combine the given matrix with a translation
+		static void translate(KMatrix3 &Matrix, const KVector2F32 &Offset);
 
-		/// combine the current transform with a translation
-		KTransform &translate(const KVector2F32 &Offset);
+		/// combine the given matrix with a rotation
+		static void rotate(KMatrix3 &Matrix, F32 Angle, const KVector2F32 &Center);
 
-		/// combine the current transform with a rotation
-		KTransform &rotate(F32 Angle, const KVector2F32 &Center);
-
-		/// combine the current transform with a scaling
-		KTransform &scale(const KVector2F32 &ScaleFactor, const KVector2F32 &Center);
-
-	private:
-		KMatrix3 _kmatrix; // 3x3 matrix defining the transformation
+		/// combine the given matrix with a scaling
+		static void scale(KMatrix3 &Matrix, const KVector2F32 &ScaleFactor, const KVector2F32 &Center);
     }; // class
 }
 

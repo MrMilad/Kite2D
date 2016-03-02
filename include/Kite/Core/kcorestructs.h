@@ -17,10 +17,12 @@
     Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
     USA
 */
-#ifndef KSYSTEMSTRUCTS_H
-#define KSYSTEMSTRUCTS_H
+#ifndef KCORESTRUCTS_H
+#define KCORESTRUCTS_H
 
 #include "Kite/core/kcoretypes.h"
+#include <string>
+#include <vector>
 
 namespace Kite{
     /*struct KPowerState{
@@ -112,15 +114,67 @@ namespace Kite{
         {}
     };
 
-	namespace Internal {
-		struct MSGHandlerHolder {
-			bool inPublic;
-			bool inType;
+	namespace Internal{
 
-			MSGHandlerHolder(bool Public = false, bool Type = false) :
-				inPublic(Public), inType(Type) {}
+		struct BaseCompHolder {
+			virtual void *create(const std::string &ComName) = 0;
+			virtual void remove(U32 Index) = 0;
+			virtual void *get(U32 Index) = 0;
+			SIZE type; // type hash code 
+		};
+
+		template <class T>
+		struct CompHolder : public BaseCompHolder {
+			void *create(const std::string &ComName) override{
+				// create an index
+				U32 ind = 0;
+				if (_kfreeIndex.empty()) {
+					_kindex.push_back(_kcomp.size());
+					ind = _kindex.size() - 1;
+				} else {
+					ind = _kfreeIndex.back();
+					_kfreeIndex.pop_back();
+
+					_kindex[ind] = _kcomp.size();
+				}
+
+				// create component
+				_kcomp.push_back(T(ComName, ind));
+				return &_kcomp.back();
+
+			}
+
+			void remove(U32 Index) override{
+				KDEBUG_ASSERT(Index < _kindex.size());
+				KDEBUG_ASSERT(_kindex[Index] < _kcomp.size());
+
+				// remove component (replace it with last component in vector)
+				U32 ind = _kindex[Index];
+				// Beware of move assignment to self
+				if (ind != _kcomp.size() - 1) {
+					_kindex[_kcomp.back().getIndex()] = ind;
+					_kcomp[ind] = std::move(_kcomp.back());
+					
+				}
+				_kcomp.pop_back();
+
+				// storing free index in free list
+				_kfreeIndex.push_back(Index);
+			}
+
+			void *get(U32 Index) override{
+				KDEBUG_ASSERT(Index < _kindex.size());
+				KDEBUG_ASSERT(_kindex[Index] < _kcomp.size());
+
+				return &_kcomp[_kindex[Index]];
+			}
+
+		private:
+			std::vector<T> _kcomp;
+			std::vector<U32> _kindex;
+			std::vector<U32> _kfreeIndex;
 		};
 	}
 }
 
-#endif // KSYSTEMSTRUCTS_H
+#endif // KCORESTRUCTS_H

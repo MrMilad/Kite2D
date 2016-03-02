@@ -17,8 +17,8 @@
     Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
     USA
 */
-#ifndef KSYSTEMTYPES_H
-#define KSYSTEMTYPES_H
+#ifndef KCORETYPES_H
+#define KCORETYPES_H
 
 namespace Kite{
 
@@ -100,7 +100,7 @@ namespace Kite{
 		KST_LEAVE
 	};
 
-	enum KMSGReceiveTypes : U8 {
+	enum class KRecieveTypes : U8 {
 		KMR_RECEIVED = 0,
 		KMR_IGNORED
 	};
@@ -110,11 +110,11 @@ namespace Kite{
 		KCT_AUDIO,
 		KCT_INPUT,
 		KCT_TRANSFORM,
+		KCT_LOGIC,
 		KCT_MAX_COMP_SIZE,
 	};
-	// KCT_LOGIC // logic (scripts) components stored in another place
 
-	enum KMessageScopeTypes {
+	enum class KMessageScopeTypes : U8 {
 		KMS_SELF,
 		KMS_CHILDREN,
 		KMS_ALL
@@ -130,4 +130,4 @@ namespace Kite{
 	typedef I32(*KCallInputStreamClose)();*/
 
 }
-#endif // KSYSTEMTYPES_H
+#endif // KCORETYPES_H

@@ -31,7 +31,8 @@ USA
 #define ENTITY		8
 #define SYSTEM		16
 #define ABSTRACT	32
-#define SCRIPTABLE	64
+#define CONTINER	64
+#define SCRIPTABLE	128
 
 // property flags
 #define KMFLAG_FINAL	1024

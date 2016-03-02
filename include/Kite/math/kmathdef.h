@@ -20,7 +20,7 @@
 #ifndef KMATHDEF_H
 #define KMATHDEF_H
 
-#include "Kite/Core/system/ksystemdef.h"
+#include "Kite/core/kcoredef.h"
 
 namespace Kite {
 

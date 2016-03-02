@@ -17,12 +17,12 @@
     Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
     USA
 */
-#include "Kite/core/system/ksystemutil.h"
+#include "Kite/core/kcoreutil.h"
 #include <hash\mmhash3.h>
 #include "ctime"
 
 namespace Kite{
-void cpuid(unsigned int CPUInfo[4],int InfoType){
+void cpuid(U32 CPUInfo[4],I32 InfoType){
 #ifdef _MSC_VER
 	__cpuid((int *)CPUInfo, (int)InfoType);
 #else
@@ -139,11 +139,13 @@ void cpuid(unsigned int CPUInfo[4],int InfoType){
 		return ((*(char*)&i) == 0);
 	}
 
-	void getHash32(void *Data, U32 Lenght, U32 Seed, void *Out) {
-		MurmurHash3_x86_32(Data, Lenght, Seed, Out);
+	U32 getHash32(const void *Data, U32 Lenght, U32 Seed) {
+		U32 out = 0;
+		MurmurHash3_x86_32(Data, Lenght, Seed, (void *)&out);
+		return out;
 	}
 
-	void getHash128(void *Data, U32 Lenght, U32 Seed, void *Out) {
+	void getHash128(const void *Data, U32 Lenght, U32 Seed, void *Out) {
 		MurmurHash3_x86_128(Data, Lenght, Seed, Out);
 	}
 }

@@ -17,8 +17,8 @@
     Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
     USA
 */
-#ifndef KSYSTEMDEF_H
-#define KSYSTEMDEF_H
+#ifndef KCOREDEF_H
+#define KCOREDEF_H
 
 #include <cstdio>
 #include <iostream>
@@ -284,4 +284,4 @@ namespace Kite{
     typedef void *KContextHandle;
 
 }
-#endif // KSYSTEMDEF_H
+#endif // KCOREDEF_H

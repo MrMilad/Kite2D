@@ -25,7 +25,6 @@ USA
 #include "Kite/meta/kmetadef.h"
 #include <memory>
 #include <string>
-#include <kmessage.khgen.h>
 
 KMETA
 namespace Kite {
@@ -76,7 +75,6 @@ namespace Kite {
 		// copy assignment
 		KMessage& operator=(const KMessage& other);
 
-		KMETA_KMESSAGE_BODY()
 	private:
 		// set lua data table. (script only)
 		KMETA_FUNCTION()

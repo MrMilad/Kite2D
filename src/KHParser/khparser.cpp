@@ -293,6 +293,13 @@ ParsState checkNext(const std::string &Content, unsigned int Pos) {
 }
 
 // get next word (token: sapce or new-line "=+-[]{}())
+// TODO: baiad baraie in tabe halat haie mokhtalef dar nazar begirim
+// masalan baraie VARIABLE, CLASS, FUNCTIN har kodom ie halat joda
+// masalan baraie VARIABLE baiad :: va , ro nadide begire
+// baraie CLASS baiad : ro dar nazar begire
+// baraie FUNCTION ...
+// in halat ha da ghaleb iek enum be tabe dade mishe
+// on gzine akhar (bool Colon) ham baiad hazf beshe bejash halat VARIABLE biad
 unsigned int getNextWord(const std::string &Content, unsigned int Pos, std::string &OutTok, bool Colon) {
 	OutTok.clear();
 	if (Content.empty())
@@ -1420,6 +1427,12 @@ void createMacros(const std::vector<MClass> &Cls, const std::vector<MEnum> &Enms
 			isAbstract = true;
 		}
 
+		// is continer
+		bool isContiner = false;
+		if (std::find(ctags.begin(), ctags.end(), "CONTINER") != ctags.end()) {
+			isContiner = true;
+		}
+
 		// is scriptable
 		bool isScriptable = false;
 		if (std::find(ctags.begin(), ctags.end(), "SCRIPTABLE") != ctags.end()) {
@@ -1427,7 +1440,7 @@ void createMacros(const std::vector<MClass> &Cls, const std::vector<MEnum> &Enms
 		}
 
 		// class without any flag will ignored
-		if (!isPOD && !isResource && !isComponent && !isSystem && !isScriptable) {
+		if (!isPOD && !isResource && !isComponent && !isSystem && !isScriptable && !isContiner) {
 			printf("message: class without any supported flags. %s ignored. \n", Cls[i].name.c_str());
 			continue;
 		}

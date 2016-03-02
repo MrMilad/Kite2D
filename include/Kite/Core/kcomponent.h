@@ -22,22 +22,25 @@ USA
 
 #include "Kite/core/kcoredef.h"
 #include "Kite/core/kcoretypes.h"
-#include "Kite/core/kmessagehandler.h"
+#include "Kite/core/klistener.h"
+#include "Kite/core/kmessenger.h"
 #include "Kite/meta/kmetadef.h"
 #include "Kite/serialization/kbaseserial.h"
 #include <string>
-#include <kcomponent.khgen.h>
 
 KMETA
 namespace Kite {
 	KMETA_CLASS(COMPONENT)
-	class KITE_FUNC_EXPORT KComponent : public KMessageHandler{
+	class KITE_FUNC_EXPORT KComponent : public KMessenger, public KListener{
 	public:
-		KComponent(KComponentTypes Type, const std::string &Name, U32 OwnerID, bool NeedUpdate);
+		KComponent(KComponentTypes Type, const std::string &Name, U32 Index);
 		virtual ~KComponent();
 
-		virtual void inite() = 0;
-		virtual void remove() = 0;
+		/// called when atached to a entity
+		virtual void inite(const std::string &EntityName) = 0;
+
+		/// called when deattached from an entity
+		virtual void remove(const std::string &EntityName) = 0;
 
 		KMETA_PROPERTY("name", "component name")
 		inline const std::string &getName() const { return _kname; }
@@ -45,27 +48,28 @@ namespace Kite {
 		KMETA_PROPERTY("type", "component type")
 		inline KComponentTypes getType() const { return _ktype; }
 
-		KMETA_PROPERTY("needUpdate", "need update")
-		inline void setNeedUpdate(bool NeedUpdate) { _kneedup = NeedUpdate; }
-
-		KMETA_PROPERTY("ownerID", "owner(entity) id")
-		inline U32 getOwnerID() const { return _kownerID; }
-
 		KMETA_PROPERTY("needUpdate")
 		inline bool getNeedUpdate() const { return _kneedup; }
+
+		KMETA_PROPERTY("indexID", "storage index")
+		inline U32 getIndex() const { return _kindex; }
+
+		/// for simulate polymorphism in script
+		KMETA_FUNCTION()
+		inline KComponent *getBase() { return this; }
 
 		KMETA_FUNCTION()
 		inline bool isDependOn(KComponentTypes Type) const { return _kdependency[(U8)Type]; }
 
-		KMETA_KCOMPONENT_BODY();
-
 	protected:
 		void setDependency(KComponentTypes Type, bool Value);
+
+		inline void setNeedUpdate(bool NeedUpdate) { _kneedup = NeedUpdate; }
 
 	private:
 		KMETA_VARIABLE() std::string _kname;
 		KMETA_VARIABLE() KComponentTypes _ktype;
-		KMETA_VARIABLE() U32 _kownerID;
+		KMETA_VARIABLE() U32 _kindex;
 		KMETA_VARIABLE() bool _kneedup;
 		KMETA_VARIABLE() bool _kdependency[(U8)KComponentTypes::KCT_MAX_COMP_SIZE];
 	};

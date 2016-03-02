@@ -22,7 +22,6 @@ USA
 #include "Kite/meta/kmetamanager.h"
 #include "Kite/meta/kmetaclass.h"
 #include <luaintf\LuaIntf.h>
-#include <kmessage.khgen.h>
 
 namespace Kite {
 	KMessage::KMessage() :
@@ -34,13 +33,13 @@ namespace Kite {
 		_ksize(0), _kused(0), _khash(0),
 		_kdata(nullptr), _kconsume(false), _ktype(Type)
 	{
-		getHash32((void *)Type.c_str(), Type.size(), KHASH_SEED, (void *)&_khash);
+		_khash = getHash32((void *)Type.c_str(), Type.size(), KHASH_SEED);
 	}
 
 	KMessage::~KMessage() {}
 
 	void KMessage::setType(const std::string &Type) {
-		getHash32((void *)Type.c_str(), Type.size(), KHASH_SEED, (void *)&_khash);
+		_khash = getHash32((void *)Type.c_str(), Type.size(), KHASH_SEED);
 		_ktype = Type;
 	}
 
@@ -63,7 +62,5 @@ namespace Kite {
 		}
 		return *this;
 	}
-
-	KMETA_KMESSAGE_SOURCE();
 
 }

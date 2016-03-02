@@ -30,10 +30,10 @@ source_group("Source Files\\Meta" FILES ${MET_SRC})
 LIST(APPEND ALL_FILES ${MET_SRC} ${MET_INC})
 
 # core
-#add_subdirectory(Kite/core)
-#source_group("Header Files\\Core" FILES ${COR_INC})
-#source_group("Source Files\\Core" FILES ${COR_SRC})
-#LIST(APPEND ALL_FILES ${COR_SRC} ${COR_INC})
+add_subdirectory(Kite/core)
+source_group("Header Files\\Core" FILES ${COR_INC})
+source_group("Source Files\\Core" FILES ${COR_SRC})
+LIST(APPEND ALL_FILES ${COR_SRC} ${COR_INC})
 
 # serialization
 #add_subdirectory(Kite/serialization)
@@ -41,6 +41,12 @@ LIST(APPEND ALL_FILES ${MET_SRC} ${MET_INC})
 #source_group("Source Files\\Serialization" FILES ${SER_SRC})
 #source_group("Header Files\\Serialization\\types" FILES ${SER_INC_SUB})
 #LIST(APPEND ALL_FILES ${SER_SRC} ${SER_INC} ${SER_INC_SUB})
+
+# math
+add_subdirectory(Kite/math)
+source_group("Header Files\\Math" FILES ${MAT_INC})
+source_group("Source Files\\Math" FILES ${MAT_SRC})
+LIST(APPEND ALL_FILES ${MAT_SRC} ${MAT_INC})
 
 # window
 add_subdirectory(Kite/window)

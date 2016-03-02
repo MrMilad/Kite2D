@@ -17,14 +17,19 @@
     Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
     USA
 */
-#ifndef KSYSTEM_H
-#define KSYSTEM_H
+#ifndef KCORE_H
+#define KCORE_H
 
 #include "Kite/core/kcoredef.h"
 #include "Kite/core/kcoretypes.h"
-#include "Kite/core/system/ksystemstructs.h"
-#include "Kite/core/system/knoncopyable.h"
-#include "Kite/core/kcoreinstance.h"
-#include "Kite/core/system/ksystemutil.h"
+#include "Kite/core/kcorestructs.h"
+#include "Kite/core/kcoreutil.h"
+#include "Kite/core/kmessage.h"
+#include "Kite/core/klistener.h"
+#include "Kite/core/kmessenger.h"
+#include "Kite/core/kentity.h"
+#include "Kite/core/kentitymanager.h"
+#include "Kite/core/kcomponent.h"
+#include "Kite/core/ksystem.h"
 
-#endif // KSYSTEM_H
+#endif // KCORE_H

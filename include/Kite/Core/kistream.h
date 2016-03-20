@@ -17,22 +17,34 @@
     Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
     USA
 */
-#ifndef KCORE_H
-#define KCORE_H
+#ifndef KISTREAM_H
+#define KISTREAM_H
 
 #include "Kite/core/kcoredef.h"
 #include "Kite/core/kcoretypes.h"
-#include "Kite/core/kcorestructs.h"
-#include "Kite/core/kcoreutil.h"
-#include "Kite/core/kistream.h"
-#include "Kite/core/kfistream.h"
-#include "Kite/core/kmessage.h"
-#include "Kite/core/klistener.h"
-#include "Kite/core/kmessenger.h"
-#include "Kite/core/kentity.h"
-#include "Kite/core/kentitymanager.h"
-#include "Kite/core/kresourcemanager.h"
-#include "Kite/core/kcomponent.h"
-#include "Kite/core/ksystem.h"
+#include <string>
 
-#endif // KCORE_H
+namespace Kite{
+	class KITE_FUNC_EXPORT KIStream{
+	public:
+		virtual ~KIStream(){}
+
+		virtual bool open(const std::string &Address, KIOTypes Type) = 0;
+
+		virtual SIZE read(void *Data, SIZE DataSize) = 0;
+
+		virtual I32 seek(U64 Offset, I32 Origin) = 0;
+
+		virtual I64 tell() = 0;
+
+		virtual I32 eof() = 0;
+
+		virtual U64 getSize() = 0;
+
+		virtual bool isOpen() = 0;
+
+		virtual I32 close() = 0;
+	};
+}
+
+#endif // KISTREAM_H

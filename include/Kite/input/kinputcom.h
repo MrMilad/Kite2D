@@ -17,26 +17,35 @@ License along with this library; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 USA
 */
-#ifndef KTRANSFORMSYS_H
-#define KTRANSFORMSYS_H
+#ifndef KINPUTCOM_H
+#define KINPUTCOM_H
 
 #include "Kite/core/kcoredef.h"
-#include "Kite/core/ksystem.h"
-#include "Kite/math/kmathdef.h"
-#include "Kite/math/kmathstructs.h"
-#include "Kite/math/ktransformcom.h"
+#include "Kite/core/kcomponent.h"
 
-KMETA
 namespace Kite {
-	KMETA_CLASS(SYSTEM)
-	class KITE_FUNC_EXPORT KTransformSys: public KSystem {
+	class KITE_FUNC_EXPORT KInputCom : public KComponent {
 	public:
-		void update(F32 Delta, KEntityManager &EManager, KResourceManager &RManager);
+		KInputCom(const std::string &Name);
 
-		bool inite(void *Data);
+		void attached(U32 EntityID) override;
 
-		void computeMatrix(KTransformCom &Component);
+		void deattached(U32 EntityID) override;
+
+		inline void setEnableKeyboard(bool Enable) { _kkeyboard = Enable; }
+		inline bool getEnableKeyboard() const { return _kkeyboard; }
+
+		inline void setEnableMouse(bool Enable) { _kmouse = Enable; }
+		inline bool getEnableMouse() const { return _kmouse; }
+
+		inline void setEnableJoystick(bool Enable) { _kjoystick = Enable; }
+		inline bool getEnableJoystick() const { return _kjoystick; }
+
+	private:
+		bool _kkeyboard;
+		bool _kmouse;
+		bool _kjoystick;
 	};
 }
 
-#endif // KTRANSFORMSYS_H
+#endif // KINPUTCOM_H

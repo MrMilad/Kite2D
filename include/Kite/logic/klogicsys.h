@@ -17,26 +17,25 @@ License along with this library; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 USA
 */
-#ifndef KTRANSFORMSYS_H
-#define KTRANSFORMSYS_H
+#ifndef KLOGICSYS_H
+#define KLOGICSYS_H
 
 #include "Kite/core/kcoredef.h"
 #include "Kite/core/ksystem.h"
-#include "Kite/math/kmathdef.h"
-#include "Kite/math/kmathstructs.h"
-#include "Kite/math/ktransformcom.h"
+#include "Kite/logic/klogiccom.h"
 
 KMETA
 namespace Kite {
 	KMETA_CLASS(SYSTEM)
-	class KITE_FUNC_EXPORT KTransformSys: public KSystem {
+	class KITE_FUNC_EXPORT KLogicSys : public KSystem {
 	public:
 		void update(F32 Delta, KEntityManager &EManager, KResourceManager &RManager);
 
 		bool inite(void *Data);
 
-		void computeMatrix(KTransformCom &Component);
+	private:
+		void cathcAndRegist(KLogicCom *Component, KResourceManager &RManager);
+		lua_State *_klvm;
 	};
 }
-
-#endif // KTRANSFORMSYS_H
+#endif // KLOGICSYS_H

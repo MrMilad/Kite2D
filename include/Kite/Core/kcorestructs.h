@@ -21,6 +21,8 @@
 #define KCORESTRUCTS_H
 
 #include "Kite/core/kcoretypes.h"
+#include "Kite/serialization/kbaseserial.h"
+#include "Kite/serialization/types/kstdvector.h"
 #include <string>
 #include <vector>
 
@@ -115,66 +117,169 @@ namespace Kite{
     };
 
 	namespace Internal{
-
-		struct BaseCompHolder {
-			virtual void *create(const std::string &ComName) = 0;
-			virtual void remove(U32 Index) = 0;
-			virtual void *get(U32 Index) = 0;
-			SIZE type; // type hash code 
-		};
-
-		template <class T>
-		struct CompHolder : public BaseCompHolder {
-			void *create(const std::string &ComName) override{
+		// catch friendly storage!
+		template<typename T>
+		struct CFStorage {
+			U32 add(T &Object){
 				// create an index
 				U32 ind = 0;
 				if (_kfreeIndex.empty()) {
-					_kindex.push_back(_kcomp.size());
+					_kindex.push_back(_kcontiner.size());
 					ind = _kindex.size() - 1;
 				} else {
 					ind = _kfreeIndex.back();
 					_kfreeIndex.pop_back();
 
-					_kindex[ind] = _kcomp.size();
+					_kindex[ind] = _kcontiner.size();
 				}
 
 				// create component
-				_kcomp.push_back(T(ComName, ind));
-				return &_kcomp.back();
-
+				_kcontiner.push_back(Object);
+				return ind;
 			}
 
-			void remove(U32 Index) override{
-				KDEBUG_ASSERT(Index < _kindex.size());
-				KDEBUG_ASSERT(_kindex[Index] < _kcomp.size());
+			void remove(U32 Index) {
+				if (Index >= _kindex.size()) {
+					KDEBUG_PRINT("index is out of range");
+					return;
+				}
+
+				if (_kindex[Index] >= _kcontiner.size()) {
+					KDEBUG_PRINT("index is out of range");
+					return;
+				}
 
 				// remove component (replace it with last component in vector)
 				U32 ind = _kindex[Index];
 				// Beware of move assignment to self
-				if (ind != _kcomp.size() - 1) {
-					_kindex[_kcomp.back().getIndex()] = ind;
-					_kcomp[ind] = std::move(_kcomp.back());
-					
+				if (ind != _kcontiner.size() - 1) {
+					_kindex[_kcontiner.back().getID()] = ind;
+					_kcontiner[ind] = std::move(_kcontiner.back());
+
 				}
-				_kcomp.pop_back();
+				_kcontiner.pop_back();
 
 				// storing free index in free list
 				_kfreeIndex.push_back(Index);
 			}
 
-			void *get(U32 Index) override{
-				KDEBUG_ASSERT(Index < _kindex.size());
-				KDEBUG_ASSERT(_kindex[Index] < _kcomp.size());
+			T *get(U32 Index) {
+				if (Index >= _kindex.size()) {
+					KDEBUG_PRINT("index is out of range");
+					return nullptr;
+				}
 
-				return &_kcomp[_kindex[Index]];
+				if (_kindex[Index] >= _kcontiner.size()) {
+					KDEBUG_PRINT("index is out of range");
+					return nullptr;
+				}
+
+				return &_kcontiner[_kindex[Index]];
+			}
+
+			auto begin() { return _kcontiner.begin(); }
+
+			auto end() { return _kcontiner.end(); }
+
+			SIZE getSize() const { return _kcontiner.size(); }
+
+			void clear() {
+				_kcontiner.clear();
+				_kindex.clear();
+				_kfreeIndex.clear();
 			}
 
 		private:
-			std::vector<T> _kcomp;
+			std::vector<T> _kcontiner;
 			std::vector<U32> _kindex;
 			std::vector<U32> _kfreeIndex;
 		};
+
+		template<class T>
+		struct BaseCHolder {
+			/*friend KBaseSerial &operator<<(KBaseSerial &Out, BaseCompHolder &Value) {
+			Value.serial(Out, KSerialStateTypes::KST_SERIALIZE); return Out;
+			}
+
+			friend KBaseSerial &operator>>(KBaseSerial &In, BaseCompHolder &Value) {
+			Value.serial(In, KSerialStateTypes::KST_DESERIALIZE); return In;
+			}*/
+
+			//virtual void serial(KBaseSerial &Serializer, KSerialStateTypes State) = 0;
+			virtual U32 add(const std::string &Name) = 0;
+			virtual void remove(U32 Index) = 0;
+			virtual T *get(U32 Index) = 0;
+			virtual void clear() = 0;
+			virtual SIZE getSize() = 0;
+			SIZE type; // type hash code 
+		};
+
+		template <class T, class Y>
+		struct CHolder : public BaseCHolder<Y> {
+			/*void serial(KBaseSerial &Serializer, KSerialStateTypes State) override {
+				if (State == KSerialStateTypes::KST_SERIALIZE) {
+					Serializer << type;
+
+					Serializer << _kcomp.size();
+					Serializer << _kcomp;
+
+					Serializer << _kindex.size();
+					Serializer << _kindex;
+
+					Serializer << _kfreeIndex.size();
+					Serializer << _kfreeIndex;
+
+				} else if (State == KSerialStateTypes::KST_DESERIALIZE) {
+					SIZE tp;
+					SIZE size;
+					Serializer >> tp;
+					if (tp == type) {
+						Serializer >> size;
+						_kcomp.resize(size, T("", 0));
+						Serializer >> _kcomp;
+
+						Serializer >> size;
+						_kindex.resize(size);
+						Serializer >> _kindex;
+
+						Serializer >> size;
+						_kfreeIndex.resize(size);
+						Serializer >> _kfreeIndex;
+					} else {
+						KDEBUG_PRINT("type missmatch. serialization uncomplete");
+					}
+				}
+			}*/
+
+			U32 add(const std::string &Name) override {
+				return _kstorage.add(T(Name));
+			}
+
+			void remove(U32 Index) override {
+				_kstorage.remove(Index);
+			}
+
+			Y *get(U32 Index) override {
+				return (Y *)_kstorage.get(Index);
+			}
+
+			void clear() override {
+				_kstorage.clear();
+			}
+
+			SIZE getSize() override {
+				return _kstorage.getSize();
+			}
+
+			CFStorage<T> *getStorage(){
+				return &_kstorage;
+			}
+
+		private:
+			CFStorage<T> _kstorage;
+		};
 	}
+
 }
 
 #endif // KCORESTRUCTS_H

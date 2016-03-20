@@ -22,7 +22,7 @@ USA
 
 #include "Kite/core/kcoredef.h"
 #include "Kite/core/kvariantbase.h"
-#include "Kite/meta/kmetaobject.h"
+#include <cstring>
 
 namespace Kite {
 	class KITE_FUNC_EXPORT KVariant : public KVariantBase {
@@ -35,12 +35,8 @@ namespace Kite {
 			memcpy(_kdata, Value, getSize());
 		}
 
-		KVariant(void *Data, SIZE Size) :
-			KVariantBase(Data, Size) 
-		{}
-
 		KVariant() :
-			KVariantBase(nullptr, 0) 
+			KVariantBase(nullptr, 0, 0) 
 		{}
 
 		~KVariant() {
@@ -50,17 +46,20 @@ namespace Kite {
 		}
 
 		KVariant& operator=(const KVariant& Right) {
-			if (this == &Right)
+			if (this == &Right) {
 				return *this;
 
-			if (_ksize == Right.getSize())
+			} else if (_ksize == Right.getSize()){
 				memcpy(_kdata, Right.getData(), Right.getSize());
-			else {
+				_ktype = Right.getType();
+
+			} else {
 				delete[] reinterpret_cast<char *>(_kdata);
 				_kdata = nullptr;
 
-				// get meta type
+				
 				_ksize = Right.getSize();
+				_ktype = Right.getType();
 
 				// we require a new copy if meta does not match!
 				_kdata = new char[getSize()];
@@ -71,19 +70,22 @@ namespace Kite {
 		}
 
 		template <typename TYPE>
-		KVariant& operator=(const TYPE& Right) {
+		KVariant& operator=(const TYPE &Right) {
 			// we require a new copy if meta does not match!
 			if (_ksize == sizeof(TYPE)) {
 				// copy
 				memcpy(_kdata, Right.getData(), getSize());
+				_ktype = typeid(TYPE).hash_code();
 
 			} else {
 
 				delete[] reinterpret_cast<char *>(_kdata);
 				_kdata = nullptr;
 
-				// get meta type
+				
 				_ksize = sizeof(TYPE);
+				_ktype = typeid(TYPE).hash_code();
+
 
 				// create new copy
 				_kdata = new char[getSize()];

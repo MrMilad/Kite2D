@@ -22,7 +22,7 @@ USA
 
 #include "Kite/core/kcoredef.h"
 #include "Kite/meta/kmetatypes.h"
-#include "Kite/meta/kmetaobject.h"
+#include "Kite/meta/kmetabase.h"
 #include <string>
 #include <vector>
 
@@ -46,6 +46,15 @@ namespace Kite {
 			name(Name), typeInfo(TypeInfo), arraySize(ArraySize),
 			typeHandle(TypeHandle), next(nullptr)
 			 {}
+	};*/
+
+	/*struct KMetaBaseClass {
+	std::string name;			//!< Name of base class
+	KMetaBaseInheriTypes type;	//!< public, private or protected
+	KMetaBaseClass *next;		//!< Pointer to the next member
+
+	KMetaBaseClass(const std::string &Name, KMetaBaseInheriTypes BaseType) :
+	name(Name), type(BaseType), next(nullptr) {}
 	};*/
 
 	struct KMetaProperty {
@@ -73,40 +82,31 @@ namespace Kite {
 		{}
 	};
 
-	struct KMetaBase {
-		std::string name;			//!< Name of base class
-		KMetaBaseInheriTypes type;	//!< public, private or protected
-		KMetaBase *next;			//!< Pointer to the next member
-
-		KMetaBase(const std::string &Name, KMetaBaseInheriTypes BaseType) :
-			name(Name), type(BaseType), next(nullptr) {}
-	};
-
 	//! Object for holding various info about any C++ type for the MetaData reflection system.
 	/*!
 	*/
-	class KITE_FUNC_EXPORT KMetaClass : public KMetaObject {
+	class KITE_FUNC_EXPORT KMetaClass : public KMetaBase {
 	public:
-		KMetaClass(const std::string &Name, U32 Flag, U32 Size);
+		KMetaClass(const std::string &Name, U32 Flag, U32 Size, const std::string &Category = "");
 
 		~KMetaClass();
 
 		//void addMember(const KMetaMember *Member);
 
-		void addProperty(const KMetaProperty *Property);
+		//void addBase(const KMetaBaseClass *Base);
 
-		void addBase(const KMetaBase *Base);
+		void addProperty(const KMetaProperty *Property);
 
 		void addFunction(const KMetaFunction *Base);
 
 		//inline const KMetaMember *getMembers() const { return _kmembers; }
 		//inline bool hasMembers() const { return (_kmembers) ? true : false;}
 
+		//inline const KMetaBaseClass *getBase() const { return _kbases; }
+		//inline bool hasBase() const { return (_kbases) ? true : false; }
+
 		inline const KMetaProperty *getProperties() const { return _kproperties; }
 		inline bool hasProperties() const { return (_kproperties) ? true : false; }
-
-		inline const KMetaBase *getBase() const { return _kbases; }
-		inline bool hasBase() const { return (_kbases) ? true : false; }
 
 		inline const KMetaFunction *getFunctions() const { return _kfunctions; }
 		inline bool hasFunction() const { return (_kfunctions) ? true : false; }
@@ -114,12 +114,13 @@ namespace Kite {
 	private:
 		//KMetaMember *_kmembers;
 		//KMetaMember *_klastMember;
+		//KMetaBaseClass *_kbases;
+		//KMetaBaseClass *_klastBase;
 		KMetaProperty *_kproperties;
 		KMetaProperty *_klastProperties;
-		KMetaBase *_kbases;
-		KMetaBase *_klastBase;
 		KMetaFunction *_kfunctions;
 		KMetaFunction *_klastFunc;
+		std::string _kcategory;
 	};
 }
 #endif // KMETACLASS_H

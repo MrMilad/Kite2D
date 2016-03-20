@@ -22,14 +22,14 @@ USA
 
 #include "Kite/core/kcoredef.h"
 #include "Kite/serialization/kbaseserial.h"
-#include <list>
+#include <vector>
 
 namespace Kite {
 
 	namespace Internal {
 		template<typename T2, typename T3>
-		struct serialHelper3<std::list, T2, T3> {
-			static void write(KBaseSerial &Out, const std::list<T2, T3> &Value) {
+		struct serialHelper3<std::vector, T2, T3> {
+			static void write(KBaseSerial &Out, const std::vector<T2, T3> &Value) {
 				bool empty = true;
 				U32 size = 0;
 
@@ -47,7 +47,7 @@ namespace Kite {
 				}
 			}
 
-			static void read(KBaseSerial &In, std::list<T2, T3> &Value) {
+			static void read(KBaseSerial &In, std::vector<T2, T3> &Value) {
 				bool empty = true;
 				U32 size = 0;
 

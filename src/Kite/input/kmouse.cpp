@@ -22,10 +22,18 @@
 
 namespace Kite{
 	KVector2I32 KMouse::_kwheelVal;
+	U16 KMouse::_kcount = 0;
 	void KMouse::initeMouse() {
 		Internal::initeSDL();
 		// add our watcher for handling mouse wheel
 		DSDL_CALL(SDL_AddEventWatch(KMouse::_eventWatcher, NULL));
+	}
+
+	bool KMouse::isAnyKeyDown() {
+		if (_kcount > 0)
+			return true;
+
+		return false;
 	}
 
 	bool KMouse::isButtonPressed(KMouseButtonTypes Button) {
@@ -87,6 +95,12 @@ namespace Kite{
 		if (Event->type == SDL_MOUSEWHEEL) {
 			_kwheelVal.x = Event->wheel.x;
 			_kwheelVal.y = Event->wheel.y;
+		}
+
+		if (Event->type == SDL_MOUSEBUTTONDOWN) {
+			++_kcount;
+		} else if (Event->type == SDL_MOUSEBUTTONUP) {
+			--_kcount;
 		}
 		return 0;
 	}

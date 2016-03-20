@@ -37,10 +37,9 @@ namespace Kite{
 		KBS_UNKNOWN
 	};*/
 
-	enum KIOTypes{
-		KIO_READ,
-		KIO_WRITE,
-		KIO_WRITE_APPEND
+	enum class KIOTypes : U8{
+		KRT_BIN,
+		KRT_TEXT
 	};
 
 	enum KPrimitiveTypes : U8 {
@@ -83,7 +82,7 @@ namespace Kite{
 		KCI_WINDOW
 	};
 
-	enum KResourceTypes : U8 {
+	enum class KResourceTypes : U8 {
 		KRT_TEXTURE = 0,
 		KRT_IMAGE,
 		KRT_AUDIOBUFFER,
@@ -92,6 +91,7 @@ namespace Kite{
 		KRT_SHPROGRAM,
 		KRT_ATLAS,
 		KRT_ANIMCLIP,
+		KRT_SCRIPT,
 		KRT_SCENE
 	};
 
@@ -105,7 +105,7 @@ namespace Kite{
 		KMR_IGNORED
 	};
 
-	enum class KComponentTypes : U8 {
+	enum class KComTypes : U8 {
 		KCT_GRAPHIC = 0,
 		KCT_AUDIO,
 		KCT_INPUT,

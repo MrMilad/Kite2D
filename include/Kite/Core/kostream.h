@@ -17,26 +17,22 @@ License along with this library; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 USA
 */
-#ifndef KTRANSFORMSYS_H
-#define KTRANSFORMSYS_H
+#ifndef KOSTREAM_H
+#define KOSTREAM_H
 
 #include "Kite/core/kcoredef.h"
-#include "Kite/core/ksystem.h"
-#include "Kite/math/kmathdef.h"
-#include "Kite/math/kmathstructs.h"
-#include "Kite/math/ktransformcom.h"
 
-KMETA
 namespace Kite {
-	KMETA_CLASS(SYSTEM)
-	class KITE_FUNC_EXPORT KTransformSys: public KSystem {
+	class KITE_FUNC_EXPORT KOStream {
 	public:
-		void update(F32 Delta, KEntityManager &EManager, KResourceManager &RManager);
+		virtual ~KOStream() {}
 
-		bool inite(void *Data);
+		virtual bool write(void *Data, SIZE DataSize) = 0;
 
-		void computeMatrix(KTransformCom &Component);
+		virtual bool isOpen() = 0;
+
+		virtual I32 close() = 0;
 	};
 }
 
-#endif // KTRANSFORMSYS_H
+#endif // KOSTREAM_H

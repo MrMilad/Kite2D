@@ -29,6 +29,7 @@ USA
 #include "Kite/meta/kmetadef.h"
 #include <unordered_map>
 #include <string>
+#include <vector>
 
 KMETA
 namespace Kite {
@@ -44,24 +45,89 @@ namespace Kite {
 		KMETA_FUNCTION()
 		KRecieveTypes onMessage(KMessage &Message, KMessageScopeTypes Scope);
 
-		/// only script components
-		KMETA_FUNCTION()
-		bool hasComponent(KComponentTypes Type, const std::string &Name);
+		KMETA_PROPERTY("ParrentID", "entity parrent ID")
+		inline U32 getParrentID() const { return _kpid; }
+
+		KMETA_PROPERTY("ID", "entity unique ID")
+		inline U32 getID() const { return _kid; }
 
 		KMETA_PROPERTY("Name", "entity unique name")
 		inline const std::string &getName() const { return _kname; }
 
+		KMETA_PROPERTY("Active", "is active")
+		inline bool getActive() const { return _kactive; }
+
+		KMETA_PROPERTY("Active")
+		inline void setActive(bool Active) { _kactive = Active; }
+
+		KMETA_FUNCTION()
+		U32 addComponent(KComTypes Type, const std::string &ComponentName = "");
+
+		KMETA_FUNCTION()
+		KComponent *getComponent(KComTypes Type, const std::string &ComponentName = "");
+
+		KMETA_FUNCTION()
+		void getScriptComponents(std::vector<KComponent *> &Output);
+
+		KMETA_FUNCTION()
+		bool hasComponent(KComTypes Type, const std::string &Name);
+
+		KMETA_FUNCTION()
+		bool hasComponent(KComTypes Type);
+
+		KMETA_FUNCTION()
+		I32 getComponentIndex(KComTypes Type, const std::string &Name);
+
+		KMETA_FUNCTION()
+		void removeComponent(KComTypes Type, const std::string &ComponentName = "");
+
+		KMETA_FUNCTION()
+		void clearComponents();
+
+		KMETA_FUNCTION()
+		void addChild(U32 EntityID);
+
+		KMETA_FUNCTION()
+		void removeChild(U32 EntityID);
+
+		KMETA_FUNCTION()
+		void clearChilds();
+
+		KMETA_FUNCTION()
+		bool hasChild() const;
+
+		inline auto beginChild() { return _kchilds.cbegin(); }
+
+		inline auto endChild() { return _kchilds.cend(); }
+
 	private:
 		// internal use 
-		void setComponent(KComponentTypes Type, const std::string &Name, U32 Index);
-		void removeComponent(KComponentTypes Type, const std::string &Name);
-		void clear();
-		I32 getComponentIndex(KComponentTypes Type, const std::string &Name);
-		const std::vector<U32> &getScriptComponentIndex();
+		inline void setCStorage(Internal::BaseCHolder<KComponent> **Storage) { _kcstorage = Storage; }
+		inline void setEStorage(Internal::CFStorage<KEntity> *Storage) { _kestorage = Storage; }
+		void setComponent(KComTypes Type, const std::string &Name, U32 Index);
+
+		inline void setID(U32 ID) { _kid = ID; }
+		inline void setPID(U32 PID) { _kpid = PID; }
+		inline void setPListID(U32 PLID) { _kplistid = PLID; }
+		inline U32 getPListID() const { return _kplistid; }
+		void remChildIndex(U32 ID);
+		inline bool hasParrent() const { return _khparrent; }
+		inline void setHParrent(bool Par) { _khparrent = Par; }
 		
-		KMETA_VARIABLE() std::string _kname;										// entity unique name
-		KMETA_VARIABLE() I32 _kfixedComp[(U8)KComponentTypes::KCT_MAX_COMP_SIZE]; 	// fixed components slots (built-in components)
-		KMETA_VARIABLE() std::unordered_map<std::string, U32> _kscriptComp;			// dynamic components slots (logic components)
+		KMETA_VARIABLE() bool _kactive;											// entity actitvity state
+		KMETA_VARIABLE() bool _khparrent;										// entity actitvity state
+		KMETA_VARIABLE() U32 _kid;												// entity self id in the entity manager
+		KMETA_VARIABLE() U32 _kpid;												// entity parrent id
+		KMETA_VARIABLE() U32 _kplistid;											// entity self id in the parrent list
+		KMETA_VARIABLE() std::string _kname;									// entity unique name
+		KMETA_VARIABLE() I32 _kfixedComp[(U8)KComTypes::KCT_MAX_COMP_SIZE]; 	// fixed components slots (built-in components)
+		KMETA_VARIABLE() std::unordered_map<std::string, U32> _kscriptComp;		// dynamic components slots (logic components)
+		KMETA_VARIABLE() std::vector<U32> _kchilds;								// dynamic components slots (logic components)
+
+		// runtime variables (
+		Internal::BaseCHolder<KComponent>  **_kcstorage;
+		Internal::CFStorage<KEntity> *_kestorage;
+
 	};
 }
 

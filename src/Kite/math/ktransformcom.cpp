@@ -21,26 +21,21 @@
 #include <cmath>
 
 namespace Kite{
-	KTransformCom::KTransformCom(const std::string &Name, U32 Index) :
-		KComponent(KComponentTypes::KCT_TRANSFORM, "Transform", Index)
-	{}
-
-	void KTransformCom::inite(const std::string &EntityName) {
+	KTransformCom::KTransformCom(const std::string &Name) :
+		KComponent("Transform")
+	{
 		_kposition = KVector2F32(0.0f, 0.0f);
 		_krotation = 0.0f;
 		_kscale = KVector2F32(1.0f, 1.0f);
 		_kskew = KVector2F32(0.0f, 0.0f);
 		_kcenter = KVector2F32(0.0f, 0.0f);
 		setNeedUpdate(true);
+		setNeedUpdateRes(false);
 	}
 
-	void KTransformCom::remove(const std::string &EntityName) {
-		
-	}
+	void KTransformCom::attached(U32 EntityID) {}
 
-	KRecieveTypes KTransformCom::onMessage(KMessage &Message, KMessageScopeTypes Scope) {
-		return KRecieveTypes::KMR_IGNORED;
-	}
+	void KTransformCom::deattached(U32 EntityID) {}
 
     void KTransformCom::setPosition(const KVector2F32& Position){
         _kposition = Position;

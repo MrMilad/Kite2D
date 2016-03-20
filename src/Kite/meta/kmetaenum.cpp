@@ -21,7 +21,7 @@ USA
 
 namespace Kite {
 	KMetaEnum::KMetaEnum(const std::string &Name, U32 Flag, U32 Size, const std::string &TypeNAme) :
-		KMetaObject(Name, Flag, Size, KMT_ENUM), _ktypeName(TypeNAme),
+		KMetaBase(Name, Flag, Size, KMT_ENUM), _ktypeName(TypeNAme),
 		_kmembers(nullptr), _klastMember(nullptr)
 	{}
 

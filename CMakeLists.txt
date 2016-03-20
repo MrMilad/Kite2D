@@ -38,6 +38,9 @@ if(NOT BUILD_SHARED_LIBS)
     add_definitions(-DKITE_STATIC)
 endif()
 
+# define KITE_CPP_VER11 c++11 flag
+add_definitions(-DKITE_CPP_VER11)
+
 # set some msvc compiler flags
 if(COMPILER_MSVC)
 	# remove SL security warnings with Visual C++

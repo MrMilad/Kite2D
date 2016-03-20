@@ -22,7 +22,7 @@ USA
 
 namespace Kite {
 	KMetaPOD::KMetaPOD(const std::string &Name, U32 Flag, U32 Size, KPrimitiveTypes PODType) :
-		KMetaObject(Name, Flag, Size, KMT_POD), _ktype(PODType)
+		KMetaBase(Name, Flag, Size, KMT_POD), _ktype(PODType)
 	{}
 
 	namespace Internal {

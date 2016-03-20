@@ -23,11 +23,11 @@ USA
 #include "Kite/core/kcoredef.h"
 #include "Kite/core/kcoretypes.h"
 #include "Kite/meta/kmetatypes.h"
-#include "Kite/meta/kmetaobject.h"
+#include "Kite/meta/kmetabase.h"
 #include <string>
 
 namespace Kite {
-	class KITE_FUNC_EXPORT KMetaPOD : public KMetaObject {
+	class KITE_FUNC_EXPORT KMetaPOD : public KMetaBase {
 	public:
 		KMetaPOD(const std::string &Name, U32 Flag, U32 Size, KPrimitiveTypes PODType);
 

@@ -17,26 +17,32 @@ License along with this library; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 USA
 */
-#ifndef KTRANSFORMSYS_H
-#define KTRANSFORMSYS_H
+#ifndef KMETABASE_H
+#define KMETABASE_H
 
 #include "Kite/core/kcoredef.h"
-#include "Kite/core/ksystem.h"
-#include "Kite/math/kmathdef.h"
-#include "Kite/math/kmathstructs.h"
-#include "Kite/math/ktransformcom.h"
+#include "Kite/Meta/kmetatypes.h"
+#include <string>
 
-KMETA
 namespace Kite {
-	KMETA_CLASS(SYSTEM)
-	class KITE_FUNC_EXPORT KTransformSys: public KSystem {
+	class KITE_FUNC_EXPORT KMetaBase {
 	public:
-		void update(F32 Delta, KEntityManager &EManager, KResourceManager &RManager);
+		KMetaBase(const std::string & Name, U32 Flag, U32 Size, KMetaTypes MetaType);
 
-		bool inite(void *Data);
+		virtual ~KMetaBase();
 
-		void computeMatrix(KTransformCom &Component);
+		inline const std::string &getName() const { return _kname; }
+		inline U32 getFlag() const { return _kflag; }
+		inline U32 getSize() const { return _ksize; }
+		inline KMetaTypes getMetaType() const { return _kmetatype; }
+
+	protected:
+		std::string _kname;
+		U32 _kflag;
+		U32 _ksize;
+		KMetaTypes _kmetatype;
 	};
 }
 
-#endif // KTRANSFORMSYS_H
+
+#endif // KMETABASE_H

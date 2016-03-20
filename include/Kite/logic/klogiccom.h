@@ -17,26 +17,45 @@ License along with this library; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 USA
 */
-#ifndef KTRANSFORMSYS_H
-#define KTRANSFORMSYS_H
+#ifndef KLOGICCOM_H
+#define KLOGICCOM_H
 
 #include "Kite/core/kcoredef.h"
-#include "Kite/core/ksystem.h"
-#include "Kite/math/kmathdef.h"
-#include "Kite/math/kmathstructs.h"
-#include "Kite/math/ktransformcom.h"
+#include "Kite/core/kcomponent.h"
+#include "Kite/logic/kscript.h"
+#include <string>
 
-KMETA
+struct lua_State;
 namespace Kite {
-	KMETA_CLASS(SYSTEM)
-	class KITE_FUNC_EXPORT KTransformSys: public KSystem {
+	class KITE_FUNC_EXPORT KLogicCom : public KComponent {
+		friend class KLogicSys;
 	public:
-		void update(F32 Delta, KEntityManager &EManager, KResourceManager &RManager);
+		KLogicCom(const std::string &Name);
 
-		bool inite(void *Data);
+		void attached(U32 EntityID) override;
 
-		void computeMatrix(KTransformCom &Component);
+		/// remove this script from entity
+		void deattached(U32 EntityID);
+
+		void setScript(const std::string &ResName);
+		
+		inline const std::string &getScript() const { return _kresName; }
+
+		inline const std::string &getCName() { return _kcname; }
+
+	private:
+		void removeLuaEnv();
+		// runtime catching functions
+		void setLuaState(lua_State *L);
+		inline void setScript(KScript *Script) { _kscript = Script; }
+
+		std::string _kresName;
+		std::string _kcname;
+
+		KScript *_kscript;
+		lua_State *_klstate;
 	};
 }
 
-#endif // KTRANSFORMSYS_H
+
+#endif // KLOGICCOM_H

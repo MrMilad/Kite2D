@@ -17,26 +17,38 @@ License along with this library; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 USA
 */
-#ifndef KTRANSFORMSYS_H
-#define KTRANSFORMSYS_H
+#ifndef KFILEISTREAM_H
+#define KFILEISTREAM_H
 
 #include "Kite/core/kcoredef.h"
-#include "Kite/core/ksystem.h"
-#include "Kite/math/kmathdef.h"
-#include "Kite/math/kmathstructs.h"
-#include "Kite/math/ktransformcom.h"
+#include "Kite/core/kistream.h"
+#include <cstring>
 
-KMETA
-namespace Kite {
-	KMETA_CLASS(SYSTEM)
-	class KITE_FUNC_EXPORT KTransformSys: public KSystem {
+namespace Kite{
+	class KITE_FUNC_EXPORT KFIStream : public KIStream{
 	public:
-		void update(F32 Delta, KEntityManager &EManager, KResourceManager &RManager);
+		KFIStream();
+		~KFIStream();
 
-		bool inite(void *Data);
+		bool open(const std::string &Address, KIOTypes Type) override;
 
-		void computeMatrix(KTransformCom &Component);
+		SIZE read(void *Data, SIZE DataSize) override;
+
+		I32 seek(U64 Offset, I32 Origin) override;
+
+		I64 tell() override;
+
+		I32 eof() override;
+
+		U64 getSize() override;
+
+		bool isOpen() override;
+
+		I32 close() override;
+
+	private:
+		FILE *_kfile;
 	};
 }
 
-#endif // KTRANSFORMSYS_H
+#endif // KFILEISTREAM_H

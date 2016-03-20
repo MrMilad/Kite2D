@@ -32,12 +32,15 @@ namespace Kite{
 		/// initialize keyboard module
 		static void initeKeyboard();
 
+		static bool isAnyKeyDown();
+
         /// returns the last state reported for the specified key
 		/// uasge: c++ and lua
         static bool isButtonPressed(KKeyCodeTypes Button);
 
 		/// returns the last state of the keyboard
 		/// usage: c++ only
+		/// ex: if (KKeyboard::getKeyboardState()[KCT_U]) { u pressed TODO }
 		static const U8 *getKeyboardState();
 
 		/// get the current key modifier state for the keyboard
@@ -45,10 +48,15 @@ namespace Kite{
 		static bool isModifierPressed(KKeyModifierTypes Modifier);
 
 		/// get the current key modifier state for the keyboard
-		/// usage: c++
-		/// ex: if (KKeyboard::getKeyboardState()[KCT_U]) { u pressed TODO }
+		/// usage: c++ and lua
 		static KKeyModifierTypes getModifierState();
 
+	private:
+		/// SDL dos not support mouse wheel in mouse input sections
+		/// so we add an event watcher for catching wheel events
+		static int _eventWatcher(void *Data, SDL_Event *Event);
+
+		static U16 _kcount;
     };
 }
 

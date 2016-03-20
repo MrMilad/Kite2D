@@ -17,40 +17,45 @@ License along with this library; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 USA
 */
-#include "Kite/meta/kmetamanager.h"
-#include "Kite/utility/kutilitydef.h"
+#include "Kite/logic/klogiccom.h"
+#include <luaintf/LuaIntf.h>
 
 namespace Kite {
-	std::unordered_map<std::string, const KMetaBase *> KMetaManager::_kmetamap;
+	KLogicCom::KLogicCom(const std::string &Name) :
+		KComponent(Name),
+		_klstate(nullptr)
+		{}
 
-	const KMetaBase *KMetaManager::getMeta(const std::string &Type) {
-		auto found = _kmetamap.find(Type);
-		if (found != _kmetamap.end()) {
-			return found->second;
-		}
-
-		return nullptr;
+	void KLogicCom::attached(U32 EntityID) {
+		_kcname = "ENT" + std::to_string(EntityID);
 	}
 
-	bool KMetaManager::setMeta(const KMetaBase *Meta) {
-		auto found = _kmetamap.find(Meta->getName());
-		if (found != _kmetamap.end()) {
-			// registered!
-			return false;
-		}
-
-		_kmetamap.insert({ Meta->getName(), Meta });
-		return true;
+	void KLogicCom::deattached(U32 EntityID) {
+		removeLuaEnv();
 	}
 
-	void KMetaManager::dump(std::vector<const KMetaBase *> &DumpList) {
-		auto iter = _kmetamap.begin();
-		DumpList.clear();
-		DumpList.reserve(_kmetamap.size());
-		for (iter; iter != _kmetamap.end(); ++iter) {
-			if (iter->second)
-				DumpList.push_back(iter->second);
+	void KLogicCom::setScript(const std::string &ResName) {
+		if (!ResName.empty()) {
+			if (ResName != _kresName) {
+				removeLuaEnv();
+				_kresName = ResName;
+				setNeedUpdateRes(true);
+			}
 		}
 	}
 
+	void KLogicCom::removeLuaEnv() {
+		// remove environment table from lua
+		if (_klstate != nullptr) {
+			std::string ctable = "_G.ENTITIES." + _kcname;
+			LuaIntf::LuaRef lref(_klstate, ctable.c_str());
+			if (lref.isTable()) {
+				lref.remove(this->getName().c_str());
+			}
+		}
+	}
+
+	void KLogicCom::setLuaState(lua_State *L) {
+		_klstate = L;
+	}
 }

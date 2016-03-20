@@ -51,11 +51,12 @@ USA
 	((void *)(((char *)(PTR)) + (OFFSET)))
 
 #define KMETA \
+	struct lua_State;\
 	namespace Kite{\
 	class KMetaObject;\
 	class KMetaClass;\
-	class KMetaEnum;}\
-	struct lua_State;
+	class KMetaEnum;}
+	
 
 #define KMETA_IGNORED
 #define KMETA_ENUM(...)

@@ -22,7 +22,7 @@ USA
 
 #include "Kite/core/kcoredef.h"
 #include "Kite/utility/kutilitytypes.h"
-#include "Kite/meta/kmetaobject.h"
+#include "Kite/meta/kmetabase.h"
 #include <string>
 
 namespace Kite {
@@ -36,7 +36,7 @@ namespace Kite {
 			name(Name), value(Value), number(Number), next(nullptr)
 		{}
 	};
-	class KITE_FUNC_EXPORT KMetaEnum : public KMetaObject {
+	class KITE_FUNC_EXPORT KMetaEnum : public KMetaBase {
 	public:
 		KMetaEnum(const std::string &Name, U32 Flag, U32 Size, const std::string& TypeName);
 		~KMetaEnum();

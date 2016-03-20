@@ -21,35 +21,62 @@ USA
 #define KVARIANTBASE_H
 
 #include "Kite/core/kcoredef.h"
+#include <typeinfo>
 
 namespace Kite {
-	class KMetaObject;
 	class KITE_FUNC_EXPORT KVariantBase {
 	public:
+
 		template <typename T>
-		T& getValue() {
-			return *reinterpret_cast<T *>(_kdata);
+		T *getDataSafe(){
+			if (typeid(T).hash_code() == _ktype) {
+				return reinterpret_cast<T *>(_kdata);
+			}
+
+			KDEBUG_PRINT("type mismatch");
+			return nullptr;
 		}
 
 		template <typename T>
-		const T&getValue() const {
-			return *reinterpret_cast<T *>(_kdata);
+		const T *getDataSafe() const {
+			if (typeid(T).hash_code() == _ktype) {
+				return reinterpret_cast<T *>(_kdata);
+			}
+
+			KDEBUG_PRINT("type mismatch");
+			return nullptr;
 		}
 
-		inline void *getData() const { return _kdata; }
+		template <typename T>
+		T *getData() {
+			return reinterpret_cast<T *>(_kdata);
+		}
+
+		template <typename T>
+		const T *getData() const {
+			return reinterpret_cast<T *>(_kdata);
+		}
+
+		inline const void *getData() const { return _kdata; }
+
+		inline void *getData() { return _kdata; }
+
 		inline SIZE getSize() const { return _ksize; }
+
+		inline SIZE getType() const { return _ktype; }
 
 	protected:
 		KVariantBase() :
-			 _kdata(NULL), _ksize(0)
+			 _kdata(nullptr), _ksize(0), _ktype(0)
 		{}
 
-		KVariantBase(void* Data, SIZE Size) :
-			_kdata(Data), _ksize(Size)
+		KVariantBase(void* Data, SIZE Size, SIZE Type) :
+			_kdata(Data), _ksize(Size), _ktype(Type)
 		{}
 
 		void *_kdata;
 		SIZE _ksize;
+		SIZE _ktype;
 	};
 }
 

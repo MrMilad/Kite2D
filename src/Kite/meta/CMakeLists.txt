@@ -6,7 +6,7 @@ set(MET_SRC
     ${SRCROOT}/kmetaclass.cpp
     ${SRCROOT}/kmetaenum.cpp
     ${SRCROOT}/kmetamanager.cpp
-    ${SRCROOT}/kmetaobject.cpp
+    ${SRCROOT}/kmetabase.cpp
     ${SRCROOT}/kmetapod.cpp
     PARENT_SCOPE
 )
@@ -18,7 +18,7 @@ set(MET_INC
     ${INCROOT}/kmetaenum.h
     ${INCROOT}/kmetamanager.h
     ${INCROOT}/kmetapod.h
-    ${INCROOT}/kmetaobject.h
+    ${INCROOT}/kmetabase.h
     ${INCROOT}/kmetatypes.h
     PARENT_SCOPE
 )

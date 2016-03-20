@@ -21,9 +21,7 @@ USA
 #define KMETAMANAGER_H
 
 #include "Kite/core/kcoredef.h"
-#include "Kite/meta/kmetaobject.h"
-#include "Kite/memory/kbasestorage.h"
-#include <memory>
+#include "Kite/meta/kmetabase.h"
 #include <vector>
 #include <unordered_map>
 
@@ -31,13 +29,13 @@ namespace Kite {
 	class KObject;
 	class KITE_FUNC_EXPORT KMetaManager {
 	public:
-		static const KMetaObject *getMeta(const std::string &Name);
-		static bool setMeta(const KMetaObject *Meta);
+		static const KMetaBase *getMeta(const std::string &Name);
+		static bool setMeta(const KMetaBase *Meta);
 
-		static void dump(std::vector<const KMetaObject *> &DumpList);
+		static void dump(std::vector<const KMetaBase *> &DumpList);
 
 	private:
-		static std::unordered_map<std::string, const KMetaObject *> _kmetamap;
+		static std::unordered_map<std::string, const KMetaBase *> _kmetamap;
 	};
 }
 

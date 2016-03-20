@@ -17,26 +17,26 @@ License along with this library; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 USA
 */
-#ifndef KTRANSFORMSYS_H
-#define KTRANSFORMSYS_H
+#ifndef KSCRIPT_H
+#define KSCRIPT_H
 
 #include "Kite/core/kcoredef.h"
-#include "Kite/core/ksystem.h"
-#include "Kite/math/kmathdef.h"
-#include "Kite/math/kmathstructs.h"
-#include "Kite/math/ktransformcom.h"
+#include "Kite/core/kresource.h"
+#include <string>
 
-KMETA
+struct lua_State;
 namespace Kite {
-	KMETA_CLASS(SYSTEM)
-	class KITE_FUNC_EXPORT KTransformSys: public KSystem {
+	class KITE_FUNC_EXPORT KScript : public KResource {
 	public:
-		void update(F32 Delta, KEntityManager &EManager, KResourceManager &RManager);
+		KScript(const std::string &Name);
 
-		bool inite(void *Data);
+		bool loadStream(KIStream &Stream, U32 Flag = 0);
 
-		void computeMatrix(KTransformCom &Component);
+		inline const std::string &getCode() const { return _kcode; }
+
+	private:
+		std::string _kcode;
 	};
 }
 
-#endif // KTRANSFORMSYS_H
+#endif // KSCRIPT_H

@@ -17,26 +17,18 @@ License along with this library; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 USA
 */
-#ifndef KTRANSFORMSYS_H
-#define KTRANSFORMSYS_H
+#include "Kite/input/kinputcom.h"
 
-#include "Kite/core/kcoredef.h"
-#include "Kite/core/ksystem.h"
-#include "Kite/math/kmathdef.h"
-#include "Kite/math/kmathstructs.h"
-#include "Kite/math/ktransformcom.h"
-
-KMETA
 namespace Kite {
-	KMETA_CLASS(SYSTEM)
-	class KITE_FUNC_EXPORT KTransformSys: public KSystem {
-	public:
-		void update(F32 Delta, KEntityManager &EManager, KResourceManager &RManager);
+	KInputCom::KInputCom(const std::string &Name):
+		KComponent(Name),
+		_kkeyboard(true), _kmouse(true), _kjoystick(false)
+	{
+		setNeedUpdateRes(false);
+	}
 
-		bool inite(void *Data);
 
-		void computeMatrix(KTransformCom &Component);
-	};
+	void KInputCom::attached(U32 EntityID) {}
+
+	void KInputCom::deattached(U32 EntityID) {}
 }
-
-#endif // KTRANSFORMSYS_H

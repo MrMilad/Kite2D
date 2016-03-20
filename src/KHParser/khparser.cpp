@@ -449,6 +449,53 @@ unsigned int findToken(const std::string &Content, unsigned int Pos, const std::
 	return std::string::npos;
 }
 
+// replace a body between Start and End token with Rep
+void collapseBody(std::string &Content, char Start, char End, const char *Rep, bool CatchToMap = false) {
+	if (Content.empty() || Rep != nullptr) {
+		return;
+	}
+
+	size_t pos = 0;
+	size_t counter = 0;
+	size_t start = 0;
+	size_t end = 0;
+	for (pos; pos < Content.size(); ++pos) {
+		// begin of body
+		if (Content[pos] == Start) {
+			if (counter == 0) {
+				start = pos;
+			}
+			++counter;
+			continue;
+		}
+
+		// end of body
+		if (Content[pos] == End) {
+			--counter;
+			if (counter == 0) {
+				end = pos;
+
+				// catch it to strmap
+				if (CatchToMap) {
+					strmap.insert({ Content.substr(start, (end - start) + 1), Rep });
+				}
+
+				// erase body
+				Content.erase(start, (end - start) + 1);
+
+				// add a ";" at the end of function declaration
+				Content.insert(start, Rep);
+				pos = start;
+			}
+			continue;
+		}
+	}
+}
+
+void collapseTemplate(std::string &Content) {
+	collapseBody(Content, '<', '>', getKey().c_str(), true);
+}
+
 // remove strings ("...")
 void collapseStrings(std::string &Content) {
 	if (Content.empty())
@@ -977,7 +1024,6 @@ bool procAllVar(const std::string &Content, std::vector<MVariable> &Vars) {
 // parse and extract class information
 bool procClass(const std::string &Content, MClass &Cls, unsigned int Pos) {
 	size_t pos;
-	std::string cbody;
 	std::string output;
 	std::vector<std::string> params;
 
@@ -1083,7 +1129,11 @@ bool procClass(const std::string &Content, MClass &Cls, unsigned int Pos) {
 	if (checkNext(Content, pos) == PS_BODY_START) {
 
 		// get class body
+		std::string cbody;
 		getNextBody(Content, pos, cbody);
+
+		// collapse body of inline functions
+		collapseBody(cbody, '{', '}', ";");
 
 		if (!procConstructure(cbody, Cls.constructure)) {
 			return false;
@@ -1306,6 +1356,7 @@ bool parse(std::string &Content, std::vector<MClass> &Classes, std::vector<MEnum
 	collapseStrings(Content);
 	removeFSComments(Content);
 	removeSSComments(Content);
+	collapseTemplate(Content);
 	removeTok(Content, "public:");
 	removeTok(Content, "private:");
 	removeTok(Content, "protected:");
@@ -1391,7 +1442,7 @@ void createMacros(const std::vector<MClass> &Cls, const std::vector<MEnum> &Enms
 		std::vector<std::string> ctags;
 		splitParam(cParam, ctags);
 
-		// is seializable
+		// is serializable
 		bool isPOD = false;
 		if (std::find(ctags.begin(), ctags.end(), "POD") != ctags.end()) {
 			isPOD = true;

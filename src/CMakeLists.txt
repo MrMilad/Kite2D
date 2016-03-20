@@ -36,11 +36,11 @@ source_group("Source Files\\Core" FILES ${COR_SRC})
 LIST(APPEND ALL_FILES ${COR_SRC} ${COR_INC})
 
 # serialization
-#add_subdirectory(Kite/serialization)
-#source_group("Header Files\\Serialization" FILES ${SER_INC})
-#source_group("Source Files\\Serialization" FILES ${SER_SRC})
-#source_group("Header Files\\Serialization\\types" FILES ${SER_INC_SUB})
-#LIST(APPEND ALL_FILES ${SER_SRC} ${SER_INC} ${SER_INC_SUB})
+add_subdirectory(Kite/serialization)
+source_group("Header Files\\Serialization" FILES ${SER_INC})
+source_group("Source Files\\Serialization" FILES ${SER_SRC})
+source_group("Header Files\\Serialization\\types" FILES ${SER_INC_SUB})
+LIST(APPEND ALL_FILES ${SER_SRC} ${SER_INC} ${SER_INC_SUB})
 
 # math
 add_subdirectory(Kite/math)
@@ -59,6 +59,12 @@ add_subdirectory(Kite/input)
 source_group("Header Files\\Input" FILES ${INP_INC})
 source_group("Source Files\\Input" FILES ${INP_SRC})
 LIST(APPEND ALL_FILES ${INP_SRC} ${INP_INC})
+
+# logic
+add_subdirectory(Kite/logic)
+source_group("Header Files\\Logic" FILES ${LOG_INC})
+source_group("Source Files\\Logic" FILES ${LOG_SRC})
+LIST(APPEND ALL_FILES ${LOG_SRC} ${LOG_INC})
 
 # audio
 #add_subdirectory(Kite/audio)
@@ -135,5 +141,8 @@ add_dependencies(Test Kite2D)
 
 # add Kite2D lib
 if (WINDOWS)
-    TARGET_LINK_LIBRARIES(Test "${PROJECT_BINARY_DIR}/lib/debug/Kite2Dd.lib")
+    #TARGET_LINK_LIBRARIES(Test "${PROJECT_BINARY_DIR}/lib/debug/Kite2Dd.lib")
+     target_link_libraries (Test "${PROJECT_BINARY_DIR}/lib/debug/Kite2Dd.lib")
+     target_link_libraries (Test "lua_dll.lib")
+     target_link_libraries (Test "luac.lib")
 endif()

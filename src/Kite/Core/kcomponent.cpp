@@ -24,17 +24,31 @@ USA
 #include <luaintf\LuaIntf.h>
 
 namespace Kite {
-	KComponent::KComponent(KComponentTypes Type, const std::string &Name, U32 Index) :
-		_ktype(Type), _kname(Name), _kindex(Index)
+	KComponent::KComponent(const std::string &Name) :
+		_kname(Name), _kneedup(true), _kneedupRes(true)
 	{
-		for (U8 i = 0; i < (U8)KComponentTypes::KCT_MAX_COMP_SIZE; i++) {
+		for (U8 i = 0; i < (U8)KComTypes::KCT_MAX_COMP_SIZE; i++) {
 			_kdependency[i] = false;
 		}
 	}
 
 	KComponent::~KComponent() {}
 
-	void KComponent::setDependency(KComponentTypes Type, bool Value) {
+	const std::vector<KComTypes> &KComponent::getDependency() const {
+		static std::vector<KComTypes> vec;
+		vec.reserve((U8)KComTypes::KCT_MAX_COMP_SIZE);
+		vec.clear();
+
+		for (U8 i = 0; i < (U8)KComTypes::KCT_MAX_COMP_SIZE; ++i) {
+			if (_kdependency[i]) {
+				vec.push_back((KComTypes)i);
+			}
+		}
+
+		return vec;
+	}
+
+	void KComponent::setDependency(KComTypes Type, bool Value) {
 		_kdependency[(U8)Type] = Value;
 	}
 }

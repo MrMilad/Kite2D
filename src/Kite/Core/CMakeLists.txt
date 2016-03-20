@@ -3,9 +3,10 @@ set(SRCROOT ${PROJECT_SOURCE_DIR}/src/Kite/core)
 
 # all source files
 set(COR_SRC
+    ${SRCROOT}/kfistream.cpp
     ${SRCROOT}/kcomponent.cpp
-    ${SRCROOT}/kentitymanager.cpp
     ${SRCROOT}/kentity.cpp
+    ${SRCROOT}/kentitymanager.cpp
     ${SRCROOT}/kmessage.cpp
     ${SRCROOT}/kmessenger.cpp
     #${SRCROOT}/kcoreinstance.cpp
@@ -17,23 +18,28 @@ set(COR_SRC
 # all header files
 set(COR_INC
     ${INCROOT}/kcore.h
+    ${INCROOT}/kistream.h
+    ${INCROOT}/kostream.h
+    ${INCROOT}/kfistream.h
+    ${INCROOT}/kdelegate.h
     ${INCROOT}/ksystem.h
     ${INCROOT}/kcomponent.h
     ${INCROOT}/kentity.h
     ${INCROOT}/kentitymanager.h
+    ${INCROOT}/kresource.h
+    ${INCROOT}/kresourcemanager.h
+    ${INCROOT}/knoncopyable.h
     ${INCROOT}/kmessage.h
     ${INCROOT}/kmessenger.h
     ${INCROOT}/klistener.h
     #${INCROOT}/kcoreinstance.h
-    #${INCROOT}/knoncopyable.h
-    #${INCROOT}/krefvariant.h
-    #${INCROOT}/kcore.h
+    ${INCROOT}/krefvariant.h
     ${INCROOT}/kcoredef.h
     ${INCROOT}/kcorestructs.h
     ${INCROOT}/kcoretypes.h
     ${INCROOT}/kcoreutil.h
-    #${INCROOT}/kvariant.h
-    #${INCROOT}/kvariantbase.h
+    ${INCROOT}/kvariant.h
+    ${INCROOT}/kvariantbase.h
     PARENT_SCOPE
 )
 

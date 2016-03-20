@@ -30,13 +30,11 @@ USA
 namespace Kite {
 	class KITE_FUNC_EXPORT KBinarySerial : public KBaseSerial{
 	public:
-		KBinarySerial(KBaseStorage &Allocator);
+		KBinarySerial();
 
 		bool loadFile(const std::string &FileName, U32 FileType = 0);
 
 		bool loadStream(KIStream &Stream, U32 FileType = 0);
-
-		bool loadMemory(const void *Data, std::size_t Size, U32 FileType = 0);
 
 		bool saveFile(const std::string &FileName);
 

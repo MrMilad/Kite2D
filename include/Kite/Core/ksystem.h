@@ -22,18 +22,31 @@ USA
 
 #include "Kite/core/kcoredef.h"
 #include "Kite/core/kentitymanager.h"
+#include "Kite/core/kresourcemanager.h"
 #include "Kite/core/klistener.h"
 #include "Kite/core/kmessenger.h"
 #include "Kite/meta/kmetadef.h"
 
 namespace Kite {
-	class KITE_FUNC_EXPORT KSystem: public KMessenger, public KListener {
+	class KITE_FUNC_EXPORT KSystem{
 	public:
+		KSystem():
+			_kisinite(false)
+		{}
+
 		virtual ~KSystem() {}
 
-		virtual void update(F32 Delta, KEntityManager &EManager) = 0;
+		virtual void update(F32 Delta, KEntityManager &EManager, KResourceManager &RManager) = 0;
 
-		virtual void inite() = 0;
+		virtual bool inite(void *Data) = 0;
+
+		inline bool getInite() const { return _kisinite; }
+
+	protected:
+		inline void setInite(bool Inite) { _kisinite = Inite; }
+
+	private:
+		bool _kisinite;
 	};
 }
 

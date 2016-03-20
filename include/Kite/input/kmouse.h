@@ -29,6 +29,9 @@ namespace Kite{
     class KITE_FUNC_EXPORT KMouse{
     public:
 		static void initeMouse();
+
+		static bool isAnyKeyDown();
+
         /// get the current state of a mouse button
 		/// usage: c++ and lua
         static bool isButtonPressed(KMouseButtonTypes Button);
@@ -48,11 +51,12 @@ namespace Kite{
 		static void setGlobalPosition(const KVector2I32 &Position);
 
     private:
-		/// SDL dot support mouse wheel in mouse input sections
+		/// SDL dos not support mouse wheel in mouse input sections
 		/// so we add an event watcher for catching wheel events
 		static int _eventWatcher(void *Data, SDL_Event *Event);
         static KWindowHandle _kwinHandle;
 		static KVector2I32 _kwheelVal;
+		static U16 _kcount;
     };
 }
 

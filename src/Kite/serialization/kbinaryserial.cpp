@@ -20,59 +20,12 @@ USA
 
 #include "Kite/serialization/kbinaryserial.h"
 #include "Kite/core/kcoreutil.h"
-#include "Kite/utility/kmeminputstream.h"
 #include <cstdio>
 
 namespace Kite {
-	KBinarySerial::KBinarySerial(KBaseStorage &Allocator) :
-		KBaseSerial(Allocator),
+	KBinarySerial::KBinarySerial() :
 		_kpos(0),
 		_kendfile(true) {}
-
-	bool KBinarySerial::loadFile(const std::string &FileName, U32 FileType) {
-		bool ret = false;
-
-		// open file
-		FILE *file = fopen(FileName.c_str(), "rb");
-
-		if (file != NULL) {
-			// read header
-			char header[8];
-			if (fread(&header, sizeof(header) - 1, 1, file) == 1) {
-				header[7] = '\0';
-
-				// check header
-				if (strcmp("kserial\0", header) == 0) {
-
-					// get file size
-					fseek(file, 0, SEEK_END);
-					U32 size = ftell(file);
-					rewind(file);
-
-					// read date
-					_kdata.clear();
-					_kdata.resize(size);
-					_kpos = 0;
-					if (fread(&_kdata[0], (size_t)size, 1, file) == 1) {
-						_kdata.erase(_kdata.begin(), _kdata.begin() + 7);
-						_kendfile = false;
-						ret = true;
-					} else {
-						KDEBUG_PRINT("read file data error");
-					}
-				} else {
-					KDEBUG_PRINT("wrong file format");
-				}
-			} else {
-				KDEBUG_PRINT("read header error");
-			}
-		} else {
-			KDEBUG_PRINT("open file error");
-		}
-
-		fclose(file);
-		return ret;
-	}
 
 	bool KBinarySerial::loadStream(KIStream &Stream, U32 FileType) {
 		bool ret = false;
@@ -112,12 +65,6 @@ namespace Kite {
 		}
 
 		return ret;
-	}
-
-	bool KBinarySerial::loadMemory(const void *Data, std::size_t Size, U32 FileType) {
-		KMemInputStream temp(Data, Size);
-
-		return loadStream(temp);
 	}
 
 	bool KBinarySerial::saveFile(const std::string &FileName) {

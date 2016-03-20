@@ -23,109 +23,122 @@ USA
 
 namespace Kite {
 	KEntityManager::KEntityManager() {
-		for (U8 i = 0; i < (U8)KComponentTypes::KCT_MAX_COMP_SIZE; i++) {
-			_kcontiners[i] = nullptr;
+		for (U8 i = 0; i < (U8)KComTypes::KCT_MAX_COMP_SIZE; i++) {
+			_kcstorage[i] = nullptr;
 		}
+
+		// create root
+		getEntity(createEntity())->setActive(false);
+		getEntity(0)->setCStorage(_kcstorage);
+		getEntity(0)->setEStorage(&_kestorage);
 	}
 
 	KEntityManager::~KEntityManager() {
-		for (U8 i = 0; i < (U8)KComponentTypes::KCT_MAX_COMP_SIZE; i++) {
-			if (_kcontiners[i] != nullptr) {
-				delete _kcontiners[i];
-				_kcontiners[i] = nullptr;
+		for (U8 i = 0; i < (U8)KComTypes::KCT_MAX_COMP_SIZE; i++) {
+			if (_kcstorage[i] != nullptr) {
+				delete _kcstorage[i];
+				_kcstorage[i] = nullptr;
 			}
 		}
 	}
 
-	KEntity *KEntityManager::createEntity(const std::string &Name) {
-		// check entity name
-		auto found = _kentmap.find(Name);
-		if (found != _kentmap.end()) {
-			KDEBUG_PRINT("this name has already been registered.");
-			return &found->second;
+	U32 KEntityManager::createEntity(const std::string &Name) {
+		// check entity name if there is a name
+		if (!Name.empty()) {
+			auto found = _kentmap.find(Name);
+
+			// entiti is already registered, so we return it
+			if (found != _kentmap.end()) {
+				KDEBUG_PRINT("this name has already been registered.");
+				return found->second;
+			}
 		}
 
-		// create new entity 
-		auto ent = &_kentmap.insert({ Name, KEntity(Name) }).first->second;
+		// create new entity and set its id
+		U32 ind = _kestorage.add(KEntity(Name));
+		auto ent = _kestorage.get(ind);
+		ent->setID(ind);
+
+		// set storages
+		ent->setCStorage(_kcstorage);
+		ent->setEStorage(&_kestorage);
+
+		// added it to root by default
+		ent->setHParrent(false);
+		ent->setPID(1); // dummb parrent id
+		getEntity(0)->addChild(ind);
+
+		// register it's to map
+		_kentmap.insert({ Name, ind });
 		
 		// post a message about new entity
 		KMessage msg;
 		msg.setType("ENTITY_CREATED");
-		msg.setData((void *)&ent->getName(), ent->getName().size());
+		msg.setData((void *)&ind, sizeof(U32));
 		postMessage(msg, KMessageScopeTypes::KMS_ALL);
 
-		return ent;
+		return ind;
 	}
 
-	void KEntityManager::removeEntity(KEntity *Entity) {
-		// at first remove all associated components 
-		removeAllComponent(Entity);
+	void KEntityManager::removeEntity(U32 ID) {
+		auto ent = _kestorage.get(ID);
+		if (ent == nullptr) {
+			KDEBUG_BREAK("wrong entity id");
+		}
+
+		// remove all childs
+		if (ent->hasChild()) {
+			for (auto it = ent->beginChild(); it != ent->endChild(); ++it) {
+				_kestorage.remove((*it));
+			}
+		}
+		_kestorage.remove(ID);
 
 		// post a message about this action
 		KMessage msg;
 		msg.setType("ENTITY_REMOVED");
-		msg.setData((void *)&Entity->getName(), Entity->getName().size());
+		msg.setData((void *)&ID, sizeof(U32));
 		postMessage(msg, KMessageScopeTypes::KMS_ALL);
-
-		// remove it from map
-		_kentmap.erase(Entity->getName());
 	}
 
 	void KEntityManager::removeEntity(const std::string &Name) {
 		auto found = _kentmap.find(Name);
 		if (found != _kentmap.end()) {
-			removeEntity(&found->second);
+			removeEntity(found->second);
 		}
+	}
+
+	KEntity *KEntityManager::getEntity(U32 ID) {
+		auto ent = _kestorage.get(ID);
+		if (ent != nullptr) {
+			ent->setCStorage(_kcstorage);
+			ent->setEStorage(&_kestorage);
+		}
+		return ent;
 	}
 
 	KEntity *KEntityManager::getEntity(const std::string &Name) {
 		auto found = _kentmap.find(Name);
 		if (found != _kentmap.end()) {
-			return &found->second;
+			return getEntity(found->second);
 		}
-		KDEBUG_PRINT("there is not an entity with the given name");
+		KDEBUG_PRINT("an entity with the given name does not exist");
 		return nullptr;
 	}
 
-	void KEntityManager::removeAllComponent(KEntity *Entity) {
-		// remove all script components
-		if (_kcontiners[(U8)KComponentTypes::KCT_LOGIC] != nullptr) {
-			const std::vector<U32> &sind = Entity->getScriptComponentIndex();
-			for (U32 i = 0; i < sind.size(); i++) {
-
-				// call remove on all components
-				KComponent *comPtr = static_cast<KComponent *>(_kcontiners[(U8)KComponentTypes::KCT_LOGIC]->get(sind[i]));
-				comPtr->remove(Entity->getName());
-
-				_kcontiners[(U8)KComponentTypes::KCT_LOGIC]->remove(sind[i]);
-			}
+	void KEntityManager::unregisterComponent(KComTypes Type) {
+		if (_kcstorage[(U8)Type] != nullptr) {
+			_kcstorage[(U8)Type]->clear();
+			delete _kcstorage[(U8)Type];
+			_kcstorage[(U8)Type] = nullptr;
 		}
-
-		// remove fixed components
-		for (U8 i = 0; i < (U8)KComponentTypes::KCT_MAX_COMP_SIZE; i++) {
-			if (i == (U8)KComponentTypes::KCT_LOGIC) {
-				continue;
-			}
-			if (_kcontiners[i] != nullptr) {
-				if (Entity->hasComponent((KComponentTypes)i, "")) {
-					U32 ind = Entity->getComponentIndex((KComponentTypes)i, "");
-
-					// call remove on all components
-					KComponent *comPtr = static_cast<KComponent *>(_kcontiners[i]->get(ind));
-					comPtr->remove(Entity->getName());
-
-					_kcontiners[i]->remove(ind);
-				}
-			}
-		}
-
-		Entity->clear();
 	}
 
-	void KEntityManager::removeAllComponent(const std::string &EntityName) {
-		auto found = _kentmap.find(EntityName);
-		if (found != _kentmap.end()) {
-			removeAllComponent(&found->second);
+	bool KEntityManager::isRegistered(KComTypes Type) {
+		if (_kcstorage[(U8)Type] == nullptr) {
+			return false;
 		}
+
+		return true;
 	}
 }

@@ -17,26 +17,28 @@ License along with this library; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 USA
 */
-#ifndef KTRANSFORMSYS_H
-#define KTRANSFORMSYS_H
+#include "Kite/logic/kscript.h"
 
-#include "Kite/core/kcoredef.h"
-#include "Kite/core/ksystem.h"
-#include "Kite/math/kmathdef.h"
-#include "Kite/math/kmathstructs.h"
-#include "Kite/math/ktransformcom.h"
-
-KMETA
 namespace Kite {
-	KMETA_CLASS(SYSTEM)
-	class KITE_FUNC_EXPORT KTransformSys: public KSystem {
-	public:
-		void update(F32 Delta, KEntityManager &EManager, KResourceManager &RManager);
+	KScript::KScript(const std::string &Name) :
+		KResource(Name, KResourceTypes::KRT_SCRIPT) 
+	{}
 
-		bool inite(void *Data);
+	bool KScript::loadStream(KIStream &Stream, U32 Flag) {
+		_kcode.clear();
+		SIZE size = Stream.getSize();
+		auto data = new char[size];
+		auto ret = Stream.read(data, size);
 
-		void computeMatrix(KTransformCom &Component);
-	};
+		if (size > 0) {
+			_kcode.assign(data, size);
+		}
+
+		delete[] data;
+
+		if (ret = size) {
+			return true;
+		}
+		return false;
+	}
 }
-
-#endif // KTRANSFORMSYS_H

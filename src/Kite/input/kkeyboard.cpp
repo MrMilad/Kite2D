@@ -21,8 +21,19 @@
 #include "src/Kite/window/sdlcall.h"
 
 namespace Kite{
+	U16 KKeyboard::_kcount = 0;
 	void KKeyboard::initeKeyboard() {
 		Internal::initeSDL();
+
+		// add our watcher for handling keys state
+		DSDL_CALL(SDL_AddEventWatch(KKeyboard::_eventWatcher, NULL));
+	}
+
+	bool KKeyboard::isAnyKeyDown() {
+		if (_kcount > 0)
+			return true;
+
+		return false;
 	}
 
     bool KKeyboard::isButtonPressed(KKeyCodeTypes Button){
@@ -49,6 +60,15 @@ namespace Kite{
 	KKeyModifierTypes KKeyboard::getModifierState() {
 		auto mod = DSDL_CALL(SDL_GetModState());
 		return (KKeyModifierTypes) mod;
+	}
+
+	int KKeyboard::_eventWatcher(void *Data, SDL_Event *Event) {
+		if (Event->type == SDL_KEYDOWN && Event->key.repeat == 0) {
+			++_kcount;
+		} else if (Event->type == SDL_KEYUP) {
+			--_kcount;
+		}
+		return 0;
 	}
 }
 

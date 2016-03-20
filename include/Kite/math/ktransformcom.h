@@ -17,8 +17,8 @@
     Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
     USA
 */
-#ifndef KTRANSFORMABLE_H
-#define KTRANSFORMABLE_H
+#ifndef KTRANSFORMCOM_H
+#define KTRANSFORMCOM_H
 
 #include "Kite/core/kcoredef.h"
 #include "Kite/core/kcomponent.h"
@@ -29,14 +29,12 @@ namespace Kite{
     class KITE_FUNC_EXPORT KTransformCom: public KComponent{
 		friend class KTransformSys;
     public:
-		KTransformCom(const std::string &Name, U32 Index);
-
 		/// construct a transform (unit matrix)
-		void inite(const std::string &EntityName);
+		KTransformCom(const std::string &Name);
 
-		void remove(const std::string &EntityName);
+		void attached(U32 EntityID) override;
 
-		KRecieveTypes onMessage(KMessage &Message, KMessageScopeTypes Scope);
+		void deattached(U32 EntityID) override;
 
         /// set position
         /// completely restore the previous position
@@ -85,4 +83,4 @@ namespace Kite{
     };
 }
 
-#endif // KTRANSFORMABLE_H
+#endif // KTRANSFORMCOM_H

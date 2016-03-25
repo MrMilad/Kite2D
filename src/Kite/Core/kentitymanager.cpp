@@ -49,7 +49,7 @@ namespace Kite {
 
 			// entiti is already registered, so we return it
 			if (found != _kentmap.end()) {
-				KDEBUG_PRINT("this name has already been registered.");
+				KD_FPRINT("this name has already been registered. ename: %s", Name.c_str());
 				return found->second;
 			}
 		}
@@ -83,7 +83,7 @@ namespace Kite {
 	void KEntityManager::removeEntity(U32 ID) {
 		auto ent = _kestorage.get(ID);
 		if (ent == nullptr) {
-			KDEBUG_BREAK("wrong entity id");
+			KD_FPRINT("wrong entity id. eid: %i", ID);
 		}
 
 		// remove all childs
@@ -122,7 +122,7 @@ namespace Kite {
 		if (found != _kentmap.end()) {
 			return getEntity(found->second);
 		}
-		KDEBUG_PRINT("an entity with the given name does not exist");
+		KD_FPRINT("an entity with the given name does not exist. ename: %s", Name.c_str());
 		return nullptr;
 	}
 

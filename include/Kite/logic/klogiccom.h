@@ -22,13 +22,20 @@ USA
 
 #include "Kite/core/kcoredef.h"
 #include "Kite/core/kcomponent.h"
+#include "Kite/meta/kmetadef.h"
 #include "Kite/logic/kscript.h"
 #include <string>
+#include "klogiccom.khgen.h"
 
-struct lua_State;
+KMETA
 namespace Kite {
+	KM_CLASS(COMPONENT)
 	class KITE_FUNC_EXPORT KLogicCom : public KComponent {
 		friend class KLogicSys;
+
+		KM_INFO("Author", "Kite2D");
+		KM_INFO("Email", "milad_rasaneh2000@yahoo.com");
+		KMETA_KLOGICCOM_BODY();
 	public:
 		KLogicCom(const std::string &Name);
 
@@ -37,20 +44,23 @@ namespace Kite {
 		/// remove this script from entity
 		void deattached(U32 EntityID);
 
+		KM_PRO_SET("Script")
 		void setScript(const std::string &ResName);
 		
+		KM_PRO_GET("Script", std::string, "Lua script")
 		inline const std::string &getScript() const { return _kresName; }
 
+		KM_PRO_GET("EnvName", std::string, "Table name in lua")
 		inline const std::string &getCName() { return _kcname; }
 
 	private:
 		void removeLuaEnv();
 		// runtime catching functions
 		void setLuaState(lua_State *L);
-		inline void setScript(KScript *Script) { _kscript = Script; }
+		inline void setScriptPtr(KScript *Script) { _kscript = Script; }
 
-		std::string _kresName;
-		std::string _kcname;
+		KM_VAR() std::string _kresName;
+		KM_VAR() std::string _kcname;
 
 		KScript *_kscript;
 		lua_State *_klstate;

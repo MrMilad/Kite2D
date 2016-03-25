@@ -31,7 +31,7 @@ USA
 
 KMETA
 namespace Kite {
-	KMETA_CLASS(CONTINER)
+	KM_CLASS(SCRIPTABLE)
 	class KITE_FUNC_EXPORT KEntityManager: public KMessenger {
 	public:
 		KEntityManager();
@@ -44,10 +44,10 @@ namespace Kite {
 
 			if (_kcstorage[(U8)Type] != nullptr) {
 				if (_kcstorage[(U8)Type]->type != typeid(T).hash_code()) {
-					KDEBUG_PRINT("diffrent component class with same type detected");
+					KD_FPRINT("diffrent component class with same type detected. ctype: %i", (int) Type);
 					return false;
 				}
-				KDEBUG_PRINT("this type has already been registered");
+				KD_FPRINT("this type has already been registered. ctype: %i", (int)Type);
 				return false;
 			}
 
@@ -68,6 +68,8 @@ namespace Kite {
 
 		void removeEntity(const std::string &Name);
 
+		SIZE inline getEntityCount() { return _kestorage.getSize(); }
+
 		KEntity *getEntity(U32 ID);
 
 		KEntity *getEntity(const std::string &Name);
@@ -78,14 +80,14 @@ namespace Kite {
 
 		template<typename T>
 		auto beginComponent(KComTypes Type){
-			KDEBUG_ASSERT(_kcstorage[(U8)Type] != nullptr);
+			KD_ASSERT(_kcstorage[(U8)Type] != nullptr);
 			Internal::CHolder<T, KComponent> *drived = static_cast<Internal::CHolder<T, KComponent> *>(_kcstorage[(U8)Type]);
 			return drived->getStorage()->begin();
 		}
 
 		template<typename T>
 		auto endComponent(KComTypes Type) {
-			KDEBUG_ASSERT(_kcstorage[(U8)Type] != nullptr);
+			KD_ASSERT(_kcstorage[(U8)Type] != nullptr);
 			Internal::CHolder<T, KComponent> *drived = static_cast<Internal::CHolder<T, KComponent> *>(_kcstorage[(U8)Type]);
 			return drived->getStorage()->end();
 		}

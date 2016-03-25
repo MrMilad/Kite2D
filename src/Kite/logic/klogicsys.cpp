@@ -19,6 +19,9 @@ USA
 */
 #include "Kite/logic/klogicsys.h"
 #include <vector>
+#include "Kite/meta/kmetamanager.h"
+#include "Kite/meta/kmetaclass.h"
+#include "Kite/meta/kmetatypes.h"
 #include <luaintf/LuaIntf.h>
 
 namespace Kite {
@@ -62,7 +65,7 @@ namespace Kite {
 
 	void KLogicSys::cathcAndRegist(KLogicCom *Component, KResourceManager &RManager) {
 		auto script = RManager.get<KScript>(Component->getScript());
-		Component->setScript(script);
+		Component->setScriptPtr(script);
 
 		// bind it to lua with its environment
 		if (script != nullptr && !script->getCode().empty()) {
@@ -107,4 +110,6 @@ namespace Kite {
 			Component->setNeedUpdateRes(false);
 		}
 	}
+
+	KMETA_KLOGICSYS_SOURCE();
 }

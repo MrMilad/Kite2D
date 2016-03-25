@@ -42,7 +42,7 @@ namespace Internal{
 \param call Any SDL function in debug mode
 */
 #if defined(KITE_DEV_DEBUG)
-#define DSDL_CALL(call) call; KDEBUG_ASSERT_T(Kite::Internal::checkLastSDLErr())
+#define DSDL_CALL(call) call; KD_ASSERT(Kite::Internal::checkLastSDLErr());
 #else
 #define DSDL_CALL(call) call;
 #endif

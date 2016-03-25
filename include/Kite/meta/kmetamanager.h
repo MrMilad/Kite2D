@@ -29,13 +29,13 @@ namespace Kite {
 	class KObject;
 	class KITE_FUNC_EXPORT KMetaManager {
 	public:
-		static const KMetaBase *getMeta(const std::string &Name);
-		static bool setMeta(const KMetaBase *Meta);
+		const KMetaBase *getMeta(const std::string &Name);
+		bool setMeta(const KMetaBase *Meta);
 
-		static void dump(std::vector<const KMetaBase *> &DumpList);
+		void dump(std::vector<const KMetaBase *> &DumpList);
 
 	private:
-		static std::unordered_map<std::string, const KMetaBase *> _kmetamap;
+		std::unordered_map<std::string, const KMetaBase *> _kmetamap;
 	};
 }
 

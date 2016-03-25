@@ -23,11 +23,13 @@ USA
 #include "Kite/core/kcoredef.h"
 #include "Kite/core/ksystem.h"
 #include "Kite/logic/klogiccom.h"
+#include "klogicsys.khgen.h"
 
 KMETA
 namespace Kite {
-	KMETA_CLASS(SYSTEM)
+	KM_CLASS(SYSTEM)
 	class KITE_FUNC_EXPORT KLogicSys : public KSystem {
+		KMETA_KLOGICSYS_BODY();
 	public:
 		void update(F32 Delta, KEntityManager &EManager, KResourceManager &RManager);
 

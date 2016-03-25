@@ -18,6 +18,10 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 USA
 */
 #include "Kite/input/kinputcom.h"
+#include "Kite/meta/kmetatypes.h"
+#include "Kite/meta/kmetamanager.h"
+#include "Kite/meta/kmetaclass.h"
+#include <luaintf/LuaIntf.h>
 
 namespace Kite {
 	KInputCom::KInputCom(const std::string &Name):
@@ -31,4 +35,6 @@ namespace Kite {
 	void KInputCom::attached(U32 EntityID) {}
 
 	void KInputCom::deattached(U32 EntityID) {}
+
+	KMETA_KINPUTCOM_SOURCE();
 }

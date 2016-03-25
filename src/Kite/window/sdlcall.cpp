@@ -42,7 +42,7 @@ namespace Internal{
 
 	bool checkLastSDLErr() {
 		if ((*SDL_GetError()) != '\0') {
-			KDEBUG_PRINT(SDL_GetError());
+			KD_PRINT(SDL_GetError());
 			SDL_ClearError();
 			return false;
 		}

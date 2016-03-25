@@ -18,6 +18,10 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 USA
 */
 #include "Kite/math/kmatrix3.h"
+#include "Kite/meta/kmetamanager.h"
+#include "Kite/meta/kmetaclass.h"
+#include "Kite/meta/kmetatypes.h"
+#include <luaintf/LuaIntf.h>
 
 namespace Kite {
 	KMatrix3::KMatrix3(F32 E00, F32 E01, F32 E02,
@@ -91,4 +95,18 @@ namespace Kite {
 		return KMatrix3(-right._kmatrix[0], -right._kmatrix[1], -right._kmatrix[2], -right._kmatrix[3], -right._kmatrix[4],
 						-right._kmatrix[5], -right._kmatrix[6], -right._kmatrix[7], -right._kmatrix[8]);
 	}
+
+	KMatrix3 KMatrix3::luaAddOpr(const KMatrix3 &right) const {
+		return operator+(right); 
+	}
+
+	KMatrix3 KMatrix3::luaSubOpr(const KMatrix3 &right) const {
+		return operator-(right); 
+	}
+
+	KMatrix3 KMatrix3::luaMulOpr(const KMatrix3 &right) const {
+		return operator*(right); 
+	}
+
+	KMETA_KMATRIX3_SOURCE();
 }

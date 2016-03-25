@@ -20,78 +20,19 @@ USA
 #include "Kite/meta/kmetaclass.h"
 
 namespace Kite {
-	KMetaClass::KMetaClass(const std::string &Name, U32 Flag, U32 Size, const std::string &Category) :
-		KMetaBase(Name, Flag, Size, KMT_CLASS),
-		//_kmembers(nullptr), _klastMember(nullptr),
-		_kproperties(nullptr), _klastProperties(nullptr),
-		_kcategory(Category)
+	KMetaClass::KMetaClass(const std::string &Name, U32 Flag, U32 Size) :
+		KMetaBase(Name, Flag, Size, KMT_CLASS)
 	{}
 
-	KMetaClass::~KMetaClass() {
-		// free members
-		/*if (hasMembers()) {
-			KMetaMember *mem = _kmembers;
-			while (mem != nullptr) {
-				KMetaMember *temp = mem->next;
-				delete mem;
-				mem = temp;
-			}
-		}*/
-
-		// free properties
-		if (hasProperties()) {
-			KMetaProperty *prp = _kproperties;
-			while (prp != nullptr) {
-				KMetaProperty *temp = prp->next;
-				delete prp;
-				prp = temp;
-			}
-		}
-
-		// free bases
-		/*if (hasBase()) {
-			KMetaBaseClass *base = _kbases;
-			while (base != nullptr) {
-				KMetaBaseClass *temp = base->next;
-				delete base;
-				base = temp;
-			}
-		}*/
+	void KMetaClass::addProperty(const KMetaProperty &Property) {
+		_kprop.push_back(Property);
 	}
-
-	/*void KMetaClass::addMember(const KMetaMember *Member) {
-		if (!_kmembers)
-			_kmembers = const_cast<KMetaMember *>(Member);
-		else
-			_klastMember->next = const_cast<KMetaMember *>(Member);
-
-		_klastMember = const_cast<KMetaMember *>(Member);
-	}*/
-
-	void KMetaClass::addProperty(const KMetaProperty *Property) {
-		if (!_kproperties)
-			_kproperties = const_cast<KMetaProperty *>(Property);
-		else
-			_klastProperties->next = const_cast<KMetaProperty *>(Property);
-
-		_klastProperties = const_cast<KMetaProperty *>(Property);
-	}
-
-	/*void KMetaClass::addBase(const KMetaBaseClass *Base) {
-		if (!_kbases)
-			_kbases = const_cast<KMetaBaseClass *>(Base);
-		else
-			_klastBase->next = const_cast<KMetaBaseClass *>(Base);
-
-		_klastBase = const_cast<KMetaBaseClass *>(Base);
-	}*/
 	
-	void KMetaClass::addFunction(const KMetaFunction * Base) {
-		if (!_kfunctions)
-			_kfunctions = const_cast<KMetaFunction *>(Base);
-		else
-			_klastFunc->next = const_cast<KMetaFunction *>(Base);
+	void KMetaClass::addFunction(const KMetaFunction &Function) {
+		_kfunc.push_back(Function);
+	}
 
-		_klastFunc = const_cast<KMetaFunction *>(Base);
+	void KMetaClass::addInfo(const std::pair<std::string, std::string> &Info) {
+		_kinfo.push_back(Info);
 	}
 }

@@ -21,9 +21,15 @@
 #define KMATRIX3_H
 
 #include "Kite/core/kcoredef.h"
+#include "Kite/meta/kmetadef.h"
+#include "Kite/serialization/kbaseserial.h"
+#include "kmatrix3.khgen.h"
 
+KMETA
 namespace Kite{
-    class KMatrix3{
+	KM_CLASS(POD)
+    class KITE_FUNC_EXPORT KMatrix3{
+		KMETA_KMATRIX3_BODY();
     public:
 		KMatrix3(F32 E00 = 1.0f, F32 E01 = 0.0f, F32 E02 = 0.0f,
 				 F32 E10 = 0.0f, F32 E11 = 1.0f, F32 E12 = 0.0f,
@@ -39,6 +45,8 @@ namespace Kite{
 
 		KMatrix3 operator-(const KMatrix3 &right) const;
 
+		KMatrix3 operator-(const KMatrix3& right);
+
 		KMatrix3 &operator+=(const KMatrix3 &right);
 
 		KMatrix3 &operator-=(const KMatrix3 &right);
@@ -51,9 +59,17 @@ namespace Kite{
 
 		bool KMatrix3::operator!=(const KMatrix3& right) const;
 
-		KMatrix3 operator-(const KMatrix3& right);
     private:
-        F32 _kmatrix[9];
+		KM_OPE(KO_ADD)
+		KMatrix3 luaAddOpr(const KMatrix3 &right) const;
+
+		KM_OPE(KO_SUB)
+		KMatrix3 luaSubOpr(const KMatrix3 &right) const;
+
+		KM_OPE(KO_MUL)
+		KMatrix3 luaMulOpr(const KMatrix3 &right) const;
+
+        KM_VAR() F32 _kmatrix[9];
     };
 }
 

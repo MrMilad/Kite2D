@@ -24,10 +24,15 @@
 #include "Kite/core/kcomponent.h"
 #include "Kite/math/kmathstructs.h"
 #include "Kite/math/kmatrix3.h"
+#include "Kite/meta/kmetadef.h"
+#include "ktransformcom.khgen.h"
 
+KMETA
 namespace Kite{
+	KM_CLASS(COMPONENT)
     class KITE_FUNC_EXPORT KTransformCom: public KComponent{
 		friend class KTransformSys;
+		KMETA_KTRANSFORMCOM_BODY();
     public:
 		/// construct a transform (unit matrix)
 		KTransformCom(const std::string &Name);
@@ -39,47 +44,63 @@ namespace Kite{
         /// set position
         /// completely restore the previous position
         /// default (0, 0)
+		KM_PRO_SET("Position")
         void setPosition(const KVector2F32& Position);
+
+		KM_PRO_GET("Position", KVector2F32, "Position value")
         inline const KVector2F32 &getPosition() const {return _kposition;}
 
         /// completely restore the previous Rotation
         /// range [0, 360]
         /// default 0
+		KM_PRO_SET("Rotation")
         void setRotation(F32 Angle);
-        inline F32 getRotation() const {return _krotation;}
 
+		KM_PRO_GET("Rotation", F32, "Rotation value")
+        inline F32 getRotation() const {return _krotation;}
 
         /// set scale
         /// completely restore the previous scale
         /// default (1, 1)
+		KM_PRO_SET("Scale")
         void setScale(const KVector2F32 &Scale);
+
+		KM_PRO_GET("Scale", KVector2F32, "Scale value")
         inline const KVector2F32 &getScale() const {return _kscale;}
 
 		/// set scale
 		/// completely restore the previous scale
 		/// default (0, 0)
+		KM_PRO_SET("Skew")
 		void setSkew(const KVector2F32 &Skew);
+
+		KM_PRO_GET("Skew", KVector2F32, "Skew value")
 		inline const KVector2F32 &getSkew() const { return _kskew; }
 
         /// set center of (position, scale, rotation)
         /// relative to the top-left
         /// default (0, 0)
+		KM_PRO_SET("Center")
         void setCenter(const KVector2F32 &Center);
+
+		KM_PRO_GET("Center", KVector2F32, "Center value")
         inline const KVector2F32 &getCenter() const {return _kcenter;}
 
 		/// return the combined matrix
-		inline const KMatrix3 *getMatrix() const { return &_kmatrix; }
+		KM_FUN()
+		inline const KMatrix3 &getMatrix() const { return _kmatrix; }
 
 		/// return the combined matrix for direct manipulation
-		inline KMatrix3 *manipulateMatrix() { return &_kmatrix; }
+		KM_FUN()
+		inline KMatrix3 &manipulateMatrix() { return _kmatrix; }
 
     private:
-        KVector2F32 _kposition;
-        F32 _krotation;
-        KVector2F32 _kscale;
-		KVector2F32 _kskew;
-        KVector2F32 _kcenter;
-		KMatrix3 _kmatrix;
+        KM_VAR() KVector2F32 _kposition;
+		KM_VAR() F32 _krotation;
+		KM_VAR() KVector2F32 _kscale;
+		KM_VAR() KVector2F32 _kskew;
+		KM_VAR() KVector2F32 _kcenter;
+		KM_VAR() KMatrix3 _kmatrix;
     };
 }
 

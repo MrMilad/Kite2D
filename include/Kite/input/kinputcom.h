@@ -22,9 +22,14 @@ USA
 
 #include "Kite/core/kcoredef.h"
 #include "Kite/core/kcomponent.h"
+#include "Kite/meta/kmetadef.h"
+#include "kinputcom.khgen.h"
 
+KMETA
 namespace Kite {
+	KM_CLASS(COMPONENT)
 	class KITE_FUNC_EXPORT KInputCom : public KComponent {
+		KMETA_KINPUTCOM_BODY();
 	public:
 		KInputCom(const std::string &Name);
 
@@ -32,19 +37,28 @@ namespace Kite {
 
 		void deattached(U32 EntityID) override;
 
+		KM_PRO_SET("Keyboard")
 		inline void setEnableKeyboard(bool Enable) { _kkeyboard = Enable; }
+
+		KM_PRO_GET("Keyboard", bool, "enable keyboard events")
 		inline bool getEnableKeyboard() const { return _kkeyboard; }
 
+		KM_PRO_SET("Mouse")
 		inline void setEnableMouse(bool Enable) { _kmouse = Enable; }
+
+		KM_PRO_GET("Mouse", bool, "enable mouse events")
 		inline bool getEnableMouse() const { return _kmouse; }
 
+		KM_PRO_SET("Joystick")
 		inline void setEnableJoystick(bool Enable) { _kjoystick = Enable; }
+
+		KM_PRO_GET("Joystick", bool, "enable joystick events")
 		inline bool getEnableJoystick() const { return _kjoystick; }
 
 	private:
-		bool _kkeyboard;
-		bool _kmouse;
-		bool _kjoystick;
+		KM_VAR() bool _kkeyboard;
+		KM_VAR() bool _kmouse;
+		KM_VAR() bool _kjoystick;
 	};
 }
 

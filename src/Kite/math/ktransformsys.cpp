@@ -19,6 +19,10 @@ USA
 */
 #include "Kite/math/ktransformsys.h"
 #include <cmath>
+#include "Kite/meta/kmetamanager.h"
+#include "Kite/meta/kmetaclass.h"
+#include "Kite/meta/kmetatypes.h"
+#include <luaintf/LuaIntf.h>
 
 namespace Kite {
 
@@ -61,4 +65,6 @@ namespace Kite {
 											0.f, 0.f, 1.f);
 		Component.setNeedUpdate(false);
 	}
+
+	KMETA_KTRANSFORMSYS_SOURCE();
 }

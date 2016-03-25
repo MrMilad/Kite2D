@@ -18,6 +18,10 @@
     USA
 */
 #include "Kite/math/ktransformcom.h"
+#include "Kite/meta/kmetamanager.h"
+#include "Kite/meta/kmetaclass.h"
+#include "Kite/meta/kmetatypes.h"
+#include <luaintf/LuaIntf.h>
 #include <cmath>
 
 namespace Kite{
@@ -64,4 +68,6 @@ namespace Kite{
         _kcenter = Center;
 		setNeedUpdate(true);
     }
+
+	KMETA_KTRANSFORMCOM_SOURCE();
 }

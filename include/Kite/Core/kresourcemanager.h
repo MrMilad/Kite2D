@@ -41,12 +41,12 @@ namespace Kite{
 		bool add(const std::string &ResName, KResource *Resource, KIStream *CatchStream = nullptr) {
 			// checking file name
 			if (ResName.empty()) {
-				KDEBUG_PRINT("empty file name is not valid");
+				KD_PRINT("empty resource name is not valid");
 				return false;
 			}
 
 			if (!Resource) {
-				KDEBUG_PRINT("bad or null resource pointer");
+				KD_FPRINT("bad or null resource pointer. rname: %s", ResName.c_str());
 				return false;
 			}
 
@@ -58,7 +58,7 @@ namespace Kite{
 			std::unordered_map<std::string, std::pair<KResource *, KIStream *>>::iterator found = _kmap.find(tempKey);
 			if (found != _kmap.end()) {
 				// replace current loaded resource not allowed
-				KDEBUG_PRINT("replace loaded resource not allowed");
+				KD_FPRINT("replace loaded resource not allowed. rname: %s", ResName.c_str());
 				return false;
 			}
 
@@ -84,7 +84,7 @@ namespace Kite{
 
 			// checking file name
 			if (ResName.empty()){
-				KDEBUG_PRINT("empty file name is not valid");
+				KD_PRINT("empty resource name is not valid");
 				return nullptr;
 			}
 
@@ -105,7 +105,7 @@ namespace Kite{
 			stream->open(ResName, KIOTypes::KRT_BIN);
 
 			if (!resource->loadStream(*stream, Flag)) {
-				KDEBUG_PRINT("can't load resource");
+				KD_FPRINT("can't load resource. rname: %s", ResName.c_str());
 				delete resource;
 				delete stream;
 				return nullptr;
@@ -134,7 +134,7 @@ namespace Kite{
 		R *get(const std::string &ResName) {
 			// checking file name
 			if (ResName.empty()) {
-				KDEBUG_PRINT("empty file name is not valid");
+				KD_PRINT("empty resource name is not valid");
 				return nullptr;
 			}
 
@@ -149,7 +149,7 @@ namespace Kite{
 				return static_cast<R *>(found->second.first);
 			}
 
-			KDEBUG_PRINT("this reaource not loaded yet");
+			KD_FPRINT("this reaource not loaded yet. rname: %s", ResName.c_str());
 			return nullptr;
 		}
 
@@ -157,7 +157,7 @@ namespace Kite{
 		void unload(const std::string &ResName) {
 			// checking file name
 			if (ResName.empty()) {
-				KDEBUG_PRINT("empty file name is not valid");
+				KD_PRINT("empty resource name is not valid");
 				return;
 			}
 

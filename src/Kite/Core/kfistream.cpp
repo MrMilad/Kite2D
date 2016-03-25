@@ -32,7 +32,7 @@ namespace Kite{
 
 	bool KFIStream::open(const std::string &Address, KIOTypes Type) {
 		if (Address.empty()) {
-			KDEBUG_PRINT("empty file address")
+			KD_PRINT("address is empty");
 			return false;
 		}
 
@@ -51,7 +51,7 @@ namespace Kite{
 
 		_kfile = fopen(Address.c_str(), mode.c_str());
 		if (_kfile == NULL) {
-			KDEBUG_PRINT("cant open file");
+			KD_FPRINT("can't open file. fname: %s", Address.c_str());
 			return false;
 		}
 

@@ -65,14 +65,26 @@ enum MExportState{
 	ES_NONE
 };
 
-struct MFParam {
+enum MOperatorType {
+	OT_ADD = 0,
+	OT_SUB,
+	OT_MUL,
+	OT_DIV
+};
+
+/*struct MFParam {
 	std::string name;
 	std::string type;
 	std::string defval;
+};*/
+
+struct MInfo {
+	std::string key;
+	std::string info;
 };
+
 struct MFunction {
 	std::string name;
-	std::string ret;
 	std::string tokparam;
 	bool ista;
 	bool inl;
@@ -80,7 +92,6 @@ struct MFunction {
 	bool cons;
 	bool vir;
 	bool explct;
-	std::vector<MFParam> params;
 
 	MFunction() :
 		ista(false), inl(false), ext(false),
@@ -96,30 +107,25 @@ struct MProperty {
 	std::string type;
 };
 
-struct MVariable {
-	std::string name;
-	std::string type;
-	std::string tokparam;
-	std::string arrSize;
-	bool cons;
-	bool ista;
-	bool isArray;
-	bool isRef;
-	bool isPtr;
-
-	MVariable() :
-		cons(false), ista(false), isArray(false),
-		isRef(false), isPtr(false)
-	{}
+struct MOperator {
+	MOperatorType type;
+	MFunction fun;
 };
 
-struct MClassBase {
+struct MVariable {
+	std::string name;
+	std::string tokparam;
+
+	MVariable() {}
+};
+
+/*struct MClassBase {
 	std::string name;
 	MClassBaseAccs accs;
 
 	MClassBase() :
 		accs(CA_PRIVATE) {}
-};
+};*/
 
 struct MClass {
 	std::string name;
@@ -128,13 +134,14 @@ struct MClass {
 	MExportState exstate;
 	MFunction constructure;
 	std::string flags;
-	std::vector<MClassBase> bases;
 	std::vector<MProperty> props;
 	std::vector<MFunction> funcs;
 	std::vector<MVariable> vars;
+	std::vector<MInfo> infos;
+	std::vector<MOperator> opes;
 
 	MClass() :
-		exstate(ES_NONE) {}
+		exstate(ES_NONE){}
 };
 
 struct MEnum {
@@ -197,7 +204,7 @@ void replaceTok(std::string &Content, char Target, char Replace) {
 }
 
 // get position of specifi token
-unsigned int getTokPos(const std::string &Content, unsigned int Pos, char tok, bool Toend = false) {
+unsigned int getTokPos(const std::string &Content, unsigned int Pos, char tok) {
 	if (Content.empty())
 		return 0;
 
@@ -210,10 +217,7 @@ unsigned int getTokPos(const std::string &Content, unsigned int Pos, char tok, b
 			continue;
 
 		} else if (Content[i] == tok) {
-			return i + 1;
-
-		} else if (!Toend){
-			std::string::npos;
+			return i;
 		}
 	}
 	return std::string::npos;;
@@ -300,7 +304,7 @@ ParsState checkNext(const std::string &Content, unsigned int Pos) {
 // baraie FUNCTION ...
 // in halat ha da ghaleb iek enum be tabe dade mishe
 // on gzine akhar (bool Colon) ham baiad hazf beshe bejash halat VARIABLE biad
-unsigned int getNextWord(const std::string &Content, unsigned int Pos, std::string &OutTok, bool Colon) {
+unsigned int getNextWord(const std::string &Content, unsigned int Pos, std::string &OutTok) {
 	OutTok.clear();
 	if (Content.empty())
 		return 0;
@@ -313,13 +317,10 @@ unsigned int getNextWord(const std::string &Content, unsigned int Pos, std::stri
 			Content[i] == '[' || Content[i] == ']' ||
 			Content[i] == '{' || Content[i] == '}' ||
 			Content[i] == ',' || Content[i] == '=' ||
-			Content[i] == '+' || Content[i] == '-' ||
+			Content[i] == '+' || Content[i] == '-' || 
 			Content[i] == '&' || Content[i] == '|' ||
-			Content[i] == '*' ||
+			Content[i] == '*' || Content[i] == ':' ||
 			Content[i] == '\t' || Content[i] == ';') {
-			continue;
-
-		} else if(Colon && Content[i] == ':'){
 			continue;
 		}else{
 			begin = i;
@@ -335,10 +336,7 @@ unsigned int getNextWord(const std::string &Content, unsigned int Pos, std::stri
 				   Content[i] == ',' || Content[i] == '=' ||
 				   Content[i] == '+' || Content[i] == '-' ||
 				   Content[i] == '|' || Content[i] == ';' ||
-				   Content[i] == '\t'){
-			end = i;
-			break;
-		} else if (Colon && Content[i] == ':') {
+				   Content[i] == '\t' || Content[i] == ':'){
 			end = i;
 			break;
 		}
@@ -636,7 +634,7 @@ bool procFunc(const std::string &Content, MFunction &Func, unsigned int Pos) {
 	vList.reserve(FUNC_ATTRIB);
 	for (auto i = 0; i < FUNC_ATTRIB; i++) {
 		if (checkNextRaw(Content, Pos, false) != PS_BODY_START) {
-			Pos = getNextWord(Content, Pos, output, false);
+			Pos = getNextWord(Content, Pos, output);
 
 			// pointer or ref (return value)
 			/*if (checkNextRaw(Content, Pos, false) == PS_MODTOKEN) {
@@ -672,73 +670,11 @@ bool procFunc(const std::string &Content, MFunction &Func, unsigned int Pos) {
 
 	Func.name = vList.back();
 
-	// return type
-	if (vList.size() > 1 && !Func.explct) {
-		Func.ret = vList[vList.size() - 2] + retType;
-	}
-
-	// get function parameter list
-	if (checkNextRaw(Content, Pos, false) != PS_BODY_START) {
-		printf("error: missing \"()\" ==> function name: %s", Func.name.c_str());
-		return false;
-	}
-
-	Pos = getNextBody(Content, Pos, output);
-	splitParamRaw(output, params, false);
-
-	std::vector<std::string> pinfo;
-	if (!params.empty()) {
-		for (size_t i = 0; i < params.size(); i++) {
-
-			MFParam tpar;
-
-			// default value
-			splitBy(params[i], "=", pinfo);
-			if (pinfo.size() > 1) {
-				removeTok(pinfo[1], " ");
-				removeTok(pinfo[1], "\n");
-				removeTok(pinfo[1], "\t");
-				removeAfter(params[i], "=");
-				tpar.defval = pinfo[1]; // default value
-			}
-
-			// name and type
-			std::string tmod;
-			/*if (params[i].find("*") != std::string::npos) {
-				tmod = " *";
-			} else if (params[i].find("&") != std::string::npos) {
-				tmod = " &";
-			}*/
-			removeTok(params[i], "*");
-			removeTok(params[i], "&");
-			splitBy(params[i], " ", pinfo);
-			if (pinfo.size() < 2) {
-				printf("error: missing parameter name ==> function name: %s\n", Func.name.c_str());
-				return false;
-			}
-
-
-			// ex: char param
-			if (pinfo.size() == 2) {
-				tpar.type = pinfo[0] + tmod; // type
-				tpar.name = pinfo[1]; // name
-			}
-
-			// ex: const char param
-			if (pinfo.size() == 3) {
-				tpar.type = pinfo[1] + tmod; // type
-				tpar.name = pinfo[2]; // name
-			}
-			
-			Func.params.push_back(tpar);
-		}
-	}
-
 	// check const
 	if (checkNext(Content, Pos) == PS_WORD) {
 		for (auto i = 0; i < FUNC_ATTRIB; i++) {
 			if (checkNext(Content, Pos) == PS_WORD) {
-				Pos = getNextWord(Content, Pos, output, false);
+				Pos = getNextWord(Content, Pos, output);
 
 				if (output == "const") {
 					Func.cons = true;
@@ -755,7 +691,6 @@ bool procFunc(const std::string &Content, MFunction &Func, unsigned int Pos) {
 // parse all property in the content
 bool procAllFunc(std::string &Content, std::vector<MFunction> &Funcs) {
 	size_t pos = 0;
-	unsigned int count = 0;
 	bool ret = true;
 	Funcs.clear();
 
@@ -763,16 +698,14 @@ bool procAllFunc(std::string &Content, std::vector<MFunction> &Funcs) {
 		return false;
 	}
 
-	while ((pos = findToken(Content, pos, "KMETA_FUNCTION")) != std::string::npos) {
+	while ((pos = findToken(Content, pos, "KM_FUN")) != std::string::npos) {
 		MFunction tfun;
 		if (procFunc(Content, tfun, pos)) {
 			Funcs.push_back(tfun);
 
 		} else {
 			ret = false;
-			printf("Function token number: %u\n", count);
 		}
-		++count;
 	}
 
 	return ret;
@@ -782,7 +715,7 @@ bool procConstructure(const std::string &Content, MFunction &Func) {
 	size_t pos = 0;
 
 	// only 1 constructure supported at this time
-	if ((pos = findToken(Content, 0, "KMETA_CONSTRUCTURE")) != std::string::npos) {
+	if ((pos = findToken(Content, 0, "KM_CON")) != std::string::npos) {
 
 		if (procFunc(Content, Func, pos)) {
 			return true;
@@ -796,94 +729,103 @@ bool procConstructure(const std::string &Content, MFunction &Func) {
 	return false;
 }
 
-bool procProp(const std::vector<MFunction> &Allprop, std::vector<MProperty> &Output) {
+bool procProp(const std::vector<MFunction> &AllGet, const std::vector<MFunction> &AllSet
+			  , std::vector<MProperty> &Output) {
 	std::vector<std::string> param;
-	std::unordered_map<std::string, std::pair<MProperty, bool>> map;
+	std::unordered_map<std::string, MProperty> map;
 	Output.clear();
 
-	if (Allprop.empty()) {
+	// atleast we need a getter
+	if (AllGet.empty()) {
 		return true;
 	}
 
-	for (size_t i = 0; i < Allprop.size(); i++) {
+	// first register all getters
+	for (size_t i = 0; i < AllGet.size(); i++) {
 
 		// exteract token parameter
-		splitParam(Allprop[i].tokparam, param);
-		
-		if (param.empty()) {
-			printf("error: missing property info ==> function name: %s\n", Allprop[i].name.c_str());
-			return false;
-		} else if (param.size() > 2) {
-			printf("warning: extera property info (ignored) ==> function name: %s\n", Allprop[i].name.c_str());
-		}
+		splitParam(AllGet[i].tokparam, param);
 
+		if (param.empty()) {
+			printf("error: missing property info ==> function name: %s\n", AllGet[i].name.c_str());
+			return false;
+
+		// at least we need 2 info (name and type)
+		} else if (param.size() < 2) {
+			printf("error: missing property type ==> function name: %s\n", AllGet[i].name.c_str());
+			return false;
+
+		} else if (param.size() > 3) {
+			printf("warning: extera property info (ignored) ==> function name: %s\n", AllGet[i].name.c_str());
+		}
 
 		// extract string name from string map
 		auto pname = strmap.find(param[0]);
 		if (pname == strmap.end()) {
-			printf("error: could not extract prperty name from string map ==> function name: %s\n", Allprop[i].name.c_str());
+			printf("error: could not extract prperty name from string map ==> function name: %s\n", AllGet[i].name.c_str());
 			return false;
 		}
 
+		// check for comment
+		std::string comment;
+		if (param.size() >= 3) {
+			auto pcomm = strmap.find(param[2]);
+			if (pcomm == strmap.end()) {
+				printf("warning: could not extract prperty comment from string map ==> function name: %s\n", AllGet[i].name.c_str());
+			} else {
+				comment = pcomm->second;
+			}
+		}
+
+		// register property to map
 		auto prop = map.find(pname->second);
-		auto *pptr = &map[pname->second];
-		pptr->first.name = pname->second;
-
-		// new property
-		if (prop == map.end()) {
-			pptr->second = false;
-
-		// registered property
-		} else {
-
-			// check overload
-			if (prop->second.second) {
-				printf("error: property overload not supported ==> property name: %s\n", pname->second.c_str());
-				return false;
-			}
-
-			prop->second.second = true;
-		}
-
-		// have comment
-		if (param.size() > 1) {
-			pname = strmap.find(param[1]);
-			if (pname == strmap.end()) {
-				printf("error: could not extract prperty comment from string map ==> function name: %s\n", Allprop[i].name.c_str());
-				return false;
-			}
-			pptr->first.comment = pname->second;
-		}
-
-		// check function type (setter or getter)
-		// getter
-		if (Allprop[i].params.empty()) {
-			pptr->first.get = Allprop[i];
-			pptr->first.type = Allprop[i].ret;
-
-			// setter
-		} else if (Allprop[i].params.size() == 1) {
-			pptr->first.set = Allprop[i];
-			pptr->first.type = Allprop[i].params[0].type;
-
-			// more than 1 parameter (not supported)
-		} else {
-			printf("error: properties with more than 1 parameter not supported ==> function name: %s\n", Allprop[i].name.c_str());
+		if (prop != map.end()) {
+			printf("error: property overload not supported ==> function name: %s\n", AllGet[i].name.c_str());
 			return false;
 		}
 
+		// register getter/name/type/comment
+		map.insert({ pname->second, MProperty() });
+		map[pname->second].name = pname->second;
+		map[pname->second].comment = comment;
+		map[pname->second].get = AllGet[i];
+		map[pname->second].type = param[1];
 	}
 
-	// type match - iterate over all registered properties
-	for (auto it = map.begin(); it != map.end(); ++it) {
-		if (it->second.second) {
-			if (it->second.first.get.ret != it->second.first.set.params[0].type) {
-				printf("error: setter/getter type mismatch ==> property name: %s\n", it->second.first.name.c_str());
-				return false;
-			}
+	// first register all setters
+	for (size_t i = 0; i < AllSet.size(); i++) {
+
+		// exteract token parameter
+		splitParam(AllSet[i].tokparam, param);
+
+		if (param.empty()) {
+printf("error: missing property info ==> function name: %s\n", AllGet[i].name.c_str());
+return false;
+		} else if (param.size() > 1) {
+			printf("warning: extera property info (ignored) ==> function name: %s\n", AllGet[i].name.c_str());
 		}
 
-		Output.push_back(it->second.first);
+		// extract string name from string map
+		auto pname = strmap.find(param[0]);
+		if (pname == strmap.end()) {
+			printf("error: could not extract prperty name from string map ==> function name: %s\n", AllGet[i].name.c_str());
+			return false;
+		}
+
+		// register property to map
+		auto prop = map.find(pname->second);
+		if (prop == map.end()) {
+			printf("error: setter-only property not allowed ==> function name: %s\n", AllGet[i].name.c_str());
+			return false;
+		}
+
+		// register getter/name/type/comment
+		map[pname->second].set = AllSet[i];
+	}
+
+	// fill output vector
+	for (auto it = map.begin(); it != map.end(); ++it) {
+		Output.push_back(it->second);
 	}
 
 	return true;
@@ -892,8 +834,8 @@ bool procProp(const std::vector<MFunction> &Allprop, std::vector<MProperty> &Out
 // parse all property in the content
 bool procAllProp(const std::string &Content, std::vector<MProperty> &Props) {
 	size_t pos = 0;
-	std::vector<MFunction> allprop;
-	unsigned int count = 0;
+	std::vector<MFunction> allGet;
+	std::vector<MFunction> allSet;
 	bool ret = true;
 	Props.clear();
 
@@ -901,23 +843,32 @@ bool procAllProp(const std::string &Content, std::vector<MProperty> &Props) {
 		return false;
 	}
 
-	while ((pos = findToken(Content, pos, "KMETA_PROPERTY")) != std::string::npos) {
+	while ((pos = findToken(Content, pos, "KM_PRO_GET")) != std::string::npos) {
 		MFunction tfunc;
 
 		if (procFunc(Content, tfunc, pos)) {
-			allprop.push_back(tfunc);
+			allGet.push_back(tfunc);
 
 		} else {
 			ret = false;
-			printf("property token number: %u\n", count);
 		}
-		++count;
+	}
+
+	pos = 0;
+	while ((pos = findToken(Content, pos, "KM_PRO_SET")) != std::string::npos) {
+		MFunction tfunc;
+
+		if (procFunc(Content, tfunc, pos)) {
+			allSet.push_back(tfunc);
+
+		} else {
+			ret = false;
+		}
 	}
 
 	if (ret) {
-		if (!procProp(allprop, Props)) {
+		if (!procProp(allGet, allSet, Props)) {
 			ret = false;
-			printf("property token number: %u\n", count);
 		}
 	}
 
@@ -943,39 +894,12 @@ bool procVar(const std::string &Content, MVariable &Var, unsigned int Pos) {
 	}
 
 	// exteract variable name/attribute/array/size/....
-	auto tpos = getTokPos(Content, Pos, ';', true);
-	--tpos;
+	auto tpos = getTokPos(Content, Pos, ';');
 	std::vector<std::string> vList;
 	vList.reserve(VAR_ATTRIB);
 	for (auto i = 0; i < VAR_ATTRIB; i++) {
-		if (Pos < tpos) {
-			if (checkNextRaw(Content, Pos, false) == PS_BODY_START){
-				Pos = getNextBody(Content, Pos, output);
-				Var.isArray = true;
-				removeTok(output, "[");
-				removeTok(output, "]");
-				Var.arrSize = output;
-				continue;
-
-			// pointer or reference
-			} else if (checkNextRaw(Content, Pos, false) == PS_MODTOKEN) {
-				if (checkTok(Content, Pos, '*')) {
-					Var.isPtr = true;
-				} else if (checkTok(Content, Pos, '&')) {
-					Var.isRef = true;
-				}
-			}
-
-			Pos = getNextWord(Content, Pos, output, false);
-
-			if (output == "static") {
-				Var.ista = true;
-				continue;
-			} else if (output == "const") {
-				Var.cons = true;
-				continue;
-			}
-
+		if (Pos < tpos && (checkNext(Content, Pos) != PS_BODY_START)) {
+			Pos = getNextWord(Content, Pos, output);
 			vList.push_back(output);
 		} else {
 			break;
@@ -989,13 +913,11 @@ bool procVar(const std::string &Content, MVariable &Var, unsigned int Pos) {
 
 	// name
 	Var.name = vList.back();
-	// type
-	Var.type = vList[vList.size() - 2];
 
 	return true;
 }
 
-// parse all CLASS tokens
+// parse all VAR tokens
 bool procAllVar(const std::string &Content, std::vector<MVariable> &Vars) {
 	size_t pos = 0;
 	unsigned int count = 0;
@@ -1006,7 +928,7 @@ bool procAllVar(const std::string &Content, std::vector<MVariable> &Vars) {
 		return false;
 	}
 
-	while ((pos = findToken(Content, pos, "KMETA_VARIABLE")) != std::string::npos) {
+	while ((pos = findToken(Content, pos, "KM_VAR")) != std::string::npos) {
 		MVariable tvar;
 		if (procVar(Content, tvar, pos)) {
 			Vars.push_back(tvar);
@@ -1017,6 +939,134 @@ bool procAllVar(const std::string &Content, std::vector<MVariable> &Vars) {
 		}
 		++count;
 	}
+
+	return ret;
+}
+
+bool procInfo(const std::string &Content, MInfo &Info, unsigned int Pos) {
+	std::string output;
+	if (checkNext(Content, Pos) != PS_BODY_START) {
+		printf("error: missing ().\n");
+		return false;
+	}
+
+	// its a generic variable processor so we dont check number of token parameters here,
+	// and there is no warning for empty parameter list
+	Pos = getNextBody(Content, Pos, output);
+	
+	std::vector<std::string> param;
+	splitParam(output, param);
+
+	if (param.size() >= 2) {
+		Info.key = strmap[param[0]];
+		Info.info = strmap[param[1]];
+		return true;
+	} else {
+		printf("missing info parameter.");
+	}
+
+	return false;
+}
+
+// parse all INFO tokens
+bool procAllInfo(const std::string &Content, std::vector<MInfo> &Info) {
+	size_t pos = 0;
+	unsigned int count = 0;
+	bool ret = true;
+	Info.clear();
+
+	if (Content.empty()) {
+		return false;
+	}
+
+	while ((pos = findToken(Content, pos, "KM_INFO")) != std::string::npos) {
+		MInfo tinfo;
+		if (procInfo(Content, tinfo, pos)) {
+			Info.push_back(tinfo);
+
+		} else {
+			printf("info token number: %u \n", count);
+			ret = false;
+		}
+		++count;
+	}
+
+	return ret;
+}
+
+bool procOper(std::vector<MOperator> &Oprs, const std::vector<MFunction> &Funs) {
+	std::vector<std::string> param;
+
+	for (size_t i = 0; i < Funs.size(); ++i) {
+		splitParam(Funs[i].tokparam, param);
+		if (param.empty()) {
+			printf("missing operator type. oname: %s\n", Funs[i].name.c_str());
+			return false;
+		} else if (param.size() > 1) {
+			printf("extera operator type ignored. oname: %s\n", Funs[i].name.c_str());
+		}
+
+		if (param[0] == "KO_ADD") {
+			MOperator opr;
+			opr.fun = Funs[i];
+			opr.type = OT_ADD;
+			Oprs.push_back(opr);
+			continue;
+		}
+
+		if (param[0] == "KO_SUB") {
+			MOperator opr;
+			opr.fun = Funs[i];
+			opr.type = OT_SUB;
+			Oprs.push_back(opr);
+			continue;
+		}
+
+		if (param[0] == "KO_MUL") {
+			MOperator opr;
+			opr.fun = Funs[i];
+			opr.type = OT_MUL;
+			Oprs.push_back(opr);
+			continue;
+		}
+
+		if (param[0] == "KO_DIV") {
+			MOperator opr;
+			opr.fun = Funs[i];
+			opr.type = OT_DIV;
+			Oprs.push_back(opr);
+			continue;
+		}
+	}
+	
+	return true;
+}
+
+// parse all class operators
+bool procAllOper(const std::string &Content, std::vector<MOperator> &Oprs) {
+	size_t pos = 0;
+	unsigned int count = 0;
+	std::vector<MFunction> funvec;
+	bool ret = true;
+	Oprs.clear();
+
+	if (Content.empty()) {
+		return false;
+	}
+
+	while ((pos = findToken(Content, pos, "KM_OPE")) != std::string::npos) {
+		MFunction tfun;
+		if (procFunc(Content, tfun, pos)) {
+			funvec.push_back(tfun);
+
+		} else {
+			printf("operator token number: %u \n", count);
+			ret = false;
+		}
+		++count;
+	}
+
+	ret = procOper(Oprs, funvec);
 
 	return ret;
 }
@@ -1043,7 +1093,7 @@ bool procClass(const std::string &Content, MClass &Cls, unsigned int Pos) {
 		return false;
 	}
 
-	pos = getNextWord(Content, pos, output, true);
+	pos = getNextWord(Content, pos, output);
 	if (output == "class") {
 		Cls.type = CT_CLASS;
 
@@ -1064,7 +1114,7 @@ bool procClass(const std::string &Content, MClass &Cls, unsigned int Pos) {
 	// search CLS_ATTRIB word for class name and its attributes
 	for (auto i = 0; i < CLS_ATTRIB; i++){
 		if (checkNext(Content, pos) == PS_WORD) {
-			pos = getNextWord(Content, pos, output, true);
+			pos = getNextWord(Content, pos, output);
 
 			if (output == "KITE_FUNC_EXPORT") {
 				Cls.exstate = ES_EXPORT;
@@ -1078,54 +1128,12 @@ bool procClass(const std::string &Content, MClass &Cls, unsigned int Pos) {
 		}
 	}
 
-	// checking base classes
-	// with base(s)
-	if (checkNext(Content, pos) == PS_COLTOKEN) {
-		bool kobj = false;
-		if (!checkTok(Content, pos, ':')) {
-			printf("error: missing \":\" token.\n");
-			return false;
-		}
-		pos = getTokPos(Content, pos, ':');
-
-		if (checkNextRaw(Content, pos, false) != PS_WORD) {
-			printf("error: missing base(es).\n");
-			return false;
-		}
-
-		while (checkNextRaw(Content, pos, false) == PS_WORD || checkNextRaw(Content, pos, false) == PS_SPLTOKEN) {
-			pos = getNextWord(Content, pos, output, true);
-			MClassBase base;
-			if (output == "public") {
-				base.accs = CA_PUBLIC;
-				pos = getNextWord(Content, pos, output, true);
-				base.name = output;
-				Cls.bases.push_back(base);
-
-			} else if (output == "private") {
-				base.accs = CA_PRIVATE;
-				pos = getNextWord(Content, pos, output, true);
-				base.name = output;
-				Cls.bases.push_back(base);
-
-			} else if (output == "protected") {
-				base.accs = CA_PROTECTED;
-				pos = getNextWord(Content, pos, output, true);
-				base.name = output;
-				Cls.bases.push_back(base);
-
-			} else {
-				base.accs = CA_PRIVATE;
-				base.name = output;
-				Cls.bases.push_back(base);
-			}
-
-		}
+	// class body
+	if ((pos = getTokPos(Content, pos, '{')) == std::string::npos) {
+		printf("error: missing class\\structure body.\n");
+		return false;
 	}
 
-	
-	// class body
-	size_t cpos = 0;
 	if (checkNext(Content, pos) == PS_BODY_START) {
 
 		// get class body
@@ -1138,11 +1146,6 @@ bool procClass(const std::string &Content, MClass &Cls, unsigned int Pos) {
 		if (!procConstructure(cbody, Cls.constructure)) {
 			return false;
 		}
-
-		// default contructure
-		/*if (Cls.constructure.name.empty()) {
-			Cls.constructure.name = Cls.name;
-		}*/
 		
 		// parse all properties in the class body
 		if (!procAllProp(cbody, Cls.props)) {
@@ -1154,7 +1157,18 @@ bool procClass(const std::string &Content, MClass &Cls, unsigned int Pos) {
 			return false;
 		}
 
+		// parse all variables in the class body
 		if (!procAllVar(cbody, Cls.vars)) {
+			return false;
+		}
+
+		// parse info in the class body
+		if (!procAllInfo(cbody, Cls.infos)) {
+			return false;
+		}
+
+		// parse operators in the class body
+		if (!procAllOper(cbody, Cls.opes)) {
 			return false;
 		}
 
@@ -1178,14 +1192,14 @@ bool procAllClass(const std::string &Content, std::vector<MClass> &Classes) {
 		return false;
 	}
 
-	while ((pos = findToken(Content, pos, "KMETA_CLASS")) != std::string::npos) {
+	while ((pos = findToken(Content, pos, "KM_CLASS")) != std::string::npos) {
 		MClass tcls;
 		if (procClass(Content, tcls, pos)) {
 			Classes.push_back(tcls);
 
 		} else {
 			unsigned int line = tokenCounter(Content.substr(0, pos), "\n");
-			printf("line number: %u ==> token name: KMETA_CLASS ==> token number: %u \n", ++line, count);
+			printf("line number: %u ==> token name: KM_CLASS ==> token number: %u \n", ++line, count);
 			ret = false;
 		}
 		++count;
@@ -1253,7 +1267,7 @@ bool procEnum(const std::string &Content, MEnum &Enm, unsigned int Pos) {
 	}
 
 	// enum token
-	pos = getNextWord(Content, pos, output, true);
+	pos = getNextWord(Content, pos, output);
 	if (output != "enum") {
 		printf("error: incorrect type (%s)\n", output.c_str());
 		return false;
@@ -1265,7 +1279,7 @@ bool procEnum(const std::string &Content, MEnum &Enm, unsigned int Pos) {
 		return false;
 	}
 
-	pos = getNextWord(Content, pos, output, true);
+	pos = getNextWord(Content, pos, output);
 	if (output != "class") {
 		printf("error: only enum class (scoped enum) supported.\n");
 		return false;
@@ -1276,19 +1290,20 @@ bool procEnum(const std::string &Content, MEnum &Enm, unsigned int Pos) {
 		printf("error: missing enum name.\n");
 		return false;
 	}
-	pos = getNextWord(Content, pos, output, true);
+	pos = getNextWord(Content, pos, output);
 	Enm.name = output;
 
 	// type
 	if (checkNext(Content, pos) == PS_COLTOKEN) {
 		pos = getTokPos(Content, pos, ':');
+		++pos;
 
 		if (checkNextRaw(Content, pos, false) != PS_WORD) {
 			printf("error: missing enum type.\n");
 			return false;
 		}
 
-		pos = getNextWord(Content, pos, output, true);
+		pos = getNextWord(Content, pos, output);
 		Enm.type = output;
 	} else {
 		// int by default
@@ -1319,14 +1334,14 @@ bool procAllEnum(const std::string &Content, std::vector<MEnum> &Enums) {
 		return false;
 	}
 
-	while ((pos = findToken(Content, pos, "KMETA_ENUM")) != std::string::npos) {
+	while ((pos = findToken(Content, pos, "KM_ENUM")) != std::string::npos) {
 		MEnum tenu;
 		if (procEnum(Content, tenu, pos)) {
 			Enums.push_back(tenu);
 
 		} else {
 			unsigned int line = tokenCounter(Content.substr(0, pos), "\n");
-			printf("line number: %u ==> token name: KMETA_ENUM ==> token number: %u \n", ++line, count);
+			printf("line number: %u ==> token name: KM_ENUM ==> token number: %u \n", ++line, count);
 			ret = false;
 		}
 		++count;
@@ -1336,7 +1351,7 @@ bool procAllEnum(const std::string &Content, std::vector<MEnum> &Enums) {
 }
 
 bool isIgnored(const std::string &Contetnt) {
-	if (Contetnt.find("KMETA_IGNORED") != std::string::npos) {
+	if (Contetnt.find("KM_IGNORED") != std::string::npos) {
 		return true;
 	}
 	return false;
@@ -1400,7 +1415,7 @@ void createMacros(const std::vector<MClass> &Cls, const std::vector<MEnum> &Enms
 					  "static KMetaEnum instance(\"" + Enms[i].name + "\"," + eParam + ", sizeof(" + Enms[i].type + "), "
 					  "\"" + Enms[i].type + "\");\\\n"
 					  "if (inite) {\\\n"
-					  "KMetaManager::setMeta((KMetaObject *)&instance);\\\n");
+					  "MMan->setMeta((KMetaObject *)&instance);\\\n");
 
 		// enum members
 		Output.append("KMetaEnumMember *mem = 0;\\\n");
@@ -1417,8 +1432,8 @@ void createMacros(const std::vector<MClass> &Cls, const std::vector<MEnum> &Enms
 
 		// lua binding
 		// enum members
-		Output.append("const KMetaObject *minfo = KMetaManager::getMeta(\"" + Enms[i].name + "\");\\\n"
-			"if (Lua != nullptr && (minfo->getFlag() & SCRIPTABLE)){\\\n"
+		Output.append("const KMetaObject *minfo = MMan->getMeta(\"" + Enms[i].name + "\");\\\n"
+			"if (Lua != nullptr &&){\\\n"
 			"LuaIntf::LuaBinding(Lua).beginModule(\"Kite\")\\\n"
 			".beginModule(\"" + Enms[i].name + "\")\\\n");
 		for (size_t count = 0; count < Enms[i].members.size(); count++) {
@@ -1491,251 +1506,184 @@ void createMacros(const std::vector<MClass> &Cls, const std::vector<MEnum> &Enms
 		}
 
 		// class without any flag will ignored
-		if (!isPOD && !isResource && !isComponent && !isSystem && !isScriptable && !isContiner) {
+		if (!isPOD && !isEntity && !isResource && !isComponent && !isSystem && !isScriptable && !isContiner) {
 			printf("message: class without any supported flags. %s ignored. \n", Cls[i].name.c_str());
 			continue;
 		}
 
 		// linkage state
-		std::string exstae;
+		std::string exstate;
 		if (Cls[i].exstate == ES_NONE) {
-			exstae = "KITE_FUNC_EXPORT ";
+			exstate = "KITE_FUNC_EXPORT ";
 		}
 
 		// class body
-		// private Section:
 		Output.append("\n// ----[auto generated: " + Cls[i].name + " body macro]----\n");
 		transform(upname.begin(), upname.end(), upname.begin(), toupper);
-		Output.append("#define KMETA_" + upname + "_BODY() \\\n"
-					  "private:\\\n");
-		
-		// factory function (with default constructure)
-		if ((isPOD || isComponent) && !isAbstract) {
-			Output.append(exstae + "static KObject *_createNew(KBaseStorage &Allocator);\\\n");
-		}
-
-		// properties (only editable classes allow properties)
-		if (isComponent) {
-			for (size_t count = 0; count < Cls[i].props.size(); count++) {
-				if (!Cls[i].props[count].set.name.empty()) {
-					Output.append("inline void _prp" + Cls[i].name + "set" + Cls[i].props[count].name + "(KRefVariant Value){ " +
-								  Cls[i].props[count].set.name + "(Value.getValue<" + Cls[i].props[count].type + ">()); }\\\n");
-				}
-
-				if (!Cls[i].props[count].get.name.empty()) {
-					Output.append("inline void _prp" + Cls[i].name + "get" + Cls[i].props[count].name + "(KRefVariant Value) { " +
-								  "Value.copyByVal(" + Cls[i].props[count].get.name + "()); }\\\n");
-				}
-			}
-		} 
+		Output.append("#define KMETA_" + upname + "_BODY() \\\n");
 		
 		// public section:
 		// register functions
 		Output.append("public:\\\n" +
-					  exstae + "static void registerMeta(lua_State *Lua = nullptr);\\\n"
+					  exstate + "static void registerMeta(KMetaManager *MMan, lua_State *Lua = nullptr);\\\n"
 					  "const std::string &getClassName() const { static std::string name(\"" + Cls[i].name + "\");\\\n"
 					  "return name;}\\\n");
 
+		// property setter/getter (only components have properties)
+		if (isComponent && !isAbstract) {
+			Output.append( exstate + "bool setProperty(const std::string &Name, KAny &Value) override;\\\n" + 
+						  exstate + "KAny getProperty(const std::string &Name) override;\\\n");
+		}
+
 		// serializable
 		if (isPOD || isComponent || isEntity) {
-			Output.append("friend KBaseSerial &operator<<(KBaseSerial &Out, " + Cls[i].name + " &Value) {\\\n"
-						  "Value.serial(Out, KST_SERIALIZE); return Out;}\\\n"
-						  "friend KBaseSerial &operator>>(KBaseSerial &In, " + Cls[i].name + " &Value) {\\\n"
-						  "Value.serial(In, KST_DESERIALIZE); return In;}\\\n"
-						  "protected:\\\n" +
-						  exstae + "void serial(KBaseSerial &Serializer, KSerialStateTypes State);\n");
+			if (!isAbstract) {
+				Output.append("friend KBaseSerial &operator<<(KBaseSerial &Out, " + Cls[i].name + " &Value) {\\\n"
+							  "Value.serial(Out, KSerialStateTypes::KST_SERIALIZE); return Out;}\\\n"
+							  "friend KBaseSerial &operator>>(KBaseSerial &In, " + Cls[i].name + " &Value) {\\\n"
+							  "Value.serial(In, KSerialStateTypes::KST_DESERIALIZE); return In;}\\\n");
+			}
+			Output.append(exstate + "virtual void serial(KBaseSerial &Serializer, KSerialStateTypes State);\n");
 		}
 
 		// defention
 		Output.append("\n// ----[auto generated: " + Cls[i].name + " source macro]----\n");
 		Output.append("#define KMETA_" + upname + "_SOURCE()\\\n");
 
-		if ((isPOD || isComponent) && !isAbstract) {
-			Output.append("KObject *" + Cls[i].name + "::_createNew(KBaseStorage &Allocator){\\\n"
-							"return allocateNew<" + Cls[i].name + ">(Allocator);}\\\n");
+		// property setter/getter (only components have properties)
+		if (isComponent && !isAbstract) {
+			// set
+			Output.append("bool " + Cls[i].name + "::setProperty(const std::string &Name, KAny &Value){\\\n");
+			for (size_t count = 0; count < Cls[i].props.size(); ++count) {
+				if (!Cls[i].props[count].set.name.empty()) {
+					Output.append("if (Name == \"" + Cls[i].props[count].name + "\"){\\\n" +
+								  "if (Value.is<" + Cls[i].props[count].type + ">()){\\\n" +
+								  Cls[i].props[count].set.name + "(Value.as<" + Cls[i].props[count].type + ">());\\\n"
+								  "return true;\\\n"
+								  "}else{ KD_FPRINT(\"incorrect property type. pname: %s\", Name.c_str()); return false;}}\\\n");
+				}
+			}
+			Output.append("return false;}\\\n");
+
+			// get
+			Output.append("KAny " + Cls[i].name + "::getProperty(const std::string &Name){\\\n");
+			for (size_t count = 0; count < Cls[i].props.size(); ++count) {
+				if (!Cls[i].props[count].get.name.empty()) {
+					Output.append("if (Name == \"" + Cls[i].props[count].name + "\"){\\\n"
+								 "return " + Cls[i].props[count].get.name + "();}\\\n");
+				}
+			}
+			Output.append("return KAny(nullptr);}\\\n");
 		}
 
+		// meta registration
 		replaceTok(cParam, ',', '|');
-		Output.append("void " + Cls[i].name + "::registerMeta(lua_State *Lua){\\\n"
+		Output.append("void " + Cls[i].name + "::registerMeta(KMetaManager *MMan, lua_State *Lua){\\\n"
 					  "static bool inite = true;\\\n"
 					  "static KMetaClass instance(\"" + Cls[i].name + "\"," + cParam + ", sizeof(" + Cls[i].name + "));\\\n"
 					  "if (inite) {\\\n"
-					  "KMetaManager::setMeta((KMetaObject *)&instance);\\\n");
+					  "if (MMan != nullptr){\\\n"
+					  "MMan->setMeta((KMetaBase *)&instance);\\\n");
 
-		if ((isPOD || isComponent) && !isAbstract){
-			Output.append("KMetaManager::setFactory(\"" + Cls[i].name + "\", " + Cls[i].name + "::_createNew);\\\n");
-		}
-
-		// bases
-		for (size_t count = 0; count < Cls[i].bases.size(); count++) {
-			std::string acc;
-			if (Cls[i].bases[count].accs == CA_PUBLIC) { acc = "KMB_PUBLIC"; }
-			if (Cls[i].bases[count].accs == CA_PRIVATE) { acc = "KMB_PRIVATE"; }
-			if (Cls[i].bases[count].accs == CA_PROTECTED) { acc = "KMB_PROTECTED"; }
-			Output.append("instance.addBase(new KMetaBase(\"" + Cls[i].bases[count].name + "\", "
-						  + acc + "));\\\n");
+		// informations
+		for (size_t count = 0; count < Cls[i].infos.size(); ++count) {
+			Output.append("instance.addInfo({\"" + Cls[i].infos[count].key + "\", \"" + Cls[i].infos[count].info + "\"});\\\n");
 		}
 
 		// properties (meta)
 		for (size_t count = 0; count < Cls[i].props.size(); count++) {
 			std::string prpType("KMP_BOTH");
-			if (Cls[i].props[count].get.name.empty()) {
-				prpType = "KMP_SETTER";
-			} else if (Cls[i].props[count].set.name.empty()) {
+			if (Cls[i].props[count].set.name.empty()) {
 				prpType = "KMP_GETTER";
+			} else {
+				prpType = "KMP_BOTH";
 			}
-			Output.append("instance.addProperty(new KMetaProperty(\"" + Cls[i].props[count].name + "\", \""
+			Output.append("instance.addProperty(KMetaProperty(\"" + Cls[i].props[count].name + "\", \""
 							+ Cls[i].props[count].type + "\", \"" + Cls[i].props[count].comment + "\", " + prpType + "));\\\n");
-
-			// insert to property map
-			// only allowed for components
-			if (isComponent) {
-				if (!Cls[i].props[count].get.name.empty()) {
-					Output.append("prpMap.insert({ \"_prp" + Cls[i].name + "get" + Cls[i].props[count].name
-								  + "\", (void (KComponent::*)(KRefVariant)) &" + Cls[i].name + "::"
-								  + "_prp" + Cls[i].name + "get" + Cls[i].props[count].name + "});\\\n");
-				}
-
-				if (!Cls[i].props[count].set.name.empty()) {
-					Output.append("prpMap.insert({ \"_prp" + Cls[i].name + "set" + Cls[i].props[count].name
-								  + "\", (void (KComponent::*)(KRefVariant)) &" + Cls[i].name + "::"
-								  + "_prp" + Cls[i].name + "set" + Cls[i].props[count].name + "});\\\n");
-				}
-			}
 		}
 
 		// functions
-		if (!Cls[i].funcs.empty()) {
-			Output.append("KMetaFunction *fun;\\\n");
-		}
 		for (size_t count = 0; count < Cls[i].funcs.size(); count++) {
 			std::string ista = "false";
 			if (Cls[i].funcs[count].ista) {
 				ista = "true";
 			} 
-			Output.append("fun = new KMetaFunction(\"" + Cls[i].funcs[count].name + "\", \"" + Cls[i].funcs[count].ret + "\", " + ista + ");\\\n");
 
-			// function parameters
-			for (size_t pcount = 0; pcount < Cls[i].funcs[count].params.size(); pcount++) {
-				//Output.append("fun->paramsName.push_back(\"" + Cls[i].funcs[count].params[pcount].name + "\");\\\n");
-				Output.append("fun->paramsType.push_back(\"" + Cls[i].funcs[count].params[pcount].type + "\");\\\n");
-			}
-			Output.append("instance.addFunction(fun);\\\n");
+			Output.append("instance.addFunction(KMetaFunction(\"" + Cls[i].funcs[count].name + "\", " + ista + " ));\\\n");
 		}
+		Output.append("}\\\n");
 
 		// lua binding 
-		Output.append("const KMetaObject *minfo = KMetaManager::getMeta(\"" + Cls[i].name + "\");\\\n"
-					  "if (Lua != nullptr && (minfo->getFlag() & SCRIPTABLE)) { \\\n"
-					  "LuaIntf::LuaBinding(Lua).beginModule(\"Kite\").beginClass<"
-					  + Cls[i].name + ">(\"" + Cls[i].name + "\")\\\n");
+		if (isComponent || isScriptable || isEntity || isPOD || isSystem) {
+			Output.append("if (Lua != nullptr) { \\\n"
+						  "LuaIntf::LuaBinding(Lua).beginModule(\"Kite\").beginClass<"
+						  + Cls[i].name + ">(\"" + Cls[i].name + "\")\\\n");
 
-		// constructure
-		std::string param;
-		std::string tok;
-		if (!Cls[i].constructure.name.empty() && !isAbstract) {
-			if (!Cls[i].constructure.params.empty()) {
-				for (size_t count = 0; count < Cls[i].constructure.params.size(); count++) {
-					if (!Cls[i].constructure.params[count].defval.empty()) {
-
-						// nullptr not supported in lua binding so we change it with 0
-						std::string newDefVal = Cls[i].constructure.params[count].defval;
-						if (Cls[i].constructure.params[count].defval == "nullptr") {
-							newDefVal = "0";
+			// constructure
+			std::string param;
+			if (!Cls[i].constructure.name.empty() && !isAbstract) {
+				std::vector<std::string> cplist;
+				splitParam(Cls[i].constructure.tokparam, cplist);
+				if (!cplist.empty()) {
+					for (size_t count = 0; count < cplist.size(); count++) {
+						param.append("LuaIntf::_opt<" + cplist[i] + ">");
+						if ((count + 1) != cplist.size()) {
+							param.append(", ");
 						}
-
-						param.append(tok + "LuaIntf::_def<" + Cls[i].constructure.params[count].type + ", " + newDefVal + ">");
-					} else {
-						param.append(tok + "LuaIntf::_opt<" + Cls[i].constructure.params[count].type + ">");
 					}
-					tok = ",";
+				}
+				Output.append(".addConstructor(LUA_ARGS(" + param + "))\\\n");
+			}
+
+			// properties
+			for (size_t count = 0; count < Cls[i].props.size(); count++) {
+				if (!Cls[i].props[count].get.name.empty() && !Cls[i].props[count].set.name.empty()) {
+					Output.append(".addProperty(\"" + Cls[i].props[count].name + "\", &" + Cls[i].name + "::"
+								  + Cls[i].props[count].get.name + ", &" + Cls[i].name + "::" + Cls[i].props[count].set.name + ")\\\n");
+				} else if (Cls[i].props[count].set.name.empty()) {
+					Output.append(".addProperty(\"" + Cls[i].props[count].name + "\", &" + Cls[i].name + "::"
+								  + Cls[i].props[count].get.name + ")\\\n");
 				}
 			}
-			Output.append(".addConstructor(LUA_ARGS(" + param + "))\\\n");
-		}
 
-		// properties
-		for (size_t count = 0; count < Cls[i].props.size(); count++) {
-			if (!Cls[i].props[count].get.name.empty() && !Cls[i].props[count].set.name.empty()) {
-				Output.append(".addProperty(\"" + Cls[i].props[count].name + "\", &" + Cls[i].name + "::"
-							  + Cls[i].props[count].get.name + ", &" + Cls[i].name + "::" + Cls[i].props[count].set.name + ")\\\n");
-			} else if (Cls[i].props[count].set.name.empty()) {
-				Output.append(".addProperty(\"" + Cls[i].props[count].name + "\", &" + Cls[i].name + "::"
-							  + Cls[i].props[count].get.name +")\\\n");
-			}
-		}
+			// functions 
+			std::string fista;
+			for (size_t count = 0; count < Cls[i].funcs.size(); count++) {
 
-		// functions 
-		param = "";
-		tok = "";
-		std::string fista;
-		for (size_t count = 0; count < Cls[i].funcs.size(); count++) {
-			
-			if (Cls[i].funcs[count].ista) {
-				fista = "addStaticFunction";
-			} else {
-				fista = "addFunction";
-			}
-			//if (Cls[i].funcs[count].params.empty()) {
-			std::vector<std::string> tpar;
-			splitParam(Cls[i].funcs[count].tokparam, tpar);
-			if (tpar.empty()) {
-				Output.append("." + fista + "(\"" + Cls[i].funcs[count].name + "\", &" + Cls[i].name + "::" + Cls[i].funcs[count].name + ")\\\n");
-			} else {
-				auto found = strmap.find(tpar[0]);
-				if (found != strmap.end()) {
-					Output.append("." + fista + "(\"" + found->second + "\", &" + Cls[i].name + "::" + Cls[i].funcs[count].name + ")\\\n");
-				} 
-			}
-			// we dont need register function parameters in lua
-			/*} else {
-				for (size_t pcount = 0; pcount < Cls[i].funcs[count].params.size(); pcount++) {
-					if (!Cls[i].funcs[count].params[pcount].defval.empty()) {
-						param.append(tok + Cls[i].funcs[count].params[pcount].type);
-					} else {
-						param.append(tok + "LuaIntf::_def<" + Cls[i].funcs[count].params[pcount].type + ", " + Cls[i].funcs[count].params[pcount].defval + ">");
-					}
-					tok = ",";
-				}
-				Output.append("." + fista + "(\"" + Cls[i].funcs[count].name + "\", &" + Cls[i].name + "::" + Cls[i].funcs[count].name
-							  + ", LUA_ARGS(" + param + "))\\\n");
-			}*/
-		}
-
-		// variables
-		for (size_t count = 0; count < Cls[i].vars.size(); count++) {
-			std::string func;
-
-			// we dont support arrays in script
-			if (Cls[i].vars[count].isArray) {
-				continue;
-			}
-
-			// static/non-static variable
-			if (Cls[i].vars[count].ista) {
-				func = ".addStaticVariable";
-			} else {
-				func = ".addVariable";
-			}
-
-			std::vector<std::string> vparam;
-			splitParam(Cls[i].vars[count].tokparam, vparam);
-
-			if (std::find(vparam.begin(), vparam.end(), "SCRIPTABLE") != vparam.end()) {
-				std::string write;
-				if (Cls[i].vars[count].cons) {
-					write = "false";
+				if (Cls[i].funcs[count].ista) {
+					fista = "addStaticFunction";
 				} else {
-					write = "true";
+					fista = "addFunction";
+				}
+				Output.append("." + fista + "(\"" + Cls[i].funcs[count].name + "\", &" + Cls[i].name + "::" + Cls[i].funcs[count].name + ")\\\n");
+			}
+
+			// operators
+			for (size_t count = 0; count < Cls[i].opes.size(); count++) {
+				if (Cls[i].opes[count].type == OT_ADD) {
+					Output.append(".addFunction(\"__add\", &" + Cls[i].name + "::" + Cls[i].opes[count].fun.name + ")\\\n");
+					continue;
 				}
 
-				Output.append(func + "(\"" + Cls[i].vars[count].name + "\", &" + Cls[i].name + "::" 
-								+ Cls[i].vars[count].name + ", " + write + ")");
-				break;
-			}
-		}
+				if (Cls[i].opes[count].type == OT_SUB) {
+					Output.append(".addFunction(\"__sub\", &" + Cls[i].name + "::" + Cls[i].opes[count].fun.name + ")\\\n");
+					continue;
+				}
 
-		// end of lua binding
-		Output.append(".endClass().endModule();}\\\n");
+				if (Cls[i].opes[count].type == OT_MUL) {
+					Output.append(".addFunction(\"__mul\", &" + Cls[i].name + "::" + Cls[i].opes[count].fun.name + ")\\\n");
+					continue;
+				}
+
+				if (Cls[i].opes[count].type == OT_DIV) {
+					Output.append(".addFunction(\"__div\", &" + Cls[i].name + "::" + Cls[i].opes[count].fun.name + ")\\\n");
+					continue;
+				}
+			}
+
+			// end of lua binding
+			Output.append(".endClass().endModule();}\\\n");
+		}
 
 		// end of rgisterMeta
 		if (isPOD || isComponent || isEntity) {
@@ -1748,60 +1696,26 @@ void createMacros(const std::vector<MClass> &Cls, const std::vector<MEnum> &Enms
 		if (isPOD || isComponent || isEntity) {
 			Output.append("void " + Cls[i].name + "::serial(KBaseSerial &Serializer, KSerialStateTypes State){\\\n");
 
-			// serialize base class(es)
-			std::string ser;
-			std::string dser;
-			for (size_t bcount = 0; bcount < Cls[i].bases.size(); bcount++) {
-				ser.append(Cls[i].bases[bcount].name + " *bptr" + std::to_string(bcount)
-							+ " = (" + Cls[i].bases[bcount].name + " *)this; Serializer << bptr" + std::to_string(bcount) + ";\\\n");
-				dser.append(Cls[i].bases[bcount].name + " *bptr" + std::to_string(bcount)
-							+ " = (" + Cls[i].bases[bcount].name + " *)this; Serializer >> bptr" + std::to_string(bcount) + ";\\\n");
+			// KComponent (base)
+			if (isComponent && !isAbstract) {
+				Output.append("KComponent *kc = (KComponent *)(this); kc->serial(Serializer, State);\\\n");
 			}
 
 			// serialize
-			Output.append("if (State == KST_SERIALIZE) {\\\n");
-			if (!Cls[i].bases.empty()) {
-				Output.append(ser);
-			}
-
-			// variables
-			for (size_t vcont = 0; vcont < Cls[i].vars.size(); vcont++) {
-
-				std::vector<std::string> vparam;
-				splitParam(Cls[i].vars[vcont].tokparam, vparam);
+			Output.append("if (State == KSerialStateTypes::KST_SERIALIZE) {\\\n");
+			for (size_t vcont = 0; vcont < Cls[i].vars.size(); ++vcont) {
 				Output.append("Serializer << " + Cls[i].vars[vcont].name + ";\\\n");
 			}
 
 			// deserialize
-			Output.append("} else if (State == KST_DESERIALIZE) {\\\n");
-			Output.append(dser);
-
-			// variables
-			for (size_t vcont = 0; vcont < Cls[i].vars.size(); vcont++) {
-				std::vector<std::string> vparam;
-				splitParam(Cls[i].vars[vcont].tokparam, vparam);
+			Output.append("} else if (State == KSerialStateTypes::KST_DESERIALIZE) {\\\n");
+			for (size_t vcont = 0; vcont < Cls[i].vars.size(); ++vcont) {
 				Output.append("Serializer >> " + Cls[i].vars[vcont].name + ";\\\n");
 			}
 
 			// end of serial()
 			Output.append("}}\n");
 		} 
-
-		// interp()
-		/*Output.append("void KColor::interp(F32 Time, const KObject &Start, const KObject &End,\\\n"
-					  "F32 Duration, KInterpolationTypes FType) {\\\n"
-					  "const " + Cls[i].name + " &start = (const " + Cls[i].name + " &)Start;\\\n"
-					  "const " + Cls[i].name + " &end = (const " + Cls[i].name + " &)End;\\\n");
-		for (size_t count = 0; count < Cls[i].props.size(); count++) {
-			std::string val(Cls[i].props[count].name + "prp");
-			Output.append(Cls[i].props[count].type + " " + val + ";\\\n"
-						  + "interpolate(" + val + ", Time, start." + Cls[i].props[count].get.name
-						  + "(), end." + Cls[i].props[count].get.name + "(), Duration, FType);\\\n"
-						  + Cls[i].props[count].set.name + "(" + val + ");\\\n");
-		}
-
-		// end of interp()
-		Output.append("}\n");*/
 	}
 }
 
@@ -1815,7 +1729,7 @@ void createHead(std::string &Output) {
 				  "#include \"Kite/meta/kmetadef.h\"\n\n"
 				  "KMETA\n"
 				  "namespace Kite{\n"
-				  "KITE_FUNC_EXPORT extern void registerKiteMeta(lua_State *Lua = nullptr);}\n"
+				  "KITE_FUNC_EXPORT extern void registerKiteMeta(KMetaManager *MMan = nullptr, lua_State *Lua = nullptr);}\n"
 				  "#endif // KITEMETA_H");
 }
 
@@ -1835,12 +1749,12 @@ void createSource(const std::vector<std::string> &Files, const std::vector<MClas
 	}
 
 	Output.append("namespace Kite{\n"
-				  "void registerKiteMeta(lua_State *Lua){\n"
-				  "Internal::registerMetaPOD();\n");
+				  "void registerKiteMeta(KMetaManager *MMan, lua_State *Lua){\n"
+				  "Internal::registerMetaPOD(MMan);\n");
 
 	// register classes
 	for (size_t i = 0; i < Cls.size(); i++) {
-		Output.append(Cls[i].name + "::registerMeta(Lua);\n");
+		Output.append(Cls[i].name + "::registerMeta(MMan, Lua);\n");
 	}
 
 	// register enums

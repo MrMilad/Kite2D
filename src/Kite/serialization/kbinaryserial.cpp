@@ -52,16 +52,16 @@ namespace Kite {
 						_kendfile = false;
 						ret = true;
 					} else {
-						KDEBUG_PRINT("read file data error");
+						KD_PRINT("can't read stream");
 					}
 				} else {
-					KDEBUG_PRINT("wrong file format");
+					KD_PRINT("wrong data format");
 				}
 			} else {
-				KDEBUG_PRINT("read header error");
+				KD_PRINT("cant read header");
 			}
 		} else {
-			KDEBUG_PRINT("open file error");
+			KD_PRINT("can't open stream");
 		}
 
 		return ret;
@@ -81,10 +81,10 @@ namespace Kite {
 			if (fwrite(&_kdata[0], _kdata.size(), 1, file) == 1) {
 				ret = true;
 			} else {
-				KDEBUG_PRINT("write data error")
+				KD_FPRINT("write data error. fname: %s", FileName.c_str());
 			}
 		} else {
-			KDEBUG_PRINT("open file error");
+			KD_FPRINT("can't open file. fname: %s", FileName.c_str());
 		}
 
 		// cleanup
@@ -106,10 +106,10 @@ namespace Kite {
 			if (Stream.write((void *)&_kdata[0], _kdata.size())) {
 				ret = true;
 			} else {
-				KDEBUG_PRINT("write data error")
+				KD_PRINT("can't write data to stream");
 			}
 		} else {
-			KDEBUG_PRINT("open file error");
+			KD_PRINT("can't open stream");
 		}
 
 		return ret;

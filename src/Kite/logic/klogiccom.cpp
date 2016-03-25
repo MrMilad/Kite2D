@@ -18,6 +18,10 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 USA
 */
 #include "Kite/logic/klogiccom.h"
+#include "Kite/meta/kmetamanager.h"
+#include "Kite/meta/kmetaclass.h"
+#include "Kite/meta/kmetatypes.h"
+#include "Kite/serialization/types/kstdstring.h"
 #include <luaintf/LuaIntf.h>
 
 namespace Kite {
@@ -58,4 +62,6 @@ namespace Kite {
 	void KLogicCom::setLuaState(lua_State *L) {
 		_klstate = L;
 	}
+
+	KMETA_KLOGICCOM_SOURCE();
 }

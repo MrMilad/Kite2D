@@ -27,7 +27,7 @@ USA
 
 KMETA
 namespace Kite {
-	KMETA_CLASS(SCRIPTABLE)
+	KM_CLASS(SCRIPTABLE)
 	class KITE_FUNC_EXPORT KListener {
 	public:
 		KListener() :
@@ -35,10 +35,10 @@ namespace Kite {
 
 		virtual KRecieveTypes onMessage(KMessage &Message, KMessageScopeTypes Scope) = 0;
 
-		KMETA_PROPERTY("Enable", "enable/disable recieving message")
+		KM_PRO_GET("Enable", bool, "enable/disable recieving message")
 		inline bool getEnableRecieveMsg() const { return _kenable; }
 
-		KMETA_PROPERTY("Enable")
+		KM_PRO_SET("Enable")
 		inline void setEnableRecieveMsg(bool Value) { _kenable = Value; }
 
 	private:

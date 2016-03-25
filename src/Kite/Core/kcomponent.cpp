@@ -21,6 +21,7 @@ USA
 #include "Kite/core/kcoreutil.h"
 #include "Kite/meta/kmetamanager.h"
 #include "Kite/meta/kmetaclass.h"
+#include "Kite/serialization/types/kstdstring.h"
 #include <luaintf\LuaIntf.h>
 
 namespace Kite {
@@ -51,4 +52,6 @@ namespace Kite {
 	void KComponent::setDependency(KComTypes Type, bool Value) {
 		_kdependency[(U8)Type] = Value;
 	}
+
+	KMETA_KCOMPONENT_SOURCE();
 }

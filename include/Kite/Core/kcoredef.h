@@ -144,36 +144,23 @@
 #endif
 
 /// default (without any debug flag): framework will compiled in release state.
-#if !defined(KITE_DEV_DEBUG) || !defined(KITE_USER_DEBUG)
+#if !defined(KITE_DEV_DEBUG) 
     #define KITE_RELEASE
 #endif
 
-/// debug macro(s)
-#if defined(KITE_DEV_DEBUG) // break in source cod.
+/// debug macros
+#if defined(KITE_DEV_DEBUG)
     #include <assert.h>
-    #define KDEBUG_BREAK assert(0);
-    #define KDEBUG_PRINT(expr) printf("%s\n     Line: %u \n     File: %s \n", expr, __LINE__, __FILE__);
-    #define KDEBUG_ASSERT(expr) assert(expr);
-    #define KDEBUG_ASSERT_T(expr) assert(expr);
-    #define KDEBUG_ASSERT_EQ(expr, eq) assert(expr != eq);
-    #define KDEBUG_TEMP(expr) expr
-	#define KDEBUG_TODO(expr) printf("TODO: %s\n     Line: %u \n     File: %s \n", expr, __LINE__, __FILE__);
-
-#elif defined(KITE_USER_DEBUG) // print debug output (without break).
-    #define KDEBUG_BREAK
-    #define KDEBUG_PRINT(expr) printf("%s\n     Line: %u \n     File: %s \n", expr, __LINE__, __FILE__);
-    #define KDEBUG_ASSERT(expr) if (!(expr)) {KDEBUG_PRINT(#expr)}
-    #define KDEBUG_ASSERT_T(expr) if (!(expr)) {KDEBUG_PRINT(#expr)}
-    #define KDEBUG_ASSERT_EQ(expr, eq) if(expr != eq) {KDEBUG_PRINT(#expr)}
-    #define KDEBUG_TEMP(expr) expr
+	#define KD_BREAK() fprintf(stderr, "BREAK: %s:%d:%s()\n", __FILE__, __LINE__, __func__); assert(0)
+	#define KD_FPRINT(fmt, ...) fprintf(stderr, "DEBUG: %s:%d:%s(): " fmt "\n", __FILE__, __LINE__, __func__, __VA_ARGS__)
+	#define KD_PRINT(exp) fprintf(stderr, "DEBUG: %s:%d:%s(): %s\n", __FILE__, __LINE__, __func__, exp)
+    #define KD_ASSERT(expr) assert(expr)
 
 #else /// release state. (without debug output and break)
-    #define KDEBUG_PRINT(x)
-    #define KDEBUG_BREAK
-    #define KDEBUG_ASSERT(expr)
-    #define KDEBUG_ASSERT_T(expr)
-    #define KDEBUG_ASSERT_EQ(expr, eq) expr
-    #define KDEBUG_TEMP(expr)
+    #define KD_BREAK()
+    #define KD_FPRINT(fmt, ...)
+    #define KD_PRINT(exp)
+	#define KD_ASSERT(expr)
 #endif
 
 /// using sse

@@ -28,6 +28,7 @@ USA
 #include "Kite/meta/kmetadef.h"
 
 namespace Kite {
+	KM_CLASS(SYSTEM, ABSTRACT)
 	class KITE_FUNC_EXPORT KSystem{
 	public:
 		KSystem():

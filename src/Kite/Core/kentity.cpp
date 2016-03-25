@@ -61,20 +61,20 @@ namespace Kite {
 
 	void KEntity::addChild(U32 EntityID) {
 		if (_kestorage == nullptr) {
-			KDEBUG_PRINT("set entity storage at first");
+			KD_PRINT("set entity storage at first");
 			return;
 		}
 
 		auto Child = _kestorage->get(EntityID);
 		if (Child == nullptr) {
-			KDEBUG_PRINT("wrong entity id");
+			KD_FPRINT("wrong entity id. eid: %i", EntityID);
 			return;
 
 		} else if (Child->getParrentID() == getID()) {
 			return;
 
 		} else if (EntityID == getID()) {
-			KDEBUG_PRINT("an entity cant be a child of himself");
+			KD_FPRINT("an entity cant be a child of himself. eid: %i", EntityID);
 			return;
 		}
 
@@ -93,17 +93,17 @@ namespace Kite {
 
 	void KEntity::removeChild(U32 EntityID) {
 		if (_kestorage == nullptr) {
-			KDEBUG_PRINT("set entity storage at first");
+			KD_PRINT("set entity storage at first");
 			return;
 		}
 		
 		auto Child = _kestorage->get(EntityID);
 		if (Child == nullptr) {
-			KDEBUG_PRINT("wrong entity id");
+			KD_FPRINT("wrong entity id. eid: %i", EntityID);
 			return;
 
 		} else if (Child->getParrentID() != getID()) {
-			KDEBUG_PRINT("this entity is not in the children list");
+			KD_FPRINT("this entity is not in the children list. eid: %i", EntityID);
 			return;
 		}
 
@@ -114,12 +114,12 @@ namespace Kite {
 	U32 KEntity::addComponent(KComTypes Type, const std::string &ComponentName) {
 		// cehck storage
 		if (_kcstorage == nullptr) {
-			KDEBUG_PRINT("set component storage at first");
+			KD_PRINT("set component storage at first");
 			return 0;
 
 		// check component type
 		} else if (_kcstorage[(U8)Type] == nullptr) {
-			KDEBUG_PRINT("unregistered component types");
+			KD_FPRINT("unregistered component types. cname: %s\tctype: %i", ComponentName.c_str(), (int)Type);
 			return 0;
 
 		// this component is already exist
@@ -144,7 +144,7 @@ namespace Kite {
 
 	void KEntity::clearChilds() {
 		if (_kestorage == nullptr) {
-			KDEBUG_PRINT("set entity storage at first");
+			KD_PRINT("set entity storage at first");
 			return;
 		}
 
@@ -164,15 +164,16 @@ namespace Kite {
 	KComponent *KEntity::getComponent(KComTypes Type, const std::string &ComponentName) {
 		// cehck storage
 		if (_kcstorage == nullptr) {
-			KDEBUG_PRINT("set component storage at first");
+			KD_PRINT("set component storage at first");
 			return nullptr;
 
 		}else if (_kcstorage[(U8)Type] == nullptr) {
-			KDEBUG_PRINT("unregistered component types");
+			KD_FPRINT("unregistered component types. cname: %s\tctype: %i", ComponentName.c_str(), (int)Type);
 			return nullptr;
 
 		} else if (!hasComponent(Type, ComponentName)) {
-			KDEBUG_PRINT("there is no component of this type in the given entity");
+			KD_FPRINT("there is no component of this type in the given entity. cname: %s\tctype: %i",
+					  ComponentName.c_str(), (int)Type);
 			return nullptr;
 		}
 
@@ -184,10 +185,10 @@ namespace Kite {
 		Output.clear();
 		// cehck storage
 		if (_kcstorage == nullptr) {
-			KDEBUG_PRINT("set component storage at first");
+			KD_PRINT("set component storage at first");
 			return;
 		} else if (_kcstorage[(U8)KComTypes::KCT_LOGIC] == nullptr) {
-			KDEBUG_PRINT("unregistered component types");
+			KD_FPRINT("unregistered component types. ctype: %i", (int)KComTypes::KCT_LOGIC);
 			return;
 		}
 
@@ -201,12 +202,12 @@ namespace Kite {
 	void KEntity::removeComponent(KComTypes Type, const std::string &Name) {
 		// cehck storage
 		if (_kcstorage == nullptr) {
-			KDEBUG_PRINT("set component storage at first");
+			KD_PRINT("set component storage at first");
 			return;
 
 		// check component type
 		} else if (_kcstorage[(U8)Type] == nullptr) {
-			KDEBUG_PRINT("unregistered component types");
+			KD_FPRINT("unregistered component types. cname: %s\tctype: %i", Name.c_str(), (int)Type);
 			return;
 
 		} else if (!hasComponent(Type, Name)) {
@@ -233,7 +234,7 @@ namespace Kite {
 	void KEntity::clearComponents() {
 		// cehck storage
 		if (_kcstorage == nullptr) {
-			KDEBUG_PRINT("set component storage at first");
+			KD_PRINT("set component storage at first");
 			return;
 		} 
 

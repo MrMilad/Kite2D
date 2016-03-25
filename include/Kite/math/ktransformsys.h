@@ -25,16 +25,19 @@ USA
 #include "Kite/math/kmathdef.h"
 #include "Kite/math/kmathstructs.h"
 #include "Kite/math/ktransformcom.h"
+#include "ktransformsys.khgen.h"
 
 KMETA
 namespace Kite {
-	KMETA_CLASS(SYSTEM)
+	KM_CLASS(SYSTEM)
 	class KITE_FUNC_EXPORT KTransformSys: public KSystem {
+		KMETA_KTRANSFORMSYS_BODY();
 	public:
 		void update(F32 Delta, KEntityManager &EManager, KResourceManager &RManager);
 
 		bool inite(void *Data);
 
+		KM_FUN()
 		void computeMatrix(KTransformCom &Component);
 	};
 }

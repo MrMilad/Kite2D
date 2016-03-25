@@ -22,6 +22,8 @@ set(COR_INC
     ${INCROOT}/kostream.h
     ${INCROOT}/kfistream.h
     ${INCROOT}/kdelegate.h
+    ${INCROOT}/kany.h
+    ${INCROOT}/kvariant.h
     ${INCROOT}/ksystem.h
     ${INCROOT}/kcomponent.h
     ${INCROOT}/kentity.h
@@ -33,13 +35,10 @@ set(COR_INC
     ${INCROOT}/kmessenger.h
     ${INCROOT}/klistener.h
     #${INCROOT}/kcoreinstance.h
-    ${INCROOT}/krefvariant.h
     ${INCROOT}/kcoredef.h
     ${INCROOT}/kcorestructs.h
     ${INCROOT}/kcoretypes.h
     ${INCROOT}/kcoreutil.h
-    ${INCROOT}/kvariant.h
-    ${INCROOT}/kvariantbase.h
     PARENT_SCOPE
 )
 

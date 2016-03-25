@@ -140,12 +140,12 @@ namespace Kite{
 
 			void remove(U32 Index) {
 				if (Index >= _kindex.size()) {
-					KDEBUG_PRINT("index is out of range");
+					KD_FPRINT("index is out of range. ind: %i", Index);
 					return;
 				}
 
 				if (_kindex[Index] >= _kcontiner.size()) {
-					KDEBUG_PRINT("index is out of range");
+					KD_FPRINT("index is out of range. ind: %i", Index);
 					return;
 				}
 
@@ -165,12 +165,12 @@ namespace Kite{
 
 			T *get(U32 Index) {
 				if (Index >= _kindex.size()) {
-					KDEBUG_PRINT("index is out of range");
+					KD_FPRINT("index is out of range. ind: %i", Index);
 					return nullptr;
 				}
 
 				if (_kindex[Index] >= _kcontiner.size()) {
-					KDEBUG_PRINT("index is out of range");
+					KD_FPRINT("index is out of range. ind: %i", Index);
 					return nullptr;
 				}
 

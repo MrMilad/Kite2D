@@ -24,14 +24,15 @@ USA
 #include "Kite/core/kcoretypes.h"
 #include "Kite/core/klistener.h"
 #include "Kite/core/kmessenger.h"
-#include "Kite/core/krefvariant.h"
+#include "Kite/core/kany.h"
 #include "Kite/meta/kmetadef.h"
 #include "Kite/serialization/kbaseserial.h"
 #include <string>
+#include "kcomponent.khgen.h"
 
 KMETA
 namespace Kite {
-	KMETA_CLASS(COMPONENT)
+	KM_CLASS(COMPONENT, ABSTRACT)
 	class KITE_FUNC_EXPORT KComponent{
 		friend class KEntityManager;
 		friend class KEntity;
@@ -47,31 +48,33 @@ namespace Kite {
 		virtual void deattached(U32 EntityID) = 0;
 
 		/// will be implemented by KHParser
-		//virtual void setProperty(const std::string &Name, const KRefVariant &Value) = 0;
+		virtual bool setProperty(const std::string &Name, KAny &Value) = 0;
 
 		/// will be implemented by KHParser
-		//virtual void getProperty(const std::string &Name, KVariant &Out) = 0;
+		virtual KAny getProperty(const std::string &Name) = 0;
 
 		const std::vector<KComTypes> &getDependency() const;
 
-		KMETA_PROPERTY("name", "component name")
+		KM_PRO_GET("name", std::string, "name of the component")
 		inline const std::string &getName() const { return _kname; }
 
-		KMETA_PROPERTY("needUpdate")
+		KM_PRO_GET("needUpdate", bool, "update state of the component")
 		inline bool getNeedUpdate() const { return _kneedup; }
 
-		KMETA_PROPERTY("needUpdateRes")
+		KM_PRO_GET("needUpdateRes", bool, "update state of the component resources")
 		inline bool getNeedUpdateRes() const { return _kneedupRes; }
 
-		KMETA_PROPERTY("ID", "component unique ID")
+		KM_PRO_GET("ID", U32, "unique ID of the component")
 		inline U32 getID() const { return _kid; }
 
 		/// for simulate polymorphism in script
-		KMETA_FUNCTION()
+		KM_FUN()
 		inline KComponent *getBase() { return this; }
 
-		KMETA_FUNCTION()
+		KM_FUN()
 		inline bool isDependOn(KComTypes Type) const { return _kdependency[(U8)Type]; }
+
+		KMETA_KCOMPONENT_BODY();
 
 	protected:
 		void setDependency(KComTypes Type, bool Value);
@@ -81,11 +84,11 @@ namespace Kite {
 	private:
 		inline void setID(U32 Index) { _kid = Index; }
 
-		KMETA_VARIABLE() std::string _kname;
-		KMETA_VARIABLE() U32 _kid;
-		KMETA_VARIABLE() bool _kneedup;
-		KMETA_VARIABLE() bool _kneedupRes;
-		KMETA_VARIABLE() bool _kdependency[(U8)KComTypes::KCT_MAX_COMP_SIZE];
+		KM_VAR() std::string _kname;
+		KM_VAR() U32 _kid;
+		KM_VAR() bool _kneedup;
+		KM_VAR() bool _kneedupRes;
+		KM_VAR() bool _kdependency[(U8)KComTypes::KCT_MAX_COMP_SIZE];
 	};
 }
 

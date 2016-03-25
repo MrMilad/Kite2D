@@ -34,6 +34,12 @@ USA
 #define CONTINER	64
 #define SCRIPTABLE	128
 
+// supported operators
+#define KO_ADD
+#define KO_MUL
+#define KO_SUB
+#define KO_DIV
+
 // property flags
 #define KMFLAG_FINAL	1024
 
@@ -55,15 +61,19 @@ USA
 	namespace Kite{\
 	class KMetaObject;\
 	class KMetaClass;\
-	class KMetaEnum;}
+	class KMetaEnum;\
+	class KMetaManager;}
 	
 
-#define KMETA_IGNORED
-#define KMETA_ENUM(...)
-#define KMETA_CLASS(...)
-#define KMETA_CONSTRUCTURE(...)
-#define KMETA_PROPERTY(...)
-#define KMETA_FUNCTION(...)
-#define KMETA_VARIABLE(...)
+#define KM_IGNORED
+#define KM_ENUM(...)	/// (name)
+#define KM_CLASS(...)	/// (FLAG)
+#define KM_CON(...)		///	(ptype1, ptype2, ...);
+#define KM_PRO_SET(...)	///	("name")
+#define KM_PRO_GET(...)	///	("name", type, "comment")
+#define KM_FUN(...)		/// ()
+#define KM_VAR(...)		/// ()
+#define KM_OPE(...)		/// (OPERATOR)
+#define KM_INFO(...)	/// ("key", "info")
 
 #endif // KMETADEF_H

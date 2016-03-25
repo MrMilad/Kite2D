@@ -40,7 +40,7 @@ namespace Kite{
 
         // destroy currently window
         if (_kwindow){
-			KDEBUG_PRINT("this window is currently opened!");
+			KD_PRINT("this window is currently opened!");
 			return;
         }
 

@@ -21,45 +21,44 @@ USA
 #define KMESSAGE_H
 
 #include "Kite/core/kcoredef.h"
-#include "Kite/core/krefvariant.h"
 #include "Kite/meta/kmetadef.h"
 #include <memory>
 #include <string>
 
 KMETA
 namespace Kite {
-	KMETA_CLASS(SCRIPTABLE)
+	KM_CLASS(SCRIPTABLE)
 	class KITE_FUNC_EXPORT KMessage{
 	public:
-		KMETA_CONSTRUCTURE()
+		KM_CON()
 		KMessage();
 
 		KMessage(const std::string &Type);
 		virtual ~KMessage();
 		
-		KMETA_PROPERTY("type", "message type")
+		KM_PRO_SET("type")
 		void setType(const std::string &Type);
 
-		KMETA_PROPERTY("type")
+		KM_PRO_GET("type", std::string, , "message type")
 		inline const std::string &getType() const { return _ktype; }
 
-		KMETA_PROPERTY("getHash", "32 bit hash code of message type")
+		KM_PRO_GET("getHash", U32, "32 bit hash code of message type")
 		inline U32 getHash() const { return _khash; }
 
-		KMETA_FUNCTION()
-		inline void consume() { _kconsume = true; }
-
-		KMETA_PROPERTY("getConsume", "consume state of message")
+		KM_PRO_GET("getConsume", bool, "consume state of message")
 		inline bool getConsume() const { return _kconsume; }
 
+		KM_FUN()
+		inline void consume() { _kconsume = true; }
+
 		// increment per component on recieve
-		KMETA_FUNCTION()
+		KM_FUN()
 		inline void use() { ++_kused; }
 
-		KMETA_PROPERTY("getUse", "use counter")
+		KM_PRO_GET("getUse", U32, "use counter")
 		inline U32 getUse() const { return _kused; }
 
-		KMETA_PROPERTY("getSize", "size of message")
+		KM_PRO_GET("getSize", U32, "size of message")
 		inline U32 getSize() const { return _ksize; }
 
 		// c++ only
@@ -77,7 +76,7 @@ namespace Kite {
 
 	private:
 		// set lua data table. (script only)
-		KMETA_FUNCTION()
+		KM_FUN()
 		inline void setDataTable(const std::string &TableName) { _ktblName = TableName; }
 
 		U32 _khash;

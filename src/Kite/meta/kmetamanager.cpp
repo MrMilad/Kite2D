@@ -18,11 +18,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 USA
 */
 #include "Kite/meta/kmetamanager.h"
-#include "Kite/utility/kutilitydef.h"
 
 namespace Kite {
-	std::unordered_map<std::string, const KMetaBase *> KMetaManager::_kmetamap;
-
 	const KMetaBase *KMetaManager::getMeta(const std::string &Type) {
 		auto found = _kmetamap.find(Type);
 		if (found != _kmetamap.end()) {

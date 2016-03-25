@@ -10,6 +10,8 @@
 #include <Kite\math\ktransformcom.h>
 #include <cstdio>
 #include <luaintf\LuaIntf.h>
+#include <Kite/core/kvariant.h>
+#include <kmeta.khgen.h>
 
 using namespace Kite;
 int main() {
@@ -26,7 +28,6 @@ int main() {
 		lua_settop(vm, 0);
 	}
 
-
 	KWindowState state;
 	state.title = "salam";
 	state.width = 800;
@@ -41,8 +42,8 @@ int main() {
 	KMouse::initeMouse();
 
 	KEntityManager eman;
-	eman.registerComponent<KTransformCom>(KComTypes::KCT_TRANSFORM);
-	eman.registerComponent<KInputCom>(KComTypes::KCT_INPUT);
+	//eman.registerComponent<KTransformCom>(KComTypes::KCT_TRANSFORM);
+	//eman.registerComponent<KInputCom>(KComTypes::KCT_INPUT);
 	eman.registerComponent<KLogicCom>(KComTypes::KCT_LOGIC);
 
 	KResourceManager rman;
@@ -90,6 +91,12 @@ int main() {
 
 	KLogicCom *lcomp = (KLogicCom *)eman.getEntity("MyEnt2")->getComponent(KComTypes::KCT_LOGIC, "lcomp");
 	lcomp->setScript("e:\\lt.txt");
+	KAny var(std::string("from var"));
+	
+	lcomp->setProperty("Script", var);
+
+	KAny var2;
+	var2 = lcomp->getProperty("Script");
 
 	KLogicCom *lcomp2 = (KLogicCom *)eman.getEntity("MyEnt2")->getComponent(KComTypes::KCT_LOGIC, "lcomp2");
 	lcomp2->setScript("e:\\lt2.txt");

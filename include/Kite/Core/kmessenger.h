@@ -31,34 +31,34 @@ USA
 
 KMETA
 namespace Kite {
-	KMETA_CLASS(SCRIPTABLE)
+	KM_CLASS(SCRIPTABLE)
 	class KITE_FUNC_EXPORT KMessenger{
 	public:
-		KMETA_CONSTRUCTURE()
+		KM_CON()
 		KMessenger();
 
 		virtual ~KMessenger();
 
-		KMETA_FUNCTION()
+		KM_FUN()
 		void subscribe(KListener &Listener, const std::string &Type);
 
 		/// dont need compute hash code of string by this function
 		/// so it's a bit faster than subscribe by string
-		KMETA_FUNCTION()
+		KM_FUN()
 		void subscribeByHash(KListener &Listener, U32 Hash);
 
-		KMETA_FUNCTION()
+		KM_FUN()
 		void unsubscribe(KListener &Listener, const std::string &Type);
 
 		/// dont need compute hash code of string by this function
 		/// so it's a bit faster than unsubscribe by string
-		KMETA_FUNCTION()
+		KM_FUN()
 		void unsubscribeByHash(KListener &Listener, U32 Hash);
 
 	protected:
 		/// post message by its type (immediately)
 		/// return number of objects that recieved message
-		KMETA_FUNCTION()
+		KM_FUN()
 		U32 postMessage(KMessage &Message, KMessageScopeTypes Scope);
 
 	private:

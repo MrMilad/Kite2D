@@ -34,7 +34,7 @@ USA
 KMETA
 namespace Kite {
 	class KEntityManager;
-	KMETA_CLASS(ENTITY)
+	KM_CLASS(ENTITY)
 	class KITE_FUNC_EXPORT KEntity: public KMessenger, public KListener{
 		friend class KEntityManager;
 	public:
@@ -42,58 +42,57 @@ namespace Kite {
 		virtual ~KEntity();
 
 		/// redirect recieved message to all sub-components
-		KMETA_FUNCTION()
+		KM_FUN()
 		KRecieveTypes onMessage(KMessage &Message, KMessageScopeTypes Scope);
 
-		KMETA_PROPERTY("ParrentID", "entity parrent ID")
+		KM_PRO_GET("ParrentID", U32, "entity parrent ID")
 		inline U32 getParrentID() const { return _kpid; }
 
-		KMETA_PROPERTY("ID", "entity unique ID")
+		KM_PRO_GET("ID", U32, "entity unique ID")
 		inline U32 getID() const { return _kid; }
 
-		KMETA_PROPERTY("Name", "entity unique name")
+		KM_PRO_GET("Name", std::string, "entity unique name")
 		inline const std::string &getName() const { return _kname; }
 
-		KMETA_PROPERTY("Active", "is active")
+		KM_PRO_GET("Active", bool, "is active")
 		inline bool getActive() const { return _kactive; }
 
-		KMETA_PROPERTY("Active")
+		KM_PRO_SET("Active")
 		inline void setActive(bool Active) { _kactive = Active; }
 
-		KMETA_FUNCTION()
+		KM_FUN()
 		U32 addComponent(KComTypes Type, const std::string &ComponentName = "");
 
-		KMETA_FUNCTION()
+		KM_FUN()
 		KComponent *getComponent(KComTypes Type, const std::string &ComponentName = "");
 
-		KMETA_FUNCTION()
+		KM_FUN()
 		void getScriptComponents(std::vector<KComponent *> &Output);
 
-		KMETA_FUNCTION()
+		KM_FUN()
 		bool hasComponent(KComTypes Type, const std::string &Name);
 
-		KMETA_FUNCTION()
 		bool hasComponent(KComTypes Type);
 
-		KMETA_FUNCTION()
+		KM_FUN()
 		I32 getComponentIndex(KComTypes Type, const std::string &Name);
 
-		KMETA_FUNCTION()
+		KM_FUN()
 		void removeComponent(KComTypes Type, const std::string &ComponentName = "");
 
-		KMETA_FUNCTION()
+		KM_FUN()
 		void clearComponents();
 
-		KMETA_FUNCTION()
+		KM_FUN()
 		void addChild(U32 EntityID);
 
-		KMETA_FUNCTION()
+		KM_FUN()
 		void removeChild(U32 EntityID);
 
-		KMETA_FUNCTION()
+		KM_FUN()
 		void clearChilds();
 
-		KMETA_FUNCTION()
+		KM_FUN()
 		bool hasChild() const;
 
 		inline auto beginChild() { return _kchilds.cbegin(); }
@@ -114,15 +113,15 @@ namespace Kite {
 		inline bool hasParrent() const { return _khparrent; }
 		inline void setHParrent(bool Par) { _khparrent = Par; }
 		
-		KMETA_VARIABLE() bool _kactive;											// entity actitvity state
-		KMETA_VARIABLE() bool _khparrent;										// entity actitvity state
-		KMETA_VARIABLE() U32 _kid;												// entity self id in the entity manager
-		KMETA_VARIABLE() U32 _kpid;												// entity parrent id
-		KMETA_VARIABLE() U32 _kplistid;											// entity self id in the parrent list
-		KMETA_VARIABLE() std::string _kname;									// entity unique name
-		KMETA_VARIABLE() I32 _kfixedComp[(U8)KComTypes::KCT_MAX_COMP_SIZE]; 	// fixed components slots (built-in components)
-		KMETA_VARIABLE() std::unordered_map<std::string, U32> _kscriptComp;		// dynamic components slots (logic components)
-		KMETA_VARIABLE() std::vector<U32> _kchilds;								// dynamic components slots (logic components)
+		KM_VAR() bool _kactive;											// entity actitvity state
+		KM_VAR() bool _khparrent;										// entity actitvity state
+		KM_VAR() U32 _kid;												// entity self id in the entity manager
+		KM_VAR() U32 _kpid;												// entity parrent id
+		KM_VAR() U32 _kplistid;											// entity self id in the parrent list
+		KM_VAR() std::string _kname;									// entity unique name
+		KM_VAR() I32 _kfixedComp[(U8)KComTypes::KCT_MAX_COMP_SIZE]; 	// fixed components slots (built-in components)
+		KM_VAR() std::unordered_map<std::string, U32> _kscriptComp;		// dynamic components slots (logic components)
+		KM_VAR() std::vector<U32> _kchilds;								// dynamic components slots (logic components)
 
 		// runtime variables (
 		Internal::BaseCHolder<KComponent>  **_kcstorage;

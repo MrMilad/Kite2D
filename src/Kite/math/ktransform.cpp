@@ -18,6 +18,9 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 USA
 */
 #include "Kite/math/ktransform.h"
+#include "Kite/meta/kmetamanager.h"
+#include "Kite/meta/kmetaclass.h"
+#include <luaintf\LuaIntf.h>
 
 namespace Kite {
 	KVector2F32 KTransform::transformPoint(const KMatrix3 &Matrix, const KVector2F32 &Point){
@@ -72,4 +75,6 @@ namespace Kite {
 		// combine
 		Matrix *= mat;
 	}
+
+	KMETA_KTRANSFORM_SOURCE();
 }

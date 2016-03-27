@@ -27,9 +27,11 @@ USA
 #include "Kite/core/klistener.h"
 #include "Kite/core/kmessenger.h"
 #include "Kite/meta/kmetadef.h"
+#include "Kite/serialization/kserialization.h"
 #include <unordered_map>
 #include <string>
 #include <vector>
+#include "kentity.khgen.h"
 
 KMETA
 namespace Kite {
@@ -37,6 +39,8 @@ namespace Kite {
 	KM_CLASS(ENTITY)
 	class KITE_FUNC_EXPORT KEntity: public KMessenger, public KListener{
 		friend class KEntityManager;
+		KMETA_KENTITY_BODY();
+
 	public:
 		KEntity(const std::string &Name);
 		virtual ~KEntity();
@@ -72,7 +76,7 @@ namespace Kite {
 		KM_FUN()
 		bool hasComponent(KComTypes Type, const std::string &Name);
 
-		bool hasComponent(KComTypes Type);
+		bool hasComponentType(KComTypes Type);
 
 		KM_FUN()
 		I32 getComponentIndex(KComTypes Type, const std::string &Name);

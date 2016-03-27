@@ -16,7 +16,7 @@ link_directories(${CMAKE_LIBRARY_PATH})
 include_directories(${PROJECT_SOURCE_DIR})
 
 # add meta path
-include_directories(${PROJECT_BINARY_DIR}/src/KiteMeta)
+include_directories(${PROJECT_SOURCE_DIR}/include/KiteMeta)
 
 # set the output directory for Kite libraries
 set(LIBRARY_OUTPUT_PATH "${PROJECT_BINARY_DIR}/lib")
@@ -101,14 +101,14 @@ $<$<CONFIG:Debug>:KITE_DEV_DEBUG>)
 set_property(TARGET Kite2D PROPERTY OUTPUT_NAME_DEBUG Kite2Dd)
 
 # create directory for KHParser output
-file(MAKE_DIRECTORY ${PROJECT_BINARY_DIR}/src/KiteMeta)
+file(MAKE_DIRECTORY ${PROJECT_SOURCE_DIR}/include/KiteMeta)
 
 # bulid and run KHParser before building Kite
 add_executable(KHParser ${PROJECT_SOURCE_DIR}/src/KHParser/khparser.cpp)
 
 # run KHParser
 add_custom_target(KHParserRun
-  COMMAND KHParser -i ${PROJECT_SOURCE_DIR}/include/Kite -o ${PROJECT_BINARY_DIR}/src/KiteMeta
+  COMMAND KHParser -i ${PROJECT_SOURCE_DIR}/include -o ${PROJECT_SOURCE_DIR}/include/KiteMeta
   COMMENT "run KHParser ...."
 )
 

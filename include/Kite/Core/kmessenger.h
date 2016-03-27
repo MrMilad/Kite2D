@@ -28,11 +28,13 @@ USA
 #include "Kite/core/kmessage.h"
 #include "Kite/meta/kmetadef.h"
 #include <unordered_map>
+#include "kmessenger.khgen.h"
 
 KMETA
 namespace Kite {
 	KM_CLASS(SCRIPTABLE)
 	class KITE_FUNC_EXPORT KMessenger{
+		KMETA_KMESSENGER_BODY();
 	public:
 		KM_CON()
 		KMessenger();

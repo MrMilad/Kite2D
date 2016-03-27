@@ -26,7 +26,7 @@ USA
 #include "Kite/core/kmessenger.h"
 #include "Kite/core/kany.h"
 #include "Kite/meta/kmetadef.h"
-#include "Kite/serialization/kbaseserial.h"
+#include "Kite/serialization/kserialization.h"
 #include <string>
 #include "kcomponent.khgen.h"
 

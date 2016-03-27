@@ -24,14 +24,16 @@ USA
 #include "Kite/core/kcoretypes.h"
 #include "Kite/core/kmessage.h"
 #include "Kite/meta/kmetadef.h"
+#include "klistener.khgen.h"
 
 KMETA
 namespace Kite {
 	KM_CLASS(SCRIPTABLE)
 	class KITE_FUNC_EXPORT KListener {
+		KMETA_KLISTENER_BODY();
 	public:
-		KListener() :
-			_kenable(true) {}
+		KListener();
+		virtual ~KListener();
 
 		virtual KRecieveTypes onMessage(KMessage &Message, KMessageScopeTypes Scope) = 0;
 

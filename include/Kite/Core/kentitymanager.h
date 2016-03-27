@@ -28,11 +28,13 @@ USA
 #include <string>
 #include <unordered_map>
 #include <vector>
+#include "kentitymanager.khgen.h"
 
 KMETA
 namespace Kite {
 	KM_CLASS(SCRIPTABLE)
 	class KITE_FUNC_EXPORT KEntityManager: public KMessenger {
+		KMETA_KENTITYMANAGER_BODY();
 	public:
 		KEntityManager();
 		~KEntityManager();
@@ -59,20 +61,27 @@ namespace Kite {
 
 		void unregisterComponent(KComTypes Type);
 
+		KM_FUN()
 		bool isRegistered(KComTypes Type);
 
 		/// create entity in the root branch (parrent = 0)
+		KM_FUN()
 		U32 createEntity(const std::string &Name = "");
 
+		KM_FUN()
 		void removeEntity(U32 ID);
 
-		void removeEntity(const std::string &Name);
+		KM_FUN()
+		void removeEntityByName(const std::string &Name);
 
+		KM_FUN()
 		SIZE inline getEntityCount() { return _kestorage.getSize(); }
 
+		KM_FUN()
 		KEntity *getEntity(U32 ID);
 
-		KEntity *getEntity(const std::string &Name);
+		KM_FUN()
+		KEntity *getEntityByName(const std::string &Name);
 
 		inline auto beginEntity() { return _kestorage.begin(); }
 

@@ -38,7 +38,7 @@ namespace Kite{
 
     bool KKeyboard::isButtonPressed(KKeyCodeTypes Button){
 		const Uint8 *state = DSDL_CALL(SDL_GetKeyboardState(NULL));
-		if (state[Button]) {
+		if (state[(U32)Button]) {
 			return true;
 		}
 		return false;

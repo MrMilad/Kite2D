@@ -26,7 +26,7 @@ namespace Kite {
 	{}
 
 	namespace Internal {
-		void registerMetaPOD(KMetaManager *MMan = nullptr) {
+		void registerMetaPOD(KMetaManager *MMan) {
 			static bool registered = false;
 			static KMetaPOD instances[] =
 			{

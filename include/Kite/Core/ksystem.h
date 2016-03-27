@@ -23,19 +23,18 @@ USA
 #include "Kite/core/kcoredef.h"
 #include "Kite/core/kentitymanager.h"
 #include "Kite/core/kresourcemanager.h"
-#include "Kite/core/klistener.h"
-#include "Kite/core/kmessenger.h"
 #include "Kite/meta/kmetadef.h"
+#include "ksystem.khgen.h"
 
+KMETA
 namespace Kite {
 	KM_CLASS(SYSTEM, ABSTRACT)
 	class KITE_FUNC_EXPORT KSystem{
+		KMETA_KSYSTEM_BODY();
 	public:
-		KSystem():
-			_kisinite(false)
-		{}
+		KSystem();
 
-		virtual ~KSystem() {}
+		virtual ~KSystem();
 
 		virtual void update(F32 Delta, KEntityManager &EManager, KResourceManager &RManager) = 0;
 

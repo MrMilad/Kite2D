@@ -119,6 +119,11 @@ struct MVariable {
 	MVariable() {}
 };
 
+struct MTemplate {
+	std::string name;
+	std::string types;
+};
+
 /*struct MClassBase {
 	std::string name;
 	MClassBaseAccs accs;
@@ -134,21 +139,28 @@ struct MClass {
 	MExportState exstate;
 	MFunction constructure;
 	std::string flags;
+	std::string templType;
 	std::vector<MProperty> props;
 	std::vector<MFunction> funcs;
 	std::vector<MVariable> vars;
 	std::vector<MInfo> infos;
 	std::vector<MOperator> opes;
+	std::vector<MTemplate> templ;
 
 	MClass() :
 		exstate(ES_NONE){}
+};
+
+struct MEnumMember {
+	std::string name;
+	std::string value;
 };
 
 struct MEnum {
 	std::string name;
 	std::string tokparam;
 	std::string type;
-	std::vector<std::pair<std::string, std::string>> members;  // pair<name, value>
+	std::vector<MEnumMember> members; 
 };
 
 bool isNumber(const std::string& s) {
@@ -1038,7 +1050,7 @@ bool procOper(std::vector<MOperator> &Oprs, const std::vector<MFunction> &Funs) 
 			continue;
 		}
 	}
-	
+
 	return true;
 }
 
@@ -1068,6 +1080,85 @@ bool procAllOper(const std::string &Content, std::vector<MOperator> &Oprs) {
 
 	ret = procOper(Oprs, funvec);
 
+	return ret;
+}
+
+bool procTemplate(const std::string &Content, MTemplate &Temps, unsigned int Pos) {
+	std::string output;
+	if (checkNext(Content, Pos) != PS_BODY_START) {
+		printf("error: missing ().\n");
+		return false;
+	}
+
+	Pos = getNextBody(Content, Pos, output);
+
+	std::vector<std::string> param;
+	splitParam(output, param);
+
+	if (param.size() < 2) {
+		printf("error: missing template value.\n");
+		return false;
+	}
+
+	Temps.name = strmap[param[0]];
+
+	for (size_t i = 1; i < param.size(); ++i) {
+		Temps.types.append(param[i]);
+		if ((i + 1) < param.size()) {
+			Temps.types.append(", ");
+		}
+	}
+
+	return true;
+}
+
+bool procAllTemplate(const std::string &Content, MClass &Cls) {
+	size_t pos = 0;
+	unsigned int count = 0;
+	bool ret = true;
+	Cls.templ.clear();
+
+	if (Content.empty()) {
+		return false;
+	}
+
+	if ((pos = findToken(Content, 0, "KM_TEM_PARAM")) != std::string::npos){
+		std::string output;
+		if (checkNext(Content, pos) != PS_BODY_START) {
+			printf("error: missing ().\n");
+			return false;
+		}
+
+		pos = getNextBody(Content, pos, output);
+
+		std::vector<std::string> param;
+		splitParam(output, param);
+
+		if (param.empty()) {
+			printf("error: empty template types list.\n");
+			return false;
+		}
+
+		for (size_t i = 0; i < param.size(); ++i) {
+			Cls.templType.append(param[i]);
+			if ((i + 1) < param.size()) {
+				Cls.templType.append(", ");
+			}
+		}
+		
+		pos = 0;
+		while ((pos = findToken(Content, pos, "KM_TEM_DEF")) != std::string::npos) {
+			MTemplate ttempl;
+			if (procTemplate(Content, ttempl, pos)) {
+				Cls.templ.push_back(ttempl);
+
+			} else {
+				printf("template token number: %u \n", count);
+				ret = false;
+			}
+			++count;
+		}
+	}
 	return ret;
 }
 
@@ -1172,6 +1263,11 @@ bool procClass(const std::string &Content, MClass &Cls, unsigned int Pos) {
 			return false;
 		}
 
+		// parse template in the class body
+		if (!procAllTemplate(cbody, Cls)) {
+			return false;
+		}
+
 	// incorrect structure
 	} else {
 		printf("error: missing class\\structure body.\n");
@@ -1208,10 +1304,10 @@ bool procAllClass(const std::string &Content, std::vector<MClass> &Classes) {
 	return ret;
 }
 
-bool procEnumMem(const std::string &Content, MEnum &Enm) {
+bool procEnumMem(const std::string &Content, std::vector<MEnumMember> &Memers) {
 	std::vector<std::string> param;
 	std::vector<std::string> defval;
-	Enm.members.clear();
+	Memers.clear();
 	splitParam(Content, param);
 	if (param.empty()) {
 		printf("error: empty enum.\n");
@@ -1224,13 +1320,18 @@ bool procEnumMem(const std::string &Content, MEnum &Enm) {
 
 		// without value
 		if (defval.size() == 1) {
-			Enm.members.push_back({ param[i], "" });
+			MEnumMember emem;
+			emem.name = param[i];
+			Memers.push_back(emem);
 			continue;
 
 		// with value
 		} else if (defval.size() == 2) {
 			removeAfter(param[i], "=");
-			Enm.members.push_back({ param[i], defval[1] });
+			MEnumMember emem;
+			emem.name = param[i];
+			emem.value = defval[1];
+			Memers.push_back(emem);
 
 		// extra or incorrect state
 		} else {
@@ -1317,7 +1418,7 @@ bool procEnum(const std::string &Content, MEnum &Enm, unsigned int Pos) {
 	}
 	getNextBody(Content, pos, ebody);
 
-	if (!procEnumMem(ebody, Enm)) {
+	if (!procEnumMem(ebody, Enm.members)) {
 		return false;
 	}
 
@@ -1390,63 +1491,205 @@ bool parse(std::string &Content, std::vector<MClass> &Classes, std::vector<MEnum
 	return ret;
 }
 
+void createTemplMacro(const MClass &Cls, std::string &Output) {
+	std::string upname = Cls.name;
+	std::string cParam = Cls.tokparam;
+	replaceTok(cParam, '|', ',');
+	std::vector<std::string> ctags;
+	splitParam(cParam, ctags);
+
+	// we only support POD's class for template
+	if (std::find(ctags.begin(), ctags.end(), "POD") == ctags.end()) {
+		printf("parser only support template for POD's\n");
+		return;
+	}
+
+	// class body
+	Output.append("\n// ----[auto generated: " + Cls.name + " body macro]----\n");
+	transform(upname.begin(), upname.end(), upname.begin(), toupper);
+	Output.append("#define KMETA_" + upname + "_BODY() \\\n");
+
+	// public section:
+	// register functions
+	Output.append("public:\\\n");
+
+	// serialize
+	Output.append("friend KBaseSerial &operator<<(KBaseSerial &Out, " + Cls.name + "<" + Cls.templType + "> &Value) {\\\n");
+	for (size_t i = 0; i < Cls.vars.size(); ++i) {
+		Output.append("Out << Value." + Cls.vars[i].name + ";\\\n");
+	}
+	Output.append("return Out;}\\\n");
+							
+	Output.append("friend KBaseSerial &operator>>(KBaseSerial &In, " + Cls.name + "<" + Cls.templType + "> &Value) {\\\n");
+	for (size_t i = 0; i < Cls.vars.size(); ++i) {
+		Output.append("In >> Value." + Cls.vars[i].name + ";\\\n");
+	}
+	Output.append("return In;}\\\n");
+
+	// meta registration
+	replaceTok(cParam, ',', '|');
+	Output.append("static void registerMeta(const std::string &Name, KMetaManager *MMan, lua_State *Lua = nullptr){\\\n"
+					"static bool inite = true;\\\n"
+					"static KMetaClass instance(Name," + cParam + ", sizeof(" + Cls.name + "<" + Cls.templType + ">));\\\n"
+					"if (inite) {\\\n"
+					"if (MMan != nullptr){\\\n"
+					"MMan->setMeta((KMetaBase *)&instance);\\\n");
+
+	// informations
+	for (size_t count = 0; count < Cls.infos.size(); ++count) {
+		Output.append("instance.addInfo({\"" + Cls.infos[count].key + "\", \"" + Cls.infos[count].info + "\"});\\\n");
+	}
+
+	// properties (meta)
+	for (size_t count = 0; count < Cls.props.size(); count++) {
+		std::string prpType("KMP_BOTH");
+		if (Cls.props[count].set.name.empty()) {
+			prpType = "KMP_GETTER";
+		} else {
+			prpType = "KMP_BOTH";
+		}
+		Output.append("instance.addProperty(KMetaProperty(\"" + Cls.props[count].name + "\", \""
+						+ Cls.props[count].type + "\", \"" + Cls.props[count].comment + "\", " + prpType + "));\\\n");
+	}
+
+	// functions
+	for (size_t count = 0; count < Cls.funcs.size(); count++) {
+		std::string ista = "false";
+		if (Cls.funcs[count].ista) {
+			ista = "true";
+		}
+
+		Output.append("instance.addFunction(KMetaFunction(\"" + Cls.funcs[count].name + "\", " + ista + " ));\\\n");
+	}
+	Output.append("}\\\n");
+
+	// lua binding 
+	Output.append("if (Lua != nullptr) { \\\n"
+					"LuaIntf::LuaBinding(Lua).beginModule(\"Kite\").beginClass<"
+					+ Cls.name + "<" + Cls.templType + ">>(Name.c_str())\\\n");
+
+	// constructure
+	std::string param;
+	if (!Cls.constructure.name.empty()) {
+		std::vector<std::string> cplist;
+		splitParam(Cls.constructure.tokparam, cplist);
+		if (!cplist.empty()) {
+			for (size_t count = 0; count < cplist.size(); count++) {
+				param.append("LuaIntf::_opt<" + cplist[count] + ">");
+				if ((count + 1) != cplist.size()) {
+					param.append(", ");
+				}
+			}
+		}
+		Output.append(".addConstructor(LUA_ARGS(" + param + "))\\\n");
+	}
+
+	// properties
+	for (size_t count = 0; count < Cls.props.size(); count++) {
+		if (!Cls.props[count].get.name.empty() && !Cls.props[count].set.name.empty()) {
+			Output.append(".addProperty(\"" + Cls.props[count].name + "\", &" + Cls.name + "<" + Cls.templType + ">::"
+							+ Cls.props[count].get.name + ", &" + Cls.name + "<" + Cls.templType + ">::" + Cls.props[count].set.name + ")\\\n");
+		} else if (Cls.props[count].set.name.empty()) {
+			Output.append(".addProperty(\"" + Cls.props[count].name + "\", &" + Cls.name + "<" + Cls.templType + ">::"
+							+ Cls.props[count].get.name + ")\\\n");
+		}
+	}
+
+	// functions 
+	std::string fista;
+	for (size_t count = 0; count < Cls.funcs.size(); count++) {
+
+		if (Cls.funcs[count].ista) {
+			fista = "addStaticFunction";
+		} else {
+			fista = "addFunction";
+		}
+		Output.append("." + fista + "(\"" + Cls.funcs[count].name + "\", &" + Cls.name + "<" + Cls.templType + ">::"
+					  + Cls.funcs[count].name + ")\\\n");
+	}
+
+	// operators
+	for (size_t count = 0; count < Cls.opes.size(); count++) {
+		if (Cls.opes[count].type == OT_ADD) {
+			Output.append(".addFunction(\"__add\", &" + Cls.name + "<" + Cls.templType + ">::" + Cls.opes[count].fun.name + ")\\\n");
+			continue;
+		}
+
+		if (Cls.opes[count].type == OT_SUB) {
+			Output.append(".addFunction(\"__sub\", &" + Cls.name + "<" + Cls.templType + ">::" + Cls.opes[count].fun.name + ")\\\n");
+			continue;
+		}
+
+		if (Cls.opes[count].type == OT_MUL) {
+			Output.append(".addFunction(\"__mul\", &" + Cls.name + "<" + Cls.templType + ">::" + Cls.opes[count].fun.name + ")\\\n");
+			continue;
+		}
+
+		if (Cls.opes[count].type == OT_DIV) {
+			Output.append(".addFunction(\"__div\", &" + Cls.name + "<" + Cls.templType + ">::" + Cls.opes[count].fun.name + ")\\\n");
+			continue;
+		}
+	}
+
+	// end of lua binding
+	Output.append(".endClass().endModule();}\\\n");
+	Output.append("} inite = false;}\n");
+}
+
 void createMacros(const std::vector<MClass> &Cls, const std::vector<MEnum> &Enms, std::string &Output) {
 	Output.clear();
 
 	// enums
 	for (size_t i = 0; i < Enms.size(); i++) {
 		std::string upname = Enms[i].name;
+		std::string eParam = Enms[i].tokparam;
+		replaceTok(eParam, ',', '|');
 
-		// declaration
 		Output.append("\n// ----[auto generated: " + Enms[i].name + " body macro]----\n");
 		transform(upname.begin(), upname.end(), upname.begin(), toupper);
 		Output.append("#define KMETA_" + upname + "_BODY() \\\n"
 					  "namespace Internal{\\\n"
-					  "KITE_FUNC_EXPORT extern void registerMeta_" + Enms[i].name + "(lua_State *Lua = nullptr);}\n");
+					  "struct Register" + Enms[i].name + "{\\\n"
+					  "static void registerMeta(KMetaManager *MMan, lua_State *Lua = nullptr);};}\\\n");
 
-		// definition
-		std::string eParam = Enms[i].tokparam;
-		replaceTok(eParam, ',', '|');
+
 		Output.append("\n// ----[auto generated: " + Enms[i].name + " source macro]----\n");
 		Output.append("#define KMETA_" + upname + "_SOURCE() \\\n"
-					  "namespace Internal{\\\n"
-					  "void registerMeta_" + Enms[i].name + "(lua_State *Lua){\\\n"
+					  //"namespace Internal{\\\n"
+					  "void Internal::Register" + Enms[i].name + "::registerMeta(KMetaManager *MMan, lua_State *Lua){\\\n"
 					  "static bool inite = true;\\\n"
-					  "static KMetaEnum instance(\"" + Enms[i].name + "\"," + eParam + ", sizeof(" + Enms[i].type + "), "
-					  "\"" + Enms[i].type + "\");\\\n"
+					  "static KMetaEnum instance(\"" + Enms[i].name + "\", 0, sizeof(" + Enms[i].name + "));\\\n"
 					  "if (inite) {\\\n"
-					  "MMan->setMeta((KMetaObject *)&instance);\\\n");
+					  "if (MMan != nullptr){\\\n"
+					  "MMan->setMeta((KMetaBase *)&instance);\\\n");
 
 		// enum members
-		Output.append("KMetaEnumMember *mem = 0;\\\n");
-		for (size_t count = 0; count < Enms[i].members.size(); count++) {
-			std::string vc = std::to_string(count);
-			if (!Enms[i].members[count].second.empty())
-				vc = Enms[i].members[count].second;
-
-			Output.append("mem = new KMetaEnumMember(\"" + Enms[i].members[count].first + "\", " + vc + ", "
-						  + std::to_string(count) + ");\\\n");
-
-			Output.append("instance.addMember(mem);\\\n");
+		for (size_t count = 0; count < Enms[i].members.size(); ++count) {
+			std::string value;
+			std::string number = std::to_string(count);
+			if (Enms[i].members[count].value.empty()) {
+				value = number;
+			} else {
+				value = Enms[i].members[count].value;
+			}
+			Output.append("instance.addMember(KMetaEnumMember(\"" + Enms[i].members[count].name + "\", " + value + ", " + number + "));\\\n");
 		}
+		Output.append("}\\\n");
 
 		// lua binding
-		// enum members
-		Output.append("const KMetaObject *minfo = MMan->getMeta(\"" + Enms[i].name + "\");\\\n"
-			"if (Lua != nullptr &&){\\\n"
-			"LuaIntf::LuaBinding(Lua).beginModule(\"Kite\")\\\n"
-			".beginModule(\"" + Enms[i].name + "\")\\\n");
-		for (size_t count = 0; count < Enms[i].members.size(); count++) {
-
-			Output.append(".addConstant(\"" + Enms[i].members[count].first + "\", " + Enms[i].name + "::" 
-						  + Enms[i].members[count].first + ")\\\n");
+		Output.append("if (Lua != nullptr){\\\n"
+					  "LuaIntf::LuaBinding(Lua).beginModule(\"Kite\")\\\n"
+					  ".beginModule(\"" + Enms[i].name + "\")\\\n");
+		for (size_t count = 0; count < Enms[i].members.size(); ++count) {
+			Output.append(".addConstant(\"" + Enms[i].members[count].name + "\", " + Enms[i].name + "::" 
+						  + Enms[i].members[count].name + ")\\\n");
 		}
 
 		// end of lua binding
 		Output.append(".endModule().endModule();}\\\n");
 
 		// end of definition
-		Output.append("} inite = false;}}\n");
+		Output.append("} inite = false;}\n");
 	}
 
 	// class
@@ -1456,6 +1699,12 @@ void createMacros(const std::vector<MClass> &Cls, const std::vector<MEnum> &Enms
 		replaceTok(cParam, '|', ',');
 		std::vector<std::string> ctags;
 		splitParam(cParam, ctags);
+
+		// is template class (templated class)
+		if (!Cls[i].templ.empty()) {
+			createTemplMacro(Cls[i], Output);
+			continue;
+		}
 
 		// is serializable
 		bool isPOD = false;
@@ -1626,7 +1875,7 @@ void createMacros(const std::vector<MClass> &Cls, const std::vector<MEnum> &Enms
 				splitParam(Cls[i].constructure.tokparam, cplist);
 				if (!cplist.empty()) {
 					for (size_t count = 0; count < cplist.size(); count++) {
-						param.append("LuaIntf::_opt<" + cplist[i] + ">");
+						param.append("LuaIntf::_opt<" + cplist[count] + ">");
 						if ((count + 1) != cplist.size()) {
 							param.append(", ");
 						}
@@ -1727,6 +1976,7 @@ void createHead(std::string &Output) {
 				  "#define KITEMETA_H\n\n"
 				  "#include \"Kite/core/kcoredef.h\"\n"
 				  "#include \"Kite/meta/kmetadef.h\"\n\n"
+				  "KM_IGNORED\n"
 				  "KMETA\n"
 				  "namespace Kite{\n"
 				  "KITE_FUNC_EXPORT extern void registerKiteMeta(KMetaManager *MMan = nullptr, lua_State *Lua = nullptr);}\n"
@@ -1742,6 +1992,7 @@ void createSource(const std::vector<std::string> &Files, const std::vector<MClas
 
 	// POD header file
 	Output.append("#include \"Kite/meta/kmetapod.h\"\n");
+	Output.append("#include \"KiteMeta/kmeta.khgen.h\"\n");
 
 	// add headers
 	for (size_t i = 0; i < Files.size(); i++) {
@@ -1754,12 +2005,18 @@ void createSource(const std::vector<std::string> &Files, const std::vector<MClas
 
 	// register classes
 	for (size_t i = 0; i < Cls.size(); i++) {
-		Output.append(Cls[i].name + "::registerMeta(MMan, Lua);\n");
+		if (!Cls[i].templ.empty() && !Cls[i].templType.empty()) {
+			for (size_t count = 0; count < Cls[i].templ.size(); ++count) {
+				Output.append(Cls[i].name + "<" + Cls[i].templ[count].types + ">::registerMeta(\"" + Cls[i].templ[count].name + "\", MMan, Lua);\n");
+			}
+		} else {
+			Output.append(Cls[i].name + "::registerMeta(MMan, Lua);\n");
+		}
 	}
 
 	// register enums
 	for (size_t i = 0; i < Ens.size(); i++) {
-		Output.append("Internal::registerMeta_" + Ens[i].name + "(Lua);\n");
+		Output.append("Internal::Register" + Ens[i].name + "::registerMeta(MMan, Lua);\n");
 	}
 
 	Output.append("}}");
@@ -1920,7 +2177,6 @@ int main(int argc, char* argv[]) {
 	// create register function
 	std::string header;
 	std::string source;
-	hadrs.push_back("kmeta.khgen.h");
 	if (!cls.empty() || !ens.empty()) {
 		createHead(header);
 		createSource(hadrs, cls, ens, source);

@@ -17,14 +17,16 @@ License along with this library; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 USA
 */
-#include "Kite/meta/kmetaenum.h"
+#include "Kite/core/ksystem.h"
+#include "Kite/meta/kmetamanager.h"
+#include "Kite/meta/kmetaclass.h"
+#include <luaintf\LuaIntf.h>
 
 namespace Kite {
-	KMetaEnum::KMetaEnum(const std::string &Name, U32 Flag, U32 Size) :
-		KMetaBase(Name, Flag, Size, KMT_ENUM)
-	{}
+	KSystem::KSystem() :
+		_kisinite(false) {}
 
-	void KMetaEnum::addMember(const KMetaEnumMember &Member) {
-		_kmembers.push_back(Member);
-	}
+	KSystem::~KSystem() {}
+
+	KMETA_KSYSTEM_SOURCE();
 }

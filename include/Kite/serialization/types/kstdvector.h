@@ -26,43 +26,44 @@ USA
 
 namespace Kite {
 
-	namespace Internal {
-		template<typename T2, typename T3>
-		struct serialHelper3<std::vector, T2, T3> {
-			static void write(KBaseSerial &Out, const std::vector<T2, T3> &Value) {
-				bool empty = true;
-				U32 size = 0;
+	template<typename T1>
+	KBaseSerial &operator<<(KBaseSerial &Out, const std::vector<T1> &Value) {
+		bool empty = true;
+		U32 size = 0;
 
-				if (!Value.empty()) {
-					empty = false;
-					size = Value.size();
-					Out << empty;
-					Out << size;
-					for (auto it = Value.begin(); it != Value.end(); ++it) {
-						Out << (*it);
-					}
-				} else {
-					empty = true;
-					Out << empty;
+		if (!Value.empty()) {
+			empty = false;
+			size = Value.size();
+			Out << empty;
+			Out << size;
+			for (auto it = Value.begin(); it != Value.end(); ++it) {
+				Out << (*it);
+			}
+		} else {
+			empty = true;
+			Out << empty;
+		}
+
+		return Out;
+	}
+
+	template<typename T1>
+	KBaseSerial &operator>>(KBaseSerial &In, std::vector<T1> &Value) {
+		bool empty = true;
+		U32 size = 0;
+
+		In >> empty;
+
+		if (!empty) {
+			In >> size;
+			if (Value.size() >= size) {
+				for (auto it = Value.begin(); it != Value.end(); ++it) {
+					In >> (*it);
 				}
 			}
+		}
 
-			static void read(KBaseSerial &In, std::vector<T2, T3> &Value) {
-				bool empty = true;
-				U32 size = 0;
-
-				In >> empty;
-
-				if (!empty) {
-					In >> size;
-					if (Value.size() >= size) {
-						for (auto it = Value.begin(); it != Value.end(); ++it) {
-							In >> (*it);
-						}
-					}
-				}
-			}
-		};
+		return In;
 	}
 }
 

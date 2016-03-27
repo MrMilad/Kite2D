@@ -27,6 +27,7 @@ USA
 #include <string>
 
 namespace Kite {
+	class KMetaManager;
 	class KITE_FUNC_EXPORT KMetaPOD : public KMetaBase {
 	public:
 		KMetaPOD(const std::string &Name, U32 Flag, U32 Size, KPrimitiveTypes PODType);
@@ -38,7 +39,7 @@ namespace Kite {
 	};
 
 	namespace Internal {
-		KITE_FUNC_EXPORT extern void registerMetaPOD();
+		KITE_FUNC_EXPORT extern void registerMetaPOD(KMetaManager *MMan = nullptr);
 	}
 }
 

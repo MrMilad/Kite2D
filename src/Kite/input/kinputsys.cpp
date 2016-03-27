@@ -20,6 +20,10 @@ USA
 #include "Kite/input/kinputsys.h"
 #include "Kite/input/kkeyboard.h"
 #include "Kite/input/kmouse.h"
+#include "Kite/meta/kmetatypes.h"
+#include "Kite/meta/kmetamanager.h"
+#include "Kite/meta/kmetaclass.h"
+#include <luaintf/LuaIntf.h>
 
 namespace Kite {
 	void KInputSys::update(F32 Delta, KEntityManager &EManager, KResourceManager &RManager) {
@@ -49,4 +53,6 @@ namespace Kite {
 		setInite(true);
 		return true;
 	}
+
+	KMETA_KINPUTSYS_SOURCE();
 }

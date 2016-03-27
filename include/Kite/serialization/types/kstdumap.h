@@ -17,51 +17,55 @@ License along with this library; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 USA
 */
-#ifndef KPOLYMORPHISM_H
-#define KPOLYMORPHISM_H
+#ifndef KSTDUMAP_H
+#define KSTDUMAP_H
 
 #include "Kite/core/kcoredef.h"
 #include "Kite/serialization/kbaseserial.h"
-#include "Kite/serialization/types/kstdstring.h"
-#include "Kite/meta/kmetamanager.h"
-#include <memory>
-#include <string>
+//#include "Kite/serialization/types/kstdpair.h"
+#include <unordered_map>
 
 namespace Kite {
-	namespace Internal {
-		template<>
-		struct serialHelper2<std::shared_ptr,KObject> {
-			static void write(KBaseSerial &Out, const std::shared_ptr<KObject> &Value) {
-				bool empty = true;
-				std::string name;
+	template <typename T1, typename T2>
+	KBaseSerial &operator<<(KBaseSerial &Out, const std::unordered_map<T1, T2> &Value) {
+		bool empty = true;
+		U32 size = 0;
 
-				if (Value) {
-					empty = false;
-					name = Value->getClassName();
-					Out << empty;
-					Out << name;
-					Out << *Value.get();
-				} else {
-					empty = true;
-					Out << empty;
+		if (!Value.empty()) {
+			empty = false;
+			size = Value.size();
+			Out << empty;
+			Out << size;
+			for (auto it = Value.begin(); it != Value.end(); ++it) {
+				Out << (*it).first;
+				Out << (*it).second;
+			}
+		} else {
+			empty = true;
+			Out << empty;
+		}
+
+		return Out;
+	}
+
+	template <typename T1, typename T2>
+	KBaseSerial &operator>>(KBaseSerial &In, std::unordered_map<T1, T2> &Value) {
+		bool empty = true;
+		U32 size = 0;
+
+		In >> empty;
+
+		if (!empty) {
+			In >> size;
+			if (Value.size() >= size) {
+				for (auto it = Value.begin(); it != Value.end(); ++it) {
+					//In >> (*it);
 				}
 			}
+		}
 
-			static void read(KBaseSerial &In, std::shared_ptr<KObject> &Value) {
-				bool empty = true;
-				std::string name;
-				Value.reset();
-
-				In >> empty;
-
-				if (!empty) {
-					In >> name;
-					Value = KMetaManager::createClass(name, *In.getAllocator());
-					In >> (*Value);
-				}
-			}
-		};
+		return In;
 	}
 }
 
-#endif // KPOLYMORPHISM_H
+#endif // KSTDUMAP_H

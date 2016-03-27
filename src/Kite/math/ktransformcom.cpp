@@ -21,6 +21,7 @@
 #include "Kite/meta/kmetamanager.h"
 #include "Kite/meta/kmetaclass.h"
 #include "Kite/meta/kmetatypes.h"
+#include "Kite/serialization/types/kstdvector.h"
 #include <luaintf/LuaIntf.h>
 #include <cmath>
 

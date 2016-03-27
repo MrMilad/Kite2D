@@ -21,10 +21,14 @@
 #define KINPUTTYPES_H
 
 #include "Kite/core/kcoredef.h"
+#include "Kite/meta/kmetadef.h"
+#include "kinputtypes.khgen.h"
 
+KMETA
 namespace Kite{
 
-    enum KKeyCodeTypes {
+	KM_ENUM()
+    enum class KKeyCodeTypes : U32{
 		KCT_UNKNOWN = 0,
 		KCT_A = 4,
 		KCT_B = 5,
@@ -370,7 +374,9 @@ namespace Kite{
 		KCT_MAX_SIZE = 512 /**< not a key, just marks the number of scancodes
 								for array bounds */
     };
+	KMETA_KKEYCODETYPES_BODY();
 
+	KM_ENUM()
 	enum class KKeyModifierTypes : U32 {
 		KMT_NONE = 0x0000,
 		KMT_LSHIFT = 0x0001,
@@ -386,6 +392,7 @@ namespace Kite{
 		KMT_MODE = 0x4000,
 		KMT_RESERVED = 0x8000
 	};
+	KMETA_KKEYMODIFIERTYPES_BODY();
 
     /*enum class KButtonStateTypes : U8{
         KBS_RELEASE = 0,

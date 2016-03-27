@@ -19,8 +19,11 @@ USA
 */
 #include "Kite/core/kentity.h"
 #include "Kite/core/kcoreutil.h"
+#include "Kite/meta/kmetamanager.h"
 #include "Kite/meta/kmetaclass.h"
-#include "Kite/serialization/types/kstdlist.h"
+#include "Kite/serialization/types/kstdstring.h"
+#include "Kite/serialization/types/kstdumap.h"
+#include "Kite/serialization/types/kstdvector.h"
 #include <luaintf\LuaIntf.h>
 
 namespace Kite {
@@ -303,7 +306,7 @@ namespace Kite {
 		return false;
 	}
 
-	bool KEntity::hasComponent(KComTypes Type) {
+	bool KEntity::hasComponentType(KComTypes Type) {
 		if (Type == KComTypes::KCT_LOGIC && !_kscriptComp.empty()) {
 			return true;
 		} else {
@@ -314,4 +317,6 @@ namespace Kite {
 
 		return false;
 	}
+
+	KMETA_KENTITY_SOURCE();
 }

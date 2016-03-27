@@ -22,15 +22,32 @@
 
 #include <cmath>
 #include "Kite/core/kcoredef.h"
+#include "Kite/meta/kmetadef.h"
+#include "Kite/meta/kmetamanager.h"
+#include "Kite/meta/kmetaclass.h"
+#include "Kite/meta/kmetatypes.h"
+#include "Kite/serialization/kbaseserial.h"
+#include "luaintf\LuaIntf.h"
+#include "kmathstructs.khgen.h"
 
 namespace Kite{
 
-	// KVector2 Template
+	/// KVector2 Template
 	template <typename T>
+	KM_CLASS(POD)
 	class KVector2{
-	public:
-		T x, y;
+		KM_TEM_PARAM(T);
+		KM_TEM_DEF("KVector2F32", F32);
+		KM_TEM_DEF("KVector2I32", I32);
+		KM_TEM_DEF("KVector2U32", U32);
+		KMETA_KVECTOR2_BODY();
 
+	public:
+
+		KM_VAR() T x;
+		KM_VAR() T y;
+
+		KM_CON(T, T)
 		explicit KVector2(T X = 0, T Y = 0) :
 			x(X), y(Y)
 		{}
@@ -43,7 +60,7 @@ namespace Kite{
 			return KVector2<T>(x - right.x, y - right.y);
 		}
 
-		inline KVector2<T> operator+(const KVector2<T>& right) {
+		inline KVector2<T> operator+(const KVector2<T>& right) const {
 			return KVector2<T>(x + right.x, y + right.y);
 		}
 
@@ -73,7 +90,7 @@ namespace Kite{
 			return KVector2<T>(x * right, y * right);
 		}
 
-		inline KVector2<T> operator*(const KVector2<T>& right) {
+		inline KVector2<T> operator*(const KVector2<T>& right) const {
 			return KVector2<T>(right.x * x, right.y * y);
 		}
 
@@ -91,6 +108,10 @@ namespace Kite{
 
 		inline KVector2<T> operator/(T right) {
 			return KVector2<T>(x / right, y / right);
+		}
+
+		inline KVector2<T> operator/(const KVector2<T>& right) const {
+			return KVector2<T>(x / right.x, y / right.y);
 		}
 
 		inline KVector2<T>& operator/=(T right) {
@@ -115,42 +136,73 @@ namespace Kite{
 			return (x != right.x) || (y != right.y);
 		}
 
+		/// matrix 3x3 by 2x1 !
+		/// shrinked for 2D purpose
+		/*template <typename T>
+		static inline KVector2<T> operator*(const KVector2<T> left, const T *right){
+		return KVector2<T>(left.x * right[0] + left.y * right[1] + 1 * right[2],
+		left.x * right[3] + left.y * right[4] + 1 * right[5]);
+		}*/
+
 		/// distance only coded for 2D
+		KM_FUN()
 		static inline T distance(const KVector2<T> &v1, const KVector2<T> &v2) {
-			return sqrt((v2.x - v1.x)*(v2.x - v1.x) + (v2.y - v1.y)*(v2.y - v1.y));
+			return (T)sqrt((v2.x - v1.x)*(v2.x - v1.x) + (v2.y - v1.y)*(v2.y - v1.y));
 		}
 
 		/// Vector3 length is distance from the origin
+		KM_FUN()
 		static inline T length(const KVector2<T> &v) {
-			return sqrt(v.x*v.x + v.y*v.y);
+			return (T)sqrt(v.x*v.x + v.y*v.y);
 		}
 
 		/// dot/scalar product: difference between two directions
+		KM_FUN()
 		static inline T dotProduct(const KVector2<T> &v1, const KVector2<T> &v2) {
 			return (v1.x*v2.x + v1.y*v2.y);
 		}
 
+		KM_FUN()
 		static inline T perpDot(const KVector2<T> &v1, const KVector2<T> &v2) {
 			return (v1.y * v2.x) - (v1.x * v2.y);
 		}
 
 		/// calculate normal angle of the Vector
+		KM_FUN()
 		static inline KVector2<T> normal(const KVector2<T> &v) {
 			KD_ASSERT((length(v) == 0));
 			T len = 1 / length(v);
 			return KVector2<T>((v.x * len), (v.y * len));
 		}
 
+		KM_FUN()
 		static inline void move(KVector2<T>& v, T mx, T my) { v.x += mx; v.y += my; }
-	}; 
 
-	/// matrix 3x3 by 2x1 !
-	/// shrinked for 2D purpose
-	/*template <typename T>
-	static inline KVector2<T> operator*(const KVector2<T> left, const T *right){
-		return KVector2<T>(left.x * right[0] + left.y * right[1] + 1 * right[2],
-			left.x * right[3] + left.y * right[4] + 1 * right[5]);
-	}*/
+		private:
+			KM_PRO_GET("x", T, "value of x")
+				inline T getX() const { return x; }
+
+			KM_PRO_SET("x")
+				inline void setX(T X) { x = X; }
+
+			KM_PRO_GET("y", T, "value of y")
+				inline T getY() const { return y; }
+
+			KM_PRO_SET("y")
+				inline void setY(T Y) { y = Y; }
+
+			KM_OPE(KO_ADD)
+				KVector2<T> luaAddOpr(const KVector2<T> &right) const { return operator+(right); }
+
+			KM_OPE(KO_SUB)
+				KVector2<T> luaSubOpr(const KVector2<T> &right) const { return operator-(right); }
+
+			KM_OPE(KO_MUL)
+				KVector2<T> luaMulOpr(const KVector2<T> &right) const { return operator*(right); }
+
+			KM_OPE(KO_DIV)
+				KVector2<T> luaDivOpr(const KVector2<T> &right) const { return operator/(right); }
+	}; 
 
 	typedef KVector2<U8>  KVector2U8;
 	typedef KVector2<U16> KVector2U16;
@@ -165,22 +217,59 @@ namespace Kite{
 
 	// KRect Template
 	template <typename T>
+	KM_CLASS(POD)
 	struct KRect{
-		T left, right, bottom, top;
+		KM_TEM_PARAM(T);
+		KM_TEM_DEF("KRectF32", F32);
+		KM_TEM_DEF("KRectI32", I32);
+		KM_TEM_DEF("KRectU32", U32);
+		KMETA_KRECT_BODY();
 
+		KM_VAR() T left;
+		KM_VAR() T right;
+		KM_VAR() T bottom;
+		KM_VAR() T top;
+
+		KM_CON(T, T, T, T)
 		KRect(T Left = 0, T Right = 0, T Bottom = 0, T Top = 0) :
 			left(Left), right(Right), bottom(Bottom), top(Top)
 		{}
 
-		inline KRect<T> operator+(const KVector2<T>& right) {
-			return KRect<T>(left + right.x, right + right.x,
-							bottom + right.y, top + right.y);
+		inline KRect<T> operator+(const KVector2<T>& Right) const {
+			return KRect<T>(left + Right.x, right + Right.x,
+							bottom + Right.y, top + Right.y);
 		}
 
-		inline KRect<T> operator-(const KVector2<T>& right) {
-			return KRect<T>(left - right.x, right - right.x,
-							bottom - right.y, top - right.y);
+		inline KRect<T> operator-(const KVector2<T>& Right) const {
+			return KRect<T>(left - Right.x, right - Right.x,
+							bottom - Right.y, top - Right.y);
 		}
+
+	private:
+		KM_PRO_GET("left", T, "value of left")
+			inline T getLeft() const { return left; }
+
+		KM_PRO_SET("left")
+			inline void setLeft(T Left) { left = Left; }
+
+		KM_PRO_GET("right", T, "value of right")
+			inline T getRight() const { return right; }
+
+		KM_PRO_SET("right")
+			inline void setRight(T Right) { right = Right; }
+
+		KM_PRO_GET("bottom", T, "value of bottom")
+			inline T getBottom() const { return bottom; }
+
+		KM_PRO_SET("bottom")
+			inline void setBottom(T Bottom) { bottom = Bottom; }
+
+		KM_PRO_GET("top", T, "value of top")
+			inline T getTop() const { return top; }
+
+		KM_PRO_SET("top")
+			inline void setTop(T Top) { top = Top; }
+
 	};
 
 	typedef KRect<U8>  KRectU8;
@@ -195,13 +284,20 @@ namespace Kite{
 
 	// KRect2 Template
 	template <typename T>
+	KM_CLASS(POD)
 	struct KRect2{
-		KVector2<T> leftBottom, leftTop, rightBottom, rightTop;
+		KM_TEM_PARAM(T);
+		KM_TEM_DEF("KRect2F32", F32);
+		KM_TEM_DEF("KRect2I32", I32);
+		KM_TEM_DEF("KRect2U32", U32);
+		KMETA_KRECT2_BODY();
 
-		KRect2() :
-			leftBottom(0, 0), leftTop(0, 0), rightBottom(0, 0), rightTop(0, 0)
-		{}
+		KM_VAR() KVector2<T> leftBottom;
+		KM_VAR() KVector2<T> leftTop;
+		KM_VAR() KVector2<T> rightBottom;
+		KM_VAR() KVector2<T> rightTop;
 
+		KM_CON(KVector2<T>, KVector2<T>, KVector2<T>, KVector2<T>)
 		KRect2(KVector2<T> LeftBottom, KVector2<T> LeftTop, KVector2<T> RightBottom, KVector2<T> RightTop) :
 			leftBottom(LeftBottom), leftTop(LeftTop), rightBottom(RightBottom), rightTop(RightTop)
 		{}
@@ -215,6 +311,31 @@ namespace Kite{
 			return KRect2<T>(leftBottom - right, leftTop - right,
 							 rightBottom - right, rightTop - right);
 		}
+
+	private:
+		KM_PRO_GET("leftBottom", KVector2<T>, "value of leftBottom")
+			inline KVector2<T> getLeftBottom() const { return leftBottom; }
+
+		KM_PRO_SET("leftBottom")
+			inline void setLeftBottom(KVector2<T> LeftBottom) { leftBottom = LeftBottom; }
+
+		KM_PRO_GET("rightBottom", KVector2<T>, "value of rightBottom")
+			inline KVector2<T> getRightBottom() const { return rightBottom; }
+
+		KM_PRO_SET("rightBottom")
+			inline void setRightBottom(KVector2<T> RightBottom) { rightBottom = RightBottom; }
+
+		KM_PRO_GET("leftTop", KVector2<T>, "value of leftTop")
+			inline KVector2<T> getLeftTop() const { return leftTop; }
+
+		KM_PRO_SET("leftTop")
+			inline void setLeftTop(KVector2<T> LeftTop) { leftTop = LeftTop; }
+
+		KM_PRO_GET("rightTop", KVector2<T>, "value of rightTop")
+			inline KVector2<T> getRightTop() const { return rightTop; }
+
+		KM_PRO_SET("rightTop")
+			inline void setRightTop(KVector2<T> RightTop) { rightTop = RightTop; }
 	};
 
 	typedef KRect2<U8>  KRect2U8;

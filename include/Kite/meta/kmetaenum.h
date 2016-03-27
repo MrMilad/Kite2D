@@ -24,34 +24,28 @@ USA
 #include "Kite/utility/kutilitytypes.h"
 #include "Kite/meta/kmetabase.h"
 #include <string>
+#include <list>
 
 namespace Kite {
 	struct KMetaEnumMember {
 		std::string name;		//!< Name of the member
 		I32 value;				//!< Value of the member
 		U32 number;				//!< Number of the member in given order
-		KMetaEnumMember *next;	//!< Pointer to next member
 
 		KMetaEnumMember(const std::string &Name, I32 Value, U32 Number) :
-			name(Name), value(Value), number(Number), next(nullptr)
+			name(Name), value(Value), number(Number)
 		{}
 	};
 	class KITE_FUNC_EXPORT KMetaEnum : public KMetaBase {
 	public:
-		KMetaEnum(const std::string &Name, U32 Flag, U32 Size, const std::string& TypeName);
-		~KMetaEnum();
+		KMetaEnum(const std::string &Name, U32 Flag, U32 Size);
 
-		void addMember(const KMetaEnumMember *Member);
+		void addMember(const KMetaEnumMember &Member);
 
-		inline const KMetaEnumMember *getMembers() const { return _kmembers; }
-		inline bool hasMembers() const { return (_kmembers) ? true : false; }
-
-		inline const std::string &getTypeHandle() const { return _ktypeName; }
+		inline const auto getMembers() const { return _kmembers; }
 
 	private:
-		KMetaEnumMember *_kmembers;
-		KMetaEnumMember *_klastMember;
-		std::string _ktypeName;
+		std::list<KMetaEnumMember> _kmembers;
 	};
 }
 

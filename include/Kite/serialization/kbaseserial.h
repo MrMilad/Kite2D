@@ -22,9 +22,6 @@ USA
 
 #include "Kite/core/kcoredef.h"
 #include "Kite/core/kcoretypes.h"
-#include <type_traits>
-
-#define CHECK_VALIDATION(T) static_assert(std::is_arithmetic<T>::value, "non-pod, unregistered or unserializable types and raw pointers are not allowed for serialization.")
 
 namespace Kite {
 
@@ -38,123 +35,6 @@ namespace Kite {
 		virtual void writePOD(const void *Value, SIZE Size, bool Str) = 0;
 		virtual void readPOD(void *Value, SIZE Size, bool Str) = 0;
 	};
-
-// type validation 
-// only non-pointer POD types allowed
-
-	namespace Internal {
-		// for PODs by default
-		template <typename T1>
-		struct serialHelper1 {
-			static void write(KBaseSerial &Out, const T1 &Value) {
-				CHECK_VALIDATION(T1);
-
-				Out.writePOD((const void *)&Value, sizeof(T1), false);
-			}
-
-			static void read(KBaseSerial &In, T1 &Value) {
-				CHECK_VALIDATION(T1);
-
-				In.readPOD((void *)&Value, sizeof(T1), false);
-			}
-		};
-
-		// continers with 1 templated argument
-		template <template<typename>typename T1, typename T2>
-		struct serialHelper2 {};
-
-		// continers with 2 templated argument
-		template <template<typename, typename>typename T1, typename T2, typename T3>
-		struct serialHelper3 {};
-	}
-
-	// Serialization
-	// pod types
-	template <typename T1>
-	KBaseSerial &operator<<(KBaseSerial &Out, const T1 &Value) {
-		Internal::serialHelper1<T1>::write(Out, Value);
-		return Out;
-	}
-
-	// continers with 1 templated argument
-	template <template<typename>typename T1, typename T2>
-	KBaseSerial &operator<<(KBaseSerial &Out, const T1<T2> &Value) {
-		Internal::serialHelper2<T1, T2>::write(Out, Value);
-		return Out;
-	}
-
-	// continers with 2 templated argument
-	template <template<typename, typename>typename T1, typename T2, typename T3>
-	KBaseSerial &operator<<(KBaseSerial &Out, const T1<T2, T3> &Value) {
-		Internal::serialHelper3<T1, T2, T3>::write(Out, Value);
-		return Out;
-	}
-
-	// Deserialization
-	// POD
-	template <typename T1>
-	KBaseSerial &operator>>(KBaseSerial &In, T1 &Value) {
-		Internal::serialHelper1<T1>::read(In, Value);
-		return In;
-	}
-
-	// continers with 1 templated argument
-	template <template<typename>typename T1, typename T2>
-	KBaseSerial &operator>>(KBaseSerial &In, T1<T2> &Value) {
-		Internal::serialHelper2<T1, T2>::read(In, Value);
-		return In;
-	}
-
-	// continers with 2 templated argument
-	template <template<typename, typename>typename T1, typename T2, typename T3>
-	KBaseSerial &operator>>(KBaseSerial &In, T1<T2, T3> &Value) {
-		Internal::serialHelper3<T1, T2, T3>::read(In, Value);
-		return In;
-	}
-
-	// 1-dimensional array
-	template<typename T, SIZE N>
-	KBaseSerial &operator<<(KBaseSerial &Out, const T(&Value)[N]) {
-
-		for (SIZE i = 0; i < N; i++) {
-			Out << Value[i];
-		}
-		
-		return Out;
-	}
-
-	template<typename T, SIZE N>
-	KBaseSerial &operator>>(KBaseSerial &In, T(&Value)[N]) {
-
-		for (SIZE i = 0; i < N; i++) {
-			In >> Value[i];
-		}
-
-		return In;
-	}
-
-	// 2-dimensional array
-	template<typename T, SIZE N, SIZE Y>
-	KBaseSerial &operator<<(KBaseSerial &Out, const T(&Value)[N][Y]) {
-		for (SIZE i = 0; i < N; i++) {
-			for (SIZE j = 0; j < Y; j++) {
-				Out << Value[i][j];
-			}
-		}
-
-		return Out;
-	}
-
-	template<typename T, SIZE N, SIZE Y>
-	KBaseSerial &operator>>(KBaseSerial &In, T(&Value)[N][Y]) {
-		for (SIZE i = 0; i < N; i++) {
-			for (SIZE j = 0; j < Y; j++) {
-				In >> Value[i][j];
-			}
-		}
-
-		return In;
-	}
 }
 
 #endif // KBASESERIAL_H

@@ -24,11 +24,13 @@ USA
 #include "Kite/meta/kmetadef.h"
 #include <memory>
 #include <string>
+#include "kmessage.khgen.h"
 
 KMETA
 namespace Kite {
 	KM_CLASS(SCRIPTABLE)
 	class KITE_FUNC_EXPORT KMessage{
+		KMETA_KMESSAGE_BODY();
 	public:
 		KM_CON()
 		KMessage();

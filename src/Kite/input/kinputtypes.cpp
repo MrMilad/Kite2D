@@ -17,14 +17,12 @@ License along with this library; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 USA
 */
+#include "Kite/input/kinputtypes.h"
+#include "Kite/meta/kmetamanager.h"
 #include "Kite/meta/kmetaenum.h"
+#include <luaintf/LuaIntf.h>
 
 namespace Kite {
-	KMetaEnum::KMetaEnum(const std::string &Name, U32 Flag, U32 Size) :
-		KMetaBase(Name, Flag, Size, KMT_ENUM)
-	{}
-
-	void KMetaEnum::addMember(const KMetaEnumMember &Member) {
-		_kmembers.push_back(Member);
-	}
+	KMETA_KKEYCODETYPES_SOURCE();
+	KMETA_KKEYMODIFIERTYPES_SOURCE();
 }

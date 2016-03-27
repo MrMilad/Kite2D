@@ -66,14 +66,16 @@ USA
 	
 
 #define KM_IGNORED
-#define KM_ENUM(...)	/// (name)
-#define KM_CLASS(...)	/// (FLAG)
-#define KM_CON(...)		///	(ptype1, ptype2, ...);
-#define KM_PRO_SET(...)	///	("name")
-#define KM_PRO_GET(...)	///	("name", type, "comment")
-#define KM_FUN(...)		/// ()
-#define KM_VAR(...)		/// ()
-#define KM_OPE(...)		/// (OPERATOR)
-#define KM_INFO(...)	/// ("key", "info")
+#define KM_ENUM(...)		/// (name)
+#define KM_CLASS(...)		/// (FLAG)
+#define KM_CON(...)			///	(ptype1, ptype2, ...);
+#define KM_PRO_SET(...)		///	("name")
+#define KM_PRO_GET(...)		///	("name", type, "comment")
+#define KM_FUN(...)			/// ()
+#define KM_VAR(...)			/// ()
+#define KM_OPE(...)			/// (OPERATOR)
+#define KM_INFO(...)		/// ("key", "info")
+#define KM_TEM_PARAM(...)	/// (param1, param1, ...)
+#define KM_TEM_DEF(...)		/// ("name", val1, val2, ...)
 
 #endif // KMETADEF_H

@@ -23,9 +23,14 @@ USA
 #include "Kite/core/kcoredef.h"
 #include "Kite/core/ksystem.h"
 #include "Kite/input/kinputcom.h"
+#include "Kite/meta/kmetadef.h"
+#include "kinputsys.khgen.h"
 
+KMETA
 namespace Kite {
+	KM_CLASS(SYSTEM)
 	class KITE_FUNC_EXPORT KInputSys : public KSystem {
+		KMETA_KINPUTSYS_BODY();
 	public:
 		void update(F32 Delta, KEntityManager &EManager, KResourceManager &RManager);
 

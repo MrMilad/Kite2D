@@ -28,7 +28,7 @@ namespace Kite {
 	void KLogicSys::update(F32 Delta, KEntityManager &EManager, KResourceManager &RManager) {
 		if (EManager.isRegistered(KComTypes::KCT_LOGIC)) {
 			for (auto it = EManager.beginEntity(); it != EManager.endEntity(); ++it) {
-				if (it->hasComponent(KComTypes::KCT_LOGIC) &&
+				if (it->hasComponentType(KComTypes::KCT_LOGIC) &&
 					it->getActive()) {
 
 					// retrive all script components from entity

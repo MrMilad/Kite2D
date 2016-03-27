@@ -63,4 +63,6 @@ namespace Kite {
 		return *this;
 	}
 
+	KMETA_KMESSAGE_SOURCE();
+
 }

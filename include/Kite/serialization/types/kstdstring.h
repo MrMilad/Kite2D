@@ -25,41 +25,39 @@ USA
 #include <string>
 
 namespace Kite {
-	namespace Internal {
-		template<>
-		struct serialHelper1<std::string> {
-			static void write(KBaseSerial &Out, const std::string &Value) {
-				// at first we write size of string
-				SIZE strSize = Value.size();
-				Out.writePOD((const void *)&strSize, sizeof(SIZE), false);
+	static KBaseSerial &operator<<(KBaseSerial &Out, const std::string &Value) {
+		// at first we write size of string
+		SIZE strSize = Value.size();
+		Out.writePOD((const void *)&strSize, sizeof(SIZE), false);
 
-				// write string contents
-				Out.writePOD((void *)Value.c_str(), Value.size(), true);
-			}
+		// write string contents
+		Out.writePOD((void *)Value.c_str(), Value.size(), true);
 
-			static void read(KBaseSerial &In, std::string &Value) {
-				Value.clear();
+		return Out;
+	}
 
-				// read size of string
-				SIZE strSize = 0;
-				In.readPOD((void *)&strSize, sizeof(SIZE), false);
+	static KBaseSerial &operator>>(KBaseSerial &In, std::string &Value) {
+		Value.clear();
 
-				if (strSize <= 0) {
-					return;
-				}
+		// read size of string
+		SIZE strSize = 0;
+		In.readPOD((void *)&strSize, sizeof(SIZE), false);
 
-				// read contents to a temporary buffer
-				char *temp = new char[strSize];
-				In.readPOD((void *)temp, strSize, true);
+		if (strSize > 0) {
 
-				// insert buffer to the string object
-				Value.reserve(strSize);
-				Value.insert(0, (const char *)temp, strSize);
+			// read contents to a temporary buffer
+			char *temp = new char[strSize];
+			In.readPOD((void *)temp, strSize, true);
 
-				// free buffer
-				delete temp;
-			}
-		};
+			// insert buffer to the string object
+			Value.reserve(strSize);
+			Value.insert(0, (const char *)temp, strSize);
+
+			// free buffer
+			delete temp;
+		}
+
+		return In;
 	}
 }
 

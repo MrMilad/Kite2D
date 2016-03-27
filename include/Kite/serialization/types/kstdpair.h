@@ -17,26 +17,28 @@ License along with this library; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 USA
 */
-#ifndef KPOD_H
-#define KPOD_H
+#ifndef KSTDPAIR_H
+#define KSTDPAIR_H
 
 #include "Kite/core/kcoredef.h"
 #include "Kite/serialization/kbaseserial.h"
-
-#define CHECK_VALIDATION(T) static_assert(std::is_arithmetic<T>::value, "non-pod unregistered types and raw pointers are not allowed for serialization.")
+#include <utility>
 
 namespace Kite {
-	namespace Internal {
-		template<typename T>
-		struct serialHelper1 {
-			static void write(KBaseSerial &Out, const T &Value) {
-				CHECK_VALIDATION(T);
 
-				Out.writePOD((const void *)&Value, sizeof(T), false);
-				return Out;
-			}
-		};
+	template<typename T1, typename T2>
+	KBaseSerial &operator<<(KBaseSerial &Out, const std::pair<T1, T2> &Value) {
+		Out << Value.first;
+		Out << Value.second;
+		return Out;
+	}
+
+	template<typename T1, typename T2>
+	extern KBaseSerial &operator>>(KBaseSerial &In, std::pair<T1, T2> &Value) {
+		In >> Value.first;
+		In >> Value.second;
+		return In;
 	}
 }
 
-#endif // KPOD_H
+#endif // KSTDPAIR_H

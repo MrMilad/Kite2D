@@ -28,6 +28,10 @@ int main() {
 		lua_settop(vm, 0);
 	}
 
+	KMetaManager mman;
+
+	registerKiteMeta(&mman, vm);
+
 	KWindowState state;
 	state.title = "salam";
 	state.width = 800;
@@ -87,18 +91,15 @@ int main() {
 	eman.getEntity(ent2)->addComponent(KComTypes::KCT_LOGIC, "lcomp");
 	eman.getEntity(ent2)->addComponent(KComTypes::KCT_LOGIC, "lcomp2");
 
-	eman.removeEntity("MyEnt");
+	eman.removeEntityByName("MyEnt");
 
-	KLogicCom *lcomp = (KLogicCom *)eman.getEntity("MyEnt2")->getComponent(KComTypes::KCT_LOGIC, "lcomp");
+	KLogicCom *lcomp = (KLogicCom *)eman.getEntityByName("MyEnt2")->getComponent(KComTypes::KCT_LOGIC, "lcomp");
 	lcomp->setScript("e:\\lt.txt");
-	KAny var(std::string("from var"));
-	
-	lcomp->setProperty("Script", var);
 
 	KAny var2;
 	var2 = lcomp->getProperty("Script");
 
-	KLogicCom *lcomp2 = (KLogicCom *)eman.getEntity("MyEnt2")->getComponent(KComTypes::KCT_LOGIC, "lcomp2");
+	KLogicCom *lcomp2 = (KLogicCom *)eman.getEntityByName("MyEnt2")->getComponent(KComTypes::KCT_LOGIC, "lcomp2");
 	lcomp2->setScript("e:\\lt2.txt");
 	
 	//eman.removeEntity("MyEnt");
@@ -109,11 +110,11 @@ int main() {
 	}
 
 	while (win.update()) {
-		if (KMouse::isAnyKeyDown() && KKeyboard::isButtonPressed(KCT_E)) {
+		if (KMouse::isAnyKeyDown() && KKeyboard::isButtonPressed(KKeyCodeTypes::KCT_U)) {
 			printf("e pressed\n");
 		}
 
-		if (KKeyboard::isButtonPressed(KCT_S)) {
+		if (KKeyboard::isButtonPressed(KKeyCodeTypes::KCT_S)) {
 			printf("S pressed\n");
 		}
 
@@ -123,7 +124,7 @@ int main() {
 		}
 
 
-		if (KKeyboard::getKeyboardState()[KCT_U] && KKeyboard::isModifierPressed(KKeyModifierTypes::KMT_LCTRL)) {
+		if (KKeyboard::getKeyboardState()[(U32)KKeyCodeTypes::KCT_U] && KKeyboard::isModifierPressed(KKeyModifierTypes::KMT_LCTRL)) {
 			printf("u + lctrl pressed\n");
 		}
 

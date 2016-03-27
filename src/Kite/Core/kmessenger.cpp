@@ -20,6 +20,9 @@ USA
 #include "Kite/core/kmessenger.h"
 #include "Kite/core/kcoreutil.h"
 #include "Kite/meta/kmetaclass.h"
+#include "Kite/meta/kmetamanager.h"
+#include "Kite/meta/kmetaclass.h"
+#include <luaintf\LuaIntf.h>
 #include <cstdlib>
 
 namespace Kite {
@@ -70,4 +73,6 @@ namespace Kite {
 
 		return recvCount;
 	}
+
+	KMETA_KMESSENGER_SOURCE();
 }

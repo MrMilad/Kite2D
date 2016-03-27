@@ -21,6 +21,7 @@ USA
 #include "Kite/meta/kmetamanager.h"
 #include "Kite/meta/kmetaclass.h"
 #include "Kite/meta/kmetatypes.h"
+#include "Kite/serialization/kserialization.h"
 #include <luaintf/LuaIntf.h>
 
 namespace Kite {

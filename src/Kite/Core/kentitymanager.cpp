@@ -20,6 +20,9 @@ USA
 
 #include "Kite\core\kentitymanager.h"
 #include <algorithm>
+#include "Kite/meta/kmetamanager.h"
+#include "Kite/meta/kmetaclass.h"
+#include <luaintf\LuaIntf.h>
 
 namespace Kite {
 	KEntityManager::KEntityManager() {
@@ -101,7 +104,7 @@ namespace Kite {
 		postMessage(msg, KMessageScopeTypes::KMS_ALL);
 	}
 
-	void KEntityManager::removeEntity(const std::string &Name) {
+	void KEntityManager::removeEntityByName(const std::string &Name) {
 		auto found = _kentmap.find(Name);
 		if (found != _kentmap.end()) {
 			removeEntity(found->second);
@@ -117,7 +120,7 @@ namespace Kite {
 		return ent;
 	}
 
-	KEntity *KEntityManager::getEntity(const std::string &Name) {
+	KEntity *KEntityManager::getEntityByName(const std::string &Name) {
 		auto found = _kentmap.find(Name);
 		if (found != _kentmap.end()) {
 			return getEntity(found->second);
@@ -141,4 +144,6 @@ namespace Kite {
 
 		return true;
 	}
+
+	KMETA_KENTITYMANAGER_SOURCE();
 }

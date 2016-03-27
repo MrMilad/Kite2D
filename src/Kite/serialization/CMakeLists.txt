@@ -12,16 +12,16 @@ set(SER_SRC
 set(SER_INC
     ${INCROOT}/kbaseserial.h
     ${INCROOT}/kbinaryserial.h
+    ${INCROOT}/kserialization.h
     PARENT_SCOPE
 )
 
 # sub header files
 set(SER_INC_SUB
-    ${INCROOT}/types/kpod.h
-    #${INCROOT}/types/kpolymorphism.h
+    ${INCROOT}/types/kstdpair.h
     ${INCROOT}/types/kstdlist.h
     ${INCROOT}/types/kstdvector.h
-    #${INCROOT}/types/kstdsmartptr.h
     ${INCROOT}/types/kstdstring.h
+    ${INCROOT}/types/kstdumap.h
     PARENT_SCOPE
 )

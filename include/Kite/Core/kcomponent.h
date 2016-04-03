@@ -42,10 +42,10 @@ namespace Kite {
 		virtual ~KComponent();
 
 		/// called when atached to a entity
-		virtual void attached(U32 EntityID) = 0;
+		virtual void attached() = 0;
 
 		/// called when deattached from an entity
-		virtual void deattached(U32 EntityID) = 0;
+		virtual void deattached() = 0;
 
 		/// will be implemented by KHParser
 		virtual bool setProperty(const std::string &Name, KAny &Value) = 0;
@@ -64,8 +64,11 @@ namespace Kite {
 		KM_PRO_GET("needUpdateRes", bool, "update state of the component resources")
 		inline bool getNeedUpdateRes() const { return _kneedupRes; }
 
-		KM_PRO_GET("ID", U32, "unique ID of the component")
-		inline U32 getID() const { return _kid; }
+		KM_PRO_GET("handle", KHandle, "component handle")
+		inline const KHandle &getHandle() const { return _khandle; }
+
+		KM_PRO_GET("ownerHandle", KHandle, "owner (entity) handle")
+			inline const KHandle &getOwnerHandle() const { return _kohandle; }
 
 		/// for simulate polymorphism in script
 		KM_FUN()
@@ -80,12 +83,14 @@ namespace Kite {
 		void setDependency(KComTypes Type, bool Value);
 		inline void setNeedUpdate(bool NeedUpdate) { _kneedup = NeedUpdate; }
 		inline void setNeedUpdateRes(bool NeedUpdate) { _kneedupRes = NeedUpdate; }
+		inline void setOwnerHandle(const KHandle &Handle) { _kohandle = Handle; }
 
 	private:
-		inline void setID(U32 Index) { _kid = Index; }
+		inline void setHandle(const KHandle &Handle) { _khandle = Handle; }
 
 		KM_VAR() std::string _kname;
-		KM_VAR() U32 _kid;
+		KM_VAR() KHandle _khandle;
+		KM_VAR() KHandle _kohandle;
 		KM_VAR() bool _kneedup;
 		KM_VAR() bool _kneedupRes;
 		KM_VAR() bool _kdependency[(U8)KComTypes::KCT_MAX_COMP_SIZE];

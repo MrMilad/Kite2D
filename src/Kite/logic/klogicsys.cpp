@@ -27,16 +27,16 @@ USA
 namespace Kite {
 	void KLogicSys::update(F32 Delta, KEntityManager &EManager, KResourceManager &RManager) {
 		if (EManager.isRegistered(KComTypes::KCT_LOGIC)) {
-			for (auto it = EManager.beginEntity(); it != EManager.endEntity(); ++it) {
-				if (it->hasComponentType(KComTypes::KCT_LOGIC) &&
-					it->getActive()) {
-
+			for (auto it = EManager.beginComponent<KLogicCom>(KComTypes::KCT_LOGIC);
+			it != EManager.endComponent<KLogicCom>(KComTypes::KCT_LOGIC); ++it) {
+				auto ehandle = it->getOwnerHandle();
+				auto entity = EManager.getEntity(ehandle);
+				if (entity->getActive()) {
 					// retrive all script components from entity
 					static std::vector<KComponent *> components;
-					it->getScriptComponents(components);
+					entity->getScriptComponents(components);
 					// iterate over all logic components and update them
 					for (auto comp = components.begin(); comp != components.end(); ++comp) {
-
 						// inite component and bind it to lua vm (only one time when current script changed with a new script)
 						if ((*comp)->getNeedUpdateRes()) {
 							cathcAndRegist((KLogicCom *)(*comp), RManager);

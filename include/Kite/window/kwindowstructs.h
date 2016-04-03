@@ -33,13 +33,13 @@ namespace Kite{
         I32 xpos, ypos;
         bool showCursor, fullscreen, resizable;
 
-        KWindowState(const std::string &Title = "",
-                     U8 OGLMajorVer = 3, U8 OGLMinorVer = 3,    // minimum version is 3.3
-                     U8 SwapInterval = 0,                       // Vsync is disabled by default
-                     I32 Width = 200, I32 Height = 200,
-                     I32 XPosition = 0, I32 YPosition = 0,
-                     bool ShowCursor = true, bool Fullscreen = false,
-                     bool Border = true, bool Resizable = false):
+		KWindowState(const std::string &Title = "Kite2D Window!",
+					 I32 Width = 200, I32 Height = 200,
+					 I32 XPosition = 0, I32 YPosition = 0,
+					 bool ShowCursor = true, bool Fullscreen = false,
+					 bool Border = true, bool Resizable = false,
+					 U8 SwapInterval = 0,								// Vsync is disabled by default
+					 U8 OGLMajorVer = 3, U8 OGLMinorVer = 3):			// minimum version is 3.3):
             title(Title),
             oglMajor(OGLMajorVer), oglMinor(OGLMinorVer),
             swapInterval(SwapInterval),
@@ -48,22 +48,6 @@ namespace Kite{
             showCursor(ShowCursor), fullscreen(Fullscreen),
             resizable(Resizable)
         {}
-
-		/*friend KBytesArray &operator>>(KBytesArray &In, KWindowState &Value) {
-			In >> Value.title >> Value.oglMajor >> Value.oglMinor;
-			In >> Value.swapInterval >> Value.width >> Value.height;
-			In >> Value.xpos >> Value.ypos >> Value.showCursor;
-			In >> Value.fullscreen >> Value.border >> Value.resizable;
-			return In;
-		}
-
-		friend KBytesArray &operator<<(KBytesArray &Out, const KWindowState &Value) {
-			Out << Value.title << Value.oglMajor << Value.oglMinor;
-			Out << Value.swapInterval << Value.width << Value.height;
-			Out << Value.xpos << Value.ypos << Value.showCursor;
-			Out << Value.fullscreen << Value.border << Value.resizable;
-			return Out;
-		}*/
     };
 
     struct KEnumDisplay{

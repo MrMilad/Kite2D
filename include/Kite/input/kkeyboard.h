@@ -23,20 +23,27 @@
 #include "Kite/core/kcoredef.h"
 #include "Kite/input/kinputtypes.h"
 #include "Kite/input/kinputstructs.h"
+#include "Kite/meta/kmetadef.h"
+#include "kkeyboard.khgen.h"
 
 struct SDL_Window;
 union SDL_Event;
+KMETA
 namespace Kite{
+	KM_CLASS(SCRIPTABLE)
     class KITE_FUNC_EXPORT KKeyboard{
+		KMETA_KKEYBOARD_BODY();
     public:
 		/// initialize keyboard module
 		static void initeKeyboard();
 
+		KM_FUN()
 		static bool isAnyKeyDown();
 
         /// returns the last state reported for the specified key
 		/// uasge: c++ and lua
-        static bool isButtonPressed(KKeyCodeTypes Button);
+		KM_FUN()
+        static bool isButtonPressed(KKCode Button);
 
 		/// returns the last state of the keyboard
 		/// usage: c++ only
@@ -45,11 +52,13 @@ namespace Kite{
 
 		/// get the current key modifier state for the keyboard
 		/// usage: c++ and lua
-		static bool isModifierPressed(KKeyModifierTypes Modifier);
+		KM_FUN()
+		static bool isModifierPressed(KKModifier Modifier);
 
 		/// get the current key modifier state for the keyboard
 		/// usage: c++ and lua
-		static KKeyModifierTypes getModifierState();
+		KM_FUN()
+		static KKModifier getModifierState();
 
 	private:
 		/// SDL dos not support mouse wheel in mouse input sections

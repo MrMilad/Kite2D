@@ -37,9 +37,9 @@ namespace Kite{
 		/// construct a transform (unit matrix)
 		KTransformCom(const std::string &Name);
 
-		void attached(U32 EntityID) override;
+		void attached() override;
 
-		void deattached(U32 EntityID) override;
+		void deattached() override;
 
         /// set position
         /// completely restore the previous position

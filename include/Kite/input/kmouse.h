@@ -23,31 +23,41 @@
 #include "Kite/core/kcoredef.h"
 #include "Kite/math/kmathstructs.h"
 #include "Kite/input/kinputtypes.h"
+#include "Kite/meta/kmetadef.h"
+#include "kmouse.khgen.h"
 
 union SDL_Event;
+KMETA
 namespace Kite{
+	KM_CLASS(SCRIPTABLE)
     class KITE_FUNC_EXPORT KMouse{
+		KMETA_KMOUSE_BODY();
     public:
 		static void initeMouse();
 
+		KM_FUN()
 		static bool isAnyKeyDown();
 
         /// get the current state of a mouse button
 		/// usage: c++ and lua
-        static bool isButtonPressed(KMouseButtonTypes Button);
+		KM_FUN()
+        static bool isButtonPressed(KMButton Button);
 
         /// retrieves the last reported cursor position,
         /// relative to the client area of the window
+		KM_FUN()
         static KVector2I32 getPosition();
 
 		/// x: the amount scrolled horizontally, positive to the right and negative to the left
 		/// y: the amount scrolled vertically, positive away from the user and negative toward the user
+		KM_FUN()
 		static KVector2I32 getWheelValue();
 
         /// sets the position of the cursor,
         /// relative to the client area of the window
         static void setWindowPosition(const KVector2I32 &Position, KWindowHandle Handle);
 
+		KM_FUN()
 		static void setGlobalPosition(const KVector2I32 &Position);
 
     private:

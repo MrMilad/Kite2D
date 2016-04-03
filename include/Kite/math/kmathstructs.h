@@ -64,7 +64,7 @@ namespace Kite{
 			return KVector2<T>(x + right.x, y + right.y);
 		}
 
-		inline KVector2<T> operator+(T right) {
+		inline KVector2<T> operator+(T right) const {
 			return KVector2<T>(x + right, y + right);
 		}
 
@@ -128,11 +128,11 @@ namespace Kite{
 			return *this;
 		}
 
-		inline bool operator==(const KVector2<T>& right) {
+		inline bool operator==(const KVector2<T>& right) const {
 			return (x == right.x) && (y == right.y);
 		}
 
-		inline bool operator!=(const KVector2<T>& right) {
+		inline bool operator!=(const KVector2<T>& right) const {
 			return (x != right.x) || (y != right.y);
 		}
 

@@ -38,9 +38,9 @@ namespace Kite{
 		setNeedUpdateRes(false);
 	}
 
-	void KTransformCom::attached(U32 EntityID) {}
+	void KTransformCom::attached() {}
 
-	void KTransformCom::deattached(U32 EntityID) {}
+	void KTransformCom::deattached() {}
 
     void KTransformCom::setPosition(const KVector2F32& Position){
         _kposition = Position;

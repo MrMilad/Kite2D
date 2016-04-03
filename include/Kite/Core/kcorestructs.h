@@ -23,9 +23,14 @@
 #include "Kite/core/kcoretypes.h"
 #include "Kite/serialization/kbaseserial.h"
 #include "Kite/serialization/types/kstdvector.h"
+#include "Kite/meta/kmetadef.h"
+#include "Kite/serialization/kserialization.h"
 #include <string>
 #include <vector>
+#include <deque>
+#include "kcorestructs.khgen.h"
 
+KMETA
 namespace Kite{
     /*struct KPowerState{
             KPowerStateTypes powerType;
@@ -116,65 +121,113 @@ namespace Kite{
         {}
     };
 
+	KM_CLASS(POD)
+	struct KHandle {
+		KMETA_KHANDLE_BODY();
+
+		KM_VAR() U16 signature;
+		KM_VAR() U32 index;
+
+		KHandle() :
+			signature(0), index(0) {} // 0 reserved for invalid handles
+
+		inline bool operator==(const KHandle& right) const {
+			return (signature == right.signature) && (index == right.index);
+		}
+
+		inline bool operator!=(const KHandle& right) const  {
+			return (signature != right.signature) || (index != right.index);
+		}
+
+	};
+
 	namespace Internal{
 		// catch friendly storage!
 		template<typename T>
 		struct CFStorage {
-			U32 add(T &Object){
-				// create an index
-				U32 ind = 0;
-				if (_kfreeIndex.empty()) {
-					_kindex.push_back(_kcontiner.size());
-					ind = _kindex.size() - 1;
-				} else {
-					ind = _kfreeIndex.back();
-					_kfreeIndex.pop_back();
-
-					_kindex[ind] = _kcontiner.size();
-				}
-
+			KHandle add(const T &Object){
 				// create component
 				_kcontiner.push_back(Object);
-				return ind;
+
+				// create extrenal handle
+				KHandle ret;
+
+				// no free handle
+				if (_kfreeIndex.empty()) {
+					// create internal handle
+					KHandle hndl;
+					hndl.index = _kcontiner.size() - 1;
+					++hndl.signature; // 0 reserved for invalid handles
+					_khandle.push_back(hndl);
+
+					ret.index = _khandle.size() - 1;
+					++ret.signature;  // 0 reserved for invalid handles
+
+				// there are some free handle
+				} else {
+					KHandle hndl;
+					hndl = _khandle[_kfreeIndex.front()];
+					hndl.index = _kcontiner.size() - 1;
+					++hndl.signature;
+
+					ret.index = _kfreeIndex.front();
+					ret.signature = hndl.signature;
+					_kfreeIndex.pop_front();
+				}
+
+				return ret;
 			}
 
-			void remove(U32 Index) {
-				if (Index >= _kindex.size()) {
-					KD_FPRINT("index is out of range. ind: %i", Index);
+			void remove(const KHandle &Handle) {
+				if (Handle.index >= _khandle.size()) {
+					KD_FPRINT("handle index is out of range. ind: %i", Handle.index);
 					return;
 				}
 
-				if (_kindex[Index] >= _kcontiner.size()) {
-					KD_FPRINT("index is out of range. ind: %i", Index);
+				if (_khandle[Handle.index].index >= _kcontiner.size()) {
+					KD_FPRINT("handle index is out of range. ind: %i", Handle.index);
+					return;
+				}
+
+				if (Handle.signature != _khandle[Handle.index].signature) {
+					KD_FPRINT("handle is not valid. ind: %i", Handle.index);
 					return;
 				}
 
 				// remove component (replace it with last component in vector)
-				U32 ind = _kindex[Index];
+				U32 ind = _khandle[Handle.index].index;
+
 				// Beware of move assignment to self
 				if (ind != _kcontiner.size() - 1) {
-					_kindex[_kcontiner.back().getID()] = ind;
+					_khandle[_kcontiner.back().getHandle().index].index = ind;
 					_kcontiner[ind] = std::move(_kcontiner.back());
-
 				}
 				_kcontiner.pop_back();
 
 				// storing free index in free list
-				_kfreeIndex.push_back(Index);
+				_kfreeIndex.push_back(Handle.index);
+
+				// free handle 
+				_khandle[Handle.index] = KHandle();
 			}
 
-			T *get(U32 Index) {
-				if (Index >= _kindex.size()) {
-					KD_FPRINT("index is out of range. ind: %i", Index);
+			T *get(const KHandle &Handle) {
+				if (Handle.index >= _khandle.size()) {
+					KD_FPRINT("handle index is out of range. ind: %i", Handle.index);
 					return nullptr;
 				}
 
-				if (_kindex[Index] >= _kcontiner.size()) {
-					KD_FPRINT("index is out of range. ind: %i", Index);
+				if (_khandle[Handle.index].index >= _kcontiner.size()) {
+					KD_FPRINT("handle index is out of range. ind: %i", Handle.index);
 					return nullptr;
 				}
 
-				return &_kcontiner[_kindex[Index]];
+				if (_khandle[Handle.index].signature != Handle.signature) {
+					KD_FPRINT("handle is not valid. ind: %i", Handle.index);
+					return nullptr;
+				}
+
+				return &_kcontiner[_khandle[Handle.index].index];
 			}
 
 			auto begin() { return _kcontiner.begin(); }
@@ -185,14 +238,14 @@ namespace Kite{
 
 			void clear() {
 				_kcontiner.clear();
-				_kindex.clear();
+				_khandle.clear();
 				_kfreeIndex.clear();
 			}
 
 		private:
 			std::vector<T> _kcontiner;
-			std::vector<U32> _kindex;
-			std::vector<U32> _kfreeIndex;
+			std::vector<KHandle> _khandle;
+			std::deque<U32> _kfreeIndex;
 		};
 
 		template<class T>
@@ -206,9 +259,9 @@ namespace Kite{
 			}*/
 
 			//virtual void serial(KBaseSerial &Serializer, KSerialStateTypes State) = 0;
-			virtual U32 add(const std::string &Name) = 0;
-			virtual void remove(U32 Index) = 0;
-			virtual T *get(U32 Index) = 0;
+			virtual KHandle add(const std::string &Name) = 0;
+			virtual void remove(const KHandle &Handle) = 0;
+			virtual T *get(const KHandle &Handle) = 0;
 			virtual void clear() = 0;
 			virtual SIZE getSize() = 0;
 			SIZE type; // type hash code 
@@ -251,16 +304,16 @@ namespace Kite{
 				}
 			}*/
 
-			U32 add(const std::string &Name) override {
+			KHandle add(const std::string &Name) override {
 				return _kstorage.add(T(Name));
 			}
 
-			void remove(U32 Index) override {
-				_kstorage.remove(Index);
+			void remove(const KHandle &Handle) override {
+				_kstorage.remove(Handle);
 			}
 
-			Y *get(U32 Index) override {
-				return (Y *)_kstorage.get(Index);
+			Y *get(const KHandle &Handle) override {
+				return (Y *)_kstorage.get(Handle);
 			}
 
 			void clear() override {

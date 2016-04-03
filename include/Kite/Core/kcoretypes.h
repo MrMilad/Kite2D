@@ -20,6 +20,8 @@
 #ifndef KCORETYPES_H
 #define KCORETYPES_H
 
+#include "Kite/core/kcoredef.h"
+
 namespace Kite{
 
 	/* Power Sourece State */

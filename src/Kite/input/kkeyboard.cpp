@@ -19,6 +19,9 @@
 */
 #include "Kite/input/kkeyboard.h"
 #include "src/Kite/window/sdlcall.h"
+#include "Kite/meta/kmetamanager.h"
+#include "Kite/meta/kmetaclass.h"
+#include <luaintf/LuaIntf.h>
 
 namespace Kite{
 	U16 KKeyboard::_kcount = 0;
@@ -36,7 +39,7 @@ namespace Kite{
 		return false;
 	}
 
-    bool KKeyboard::isButtonPressed(KKeyCodeTypes Button){
+    bool KKeyboard::isButtonPressed(KKCode Button){
 		const Uint8 *state = DSDL_CALL(SDL_GetKeyboardState(NULL));
 		if (state[(U32)Button]) {
 			return true;
@@ -49,7 +52,7 @@ namespace Kite{
 		return state;
 	}
 
-	bool KKeyboard::isModifierPressed(KKeyModifierTypes Modifier) {
+	bool KKeyboard::isModifierPressed(KKModifier Modifier) {
 		auto mod = DSDL_CALL(SDL_GetModState());
 		if (mod & (U32)Modifier) {
 			return true;
@@ -57,9 +60,9 @@ namespace Kite{
 		return false;
 	}
 
-	KKeyModifierTypes KKeyboard::getModifierState() {
+	KKModifier KKeyboard::getModifierState() {
 		auto mod = DSDL_CALL(SDL_GetModState());
-		return (KKeyModifierTypes) mod;
+		return (KKModifier) mod;
 	}
 
 	int KKeyboard::_eventWatcher(void *Data, SDL_Event *Event) {
@@ -70,5 +73,7 @@ namespace Kite{
 		}
 		return 0;
 	}
+
+	KMETA_KKEYBOARD_SOURCE();
 }
 

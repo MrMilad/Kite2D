@@ -30,11 +30,11 @@ namespace Kite {
 		_klstate(nullptr)
 		{}
 
-	void KLogicCom::attached(U32 EntityID) {
-		_kcname = "ENT" + std::to_string(EntityID);
+	void KLogicCom::attached() {
+		_kcname = "ENT" + std::to_string(getOwnerHandle().index);
 	}
 
-	void KLogicCom::deattached(U32 EntityID) {
+	void KLogicCom::deattached() {
 		removeLuaEnv();
 	}
 

@@ -28,12 +28,13 @@ namespace Kite {
 
 	void KTransformSys::update(F32 Delta, KEntityManager &EManager, KResourceManager &RManager) {
 		if (EManager.isRegistered(KComTypes::KCT_TRANSFORM)) {
-			for (auto it = EManager.beginEntity(); it != EManager.endEntity(); ++it) {
-				if (it->hasComponent(KComTypes::KCT_TRANSFORM, "Transform") &&
-					it->getActive()) {
-					KTransformCom *ptr = (KTransformCom *)it->getComponent(KComTypes::KCT_TRANSFORM, "Transform");
-					if (ptr->getNeedUpdate()) {
-						this->computeMatrix(*ptr);
+			for (auto it = EManager.beginComponent<KTransformCom>(KComTypes::KCT_TRANSFORM);
+			it != EManager.endComponent<KTransformCom>(KComTypes::KCT_TRANSFORM); ++it) {
+				auto ehandle = it->getOwnerHandle();
+				auto entity = EManager.getEntity(ehandle);
+				if (entity->getActive()) {
+					if (it->getNeedUpdate()) {
+						this->computeMatrix(*it);
 					}
 				}
 			}

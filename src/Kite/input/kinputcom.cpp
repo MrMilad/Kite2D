@@ -32,9 +32,9 @@ namespace Kite {
 	}
 
 
-	void KInputCom::attached(U32 EntityID) {}
+	void KInputCom::attached() {}
 
-	void KInputCom::deattached(U32 EntityID) {}
+	void KInputCom::deattached() {}
 
 	KMETA_KINPUTCOM_SOURCE();
 }

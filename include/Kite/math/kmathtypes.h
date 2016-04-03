@@ -21,14 +21,20 @@
 #define KMATHTYPES_H
 
 #include "Kite/core/kcoredef.h"
+#include "Kite/meta/kmetadef.h"
+#include "kmathtypes.khgen.h"
 
+KMETA
 namespace Kite{
+	KM_ENUM()
 	enum class KOrientationTypes : I8{
 		KO_COLLINEAR = 0,
 		KO_CLOCKWISE = -1,
 		KO_CCLOCKWISE = 1
 	};
+	KMETA_KORIENTATIONTYPES_BODY();
 
+	KM_ENUM()
 	enum class KInterpolationTypes : U8{
 		KIN_LINEAR = 0,
 		KIN_QUADRATICIN,
@@ -41,6 +47,7 @@ namespace Kite{
 		KIN_EXPONENTIALOUT,
 		KIN_EXPONENTIALINOUT
 	};
+	KMETA_KINTERPOLATIONTYPES_BODY();
 }
 
 

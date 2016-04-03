@@ -17,18 +17,11 @@ License along with this library; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 USA
 */
-#ifndef KBASESERIAL_H
-#define KBASESERIAL_H
-
-#include "Kite/core/kcoredef.h"
-#include "Kite/core/kcoretypes.h"
+#include "Kite/core/kcorestructs.h"
+#include "Kite/meta/kmetamanager.h"
+#include "Kite/meta/kmetaclass.h"
+#include <luaintf\LuaIntf.h>
 
 namespace Kite {
-	class KITE_FUNC_EXPORT KBaseSerial {
-	public:
-		virtual void writePOD(const void *Value, SIZE Size, bool Str) = 0;
-		virtual void readPOD(void *Value, SIZE Size, bool Str) = 0;
-	};
+	KMETA_KHANDLE_SOURCE();
 }
-
-#endif // KBASESERIAL_H

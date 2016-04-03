@@ -33,9 +33,9 @@ namespace Kite {
 	public:
 		KInputCom(const std::string &Name);
 
-		void attached(U32 EntityID) override;
+		void attached() override;
 
-		void deattached(U32 EntityID) override;
+		void deattached() override;
 
 		KM_PRO_SET("Keyboard")
 		inline void setEnableKeyboard(bool Enable) { _kkeyboard = Enable; }

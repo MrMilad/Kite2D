@@ -39,10 +39,10 @@ namespace Kite {
 	public:
 		KLogicCom(const std::string &Name);
 
-		void attached(U32 EntityID) override;
+		void attached() override;
 
 		/// remove this script from entity
-		void deattached(U32 EntityID);
+		void deattached() override;
 
 		KM_PRO_SET("Script")
 		void setScript(const std::string &ResName);

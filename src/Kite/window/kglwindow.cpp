@@ -20,6 +20,9 @@
 #include "Kite/window/kglwindow.h"
 #include "src/Kite/window/sdlcall.h"
 #include "sdl/SDL_events.h"
+#include "Kite/meta/kmetamanager.h"
+#include "Kite/meta/kmetaclass.h"
+#include <luaintf\LuaIntf.h>
 
 namespace Kite{
 
@@ -239,4 +242,6 @@ namespace Kite{
     void KGLWindow::registerCallback(KCallWindowEvent Callback){
 		_kcallb = Callback;
     }
+
+	KMETA_KGLWINDOW_SOURCE();
 }

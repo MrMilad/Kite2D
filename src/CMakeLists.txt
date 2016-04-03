@@ -137,7 +137,7 @@ endif()
 # build test project
 add_executable(Test ${PROJECT_SOURCE_DIR}/src/Test/main.cpp)
 
-add_dependencies(Test Kite2D)
+#add_dependencies(Test Kite2D)
 
 # add Kite2D lib
 if (WINDOWS)

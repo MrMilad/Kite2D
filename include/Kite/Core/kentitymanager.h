@@ -66,10 +66,10 @@ namespace Kite {
 
 		/// create entity in the root branch (parrent = 0)
 		KM_FUN()
-		U32 createEntity(const std::string &Name = "");
+		KHandle createEntity(const std::string &Name = "");
 
 		KM_FUN()
-		void removeEntity(U32 ID);
+		void removeEntity(const KHandle &Handle);
 
 		KM_FUN()
 		void removeEntityByName(const std::string &Name);
@@ -78,10 +78,13 @@ namespace Kite {
 		SIZE inline getEntityCount() { return _kestorage.getSize(); }
 
 		KM_FUN()
-		KEntity *getEntity(U32 ID);
+		KEntity *getEntity(const KHandle &Handle);
 
 		KM_FUN()
 		KEntity *getEntityByName(const std::string &Name);
+
+		KM_PRO_GET("root", KHandle, "root entity")
+		inline const KHandle &getRoot() const { return _kroot; }
 
 		inline auto beginEntity() { return _kestorage.begin(); }
 
@@ -102,8 +105,9 @@ namespace Kite {
 		}
 
 	private:
+		KHandle _kroot;
 		Internal::CFStorage<KEntity> _kestorage;
-		std::unordered_map<std::string, U32> _kentmap;
+		std::unordered_map<std::string, KHandle> _kentmap;
 		Internal::BaseCHolder<KComponent> *_kcstorage[(SIZE)KComTypes::KCT_MAX_COMP_SIZE];
 	};
 }

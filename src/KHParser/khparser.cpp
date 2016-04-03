@@ -1514,7 +1514,7 @@ void createTemplMacro(const MClass &Cls, std::string &Output) {
 	Output.append("public:\\\n");
 
 	// serialize
-	Output.append("friend KBaseSerial &operator<<(KBaseSerial &Out, " + Cls.name + "<" + Cls.templType + "> &Value) {\\\n");
+	Output.append("friend KBaseSerial &operator<<(KBaseSerial &Out, const " + Cls.name + "<" + Cls.templType + "> &Value) {\\\n");
 	for (size_t i = 0; i < Cls.vars.size(); ++i) {
 		Output.append("Out << Value." + Cls.vars[i].name + ";\\\n");
 	}
@@ -1787,12 +1787,13 @@ void createMacros(const std::vector<MClass> &Cls, const std::vector<MEnum> &Enms
 		// serializable
 		if (isPOD || isComponent || isEntity) {
 			if (!isAbstract) {
-				Output.append("friend KBaseSerial &operator<<(KBaseSerial &Out, " + Cls[i].name + " &Value) {\\\n"
-							  "Value.serial(Out, KSerialStateTypes::KST_SERIALIZE); return Out;}\\\n"
+				Output.append("friend KBaseSerial &operator<<(KBaseSerial &Out, const " + Cls[i].name + " &Value) {\\\n"
+							  "Value.serial(Out); return Out;}\\\n"
 							  "friend KBaseSerial &operator>>(KBaseSerial &In, " + Cls[i].name + " &Value) {\\\n"
-							  "Value.serial(In, KSerialStateTypes::KST_DESERIALIZE); return In;}\\\n");
+							  "Value.deserial(In); return In;}\\\n");
 			}
-			Output.append(exstate + "virtual void serial(KBaseSerial &Serializer, KSerialStateTypes State);\n");
+			Output.append(exstate + "void serial(KBaseSerial &Serializer) const;\\\n");
+			Output.append(exstate + "void deserial(KBaseSerial &Serializer);\n");
 		}
 
 		// defention
@@ -1943,27 +1944,33 @@ void createMacros(const std::vector<MClass> &Cls, const std::vector<MEnum> &Enms
 
 		// serial definition
 		if (isPOD || isComponent || isEntity) {
-			Output.append("void " + Cls[i].name + "::serial(KBaseSerial &Serializer, KSerialStateTypes State){\\\n");
+			// serialize
+			Output.append("void " + Cls[i].name + "::serial(KBaseSerial &Serializer) const {\\\n");
 
 			// KComponent (base)
 			if (isComponent && !isAbstract) {
-				Output.append("KComponent *kc = (KComponent *)(this); kc->serial(Serializer, State);\\\n");
+				Output.append("KComponent *kc = (KComponent *)(this); kc->serial(Serializer);\\\n");
 			}
 
-			// serialize
-			Output.append("if (State == KSerialStateTypes::KST_SERIALIZE) {\\\n");
 			for (size_t vcont = 0; vcont < Cls[i].vars.size(); ++vcont) {
 				Output.append("Serializer << " + Cls[i].vars[vcont].name + ";\\\n");
 			}
+			Output.append("}\\\n");
 
 			// deserialize
-			Output.append("} else if (State == KSerialStateTypes::KST_DESERIALIZE) {\\\n");
+			Output.append("void " + Cls[i].name + "::deserial(KBaseSerial &Serializer) {\\\n");
+
+			// KComponent (base)
+			if (isComponent && !isAbstract) {
+				Output.append("KComponent *kc = (KComponent *)(this); kc->deserial(Serializer);\\\n");
+			}
+
 			for (size_t vcont = 0; vcont < Cls[i].vars.size(); ++vcont) {
 				Output.append("Serializer >> " + Cls[i].vars[vcont].name + ";\\\n");
 			}
 
 			// end of serial()
-			Output.append("}}\n");
+			Output.append("}\n");
 		} 
 	}
 }

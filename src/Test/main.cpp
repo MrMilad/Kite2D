@@ -80,7 +80,7 @@ int main() {
 	eman.getEntity(ent1)->addChild(ent3);
 	eman.getEntity(ent1)->addChild(ent4);
 
-	eman.removeEntity(ent1);
+	//eman.removeEntity(ent1);
 
 	eman.getEntity(ent2)->addChild(ent4);
 	eman.getEntity(ent2)->addChild(ent5);
@@ -93,13 +93,13 @@ int main() {
 
 	eman.removeEntityByName("MyEnt");
 
-	KLogicCom *lcomp = (KLogicCom *)eman.getEntityByName("MyEnt2")->getComponent(KComTypes::KCT_LOGIC, "lcomp");
+	KLogicCom *lcomp = (KLogicCom *)eman.getEntityByName("MyEnt2")->getComponentByName(KComTypes::KCT_LOGIC, "lcomp");
 	lcomp->setScript("e:\\lt.txt");
 
 	KAny var2;
 	var2 = lcomp->getProperty("Script");
 
-	KLogicCom *lcomp2 = (KLogicCom *)eman.getEntityByName("MyEnt2")->getComponent(KComTypes::KCT_LOGIC, "lcomp2");
+	KLogicCom *lcomp2 = (KLogicCom *)eman.getEntityByName("MyEnt2")->getComponentByName(KComTypes::KCT_LOGIC, "lcomp2");
 	lcomp2->setScript("e:\\lt2.txt");
 	
 	//eman.removeEntity("MyEnt");
@@ -110,21 +110,21 @@ int main() {
 	}
 
 	while (win.update()) {
-		if (KMouse::isAnyKeyDown() && KKeyboard::isButtonPressed(KKeyCodeTypes::KCT_U)) {
+		if (KMouse::isAnyKeyDown() && KKeyboard::isButtonPressed(KKCode::U)) {
 			printf("e pressed\n");
 		}
 
-		if (KKeyboard::isButtonPressed(KKeyCodeTypes::KCT_S)) {
+		if (KKeyboard::isButtonPressed(KKCode::S)) {
 			printf("S pressed\n");
 		}
 
-		if (KMouse::isButtonPressed(KMouseButtonTypes::KMB_MIDDLE)) {
+		if (KMouse::isButtonPressed(KMButton::MIDDLE)) {
 			KVector2I32 pos = KMouse::getWheelValue();
 			printf("lmouse pressed xpos: %i  y pos: %i\n", pos.x, pos.y);
 		}
 
 
-		if (KKeyboard::getKeyboardState()[(U32)KKeyCodeTypes::KCT_U] && KKeyboard::isModifierPressed(KKeyModifierTypes::KMT_LCTRL)) {
+		if (KKeyboard::getKeyboardState()[(U32)KKCode::U] && KKeyboard::isModifierPressed(KKModifier::LCTRL)) {
 			printf("u + lctrl pressed\n");
 		}
 

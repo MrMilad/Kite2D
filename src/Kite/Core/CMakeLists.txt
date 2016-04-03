@@ -3,6 +3,7 @@ set(SRCROOT ${PROJECT_SOURCE_DIR}/src/Kite/core)
 
 # all source files
 set(COR_SRC
+    ${SRCROOT}/kcorestructs.cpp
     ${SRCROOT}/kfistream.cpp
     ${SRCROOT}/klistener.cpp
     ${SRCROOT}/ksystem.cpp

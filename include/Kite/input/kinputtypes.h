@@ -28,57 +28,57 @@ KMETA
 namespace Kite{
 
 	KM_ENUM()
-    enum class KKeyCodeTypes : U32{
-		KCT_UNKNOWN = 0,
-		KCT_A = 4,
-		KCT_B = 5,
-		KCT_C = 6,
-		KCT_D = 7,
-		KCT_E = 8,
-		KCT_F = 9,
-		KCT_G = 10,
-		KCT_H = 11,
-		KCT_I = 12,
-		KCT_J = 13,
-		KCT_K = 14,
-		KCT_L = 15,
-		KCT_M = 16,
-		KCT_N = 17,
-		KCT_O = 18,
-		KCT_P = 19,
-		KCT_Q = 20,
-		KCT_R = 21,
-		KCT_S = 22,
-		KCT_T = 23,
-		KCT_U = 24,
-		KCT_V = 25,
-		KCT_W = 26,
-		KCT_X = 27,
-		KCT_Y = 28,
-		KCT_Z = 29,
+    enum class KKCode : U32{
+		UNKNOWN = 0,
+		A = 4,
+		B = 5,
+		C = 6,
+		D = 7,
+		E = 8,
+		F = 9,
+		G = 10,
+		H = 11,
+		I = 12,
+		J = 13,
+		K = 14,
+		L = 15,
+		M = 16,
+		N = 17,
+		O = 18,
+		P = 19,
+		Q = 20,
+		R = 21,
+		S = 22,
+		T = 23,
+		U = 24,
+		V = 25,
+		W = 26,
+		X = 27,
+		Y = 28,
+		Z = 29,
 
-		KCT_1 = 30,
-		KCT_2 = 31,
-		KCT_3 = 32,
-		KCT_4 = 33,
-		KCT_5 = 34,
-		KCT_6 = 35,
-		KCT_7 = 36,
-		KCT_8 = 37,
-		KCT_9 = 38,
-		KCT_0 = 39,
+		NUM_1 = 30,
+		NUM_2 = 31,
+		NUM_3 = 32,
+		NUM_4 = 33,
+		NUM_5 = 34,
+		NUM_6 = 35,
+		NUM_7 = 36,
+		NUM_8 = 37,
+		NUM_9 = 38,
+		NUM_0 = 39,
 
-		KCT_RETURN = 40,
-		KCT_ESCAPE = 41,
-		KCT_BACKSPACE = 42,
-		KCT_TAB = 43,
-		KCT_SPACE = 44,
+		RETURN = 40,
+		ESCAPE = 41,
+		BACKSPACE = 42,
+		TAB = 43,
+		SPACE = 44,
 
-		KCT_MINUS = 45,
-		KCT_EQUALS = 46,
-		KCT_LEFTBRACKET = 47,
-		KCT_RIGHTBRACKET = 48,
-		KCT_BACKSLASH = 49, /**< Located at the lower left of the return
+		MINUS = 45,
+		EQUALS = 46,
+		LEFTBRACKET = 47,
+		RIGHTBRACKET = 48,
+		BACKSLASH = 49, /**< Located at the lower left of the return
 									 *   key on ISO keyboards and at the right end
 									 *   of the QWERTY row on ANSI keyboards.
 									 *   Produces REVERSE SOLIDUS (backslash) and
@@ -92,21 +92,21 @@ namespace Kite{
 									 *   layout, and ASTERISK and MICRO SIGN in a
 									 *   French Windows layout.
 									 */
-		KCT_NONUSHASH = 50, /**< ISO USB keyboards actually use this code
+		NONUSHASH = 50, /**< ISO USB keyboards actually use this code
 									 *   instead of 49 for the same key, but all
 									 *   OSes I've seen treat the two codes
 									 *   identically. So, as an implementor, unless
 									 *   your keyboard generates both of those
 									 *   codes and your OS treats them differently,
-									 *   you should generate KCT_BACKSLASH
+									 *   you should generate BACKSLASH
 									 *   instead of this code. As a user, you
 									 *   should not rely on this code because SDL
 									 *   will never generate it with most (all?)
 									 *   keyboards.
 									 */
-		KCT_SEMICOLON = 51,
-		KCT_APOSTROPHE = 52,
-		KCT_GRAVE = 53, /**< Located in the top left corner (on both ANSI
+		SEMICOLON = 51,
+		APOSTROPHE = 52,
+		GRAVE = 53, /**< Located in the top left corner (on both ANSI
 								 *   and ISO keyboards). Produces GRAVE ACCENT and
 								 *   TILDE in a US Windows layout and in US and UK
 								 *   Mac layouts on ANSI keyboards, GRAVE ACCENT
@@ -123,60 +123,60 @@ namespace Kite{
 								 *   SIGN in a Swiss German, German, or French Mac
 								 *   layout on ANSI keyboards.
 								 */
-		KCT_COMMA = 54,
-		KCT_PERIOD = 55,
-		KCT_SLASH = 56,
+		COMMA = 54,
+		PERIOD = 55,
+		SLASH = 56,
 
-		KCT_CAPSLOCK = 57,
+		CAPSLOCK = 57,
 
-		KCT_F1 = 58,
-		KCT_F2 = 59,
-		KCT_F3 = 60,
-		KCT_F4 = 61,
-		KCT_F5 = 62,
-		KCT_F6 = 63,
-		KCT_F7 = 64,
-		KCT_F8 = 65,
-		KCT_F9 = 66,
-		KCT_F10 = 67,
-		KCT_F11 = 68,
-		KCT_F12 = 69,
+		F1 = 58,
+		F2 = 59,
+		F3 = 60,
+		F4 = 61,
+		F5 = 62,
+		F6 = 63,
+		F7 = 64,
+		F8 = 65,
+		F9 = 66,
+		F10 = 67,
+		F11 = 68,
+		F12 = 69,
 
-		KCT_PRINTSCREEN = 70,
-		KCT_SCROLLLOCK = 71,
-		KCT_PAUSE = 72,
-		KCT_INSERT = 73, /**< insert on PC, help on some Mac keyboards (but
+		PRINTSCREEN = 70,
+		SCROLLLOCK = 71,
+		PAUSE = 72,
+		INSERT = 73, /**< insert on PC, help on some Mac keyboards (but
 								  does send code 73, not 117) */
-		KCT_HOME = 74,
-		KCT_PAGEUP = 75,
-		KCT_DELETE = 76,
-		KCT_END = 77,
-		KCT_PAGEDOWN = 78,
-		KCT_RIGHT = 79,
-		KCT_LEFT = 80,
-		KCT_DOWN = 81,
-		KCT_UP = 82,
+		HOME = 74,
+		PAGEUP = 75,
+		DELETE = 76,
+		END = 77,
+		PAGEDOWN = 78,
+		RIGHT = 79,
+		LEFT = 80,
+		DOWN = 81,
+		UP = 82,
 
-		KCT_NUMLOCKCLEAR = 83, /**< num lock on PC, clear on Mac keyboards
+		NUMLOCKCLEAR = 83, /**< num lock on PC, clear on Mac keyboards
 										*/
-		KCT_KP_DIVIDE = 84,
-		KCT_KP_MULTIPLY = 85,
-		KCT_KP_MINUS = 86,
-		KCT_KP_PLUS = 87,
-		KCT_KP_ENTER = 88,
-		KCT_KP_1 = 89,
-		KCT_KP_2 = 90,
-		KCT_KP_3 = 91,
-		KCT_KP_4 = 92,
-		KCT_KP_5 = 93,
-		KCT_KP_6 = 94,
-		KCT_KP_7 = 95,
-		KCT_KP_8 = 96,
-		KCT_KP_9 = 97,
-		KCT_KP_0 = 98,
-		KCT_KP_PERIOD = 99,
+		KP_DIVIDE = 84,
+		KP_MULTIPLY = 85,
+		KP_MINUS = 86,
+		KP_PLUS = 87,
+		KP_ENTER = 88,
+		KP_1 = 89,
+		KP_2 = 90,
+		KP_3 = 91,
+		KP_4 = 92,
+		KP_5 = 93,
+		KP_6 = 94,
+		KP_7 = 95,
+		KP_8 = 96,
+		KP_9 = 97,
+		KP_0 = 98,
+		KP_PERIOD = 99,
 
-		KCT_NONUSBACKSLASH = 100, /**< This is the additional key that ISO
+		NONUSBACKSLASH = 100, /**< This is the additional key that ISO
 										   *   keyboards have over ANSI ones,
 										   *   located between left shift and Y.
 										   *   Produces GRAVE ACCENT and TILDE in a
@@ -186,134 +186,134 @@ namespace Kite{
 										   *   LESS-THAN SIGN and GREATER-THAN SIGN
 										   *   in a Swiss German, German, or French
 										   *   layout. */
-		KCT_APPLICATION = 101, /**< windows contextual menu, compose */
-		KCT_POWER = 102, /**< The USB document says this is a status flag,
+		APPLICATION = 101, /**< windows contextual menu, compose */
+		POWER = 102, /**< The USB document says this is a status flag,
 								  *   not a physical key - but some Mac keyboards
 								  *   do have a power key. */
-		KCT_KP_EQUALS = 103,
-		KCT_F13 = 104,
-		KCT_F14 = 105,
-		KCT_F15 = 106,
-		KCT_F16 = 107,
-		KCT_F17 = 108,
-		KCT_F18 = 109,
-		KCT_F19 = 110,
-		KCT_F20 = 111,
-		KCT_F21 = 112,
-		KCT_F22 = 113,
-		KCT_F23 = 114,
-		KCT_F24 = 115,
-		KCT_EXECUTE = 116,
-		KCT_HELP = 117,
-		KCT_MENU = 118,
-		KCT_SELECT = 119,
-		KCT_STOP = 120,
-		KCT_AGAIN = 121,   /**< redo */
-		KCT_UNDO = 122,
-		KCT_CUT = 123,
-		KCT_COPY = 124,
-		KCT_PASTE = 125,
-		KCT_FIND = 126,
-		KCT_MUTE = 127,
-		KCT_VOLUMEUP = 128,
-		KCT_VOLUMEDOWN = 129,
+		KP_EQUALS = 103,
+		F13 = 104,
+		F14 = 105,
+		F15 = 106,
+		F16 = 107,
+		F17 = 108,
+		F18 = 109,
+		F19 = 110,
+		F20 = 111,
+		F21 = 112,
+		F22 = 113,
+		F23 = 114,
+		F24 = 115,
+		EXECUTE = 116,
+		HELP = 117,
+		MENU = 118,
+		SELECT = 119,
+		STOP = 120,
+		AGAIN = 121,   /**< redo */
+		UNDO = 122,
+		CUT = 123,
+		COPY = 124,
+		PASTE = 125,
+		FIND = 126,
+		MUTE = 127,
+		VOLUMEUP = 128,
+		VOLUMEDOWN = 129,
 		/* not sure whether there's a reason to enable these */
-		/*     KCT_LOCKINGCAPSLOCK = 130,  */
-		/*     KCT_LOCKINGNUMLOCK = 131, */
-		/*     KCT_LOCKINGSCROLLLOCK = 132, */
-		KCT_KP_COMMA = 133,
-		KCT_KP_EQUALSAS400 = 134,
+		/*     LOCKINGCAPSLOCK = 130,  */
+		/*     LOCKINGNUMLOCK = 131, */
+		/*     LOCKINGSCROLLLOCK = 132, */
+		KP_COMMA = 133,
+		KP_EQUALSAS400 = 134,
 
-		KCT_INTERNATIONAL1 = 135, /**< used on Asian keyboards, see
+		INTERNATIONAL1 = 135, /**< used on Asian keyboards, see
 										   footnotes in USB doc */
-		KCT_INTERNATIONAL2 = 136,
-		KCT_INTERNATIONAL3 = 137, /**< Yen */
-		KCT_INTERNATIONAL4 = 138,
-		KCT_INTERNATIONAL5 = 139,
-		KCT_INTERNATIONAL6 = 140,
-		KCT_INTERNATIONAL7 = 141,
-		KCT_INTERNATIONAL8 = 142,
-		KCT_INTERNATIONAL9 = 143,
-		KCT_LANG1 = 144, /**< Hangul/English toggle */
-		KCT_LANG2 = 145, /**< Hanja conversion */
-		KCT_LANG3 = 146, /**< Katakana */
-		KCT_LANG4 = 147, /**< Hiragana */
-		KCT_LANG5 = 148, /**< Zenkaku/Hankaku */
-		KCT_LANG6 = 149, /**< reserved */
-		KCT_LANG7 = 150, /**< reserved */
-		KCT_LANG8 = 151, /**< reserved */
-		KCT_LANG9 = 152, /**< reserved */
+		INTERNATIONAL2 = 136,
+		INTERNATIONAL3 = 137, /**< Yen */
+		INTERNATIONAL4 = 138,
+		INTERNATIONAL5 = 139,
+		INTERNATIONAL6 = 140,
+		INTERNATIONAL7 = 141,
+		INTERNATIONAL8 = 142,
+		INTERNATIONAL9 = 143,
+		LANG1 = 144, /**< Hangul/English toggle */
+		LANG2 = 145, /**< Hanja conversion */
+		LANG3 = 146, /**< Katakana */
+		LANG4 = 147, /**< Hiragana */
+		LANG5 = 148, /**< Zenkaku/Hankaku */
+		LANG6 = 149, /**< reserved */
+		LANG7 = 150, /**< reserved */
+		LANG8 = 151, /**< reserved */
+		LANG9 = 152, /**< reserved */
 
-		KCT_ALTERASE = 153, /**< Erase-Eaze */
-		KCT_SYSREQ = 154,
-		KCT_CANCEL = 155,
-		KCT_CLEAR = 156,
-		KCT_PRIOR = 157,
-		KCT_RETURN2 = 158,
-		KCT_SEPARATOR = 159,
-		KCT_OUT = 160,
-		KCT_OPER = 161,
-		KCT_CLEARAGAIN = 162,
-		KCT_CRSEL = 163,
-		KCT_EXSEL = 164,
+		ALTERASE = 153, /**< Erase-Eaze */
+		SYSREQ = 154,
+		CANCEL = 155,
+		CLEAR = 156,
+		PRIOR = 157,
+		RETURN2 = 158,
+		SEPARATOR = 159,
+		OUT = 160,
+		OPER = 161,
+		CLEARAGAIN = 162,
+		CRSEL = 163,
+		EXSEL = 164,
 
-		KCT_KP_00 = 176,
-		KCT_KP_000 = 177,
-		KCT_THOUSANDSSEPARATOR = 178,
-		KCT_DECIMALSEPARATOR = 179,
-		KCT_CURRENCYUNIT = 180,
-		KCT_CURRENCYSUBUNIT = 181,
-		KCT_KP_LEFTPAREN = 182,
-		KCT_KP_RIGHTPAREN = 183,
-		KCT_KP_LEFTBRACE = 184,
-		KCT_KP_RIGHTBRACE = 185,
-		KCT_KP_TAB = 186,
-		KCT_KP_BACKSPACE = 187,
-		KCT_KP_A = 188,
-		KCT_KP_B = 189,
-		KCT_KP_C = 190,
-		KCT_KP_D = 191,
-		KCT_KP_E = 192,
-		KCT_KP_F = 193,
-		KCT_KP_XOR = 194,
-		KCT_KP_POWER = 195,
-		KCT_KP_PERCENT = 196,
-		KCT_KP_LESS = 197,
-		KCT_KP_GREATER = 198,
-		KCT_KP_AMPERSAND = 199,
-		KCT_KP_DBLAMPERSAND = 200,
-		KCT_KP_VERTICALBAR = 201,
-		KCT_KP_DBLVERTICALBAR = 202,
-		KCT_KP_COLON = 203,
-		KCT_KP_HASH = 204,
-		KCT_KP_SPACE = 205,
-		KCT_KP_AT = 206,
-		KCT_KP_EXCLAM = 207,
-		KCT_KP_MEMSTORE = 208,
-		KCT_KP_MEMRECALL = 209,
-		KCT_KP_MEMCLEAR = 210,
-		KCT_KP_MEMADD = 211,
-		KCT_KP_MEMSUBTRACT = 212,
-		KCT_KP_MEMMULTIPLY = 213,
-		KCT_KP_MEMDIVIDE = 214,
-		KCT_KP_PLUSMINUS = 215,
-		KCT_KP_CLEAR = 216,
-		KCT_KP_CLEARENTRY = 217,
-		KCT_KP_BINARY = 218,
-		KCT_KP_OCTAL = 219,
-		KCT_KP_DECIMAL = 220,
-		KCT_KP_HEXADECIMAL = 221,
+		KP_00 = 176,
+		KP_000 = 177,
+		THOUSANDSSEPARATOR = 178,
+		DECIMALSEPARATOR = 179,
+		CURRENCYUNIT = 180,
+		CURRENCYSUBUNIT = 181,
+		KP_LEFTPAREN = 182,
+		KP_RIGHTPAREN = 183,
+		KP_LEFTBRACE = 184,
+		KP_RIGHTBRACE = 185,
+		KP_TAB = 186,
+		KP_BACKSPACE = 187,
+		KP_A = 188,
+		KP_B = 189,
+		KP_C = 190,
+		KP_D = 191,
+		KP_E = 192,
+		KP_F = 193,
+		KP_XOR = 194,
+		KP_POWER = 195,
+		KP_PERCENT = 196,
+		KP_LESS = 197,
+		KP_GREATER = 198,
+		KP_AMPERSAND = 199,
+		KP_DBLAMPERSAND = 200,
+		KP_VERTICALBAR = 201,
+		KP_DBLVERTICALBAR = 202,
+		KP_COLON = 203,
+		KP_HASH = 204,
+		KP_SPACE = 205,
+		KP_AT = 206,
+		KP_EXCLAM = 207,
+		KP_MEMSTORE = 208,
+		KP_MEMRECALL = 209,
+		KP_MEMCLEAR = 210,
+		KP_MEMADD = 211,
+		KP_MEMSUBTRACT = 212,
+		KP_MEMMULTIPLY = 213,
+		KP_MEMDIVIDE = 214,
+		KP_PLUSMINUS = 215,
+		KP_CLEAR = 216,
+		KP_CLEARENTRY = 217,
+		KP_BINARY = 218,
+		KP_OCTAL = 219,
+		KP_DECIMAL = 220,
+		KP_HEXADECIMAL = 221,
 
-		KCT_LCTRL = 224,
-		KCT_LSHIFT = 225,
-		KCT_LALT = 226, /**< alt, option */
-		KCT_LGUI = 227, /**< windows, command (apple), meta */
-		KCT_RCTRL = 228,
-		KCT_RSHIFT = 229,
-		KCT_RALT = 230, /**< alt gr, option */
-		KCT_RGUI = 231, /**< windows, command (apple), meta */
+		LCTRL = 224,
+		LSHIFT = 225,
+		LALT = 226, /**< alt, option */
+		LGUI = 227, /**< windows, command (apple), meta */
+		RCTRL = 228,
+		RSHIFT = 229,
+		RALT = 230, /**< alt gr, option */
+		RGUI = 231, /**< windows, command (apple), meta */
 
-		KCT_MODE = 257,    /**< I'm not sure if this is really not covered
+		MODE = 257,    /**< I'm not sure if this is really not covered
 									*   by any of the above, but since there's a
 									*   special KMOD_MODE for it I'm adding it here
 									*/
@@ -327,23 +327,23 @@ namespace Kite{
 											*/
 											/* @{ */
 
-		KCT_AUDIONEXT = 258,
-		KCT_AUDIOPREV = 259,
-		KCT_AUDIOSTOP = 260,
-		KCT_AUDIOPLAY = 261,
-		KCT_AUDIOMUTE = 262,
-		KCT_MEDIASELECT = 263,
-		KCT_WWW = 264,
-		KCT_MAIL = 265,
-		KCT_CALCULATOR = 266,
-		KCT_COMPUTER = 267,
-		KCT_AC_SEARCH = 268,
-		KCT_AC_HOME = 269,
-		KCT_AC_BACK = 270,
-		KCT_AC_FORWARD = 271,
-		KCT_AC_STOP = 272,
-		KCT_AC_REFRESH = 273,
-		KCT_AC_BOOKMARKS = 274,
+		AUDIONEXT = 258,
+		AUDIOPREV = 259,
+		AUDIOSTOP = 260,
+		AUDIOPLAY = 261,
+		AUDIOMUTE = 262,
+		MEDIASELECT = 263,
+		WWW = 264,
+		MAIL = 265,
+		CALCULATOR = 266,
+		COMPUTER = 267,
+		AC_SEARCH = 268,
+		AC_HOME = 269,
+		AC_BACK = 270,
+		AC_FORWARD = 271,
+		AC_STOP = 272,
+		AC_REFRESH = 273,
+		AC_BOOKMARKS = 274,
 
 		/* @} *//* Usage page 0x0C */
 
@@ -354,45 +354,45 @@ namespace Kite{
 				*/
 				/* @{ */
 
-		KCT_BRIGHTNESSDOWN = 275,
-		KCT_BRIGHTNESSUP = 276,
-		KCT_DISPLAYSWITCH = 277, /**< display mirroring/dual display
+		BRIGHTNESSDOWN = 275,
+		BRIGHTNESSUP = 276,
+		DISPLAYSWITCH = 277, /**< display mirroring/dual display
 										  switch, video mode switch */
-		KCT_KBDILLUMTOGGLE = 278,
-		KCT_KBDILLUMDOWN = 279,
-		KCT_KBDILLUMUP = 280,
-		KCT_EJECT = 281,
-		KCT_SLEEP = 282,
+		KBDILLUMTOGGLE = 278,
+		KBDILLUMDOWN = 279,
+		KBDILLUMUP = 280,
+		EJECT = 281,
+		SLEEP = 282,
 
-		KCT_APP1 = 283,
-		KCT_APP2 = 284,
+		APP1 = 283,
+		APP2 = 284,
 
 		/* @} *//* Walther keys */
 
 				/* Add any other keys here. */
 
-		KCT_MAX_SIZE = 512 /**< not a key, just marks the number of scancodes
+		MAX_SIZE = 512 /**< not a key, just marks the number of scancodes
 								for array bounds */
     };
-	KMETA_KKEYCODETYPES_BODY();
+	KMETA_KKCODE_BODY();
 
 	KM_ENUM()
-	enum class KKeyModifierTypes : U32 {
-		KMT_NONE = 0x0000,
-		KMT_LSHIFT = 0x0001,
-		KMT_RSHIFT = 0x0002,
-		KMT_LCTRL = 0x0040,
-		KMT_RCTRL = 0x0080,
-		KMT_LALT = 0x0100,
-		KMT_RALT = 0x0200,
-		KMT_LGUI = 0x0400,
-		KMT_RGUI = 0x0800,
-		KMT_NUM = 0x1000,
-		KMT_CAPS = 0x2000,
-		KMT_MODE = 0x4000,
-		KMT_RESERVED = 0x8000
+	enum class KKModifier : U32 {
+		NONE = 0x0000,
+		LSHIFT = 0x0001,
+		RSHIFT = 0x0002,
+		LCTRL = 0x0040,
+		RCTRL = 0x0080,
+		LALT = 0x0100,
+		RALT = 0x0200,
+		LGUI = 0x0400,
+		RGUI = 0x0800,
+		NUM = 0x1000,
+		CAPS = 0x2000,
+		MODE = 0x4000,
+		RESERVED = 0x8000
 	};
-	KMETA_KKEYMODIFIERTYPES_BODY();
+	KMETA_KKMODIFIER_BODY();
 
     /*enum class KButtonStateTypes : U8{
         KBS_RELEASE = 0,
@@ -400,20 +400,24 @@ namespace Kite{
         KBS_REPEAT
     };*/
 
-	enum KMouseButtonTypes {
-		KMB_LEFT = 0,
-		KMB_RIGHT,
-		KMB_MIDDLE,
-		KMB_X1,
-		KMB_X2
+	KM_ENUM()
+	enum class KMButton {
+		LEFT = 0,
+		RIGHT,
+		MIDDLE,
+		X1,
+		X2
 	};
+	KMETA_KMBUTTON_BODY();
 
-    enum KJoystcikIDTypes{
+	KM_ENUM()
+    enum class KJoystcikIDTypes{
         KJI_JOYSTICK1 = 0,
         KJI_JOYSTICK2 = 1,
         KJI_JOYSTICK3 = 2,
         KJI_JOYSTICK4 = 3
     };
+	KMETA_KJOYSTCIKIDTYPES_BODY();
 
     /// mouse callbacks
     typedef void(*KCallMouseButton )(KWindowHandle WinHandle, I32 Button, I32 State, I32 ModifierKeys);

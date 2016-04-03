@@ -28,18 +28,19 @@ USA
 namespace Kite {
 	void KInputSys::update(F32 Delta, KEntityManager &EManager, KResourceManager &RManager) {
 		if (EManager.isRegistered(KComTypes::KCT_INPUT)) {
-			for (auto it = EManager.beginEntity(); it != EManager.endEntity(); ++it) {
-				if (it->hasComponent(KComTypes::KCT_INPUT, "Input") &&
-					it->getActive()) {
-					KInputCom *ptr = (KInputCom *)it->getComponent(KComTypes::KCT_INPUT, "Input");
-					if (ptr->getNeedUpdate()) {
-						if (ptr->getEnableKeyboard() && KKeyboard::isAnyKeyDown()) {
+			for (auto it = EManager.beginComponent<KInputCom>(KComTypes::KCT_INPUT);
+			it != EManager.endComponent<KInputCom>(KComTypes::KCT_INPUT); ++it) {
+				auto EHandle = it->getOwnerHandle();
+				auto entity = EManager.getEntity(EHandle);
+				if (entity->getActive()) {
+					if (it->getNeedUpdate()) {
+						if (it->getEnableKeyboard() && KKeyboard::isAnyKeyDown()) {
 							KMessage msg("INPUT_KEY_DOWN");
-							it->onMessage(msg, KMessageScopeTypes::KMS_ALL);
+							entity->onMessage(msg, KMessageScopeTypes::KMS_ALL);
 						}
-						if (ptr->getEnableMouse() && KMouse::isAnyKeyDown()) {
+						if (it->getEnableMouse() && KMouse::isAnyKeyDown()) {
 							KMessage msg("INPUT_MOUSE_DOWN");
-							it->onMessage(msg, KMessageScopeTypes::KMS_ALL);
+							entity->onMessage(msg, KMessageScopeTypes::KMS_ALL);
 						}
 					}
 				}

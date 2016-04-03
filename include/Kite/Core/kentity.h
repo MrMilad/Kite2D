@@ -49,26 +49,29 @@ namespace Kite {
 		KM_FUN()
 		KRecieveTypes onMessage(KMessage &Message, KMessageScopeTypes Scope);
 
-		KM_PRO_GET("ParrentID", U32, "entity parrent ID")
-		inline U32 getParrentID() const { return _kpid; }
+		KM_PRO_GET("pHandle", U32, "parrent handle")
+		inline const KHandle &getParrentHandle() const { return _kphandle; }
 
-		KM_PRO_GET("ID", U32, "entity unique ID")
-		inline U32 getID() const { return _kid; }
+		KM_PRO_GET("handle", U32, "entity handle")
+		inline const KHandle &getHandle() const { return _khandle; }
 
-		KM_PRO_GET("Name", std::string, "entity unique name")
+		KM_PRO_GET("name", std::string, "entity unique name")
 		inline const std::string &getName() const { return _kname; }
 
-		KM_PRO_GET("Active", bool, "is active")
+		KM_PRO_GET("active", bool, "is active")
 		inline bool getActive() const { return _kactive; }
 
-		KM_PRO_SET("Active")
+		KM_PRO_SET("active")
 		inline void setActive(bool Active) { _kactive = Active; }
 
 		KM_FUN()
-		U32 addComponent(KComTypes Type, const std::string &ComponentName = "");
+		KHandle addComponent(KComTypes Type, const std::string &ComponentName = "");
 
 		KM_FUN()
-		KComponent *getComponent(KComTypes Type, const std::string &ComponentName = "");
+		KComponent *getComponent(KComTypes Type, const KHandle &CHandle);
+
+		KM_FUN()
+		KComponent *getComponentByName(KComTypes Type, const std::string &ComponentName);
 
 		KM_FUN()
 		void getScriptComponents(std::vector<KComponent *> &Output);
@@ -76,10 +79,11 @@ namespace Kite {
 		KM_FUN()
 		bool hasComponent(KComTypes Type, const std::string &Name);
 
+		KM_FUN()
 		bool hasComponentType(KComTypes Type);
 
 		KM_FUN()
-		I32 getComponentIndex(KComTypes Type, const std::string &Name);
+		KHandle getComponentHandle(KComTypes Type, const std::string &Name);
 
 		KM_FUN()
 		void removeComponent(KComTypes Type, const std::string &ComponentName = "");
@@ -88,10 +92,10 @@ namespace Kite {
 		void clearComponents();
 
 		KM_FUN()
-		void addChild(U32 EntityID);
+		void addChild(const KHandle &EHandle);
 
 		KM_FUN()
-		void removeChild(U32 EntityID);
+		void removeChild(const KHandle &EHandle);
 
 		KM_FUN()
 		void clearChilds();
@@ -107,10 +111,10 @@ namespace Kite {
 		// internal use 
 		inline void setCStorage(Internal::BaseCHolder<KComponent> **Storage) { _kcstorage = Storage; }
 		inline void setEStorage(Internal::CFStorage<KEntity> *Storage) { _kestorage = Storage; }
-		void setComponent(KComTypes Type, const std::string &Name, U32 Index);
+		void setComponent(KComTypes Type, const std::string &Name, const KHandle &Index);
 
-		inline void setID(U32 ID) { _kid = ID; }
-		inline void setPID(U32 PID) { _kpid = PID; }
+		inline void setHandle(const KHandle &Handle) { _khandle = Handle; }
+		inline void setPHandle(const KHandle &Handle) { _kphandle = Handle; }
 		inline void setPListID(U32 PLID) { _kplistid = PLID; }
 		inline U32 getPListID() const { return _kplistid; }
 		void remChildIndex(U32 ID);
@@ -119,13 +123,13 @@ namespace Kite {
 		
 		KM_VAR() bool _kactive;											// entity actitvity state
 		KM_VAR() bool _khparrent;										// entity actitvity state
-		KM_VAR() U32 _kid;												// entity self id in the entity manager
-		KM_VAR() U32 _kpid;												// entity parrent id
+		KM_VAR() KHandle _khandle;										// entity handle in the entity manager
+		KM_VAR() KHandle _kphandle;										// entity parrent handle
 		KM_VAR() U32 _kplistid;											// entity self id in the parrent list
 		KM_VAR() std::string _kname;									// entity unique name
-		KM_VAR() I32 _kfixedComp[(U8)KComTypes::KCT_MAX_COMP_SIZE]; 	// fixed components slots (built-in components)
-		KM_VAR() std::unordered_map<std::string, U32> _kscriptComp;		// dynamic components slots (logic components)
-		KM_VAR() std::vector<U32> _kchilds;								// dynamic components slots (logic components)
+		KM_VAR() KHandle _kfixedComp[(U8)KComTypes::KCT_MAX_COMP_SIZE]; // fixed components slots (built-in components)
+		KM_VAR() std::unordered_map<std::string, KHandle> _kscriptComp;	// dynamic components slots (logic components)
+		KM_VAR() std::vector<KHandle> _kchilds;							// children list
 
 		// runtime variables (
 		Internal::BaseCHolder<KComponent>  **_kcstorage;

@@ -25,10 +25,15 @@
 #include "Kite/math/kmathstructs.h"
 #include "Kite/window/kwindowtypes.h"
 #include "Kite/window/kwindowstructs.h"
+#include "Kite/meta/kmetadef.h"
+#include "kglwindow.khgen.h"
 
 struct SDL_Window;
+KMETA
 namespace Kite{
+	KM_CLASS(SCRIPTABLE)
     class KITE_FUNC_EXPORT KGLWindow{
+		KMETA_KGLWINDOW_BODY();
     public:
         /// window will be created after open() call
         KGLWindow(KWindowState &WindowState);
@@ -43,9 +48,16 @@ namespace Kite{
         bool isOpen() const;
 
         /// manipulate window settings
+		KM_FUN()
         void setTitle(const std::string &Title);
+
+		KM_FUN()
         void setSize(U32 Width, U32 Height);
+
+		KM_FUN()
         void setPosition(U32 XPosition, U32 YPosition);
+
+		KM_FUN()
         void setShowCursor(bool Enable);
 
         inline const KWindowState &getWindowState() const {return _kwinstate;}

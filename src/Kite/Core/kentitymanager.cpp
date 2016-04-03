@@ -31,9 +31,16 @@ namespace Kite {
 		}
 
 		// create root
-		getEntity(createEntity())->setActive(false);
-		getEntity(0)->setCStorage(_kcstorage);
-		getEntity(0)->setEStorage(&_kestorage);
+		_kroot = _kestorage.add(KEntity("Root"));
+		_kestorage.get(_kroot)->setHandle(_kroot);
+
+		// set storages
+		_kestorage.get(_kroot)->setCStorage(_kcstorage);
+		_kestorage.get(_kroot)->setEStorage(&_kestorage);
+		_kestorage.get(_kroot)->setActive(false);
+
+		// register it's to map
+		_kentmap.insert({ "Root", _kroot });
 	}
 
 	KEntityManager::~KEntityManager() {
@@ -45,7 +52,7 @@ namespace Kite {
 		}
 	}
 
-	U32 KEntityManager::createEntity(const std::string &Name) {
+	KHandle KEntityManager::createEntity(const std::string &Name) {
 		// check entity name if there is a name
 		if (!Name.empty()) {
 			auto found = _kentmap.find(Name);
@@ -58,9 +65,9 @@ namespace Kite {
 		}
 
 		// create new entity and set its id
-		U32 ind = _kestorage.add(KEntity(Name));
-		auto ent = _kestorage.get(ind);
-		ent->setID(ind);
+		auto hndl = _kestorage.add(KEntity(Name));
+		auto ent = _kestorage.get(hndl);
+		ent->setHandle(hndl);
 
 		// set storages
 		ent->setCStorage(_kcstorage);
@@ -68,25 +75,24 @@ namespace Kite {
 
 		// added it to root by default
 		ent->setHParrent(false);
-		ent->setPID(1); // dummb parrent id
-		getEntity(0)->addChild(ind);
+		getEntity(getRoot())->addChild(hndl);
 
 		// register it's to map
-		_kentmap.insert({ Name, ind });
+		_kentmap.insert({ Name, hndl });
 		
 		// post a message about new entity
 		KMessage msg;
 		msg.setType("ENTITY_CREATED");
-		msg.setData((void *)&ind, sizeof(U32));
+		msg.setData((void *)&hndl, sizeof(U32));
 		postMessage(msg, KMessageScopeTypes::KMS_ALL);
 
-		return ind;
+		return hndl;
 	}
 
-	void KEntityManager::removeEntity(U32 ID) {
-		auto ent = _kestorage.get(ID);
+	void KEntityManager::removeEntity(const KHandle &Handle) {
+		auto ent = _kestorage.get(Handle);
 		if (ent == nullptr) {
-			KD_FPRINT("wrong entity id. eid: %i", ID);
+			KD_PRINT("invalid handle");
 		}
 
 		// remove all childs
@@ -95,12 +101,12 @@ namespace Kite {
 				_kestorage.remove((*it));
 			}
 		}
-		_kestorage.remove(ID);
+		_kestorage.remove(Handle);
 
 		// post a message about this action
 		KMessage msg;
 		msg.setType("ENTITY_REMOVED");
-		msg.setData((void *)&ID, sizeof(U32));
+		msg.setData((void *)&Handle, sizeof(U32));
 		postMessage(msg, KMessageScopeTypes::KMS_ALL);
 	}
 
@@ -111,8 +117,8 @@ namespace Kite {
 		}
 	}
 
-	KEntity *KEntityManager::getEntity(U32 ID) {
-		auto ent = _kestorage.get(ID);
+	KEntity *KEntityManager::getEntity(const KHandle &Handle) {
+		auto ent = _kestorage.get(Handle);
 		if (ent != nullptr) {
 			ent->setCStorage(_kcstorage);
 			ent->setEStorage(&_kestorage);

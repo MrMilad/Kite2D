@@ -19,6 +19,9 @@
 */
 #include "Kite/input/kmouse.h"
 #include "src/Kite/window/sdlcall.h"
+#include "Kite/meta/kmetamanager.h"
+#include "Kite/meta/kmetaclass.h"
+#include <luaintf/LuaIntf.h>
 
 namespace Kite{
 	KVector2I32 KMouse::_kwheelVal;
@@ -36,30 +39,30 @@ namespace Kite{
 		return false;
 	}
 
-	bool KMouse::isButtonPressed(KMouseButtonTypes Button) {
+	bool KMouse::isButtonPressed(KMButton Button) {
 		auto button = DSDL_CALL(SDL_GetMouseState(NULL, NULL));
 		switch (Button) {
-		case Kite::KMB_LEFT:
+		case KMButton::LEFT:
 			if (button & SDL_BUTTON(SDL_BUTTON_LEFT)) {
 				return true;
 			}
 			break;
-		case Kite::KMB_RIGHT:
+		case KMButton::RIGHT:
 			if (button & SDL_BUTTON(SDL_BUTTON_RIGHT)) {
 				return true;
 			}
 			break;
-		case Kite::KMB_MIDDLE:
+		case KMButton::MIDDLE:
 			if (button & SDL_BUTTON(SDL_BUTTON_MIDDLE)) {
 				return true;
 			}
 			break;
-		case Kite::KMB_X1:
+		case KMButton::X1:
 			if (button & SDL_BUTTON(SDL_BUTTON_X1)) {
 				return true;
 			}
 			break;
-		case Kite::KMB_X2:
+		case KMButton::X2:
 			if (button & SDL_BUTTON(SDL_BUTTON_X2)) {
 				return true;
 			}
@@ -105,4 +108,5 @@ namespace Kite{
 		return 0;
 	}
 
+	KMETA_KMOUSE_SOURCE();
 }

@@ -17,32 +17,17 @@ License along with this library; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 USA
 */
-#ifndef KSCRIPT_H
-#define KSCRIPT_H
-
-#include "Kite/core/kcoredef.h"
 #include "Kite/core/kresource.h"
-#include "Kite/meta/kmetadef.h"
-#include <string>
-#include "kscript.khgen.h"
+#include "Kite/meta/kmetamanager.h"
+#include "Kite/meta/kmetaclass.h"
 
-KMETA
 namespace Kite {
-	KM_CLASS(RESOURCE)
-	class KITE_FUNC_EXPORT KScript : public KResource {
+	KResource::KResource(const std::string &Name, const std::string &Type) :
+		_kname(Name),
+		_ktype(Type),
+		_kref(0) {}
 
-		KM_INFO("RType", "Script");
-		KMETA_KSCRIPT_BODY();
-	public:
-		KScript(const std::string &Name);
+	KResource::~KResource() {};
 
-		bool loadStream(KIStream &Stream, U32 Flag = 0);
-
-		inline const std::string &getCode() const { return _kcode; }
-
-	private:
-		std::string _kcode;
-	};
+	KMETA_KRESOURCE_SOURCE();
 }
-
-#endif // KSCRIPT_H

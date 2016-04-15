@@ -18,10 +18,12 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 USA
 */
 #include "Kite/logic/kscript.h"
+#include "Kite/meta/kmetamanager.h"
+#include "Kite/meta/kmetaclass.h"
 
 namespace Kite {
 	KScript::KScript(const std::string &Name) :
-		KResource(Name, KResourceTypes::KRT_SCRIPT) 
+		KResource(Name, "Script") 
 	{}
 
 	bool KScript::loadStream(KIStream &Stream, U32 Flag) {
@@ -41,4 +43,6 @@ namespace Kite {
 		}
 		return false;
 	}
+
+	KMETA_KSCRIPT_SOURCE();
 }

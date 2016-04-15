@@ -24,19 +24,21 @@
 #include "Kite/core/kcoretypes.h"
 #include "Kite/core/knoncopyable.h"
 #include "Kite/core/kistream.h"
+#include "Kite/meta/kmetadef.h"
 #include <cstring>
+#include "kresource.khgen.h"
 
+KMETA
 namespace Kite{
+	KM_CLASS(RESOURCE, ABSTRACT)
 	class KITE_FUNC_EXPORT KResource : KNonCopyable{
 	friend class KResourceManager;
-	public:
-		KResource(const std::string &Name, KResourceTypes Type):
-			_ktype(Type),
-			_kname(Name),
-			_kref(0)
-		{}
 
-		virtual ~KResource(){};
+	KMETA_KRESOURCE_BODY();
+	public:
+		KResource(const std::string &Name, const std::string &Type);
+
+		virtual ~KResource();
 
 		//! Read the resource from input stream.
 		/*!
@@ -50,7 +52,7 @@ namespace Kite{
 
 		inline const std::string &getResourceName() const { return _kname; }
 
-		inline KResourceTypes getResourceType() const { return _ktype; }
+		inline const std::string &getResourceType() const { return _ktype; }
 
 	private:
 		// internal use by resource manager
@@ -59,7 +61,7 @@ namespace Kite{
 		inline void decRef() { _kref > 0 ? --_kref : _kref; }
 
 		U32 _kref;
-		KResourceTypes _ktype;
+		std::string _ktype;
 		std::string _kname;
 	};
 }

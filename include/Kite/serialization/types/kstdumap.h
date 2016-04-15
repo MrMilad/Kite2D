@@ -22,7 +22,6 @@ USA
 
 #include "Kite/core/kcoredef.h"
 #include "Kite/serialization/kbaseserial.h"
-//#include "Kite/serialization/types/kstdpair.h"
 #include <unordered_map>
 
 namespace Kite {
@@ -57,10 +56,14 @@ namespace Kite {
 
 		if (!empty) {
 			In >> size;
-			if (Value.size() >= size) {
-				for (auto it = Value.begin(); it != Value.end(); ++it) {
-					//In >> (*it);
-				}
+			for (SIZE i = 0; i < size; ++i) {
+				T1 first;
+				In >> first;
+
+				T2 second;
+				In >> second;
+
+				Value[first] = second;
 			}
 		}
 

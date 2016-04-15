@@ -23,8 +23,10 @@ USA
 #include "Kite/core/kcoredef.h"
 #include "Kite/core/kcoretypes.h"
 #include "Kite/core/kcorestructs.h"
+#include "Kite/core/kcfstorage.h"
 #include "Kite/core/kentity.h"
 #include "Kite/meta/kmetadef.h"
+#include "Kite/serialization/kserialization.h"
 #include <string>
 #include <unordered_map>
 #include <vector>
@@ -34,35 +36,62 @@ KMETA
 namespace Kite {
 	KM_CLASS(SCRIPTABLE)
 	class KITE_FUNC_EXPORT KEntityManager: public KMessenger {
+		friend KBaseSerial &operator<<(KBaseSerial &Out, const KEntityManager &Value){
+			Value.serial(Out); return Out;
+		}
+
+		friend KBaseSerial &operator>>(KBaseSerial &In, KEntityManager &Value) {
+			Value.deserial(In); return In;
+		}
+
 		KMETA_KENTITYMANAGER_BODY();
 	public:
 		KEntityManager();
 		~KEntityManager();
 
+		KM_FUN()
+		bool isModified();
+
 		template <typename T>
-		bool registerComponent(KComTypes Type) {
+		bool registerComponent(const std::string &CType) {
 			// check base of T
 			static_assert(std::is_base_of<KComponent, T>::value, "T must be derived from KComponents");
 
-			if (_kcstorage[(U8)Type] != nullptr) {
-				if (_kcstorage[(U8)Type]->type != typeid(T).hash_code()) {
-					KD_FPRINT("diffrent component class with same type detected. ctype: %i", (int) Type);
+			// check type
+			auto found = _kctypes.find(CType);
+			if (found != _kctypes.end()) {
+				KD_FPRINT("this type has already been registered. ctype: %s", CType.c_str());
+				return false;
+			}
+
+			// check index
+			U16 index;
+			if (_kcompCount >= KCOMP_MAX_SIZE) {
+				KD_FPRINT("maximum number of supported components was reached. ctype: %s   msize: %i", CType.c_str(), KCOMP_MAX_SIZE);
+				return false;
+			}
+			index = _kcompCount++;
+
+			if (_kcstorage[index] != nullptr) {
+				if (_kcstorage[index]->type != typeid(T).hash_code()) {
+					KD_FPRINT("diffrent component class with same type detected. ctype: %s", CType.c_str());
 					return false;
 				}
-				KD_FPRINT("this type has already been registered. ctype: %i", (int)Type);
+				KD_FPRINT("this type has already been registered. ctype: %s", CType.c_str());
 				return false;
 			}
 
 			// register type
-			_kcstorage[(U8)Type] = new Internal::CHolder<T, KComponent>;
-			_kcstorage[(U8)Type]->type = typeid(T).hash_code();
+			_kcstorage[index] = new Internal::CHolder<T, KComponent>;
+			_kcstorage[index]->type = typeid(T).hash_code();
+			_kctypes[CType] = index;
 			return true;
 		}
 
-		void unregisterComponent(KComTypes Type);
+		void unregisterComponent(const std::string &CType);
 
 		KM_FUN()
-		bool isRegistered(KComTypes Type);
+		bool isRegisteredComponent(const std::string &CType);
 
 		/// create entity in the root branch (parrent = 0)
 		KM_FUN()
@@ -91,24 +120,33 @@ namespace Kite {
 		inline auto endEntity() { return _kestorage.end(); }
 
 		template<typename T>
-		auto beginComponent(KComTypes Type){
-			KD_ASSERT(_kcstorage[(U8)Type] != nullptr);
-			Internal::CHolder<T, KComponent> *drived = static_cast<Internal::CHolder<T, KComponent> *>(_kcstorage[(U8)Type]);
+		auto beginComponent(const std::string &CType){
+			auto found = _kctypes.find(CType);
+			KD_ASSERT(found != _kctypes.end());
+			KD_ASSERT(_kcstorage[found->second] != nullptr);
+			Internal::CHolder<T, KComponent> *drived = static_cast<Internal::CHolder<T, KComponent> *>(_kcstorage[found->second]);
 			return drived->getStorage()->begin();
 		}
 
 		template<typename T>
-		auto endComponent(KComTypes Type) {
-			KD_ASSERT(_kcstorage[(U8)Type] != nullptr);
-			Internal::CHolder<T, KComponent> *drived = static_cast<Internal::CHolder<T, KComponent> *>(_kcstorage[(U8)Type]);
+		auto endComponent(const std::string &CType) {
+			auto found = _kctypes.find(CType);
+			KD_ASSERT(found != _kctypes.end());
+			KD_ASSERT(_kcstorage[found->second] != nullptr);
+			Internal::CHolder<T, KComponent> *drived = static_cast<Internal::CHolder<T, KComponent> *>(_kcstorage[found->second]);
 			return drived->getStorage()->end();
 		}
 
 	private:
+		void serial(KBaseSerial &Out) const;
+		void deserial(KBaseSerial &In);
+
 		KHandle _kroot;
-		Internal::CFStorage<KEntity> _kestorage;
+		KCFStorage<KEntity> _kestorage;
+		Internal::BaseCHolder<KComponent> *_kcstorage[KCOMP_MAX_SIZE];
 		std::unordered_map<std::string, KHandle> _kentmap;
-		Internal::BaseCHolder<KComponent> *_kcstorage[(SIZE)KComTypes::KCT_MAX_COMP_SIZE];
+		std::unordered_map<std::string, U16> _kctypes;
+		U16 _kcompCount;
 	};
 }
 

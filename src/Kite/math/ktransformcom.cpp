@@ -35,7 +35,6 @@ namespace Kite{
 		_kskew = KVector2F32(0.0f, 0.0f);
 		_kcenter = KVector2F32(0.0f, 0.0f);
 		setNeedUpdate(true);
-		setNeedUpdateRes(false);
 	}
 
 	void KTransformCom::attached() {}
@@ -46,6 +45,10 @@ namespace Kite{
         _kposition = Position;
 		setNeedUpdate(true);
     }
+
+	KRecieveTypes KTransformCom::onMessage(KMessage &Message, KMessageScopeTypes Scope) {
+		return KRecieveTypes::KMR_IGNORED;
+	}
 
     void KTransformCom::setRotation(F32 Angle){
 		if (Angle > 360.000f || Angle < -360.000f)

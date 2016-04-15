@@ -32,35 +32,40 @@ namespace Kite {
 	KM_CLASS(COMPONENT)
 	class KITE_FUNC_EXPORT KLogicCom : public KComponent {
 		friend class KLogicSys;
-
+		KM_INFO("CType", "Logic");
 		KM_INFO("Author", "Kite2D");
 		KM_INFO("Email", "milad_rasaneh2000@yahoo.com");
 		KMETA_KLOGICCOM_BODY();
+
 	public:
-		KLogicCom(const std::string &Name);
+		KLogicCom(const std::string &Name = "");
 
 		void attached() override;
 
 		/// remove this script from entity
 		void deattached() override;
 
-		KM_PRO_SET("Script")
+		KM_FUN()
+		KRecieveTypes onMessage(KMessage &Message, KMessageScopeTypes Scope) override;
+
+		KM_PRO_SET("script")
 		void setScript(const std::string &ResName);
 		
-		KM_PRO_GET("Script", std::string, "Lua script")
+		KM_PRO_GET("script", std::string, "Lua script")
 		inline const std::string &getScript() const { return _kresName; }
 
-		KM_PRO_GET("EnvName", std::string, "Table name in lua")
-		inline const std::string &getCName() { return _kcname; }
+		KM_PRO_GET("ownerTable", std::string, "Owner table in lua")
+		inline const std::string &getTName() { return _ktname; }
 
 	private:
 		void removeLuaEnv();
-		// runtime catching functions
 		void setLuaState(lua_State *L);
-		inline void setScriptPtr(KScript *Script) { _kscript = Script; }
 
 		KM_VAR() std::string _kresName;
-		KM_VAR() std::string _kcname;
+		KM_VAR() std::string _ktname;
+
+		bool _kinite;;
+		bool _kstart;
 
 		KScript *_kscript;
 		lua_State *_klstate;

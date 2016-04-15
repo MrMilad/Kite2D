@@ -17,8 +17,8 @@ License along with this library; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 USA
 */
-#ifndef KSTDLIST_H
-#define KSTDLIST_H
+#ifndef KSTDVECTOR_H
+#define KSTDVECTOR_H
 
 #include "Kite/core/kcoredef.h"
 #include "Kite/serialization/kbaseserial.h"
@@ -51,15 +51,17 @@ namespace Kite {
 	KBaseSerial &operator>>(KBaseSerial &In, std::vector<T1> &Value) {
 		bool empty = true;
 		U32 size = 0;
+		Value.clear();
 
 		In >> empty;
 
 		if (!empty) {
 			In >> size;
-			if (Value.size() >= size) {
-				for (auto it = Value.begin(); it != Value.end(); ++it) {
-					In >> (*it);
-				}
+			Value.reserve(size);
+			for (SIZE i = 0; i < size; ++i) {
+				T1 val;
+				In >> val;
+				Value.push_back(val);
 			}
 		}
 
@@ -67,4 +69,4 @@ namespace Kite {
 	}
 }
 
-#endif // KSTDLIST_H
+#endif // KSTDVECTOR_H

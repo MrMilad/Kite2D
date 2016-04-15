@@ -27,9 +27,9 @@ USA
 namespace Kite {
 
 	void KTransformSys::update(F32 Delta, KEntityManager &EManager, KResourceManager &RManager) {
-		if (EManager.isRegistered(KComTypes::KCT_TRANSFORM)) {
-			for (auto it = EManager.beginComponent<KTransformCom>(KComTypes::KCT_TRANSFORM);
-			it != EManager.endComponent<KTransformCom>(KComTypes::KCT_TRANSFORM); ++it) {
+		if (EManager.isRegisteredComponent("Transform")) {
+			for (auto it = EManager.beginComponent<KTransformCom>("Transform");
+			it != EManager.endComponent<KTransformCom>("Transform"); ++it) {
 				auto ehandle = it->getOwnerHandle();
 				auto entity = EManager.getEntity(ehandle);
 				if (entity->getActive()) {

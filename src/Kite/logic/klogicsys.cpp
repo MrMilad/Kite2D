@@ -26,21 +26,47 @@ USA
 
 namespace Kite {
 	void KLogicSys::update(F32 Delta, KEntityManager &EManager, KResourceManager &RManager) {
-		if (EManager.isRegistered(KComTypes::KCT_LOGIC)) {
-			for (auto it = EManager.beginComponent<KLogicCom>(KComTypes::KCT_LOGIC);
-			it != EManager.endComponent<KLogicCom>(KComTypes::KCT_LOGIC); ++it) {
+		// check component registration
+		if (EManager.isRegisteredComponent("Logic")) {
+
+			// iterate over components
+			for (auto it = EManager.beginComponent<KLogicCom>("Logic");
+			it != EManager.endComponent<KLogicCom>("Logic"); ++it) {
 				auto ehandle = it->getOwnerHandle();
+
+				// get associated entity for each component
 				auto entity = EManager.getEntity(ehandle);
 				if (entity->getActive()) {
+
 					// retrive all script components from entity
 					static std::vector<KComponent *> components;
 					entity->getScriptComponents(components);
-					// iterate over all logic components and update them
+
+					// iterate over all logic components and inite/update them
 					for (auto comp = components.begin(); comp != components.end(); ++comp) {
+						auto lcomp = static_cast<KLogicCom *>((*comp));
+
 						// inite component and bind it to lua vm (only one time when current script changed with a new script)
-						if ((*comp)->getNeedUpdateRes()) {
-							cathcAndRegist((KLogicCom *)(*comp), RManager);
+						if (lcomp->getNeedUpdate()) {
+							cathcAndRegist(entity, (KLogicCom *)(*comp), RManager);
 						}
+
+						// inite component (calling inite, only 1 time befor start)
+						if (!lcomp->_kinite){
+							initeComp(entity, lcomp);
+							lcomp->_kinite = true;
+							continue;
+						}
+
+						// start component (calling start, only 1 time befor update)
+						if (!lcomp->_kstart){
+							startComp(entity, lcomp);
+							lcomp->_kstart = true;
+							continue;
+						}
+
+						// update component (calling update, per frame)
+						updateComp(Delta, entity, lcomp);
 					}
 				}
 			}
@@ -63,26 +89,40 @@ namespace Kite {
 		return getInite();
 	}
 
-	void KLogicSys::cathcAndRegist(KLogicCom *Component, KResourceManager &RManager) {
-		auto script = RManager.get<KScript>(Component->getScript());
-		Component->setScriptPtr(script);
+	void KLogicSys::updateComp(F32 Delta, KEntity *Self, KLogicCom *Component) {
+		std::string address("ENTITIES." + Component->getTName() + "." + Component->getName() + ".update");
+
+		// call update function
+		LuaIntf::LuaRef ctable(_klvm, address.c_str());
+		if (ctable.isFunction()) {
+			ctable(Self, Delta);
+		}
+	}
+
+	void KLogicSys::cathcAndRegist(KEntity *Self, KLogicCom *Component, KResourceManager &RManager) {
+		// retrive script rsource from resource manager
+		KScript *script = (KScript *)RManager.get(Component->getScript());
+		Component->_kscript = script;
+
+		Component->setLuaState(_klvm);
 
 		// bind it to lua with its environment
 		if (script != nullptr && !script->getCode().empty()) {
+
 			// first check entiti table 
-			std::string code("_G.ENTITIES." + Component->getCName());
+			std::string code("_G.ENTITIES." + Component->getTName());
 			LuaIntf::LuaRef etable(_klvm, code.c_str());
 
 			// there isn't a table for entity
 			// we create it
 			if (!etable.isTable()) {
 				etable = LuaIntf::LuaRef(_klvm, "_G.ENTITIES");
-				etable.set(Component->getCName().c_str(), LuaIntf::LuaRef::createTable(_klvm));
+				etable.set(Component->getTName().c_str(), LuaIntf::LuaRef::createTable(_klvm));
 			}
 
 			// create a table for its component
 			code.clear();
-			code = "_G.ENTITIES." + Component->getCName();
+			code = "_G.ENTITIES." + Component->getTName();
 			etable = LuaIntf::LuaRef(_klvm, code.c_str());
 			etable.set(Component->getName(), LuaIntf::LuaRef::createTable(_klvm));
 
@@ -91,7 +131,7 @@ namespace Kite {
 			code.reserve(script->getCode().size());
 			code = script->getCode();
 
-			std::string address("ENTITIES." + Component->getCName() + "." + Component->getName());
+			std::string address("ENTITIES." + Component->getTName() + "." + Component->getName());
 			code.insert(0, "_ENV = " + address + " \n");
 			code.insert(0, address + ".Global = _G \n");
 			code.insert(0, address + ".Kite = _G.Kite \n");
@@ -100,14 +140,27 @@ namespace Kite {
 
 			luaL_dostring(_klvm, code.c_str());
 
-			// call inite function of chunk
-			address.append(".inite");
-			LuaIntf::LuaRef ctable(_klvm, address.c_str());
-			if (ctable.isFunction()) {
-				ctable();
-			}
+			Component->setNeedUpdate(false);
+		}
+	}
 
-			Component->setNeedUpdateRes(false);
+	void KLogicSys::initeComp(KEntity *Self, KLogicCom *Component) {
+		// call inite function of component
+		std::string address("ENTITIES." + Component->getTName() + "." + Component->getName());
+		address.append(".inite");
+		LuaIntf::LuaRef ctable(_klvm, address.c_str());
+		if (ctable.isFunction()) {
+			ctable(Self);
+		}
+	}
+
+	void KLogicSys::startComp(KEntity *Self, KLogicCom *Component) {
+		// call inite function of component
+		std::string address("ENTITIES." + Component->getTName() + "." + Component->getName());
+		address.append(".start");
+		LuaIntf::LuaRef ctable(_klvm, address.c_str());
+		if (ctable.isFunction()) {
+			ctable(Self);
 		}
 	}
 

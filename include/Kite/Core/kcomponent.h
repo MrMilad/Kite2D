@@ -33,7 +33,7 @@ USA
 KMETA
 namespace Kite {
 	KM_CLASS(COMPONENT, ABSTRACT)
-	class KITE_FUNC_EXPORT KComponent{
+	class KITE_FUNC_EXPORT KComponent : public KListener{
 		friend class KEntityManager;
 		friend class KEntity;
 	public:
@@ -53,16 +53,11 @@ namespace Kite {
 		/// will be implemented by KHParser
 		virtual KAny getProperty(const std::string &Name) = 0;
 
-		const std::vector<KComTypes> &getDependency() const;
-
 		KM_PRO_GET("name", std::string, "name of the component")
 		inline const std::string &getName() const { return _kname; }
 
 		KM_PRO_GET("needUpdate", bool, "update state of the component")
 		inline bool getNeedUpdate() const { return _kneedup; }
-
-		KM_PRO_GET("needUpdateRes", bool, "update state of the component resources")
-		inline bool getNeedUpdateRes() const { return _kneedupRes; }
 
 		KM_PRO_GET("handle", KHandle, "component handle")
 		inline const KHandle &getHandle() const { return _khandle; }
@@ -70,30 +65,24 @@ namespace Kite {
 		KM_PRO_GET("ownerHandle", KHandle, "owner (entity) handle")
 			inline const KHandle &getOwnerHandle() const { return _kohandle; }
 
+		KM_PRO_GET("lsitener", KListener, "cmponent message listener")
+			inline KListener &getListener() { return *(KListener *)this; }
+
 		/// for simulate polymorphism in script
 		KM_FUN()
 		inline KComponent *getBase() { return this; }
 
-		KM_FUN()
-		inline bool isDependOn(KComTypes Type) const { return _kdependency[(U8)Type]; }
-
 		KMETA_KCOMPONENT_BODY();
 
 	protected:
-		void setDependency(KComTypes Type, bool Value);
 		inline void setNeedUpdate(bool NeedUpdate) { _kneedup = NeedUpdate; }
-		inline void setNeedUpdateRes(bool NeedUpdate) { _kneedupRes = NeedUpdate; }
 		inline void setOwnerHandle(const KHandle &Handle) { _kohandle = Handle; }
 
 	private:
-		inline void setHandle(const KHandle &Handle) { _khandle = Handle; }
-
 		KM_VAR() std::string _kname;
 		KM_VAR() KHandle _khandle;
 		KM_VAR() KHandle _kohandle;
 		KM_VAR() bool _kneedup;
-		KM_VAR() bool _kneedupRes;
-		KM_VAR() bool _kdependency[(U8)KComTypes::KCT_MAX_COMP_SIZE];
 	};
 }
 

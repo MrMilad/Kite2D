@@ -25,7 +25,7 @@ USA
 #include "Kite/serialization/kbaseserial.h"
 #include <type_traits>
 
-#define CHECK_VALIDATION(T) static_assert(std::is_arithmetic<T>::value, "non-pod, unregistered or unserializable types and raw pointers are not allowed for serialization.")
+#define CHECK_VALIDATION(T) static_assert(std::is_arithmetic<T>::value || std::is_enum<T>::value, "non-pod, unregistered or unserializable types and raw pointers are not allowed for serialization.")
 
 namespace Kite {
 	// serialization (POD)

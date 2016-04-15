@@ -55,8 +55,11 @@ enum MClassBaseAccs {
 };
 
 enum MClassType {
-	CT_CLASS = 0,
-	CT_STRUCT
+	CT_OTHER = 0,
+	CT_COMP,
+	CT_SYS,
+	CT_POD,
+	CT_RES
 };
 
 enum MExportState{
@@ -105,6 +108,8 @@ struct MProperty {
 	MFunction set;
 	std::string comment;
 	std::string type;
+	std::string min;
+	std::string max;
 };
 
 struct MOperator {
@@ -767,8 +772,6 @@ bool procProp(const std::vector<MFunction> &AllGet, const std::vector<MFunction>
 			printf("error: missing property type ==> function name: %s\n", AllGet[i].name.c_str());
 			return false;
 
-		} else if (param.size() > 3) {
-			printf("warning: extera property info (ignored) ==> function name: %s\n", AllGet[i].name.c_str());
 		}
 
 		// extract string name from string map
@@ -789,6 +792,16 @@ bool procProp(const std::vector<MFunction> &AllGet, const std::vector<MFunction>
 			}
 		}
 
+		// check for min/max
+		std::string minv("0");
+		std::string maxv("0");
+		if (param.size() >= 4) {
+			minv = param[3];
+			if (param.size() >= 5) {
+				maxv = param[4];
+			}
+		}
+
 		// register property to map
 		auto prop = map.find(pname->second);
 		if (prop != map.end()) {
@@ -802,6 +815,8 @@ bool procProp(const std::vector<MFunction> &AllGet, const std::vector<MFunction>
 		map[pname->second].comment = comment;
 		map[pname->second].get = AllGet[i];
 		map[pname->second].type = param[1];
+		map[pname->second].min = minv;
+		map[pname->second].max = maxv;
 	}
 
 	// first register all setters
@@ -1178,6 +1193,30 @@ bool procClass(const std::string &Content, MClass &Cls, unsigned int Pos) {
 	pos = getNextBody(Content, Pos, output);
 	Cls.tokparam = output;
 
+	// is component
+	std::vector<std::string> tags;
+	splitParam(output, tags);
+	Cls.type = CT_OTHER;
+	if (std::find(tags.begin(), tags.end(), "COMPONENT") != tags.end()) {
+		if (std::find(tags.begin(), tags.end(), "ABSTRACT") == tags.end()) {
+			Cls.type = CT_COMP;
+		}
+	}
+
+	// is system
+	if (std::find(tags.begin(), tags.end(), "SYSTEM") != tags.end()) {
+		if (std::find(tags.begin(), tags.end(), "ABSTRACT") == tags.end()) {
+			Cls.type = CT_SYS;
+		}
+	}
+
+	// is resource
+	if (std::find(tags.begin(), tags.end(), "RESOURCE") != tags.end()) {
+		if (std::find(tags.begin(), tags.end(), "ABSTRACT") == tags.end()) {
+			Cls.type = CT_RES;
+		}
+	}
+
 	// checking type token (class or struct)
 	if (checkNext(Content, pos) != PS_WORD) {
 		printf("error: missing class/struct type.\n");
@@ -1185,13 +1224,7 @@ bool procClass(const std::string &Content, MClass &Cls, unsigned int Pos) {
 	}
 
 	pos = getNextWord(Content, pos, output);
-	if (output == "class") {
-		Cls.type = CT_CLASS;
-
-	} else if (output == "struct") {
-		Cls.type = CT_STRUCT;
-
-	} else {
+	if (output != "class" && output != "struct") {
 		printf("error: incorrect type (%s).\n", output.c_str());
 		return false;
 	}
@@ -1650,7 +1683,7 @@ void createMacros(const std::vector<MClass> &Cls, const std::vector<MEnum> &Enms
 		Output.append("#define KMETA_" + upname + "_BODY() \\\n"
 					  "namespace Internal{\\\n"
 					  "struct Register" + Enms[i].name + "{\\\n"
-					  "static void registerMeta(KMetaManager *MMan, lua_State *Lua = nullptr);};}\\\n");
+					  "static void registerMeta(KMetaManager *MMan = nullptr, lua_State *Lua = nullptr);};}\\\n");
 
 
 		Output.append("\n// ----[auto generated: " + Enms[i].name + " source macro]----\n");
@@ -1773,14 +1806,16 @@ void createMacros(const std::vector<MClass> &Cls, const std::vector<MEnum> &Enms
 		
 		// public section:
 		// register functions
-		Output.append("public:\\\n" +
-					  exstate + "static void registerMeta(KMetaManager *MMan, lua_State *Lua = nullptr);\\\n"
-					  "const std::string &getClassName() const { static std::string name(\"" + Cls[i].name + "\");\\\n"
-					  "return name;}\\\n");
+		Output.append("public:\\\n");
+
+		// factory methode (only resources have factory methode)
+		if (isResource && !isAbstract) {
+			Output.append(exstate + "static KResource *factory(const std::string &Name);\\\n");
+		}
 
 		// property setter/getter (only components have properties)
 		if (isComponent && !isAbstract) {
-			Output.append( exstate + "bool setProperty(const std::string &Name, KAny &Value) override;\\\n" + 
+			Output.append(exstate + "bool setProperty(const std::string &Name, KAny &Value) override;\\\n" +
 						  exstate + "KAny getProperty(const std::string &Name) override;\\\n");
 		}
 
@@ -1793,16 +1828,27 @@ void createMacros(const std::vector<MClass> &Cls, const std::vector<MEnum> &Enms
 							  "Value.deserial(In); return In;}\\\n");
 			}
 			Output.append(exstate + "void serial(KBaseSerial &Serializer) const;\\\n");
-			Output.append(exstate + "void deserial(KBaseSerial &Serializer);\n");
+			Output.append(exstate + "void deserial(KBaseSerial &Serializer);\\\n");
 		}
+
+		Output.append(exstate + "static void registerMeta(KMetaManager *MMan = nullptr, lua_State *Lua = nullptr);\\\n"
+					  "const std::string &getClassName() const { static std::string name(\"" + Cls[i].name + "\");\\\n"
+					  "return name;}\n");
 
 		// defention
 		Output.append("\n// ----[auto generated: " + Cls[i].name + " source macro]----\n");
 		Output.append("#define KMETA_" + upname + "_SOURCE()\\\n");
 
-		// property setter/getter (only components have properties)
+		// factory defention
+		if (isResource && !isAbstract) {
+			Output.append("KResource *" + Cls[i].name + "::factory(const std::string &Name){\\\n"
+						  "return new " + Cls[i].name + "(Name);}\\\n");
+		}
+
+		// register properties
 		if (isComponent && !isAbstract) {
-			// set
+
+			// property setter/getter (only components have properties)
 			Output.append("bool " + Cls[i].name + "::setProperty(const std::string &Name, KAny &Value){\\\n");
 			for (size_t count = 0; count < Cls[i].props.size(); ++count) {
 				if (!Cls[i].props[count].set.name.empty()) {
@@ -1849,7 +1895,8 @@ void createMacros(const std::vector<MClass> &Cls, const std::vector<MEnum> &Enms
 				prpType = "KMP_BOTH";
 			}
 			Output.append("instance.addProperty(KMetaProperty(\"" + Cls[i].props[count].name + "\", \""
-							+ Cls[i].props[count].type + "\", \"" + Cls[i].props[count].comment + "\", " + prpType + "));\\\n");
+						  + Cls[i].props[count].type + "\", \"" + Cls[i].props[count].comment + "\", "
+						  + prpType + ", " + Cls[i].props[count].min + ", " + Cls[i].props[count].max + "));\\\n");
 		}
 
 		// functions
@@ -1935,6 +1982,11 @@ void createMacros(const std::vector<MClass> &Cls, const std::vector<MEnum> &Enms
 			Output.append(".endClass().endModule();}\\\n");
 		}
 
+		// register components
+		if (isComponent && !isAbstract) {
+			//Output.append("if (EMan != nullptr) { \\\n");
+		}
+
 		// end of rgisterMeta
 		if (isPOD || isComponent || isEntity) {
 			Output.append("} inite = false;}\\\n");
@@ -1982,11 +2034,20 @@ void createHead(std::string &Output) {
 	Output.append("#ifndef KITEMETA_H\n"
 				  "#define KITEMETA_H\n\n"
 				  "#include \"Kite/core/kcoredef.h\"\n"
+				  "#include \"Kite/core/ksystem.h\"\n"
+				  "#include \"Kite/core/kentitymanager.h\"\n"
 				  "#include \"Kite/meta/kmetadef.h\"\n\n"
+				  "#include \"Kite/meta/kmetamanager.h\"\n"
+				  "#include <vector>\n"
+				  "#include <memory>\n"
 				  "KM_IGNORED\n"
 				  "KMETA\n"
 				  "namespace Kite{\n"
-				  "KITE_FUNC_EXPORT extern void registerKiteMeta(KMetaManager *MMan = nullptr, lua_State *Lua = nullptr);}\n"
+				  "KITE_FUNC_EXPORT extern void registerKiteMeta(KMetaManager *MMan = nullptr, lua_State *Lua = nullptr);\n"
+				  "KITE_FUNC_EXPORT extern void registerCTypes(KEntityManager &EMan);\n"
+				  "KITE_FUNC_EXPORT extern void registerRTypes(KResourceManager &RMan);\n"
+				  "KITE_FUNC_EXPORT extern void createSystems(std::vector<std::unique_ptr<KSystem>> &Systems);\n"
+				  "}\n"
 				  "#endif // KITEMETA_H");
 }
 
@@ -2026,7 +2087,54 @@ void createSource(const std::vector<std::string> &Files, const std::vector<MClas
 		Output.append("Internal::Register" + Ens[i].name + "::registerMeta(MMan, Lua);\n");
 	}
 
-	Output.append("}}");
+	// end of meta
+	Output.append("}\n");
+
+	// register component types
+	Output.append("void registerCTypes(KEntityManager &EMan){\n");
+
+	for (size_t i = 0; i < Cls.size(); i++) {
+		if (Cls[i].type == CT_COMP) {
+			for (size_t count = 0; count < Cls[i].infos.size(); ++count) {
+				if (Cls[i].infos[count].key == "CType") {
+					Output.append("EMan.registerComponent<" + Cls[i].name + ">(\"" + Cls[i].infos[count].info + "\");\n");
+					break;
+				}
+			}
+		}
+	}
+
+	// end of ctypes
+	Output.append("}\n");
+
+	// register resource types
+	Output.append("void registerRTypes(KResourceManager &RMan){\n");
+
+	for (size_t i = 0; i < Cls.size(); i++) {
+		if (Cls[i].type == CT_RES) {
+			for (size_t count = 0; count < Cls[i].infos.size(); ++count) {
+				if (Cls[i].infos[count].key == "RType") {
+					Output.append("RMan.registerResource(\"" + Cls[i].infos[count].info + "\", " + Cls[i].name + "::factory);\n");
+					break;
+				}
+			}
+		}
+	}
+
+	// end of rtypes
+	Output.append("}\n");
+
+	// systems
+	Output.append("void createSystems(std::vector<std::unique_ptr<KSystem>> &Systems){\n");
+	Output.append("Systems.clear();\n");
+	for (size_t i = 0; i < Cls.size(); i++) {
+		if (Cls[i].type == CT_SYS) {
+			Output.append("Systems.push_back(std::unique_ptr<KSystem>(new " + Cls[i].name + "));\n");
+		}
+	}
+
+	// end of namespace
+	Output.append("}}\n");
 
 }
 

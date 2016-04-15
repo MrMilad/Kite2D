@@ -17,19 +17,53 @@ License along with this library; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 USA
 */
-#include "Kite/core/kcomponent.h"
-#include "Kite/core/kcoreutil.h"
+#include "Kite/core/kscene.h"
 #include "Kite/meta/kmetamanager.h"
 #include "Kite/meta/kmetaclass.h"
+#include "Kite/serialization/kbinaryserial.h"
+#include "Kite/serialization/kserialization.h"
 #include "Kite/serialization/types/kstdstring.h"
+#include "Kite/serialization/types/kstdvector.h"
+#include "Kite/serialization/types/kstdpair.h"
 #include <luaintf\LuaIntf.h>
 
 namespace Kite {
-	KComponent::KComponent(const std::string &Name) :
-		_kname(Name), _kneedup(true)
-	{}
+	KScene::KScene(const std::string &Name) :
+		KResource(Name, "Scene"),
+		_kloaded(false) {}
 
-	KComponent::~KComponent() {}
+	KScene::~KScene() {}
 
-	KMETA_KCOMPONENT_SOURCE();
+	bool KScene::loadStream(KIStream &Stream, U32 Flag) {
+		KBinarySerial bserial;
+		if (!bserial.loadStream(Stream)) {
+			_kloaded = false;
+			KD_PRINT("can't load stream");
+			return false;
+		}
+
+		bserial >> _kname;
+		bserial >> _kassets;
+		bserial >> _keman;
+
+		_kloaded = true;
+		return true;
+	}
+
+	bool KScene::saveStream(KOStream &Stream) {
+		KBinarySerial bserial;
+
+		bserial << _kname;
+		bserial << _kassets;
+		bserial << _keman;
+
+		if (!bserial.saveStream(Stream)) {
+			KD_PRINT("can't save stream");
+			return false;
+		}
+
+		return true;
+	}
+
+	KMETA_KSCENE_SOURCE();
 }

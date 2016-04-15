@@ -17,32 +17,51 @@ License along with this library; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 USA
 */
-#ifndef KSCRIPT_H
-#define KSCRIPT_H
+#ifndef KSCENEMANAGER_H
+#define KSCENEMANAGER_H
 
 #include "Kite/core/kcoredef.h"
-#include "Kite/core/kresource.h"
+#include "Kite/core/kscene.h"
+#include "Kite/core/kresourcemanager.h"
 #include "Kite/meta/kmetadef.h"
+#include <unordered_map>
 #include <string>
-#include "kscript.khgen.h"
+#include <list>
+#include "kscenemanager.khgen.h"
 
 KMETA
 namespace Kite {
-	KM_CLASS(RESOURCE)
-	class KITE_FUNC_EXPORT KScript : public KResource {
+	KM_CLASS(SCRIPTABLE)
+	class KITE_FUNC_EXPORT KSceneManager {
 
-		KM_INFO("RType", "Script");
-		KMETA_KSCRIPT_BODY();
+		KMETA_KSCENEMANAGER_BODY();
 	public:
-		KScript(const std::string &Name);
+		KSceneManager(KResourceManager &RMan);
 
-		bool loadStream(KIStream &Stream, U32 Flag = 0);
+		/// S: stream type
+		template<typename S>
+		bool loadScene(const std::string &Name) {
+			KScene *scene = _krman->load<KScene, S>(Name, false);
+			if (scene == nullptr) {
+				KD_FPRINT("can't load scene. sname: %s", Name.c_str());
+				return false;
+			}
 
-		inline const std::string &getCode() const { return _kcode; }
+			//scene->_
+		}
+
+		void unloadScene(const std::string &Name);
+
+		KScene *getScene(const std::string &Name);
+
+		inline KScene *getActiveScene() { return _kactive; }
+
+		bool setActiveScene(const std::string &Name);
 
 	private:
-		std::string _kcode;
+		KResourceManager *_krman;
+		KScene *_kactive;
 	};
 }
 
-#endif // KSCRIPT_H
+#endif // KSCENEMANAGER_H

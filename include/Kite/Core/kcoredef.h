@@ -183,7 +183,12 @@ typedef unsigned long DWORD;
 
 /// max audio buffer (ogg vorbis)
 #define KOGG_BUFF_SIZE 4096
+
+/// Kite2D hash seed
 #define KHASH_SEED 13711010
+
+/// Kite2d max size of supported components
+#define KCOMP_MAX_SIZE 128
 
 namespace Kite{
 	/*

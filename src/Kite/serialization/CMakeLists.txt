@@ -23,5 +23,6 @@ set(SER_INC_SUB
     ${INCROOT}/types/kstdvector.h
     ${INCROOT}/types/kstdstring.h
     ${INCROOT}/types/kstdumap.h
+    ${INCROOT}/types/kstddeque.h
     PARENT_SCOPE
 )

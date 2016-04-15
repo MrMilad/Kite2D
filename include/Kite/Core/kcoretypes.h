@@ -84,18 +84,18 @@ namespace Kite{
 		KCI_WINDOW
 	};
 
-	enum class KResourceTypes : U8 {
-		KRT_TEXTURE = 0,
-		KRT_IMAGE,
-		KRT_AUDIOBUFFER,
-		KRT_AUDIOSOURCE,
-		KRT_SHADER,
-		KRT_SHPROGRAM,
-		KRT_ATLAS,
-		KRT_ANIMCLIP,
-		KRT_SCRIPT,
-		KRT_SCENE
-	};
+	/*enum class KResTypes : U8 {
+		TEXTURE = 0,
+		IMAGE,
+		AUDIOBUFFER,
+		AUDIOSOURCE,
+		SHADER,
+		SHPROGRAM,
+		ATLAS,
+		ANIMCLIP,
+		SCRIPT,
+		SCENE
+	};*/
 
 	enum KGridMapTriggerTypes {
 		KST_ENTER,
@@ -107,14 +107,14 @@ namespace Kite{
 		KMR_IGNORED
 	};
 
-	enum class KComTypes : U8 {
+	/*enum class KComTypes : U8 {
 		KCT_GRAPHIC = 0,
 		KCT_AUDIO,
 		KCT_INPUT,
 		KCT_TRANSFORM,
 		KCT_LOGIC,
 		KCT_MAX_COMP_SIZE,
-	};
+	};*/
 
 	enum class KMessageScopeTypes : U8 {
 		KMS_SELF,

@@ -17,17 +17,17 @@ License along with this library; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 USA
 */
-#ifndef KSTDLIST_H
-#define KSTDLIST_H
+#ifndef KSTDDEQUE_H
+#define KSTDDEQUE_H
 
 #include "Kite/core/kcoredef.h"
 #include "Kite/serialization/kbaseserial.h"
-#include <list>
+#include <deque>
 
 namespace Kite {
 
 	template<typename T1>
-	KBaseSerial &operator<<(KBaseSerial &Out, const std::list<T1> &Value) {
+	KBaseSerial &operator<<(KBaseSerial &Out, const std::deque<T1> &Value) {
 		bool empty = true;
 		U32 size = 0;
 
@@ -48,7 +48,7 @@ namespace Kite {
 	}
 
 	template<typename T1>
-	KBaseSerial &operator>>(KBaseSerial &In, std::list<T1> &Value) {
+	KBaseSerial &operator>>(KBaseSerial &In, std::deque<T1> &Value) {
 		bool empty = true;
 		U32 size = 0;
 		Value.clear();
@@ -57,10 +57,9 @@ namespace Kite {
 
 		if (!empty) {
 			In >> size;
-			for (SIZE i = 0; i < size; ++i) {
-				T1 node;
-				In >> node;
-				Value.push_back(node);
+			Value.resize(size);
+			for (auto it = Value.begin(); it != Value.end(); ++it) {
+				In >> (*it);
 			}
 		}
 
@@ -68,4 +67,4 @@ namespace Kite {
 	}
 }
 
-#endif // KSTDLIST_H
+#endif // KSTDDEQUE_H

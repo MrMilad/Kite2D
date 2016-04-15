@@ -22,21 +22,25 @@ USA
 #include <algorithm>
 #include "Kite/meta/kmetamanager.h"
 #include "Kite/meta/kmetaclass.h"
+#include "Kite/serialization/types/kstdstring.h"
+#include "Kite/serialization/types/kstdumap.h"
 #include <luaintf\LuaIntf.h>
 
 namespace Kite {
-	KEntityManager::KEntityManager() {
-		for (U8 i = 0; i < (U8)KComTypes::KCT_MAX_COMP_SIZE; i++) {
+	KEntityManager::KEntityManager():
+		_kcompCount(0)
+	{
+		for (U8 i = 0; i < KCOMP_MAX_SIZE; ++i) {
 			_kcstorage[i] = nullptr;
 		}
 
 		// create root
 		_kroot = _kestorage.add(KEntity("Root"));
-		_kestorage.get(_kroot)->setHandle(_kroot);
+		_kestorage.get(_kroot)->_khandle = _kroot;
 
 		// set storages
-		_kestorage.get(_kroot)->setCStorage(_kcstorage);
-		_kestorage.get(_kroot)->setEStorage(&_kestorage);
+		_kestorage.get(_kroot)->_kcstorage = _kcstorage;
+		_kestorage.get(_kroot)->_kestorage = &_kestorage;
 		_kestorage.get(_kroot)->setActive(false);
 
 		// register it's to map
@@ -44,7 +48,7 @@ namespace Kite {
 	}
 
 	KEntityManager::~KEntityManager() {
-		for (U8 i = 0; i < (U8)KComTypes::KCT_MAX_COMP_SIZE; i++) {
+		for (U8 i = 0; i < KCOMP_MAX_SIZE; ++i) {
 			if (_kcstorage[i] != nullptr) {
 				delete _kcstorage[i];
 				_kcstorage[i] = nullptr;
@@ -67,14 +71,15 @@ namespace Kite {
 		// create new entity and set its id
 		auto hndl = _kestorage.add(KEntity(Name));
 		auto ent = _kestorage.get(hndl);
-		ent->setHandle(hndl);
+		ent->_khandle = hndl;
 
 		// set storages
-		ent->setCStorage(_kcstorage);
-		ent->setEStorage(&_kestorage);
+		ent->_kcstorage = _kcstorage;
+		ent->_kestorage = &_kestorage;
+		ent->_kctypes = &_kctypes;
 
 		// added it to root by default
-		ent->setHParrent(false);
+		ent->_khparrent = false;
 		getEntity(getRoot())->addChild(hndl);
 
 		// register it's to map
@@ -85,7 +90,7 @@ namespace Kite {
 		msg.setType("ENTITY_CREATED");
 		msg.setData((void *)&hndl, sizeof(U32));
 		postMessage(msg, KMessageScopeTypes::KMS_ALL);
-
+	
 		return hndl;
 	}
 
@@ -120,8 +125,9 @@ namespace Kite {
 	KEntity *KEntityManager::getEntity(const KHandle &Handle) {
 		auto ent = _kestorage.get(Handle);
 		if (ent != nullptr) {
-			ent->setCStorage(_kcstorage);
-			ent->setEStorage(&_kestorage);
+			ent->_kcstorage = _kcstorage;
+			ent->_kestorage = &_kestorage;
+			ent->_kctypes = &_kctypes;
 		}
 		return ent;
 	}
@@ -135,20 +141,71 @@ namespace Kite {
 		return nullptr;
 	}
 
-	void KEntityManager::unregisterComponent(KComTypes Type) {
-		if (_kcstorage[(U8)Type] != nullptr) {
-			_kcstorage[(U8)Type]->clear();
-			delete _kcstorage[(U8)Type];
-			_kcstorage[(U8)Type] = nullptr;
+	void KEntityManager::unregisterComponent(const std::string &CType) {
+		auto found = _kctypes.find(CType);
+		if (found != _kctypes.end()) {
+			if (_kcstorage[found->second] != nullptr) {
+				_kcstorage[found->second]->clear();
+				delete _kcstorage[found->second];
+				_kcstorage[found->second] = nullptr;
+				_kctypes.erase(CType);
+			}
 		}
 	}
 
-	bool KEntityManager::isRegistered(KComTypes Type) {
-		if (_kcstorage[(U8)Type] == nullptr) {
-			return false;
+	bool KEntityManager::isModified() {
+		if (_kestorage.getModified()) {
+			return true;
 		}
 
-		return true;
+		for (SIZE i = 0; i < KCOMP_MAX_SIZE; ++i) {
+			if (_kcstorage[i] != nullptr) {
+				if (_kcstorage[i]->getModified()) {
+					return true;
+				}
+			}
+		}
+
+		return false;
+	}
+
+	bool KEntityManager::isRegisteredComponent(const std::string &CType) {
+		auto found = _kctypes.find(CType);
+		if (found != _kctypes.end()){
+			if (_kcstorage[found->second] != nullptr) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	void KEntityManager::serial(KBaseSerial &Out) const {
+		Out << _kroot;
+		Out << _kestorage;
+
+		for (U32 i = 0; i < KCOMP_MAX_SIZE; ++i) {
+			if (_kcstorage[i] != nullptr) {
+				_kcstorage[i]->serial(Out);
+			}
+		}
+		Out << _kentmap;
+		Out << _kctypes;
+		Out << _kcompCount;
+	}
+
+	void KEntityManager::deserial(KBaseSerial &In) {
+		In >> _kroot;
+		In >> _kestorage;
+
+		for (U32 i = 0; i < KCOMP_MAX_SIZE; ++i) {
+			if (_kcstorage[i] != nullptr) {
+				_kcstorage[i]->deserial(In);
+			}
+		}
+		In >> _kentmap;
+		In >> _kctypes;
+		In >> _kcompCount;
 	}
 
 	KMETA_KENTITYMANAGER_SOURCE();

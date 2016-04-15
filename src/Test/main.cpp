@@ -8,6 +8,7 @@
 #include <Kite\logic\klogiccom.h>
 #include <Kite\math\ktransformsys.h>
 #include <Kite\math\ktransformcom.h>
+#include <Kite/serialization/kbinaryserial.h>
 #include <cstdio>
 #include <luaintf\LuaIntf.h>
 #include <Kite/core/kvariant.h>
@@ -28,9 +29,22 @@ int main() {
 		lua_settop(vm, 0);
 	}
 
-	KMetaManager mman;
+	KCFStorage<KTransformCom> storage;
+	auto trc1 = storage.add(KTransformCom());
+	auto trc2 = storage.add(KTransformCom());
+	auto trc3 = storage.add(KTransformCom());
+	storage.remove(trc2);
+	auto trc4 = storage.add(KTransformCom());
+	auto trc5 = storage.add(KTransformCom());
+	auto trc6 = storage.add(KTransformCom());
+	storage.remove(trc5);
 
-	registerKiteMeta(&mman, vm);
+	KBinarySerial bserial;
+	//bserial << storage;
+
+	storage.clear();
+
+	//bserial >> storage;
 
 	KWindowState state;
 	state.title = "salam";
@@ -45,27 +59,31 @@ int main() {
 	KKeyboard::initeKeyboard();
 	KMouse::initeMouse();
 
+	KMetaManager mman;
 	KEntityManager eman;
-	//eman.registerComponent<KTransformCom>(KComTypes::KCT_TRANSFORM);
-	//eman.registerComponent<KInputCom>(KComTypes::KCT_INPUT);
-	eman.registerComponent<KLogicCom>(KComTypes::KCT_LOGIC);
-
+	KEntityManager eman2;
 	KResourceManager rman;
+	std::vector<std::unique_ptr<KSystem>> sys;
+
+	registerKiteMeta(&mman, vm);
+	registerCTypes(eman);
+	createSystems(sys);
+
+	for (auto it = sys.begin(); it != sys.end(); ++it) {
+		(*it)->inite((void *)vm);
+	}
 
 	auto scrip = rman.load<KScript, KFIStream>("e:\\lt.txt", false);
 	auto scrip2 = rman.load<KScript, KFIStream>("e:\\lt2.txt", false);
 
-	KTransformSys trsys;
-	trsys.inite(nullptr);
 
-	KInputSys insys;
-	insys.inite(nullptr);
-
-	KLogicSys lsys;
-	lsys.inite((void *)vm);
-
-
-	auto ent1 = eman.createEntity("MyEnt1");
+	for (U32 i = 0; i < 10; ++i) {
+		auto ent = eman.createEntity(std::string("ent" + std::to_string(i)));
+		auto comp = eman.getEntity(ent)->addComponent("Logic", "logcomp");
+		auto compptr = (KLogicCom *)eman.getEntity(ent)->getComponent("Logic", comp);
+		compptr->setScript("e:\\lt.txt");
+	}
+	/*auto ent1 = eman.createEntity("MyEnt1");
 	auto ent2 = eman.createEntity("MyEnt2");
 	auto ent3 = eman.createEntity("MyEnt3");
 	auto ent4 = eman.createEntity("MyEnt4");
@@ -86,29 +104,46 @@ int main() {
 	eman.getEntity(ent2)->addChild(ent5);
 	eman.getEntity(ent2)->addChild(ent6);
 
-	eman.getEntity(ent1)->addComponent(KComTypes::KCT_TRANSFORM);
-	eman.getEntity(ent2)->addComponent(KComTypes::KCT_INPUT);
-	eman.getEntity(ent2)->addComponent(KComTypes::KCT_LOGIC, "lcomp");
-	eman.getEntity(ent2)->addComponent(KComTypes::KCT_LOGIC, "lcomp2");
+	eman.getEntity(ent1)->addComponent("Transform");
+	eman.getEntity(ent2)->addComponent("Input");
+	eman.getEntity(ent1)->addComponent("Logic", "ent1comp");
+	eman.getEntity(ent2)->addComponent("Logic", "lcomp");
+	eman.getEntity(ent2)->addComponent("Logic", "lcomp2");
+	eman.getEntity(ent3)->addComponent("Logic", "ent3comp");
+	eman.getEntity(ent4)->addComponent("Logic", "ent4comp");
+	eman.getEntity(ent5)->addComponent("Logic", "ent5comp");
 
 	eman.removeEntityByName("MyEnt");
 
-	KLogicCom *lcomp = (KLogicCom *)eman.getEntityByName("MyEnt2")->getComponentByName(KComTypes::KCT_LOGIC, "lcomp");
+	KLogicCom *lcomp0 = (KLogicCom *)eman.getEntityByName("MyEnt1")->getComponentByName("Logic", "ent1comp");
+	lcomp0->setScript("e:\\lt.txt");
+
+	KLogicCom *lcomp = (KLogicCom *)eman.getEntityByName("MyEnt2")->getComponentByName("Logic", "lcomp");
 	lcomp->setScript("e:\\lt.txt");
 
-	KAny var2;
-	var2 = lcomp->getProperty("Script");
+	KLogicCom *lcomp2 = (KLogicCom *)eman.getEntityByName("MyEnt2")->getComponentByName("Logic", "lcomp2");
+	lcomp2->setScript("e:\\lt.txt");
 
-	KLogicCom *lcomp2 = (KLogicCom *)eman.getEntityByName("MyEnt2")->getComponentByName(KComTypes::KCT_LOGIC, "lcomp2");
-	lcomp2->setScript("e:\\lt2.txt");
+	KLogicCom *lcomp3 = (KLogicCom *)eman.getEntityByName("MyEnt3")->getComponentByName("Logic", "ent3comp");
+	lcomp3->setScript("e:\\lt.txt");
+
+	KLogicCom *lcomp4 = (KLogicCom *)eman.getEntityByName("MyEnt4")->getComponentByName("Logic", "ent4comp");
+	lcomp4->setScript("e:\\lt.txt");
+
+	KLogicCom *lcomp5 = (KLogicCom *)eman.getEntityByName("MyEnt5")->getComponentByName("Logic", "ent5comp");
+	lcomp5->setScript("e:\\lt.txt");
 	
+	bserial << eman;
 	//eman.removeEntity("MyEnt");
 
-	for (auto it = eman.beginComponent<KLogicCom>(KComTypes::KCT_LOGIC);
-	it != eman.endComponent<KLogicCom>(KComTypes::KCT_LOGIC); ++it) {
+	for (auto it = eman.beginComponent<KLogicCom>("Logic");
+	it != eman.endComponent<KLogicCom>("Logic"); ++it) {
 		printf("comp name: %s\n", (*it).getName().c_str());
-	}
+	}*/
 
+	KMessage msg;
+	msg.setType("TEST_TYPE");
+	
 	while (win.update()) {
 		if (KMouse::isAnyKeyDown() && KKeyboard::isButtonPressed(KKCode::U)) {
 			printf("e pressed\n");
@@ -128,9 +163,11 @@ int main() {
 			printf("u + lctrl pressed\n");
 		}
 
-		trsys.update(0, eman, rman);
-		insys.update(0, eman, rman);
-		lsys.update(0, eman, rman);
+		for (auto it = sys.begin(); it != sys.end(); ++it) {
+			(*it)->update(0, eman, rman);
+		}
+
+		//eman.getEntity(ent2)->onMessage(msg, KMessageScopeTypes::KMS_SELF);
 	}
 	return 0;
 }

@@ -36,7 +36,10 @@ namespace Kite {
 		bool inite(void *Data);
 
 	private:
-		void cathcAndRegist(KLogicCom *Component, KResourceManager &RManager);
+		void cathcAndRegist(KEntity *Self, KLogicCom *Component, KResourceManager &RManager);
+		void initeComp(KEntity *Self, KLogicCom *Component);
+		void startComp(KEntity *Self, KLogicCom *Component);
+		void updateComp(F32 Delta,KEntity *Self, KLogicCom *Component);
 		lua_State *_klvm;
 	};
 }

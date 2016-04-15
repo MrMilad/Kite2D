@@ -25,16 +25,18 @@ USA
 
 namespace Kite {
 	KInputCom::KInputCom(const std::string &Name):
-		KComponent(Name),
+		KComponent("Input"),
 		_kkeyboard(true), _kmouse(true), _kjoystick(false)
-	{
-		setNeedUpdateRes(false);
-	}
+	{}
 
 
 	void KInputCom::attached() {}
 
 	void KInputCom::deattached() {}
+
+	KRecieveTypes KInputCom::onMessage(KMessage &Message, KMessageScopeTypes Scope) {
+		return KRecieveTypes::KMR_IGNORED;
+	}
 
 	KMETA_KINPUTCOM_SOURCE();
 }

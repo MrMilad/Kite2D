@@ -28,6 +28,7 @@ USA
 #include "Kite/core/kmessenger.h"
 #include "Kite/meta/kmetadef.h"
 #include "Kite/serialization/kserialization.h"
+#include "Kite/core/kcfstorage.h"
 #include <unordered_map>
 #include <string>
 #include <vector>
@@ -42,21 +43,27 @@ namespace Kite {
 		KMETA_KENTITY_BODY();
 
 	public:
-		KEntity(const std::string &Name);
+		KEntity(const std::string &Name = "");
 		virtual ~KEntity();
 
 		/// redirect recieved message to all sub-components
 		KM_FUN()
 		KRecieveTypes onMessage(KMessage &Message, KMessageScopeTypes Scope);
 
-		KM_PRO_GET("pHandle", U32, "parrent handle")
+		KM_PRO_GET("pHandle", KHandle, "parrent handle")
 		inline const KHandle &getParrentHandle() const { return _kphandle; }
 
-		KM_PRO_GET("handle", U32, "entity handle")
+		KM_PRO_GET("handle", KHandle, "entity handle")
 		inline const KHandle &getHandle() const { return _khandle; }
 
 		KM_PRO_GET("name", std::string, "entity unique name")
 		inline const std::string &getName() const { return _kname; }
+
+		KM_PRO_GET("listener", KListener, "entity message listener")
+		inline KListener &getListener() { return *(KListener *)this; }
+
+		KM_PRO_GET("messenger", KMessenger, "entity messenger")
+		inline KMessenger &getMessenger() { return *(KMessenger *)this; }
 
 		KM_PRO_GET("active", bool, "is active")
 		inline bool getActive() const { return _kactive; }
@@ -64,29 +71,32 @@ namespace Kite {
 		KM_PRO_SET("active")
 		inline void setActive(bool Active) { _kactive = Active; }
 
-		KM_FUN()
-		KHandle addComponent(KComTypes Type, const std::string &ComponentName = "");
+		KM_PRO_GET("hasParrent", bool, "component has parrent")
+		inline bool hasParrent() const { return _khparrent; }
 
 		KM_FUN()
-		KComponent *getComponent(KComTypes Type, const KHandle &CHandle);
+		KHandle addComponent(const std::string &CType, const std::string &CName = "");
 
 		KM_FUN()
-		KComponent *getComponentByName(KComTypes Type, const std::string &ComponentName);
+		KComponent *getComponent(const std::string &CType, const KHandle &CHandle);
+
+		KM_FUN()
+		KComponent *getComponentByName(const std::string &CType, const std::string &CName);
 
 		KM_FUN()
 		void getScriptComponents(std::vector<KComponent *> &Output);
 
 		KM_FUN()
-		bool hasComponent(KComTypes Type, const std::string &Name);
+		bool hasComponent(const std::string &CType, const std::string &Name);
 
 		KM_FUN()
-		bool hasComponentType(KComTypes Type);
+		bool hasComponentType(const std::string &CType);
 
 		KM_FUN()
-		KHandle getComponentHandle(KComTypes Type, const std::string &Name);
+		KHandle getComponentHandle(const std::string &CType, const std::string &Name);
 
 		KM_FUN()
-		void removeComponent(KComTypes Type, const std::string &ComponentName = "");
+		void removeComponent(const std::string &CType, const std::string &ComponentName = "");
 
 		KM_FUN()
 		void clearComponents();
@@ -109,17 +119,8 @@ namespace Kite {
 
 	private:
 		// internal use 
-		inline void setCStorage(Internal::BaseCHolder<KComponent> **Storage) { _kcstorage = Storage; }
-		inline void setEStorage(Internal::CFStorage<KEntity> *Storage) { _kestorage = Storage; }
-		void setComponent(KComTypes Type, const std::string &Name, const KHandle &Index);
-
-		inline void setHandle(const KHandle &Handle) { _khandle = Handle; }
-		inline void setPHandle(const KHandle &Handle) { _kphandle = Handle; }
-		inline void setPListID(U32 PLID) { _kplistid = PLID; }
-		inline U32 getPListID() const { return _kplistid; }
+		void setComponent(const std::string &CType, const std::string &Name, const KHandle &Index);
 		void remChildIndex(U32 ID);
-		inline bool hasParrent() const { return _khparrent; }
-		inline void setHParrent(bool Par) { _khparrent = Par; }
 		
 		KM_VAR() bool _kactive;											// entity actitvity state
 		KM_VAR() bool _khparrent;										// entity actitvity state
@@ -127,14 +128,14 @@ namespace Kite {
 		KM_VAR() KHandle _kphandle;										// entity parrent handle
 		KM_VAR() U32 _kplistid;											// entity self id in the parrent list
 		KM_VAR() std::string _kname;									// entity unique name
-		KM_VAR() KHandle _kfixedComp[(U8)KComTypes::KCT_MAX_COMP_SIZE]; // fixed components slots (built-in components)
+		KM_VAR() std::unordered_map<std::string, KHandle> _kfixedComp;	// fixed components slots (built-in components)
 		KM_VAR() std::unordered_map<std::string, KHandle> _kscriptComp;	// dynamic components slots (logic components)
 		KM_VAR() std::vector<KHandle> _kchilds;							// children list
 
 		// runtime variables (
 		Internal::BaseCHolder<KComponent>  **_kcstorage;
-		Internal::CFStorage<KEntity> *_kestorage;
-
+		KCFStorage<KEntity> *_kestorage;
+		std::unordered_map<std::string, U16> *_kctypes;
 	};
 }
 

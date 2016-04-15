@@ -58,9 +58,15 @@ namespace Kite {
 			_kdata = other.getData();
 			_kconsume = other.getConsume();
 			_ktype = other.getType();
-			_ktblName = other.getLuaTable();
+			_kdtable = other._kdtable;
 		}
 		return *this;
+	}
+
+	void KMessage::setDataTable(LuaIntf::LuaRef &Table) {
+		if (Table.isValid()) {
+			_kdtable = Table;
+		}
 	}
 
 	KMETA_KMESSAGE_SOURCE();

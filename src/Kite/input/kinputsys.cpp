@@ -27,9 +27,9 @@ USA
 
 namespace Kite {
 	void KInputSys::update(F32 Delta, KEntityManager &EManager, KResourceManager &RManager) {
-		if (EManager.isRegistered(KComTypes::KCT_INPUT)) {
-			for (auto it = EManager.beginComponent<KInputCom>(KComTypes::KCT_INPUT);
-			it != EManager.endComponent<KInputCom>(KComTypes::KCT_INPUT); ++it) {
+		if (EManager.isRegisteredComponent("Input")) {
+			for (auto it = EManager.beginComponent<KInputCom>("Input");
+			it != EManager.endComponent<KInputCom>("Input"); ++it) {
 				auto EHandle = it->getOwnerHandle();
 				auto entity = EManager.getEntity(EHandle);
 				if (entity->getActive()) {

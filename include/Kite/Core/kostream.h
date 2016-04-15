@@ -21,11 +21,15 @@ USA
 #define KOSTREAM_H
 
 #include "Kite/core/kcoredef.h"
+#include "Kite/core/kcoretypes.h"
+#include <string>
 
 namespace Kite {
 	class KITE_FUNC_EXPORT KOStream {
 	public:
 		virtual ~KOStream() {}
+
+		virtual bool open(const std::string &Address, KIOTypes Type) = 0;
 
 		virtual bool write(void *Data, SIZE DataSize) = 0;
 

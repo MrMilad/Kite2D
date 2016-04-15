@@ -32,14 +32,17 @@ namespace Kite{
 	KM_CLASS(COMPONENT)
     class KITE_FUNC_EXPORT KTransformCom: public KComponent{
 		friend class KTransformSys;
+		KM_INFO("CType", "Transform");
 		KMETA_KTRANSFORMCOM_BODY();
     public:
 		/// construct a transform (unit matrix)
-		KTransformCom(const std::string &Name);
+		KTransformCom(const std::string &Name = "");
 
 		void attached() override;
 
 		void deattached() override;
+
+		KRecieveTypes onMessage(KMessage &Message, KMessageScopeTypes Scope) override;
 
         /// set position
         /// completely restore the previous position

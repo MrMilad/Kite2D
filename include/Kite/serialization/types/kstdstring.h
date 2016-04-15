@@ -54,7 +54,7 @@ namespace Kite {
 			Value.insert(0, (const char *)temp, strSize);
 
 			// free buffer
-			delete temp;
+			delete[] temp;
 		}
 
 		return In;

@@ -24,6 +24,7 @@ USA
 #include "Kite/meta/kmetadef.h"
 #include <memory>
 #include <string>
+#include <luaintf\LuaIntf.h>
 #include "kmessage.khgen.h"
 
 KMETA
@@ -57,6 +58,13 @@ namespace Kite {
 		KM_FUN()
 		inline void use() { ++_kused; }
 
+		// set massege data. (lua only)
+		KM_FUN()
+		void setDataTable(LuaIntf::LuaRef &Table);
+
+		KM_FUN()
+		inline LuaIntf::LuaRef &getDataTable() { return _kdtable; }
+
 		KM_PRO_GET("getUse", U32, "use counter")
 		inline U32 getUse() const { return _kused; }
 
@@ -70,24 +78,17 @@ namespace Kite {
 		// set massege data. (c++ only)
 		void setData(void *Data, SIZE Size);
 
-		// internal use only (in KMessenger)
-		inline const std::string &getLuaTable() const { return _ktblName; }
-
 		// copy assignment
 		KMessage& operator=(const KMessage& other);
 
 	private:
-		// set lua data table. (script only)
-		KM_FUN()
-		inline void setDataTable(const std::string &TableName) { _ktblName = TableName; }
-
 		U32 _khash;
 		U32 _kused;
 		SIZE _ksize;
 		void *_kdata;
 		bool _kconsume;
 		std::string _ktype;
-		std::string _ktblName;
+		LuaIntf::LuaRef _kdtable;
 	};
 }
 

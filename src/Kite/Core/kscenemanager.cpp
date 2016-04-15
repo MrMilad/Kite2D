@@ -17,32 +17,26 @@ License along with this library; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 USA
 */
-#ifndef KSCRIPT_H
-#define KSCRIPT_H
+#include "Kite/core/kscenemanager.h"
+#include "Kite/meta/kmetamanager.h"
+#include "Kite/meta/kmetaclass.h"
+#include <luaintf\LuaIntf.h>
 
-#include "Kite/core/kcoredef.h"
-#include "Kite/core/kresource.h"
-#include "Kite/meta/kmetadef.h"
-#include <string>
-#include "kscript.khgen.h"
-
-KMETA
 namespace Kite {
-	KM_CLASS(RESOURCE)
-	class KITE_FUNC_EXPORT KScript : public KResource {
+	KSceneManager::KSceneManager(KResourceManager &RMan) :
+		_kactive(nullptr), _krman(&RMan) {}
 
-		KM_INFO("RType", "Script");
-		KMETA_KSCRIPT_BODY();
-	public:
-		KScript(const std::string &Name);
+	void KSceneManager::unloadScene(const std::string &Name) {
 
-		bool loadStream(KIStream &Stream, U32 Flag = 0);
+	}
 
-		inline const std::string &getCode() const { return _kcode; }
+	KScene *KSceneManager::getScene(const std::string &Name) {
 
-	private:
-		std::string _kcode;
-	};
+	}
+
+	bool KSceneManager::setActiveScene(const std::string &Name) {
+
+	}
+
+	KMETA_KSCENEMANAGER_SOURCE();
 }
-
-#endif // KSCRIPT_H

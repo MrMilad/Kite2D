@@ -43,7 +43,6 @@ USA
 // property flags
 #define KMFLAG_FINAL	1024
 
-
 #define nullCast(T) (reinterpret_cast<T *>(NULL))
 
 #define MERGE_STR(w1, w2) #w1#w2

@@ -27,15 +27,27 @@ USA
 namespace Kite {
 	KLogicCom::KLogicCom(const std::string &Name) :
 		KComponent(Name),
-		_klstate(nullptr)
+		_kinite(false), _kstart(false), _klstate(nullptr)
 		{}
 
 	void KLogicCom::attached() {
-		_kcname = "ENT" + std::to_string(getOwnerHandle().index);
+		_ktname = "ENT" + std::to_string(getOwnerHandle().index);
 	}
 
 	void KLogicCom::deattached() {
 		removeLuaEnv();
+	}
+
+	KRecieveTypes KLogicCom::onMessage(KMessage &Message, KMessageScopeTypes Scope) {
+		 std::string ctable = "_G.ENTITIES." + _ktname + "." + getName() + ".onMessage";
+		if (_klstate != nullptr) {
+			LuaIntf::LuaRef lref(_klstate, ctable.c_str());
+			if (lref.isFunction()) {
+				lref(Message);
+				return KRecieveTypes::KMR_RECEIVED;
+			}
+		}
+		return KRecieveTypes::KMR_IGNORED;
 	}
 
 	void KLogicCom::setScript(const std::string &ResName) {
@@ -43,15 +55,15 @@ namespace Kite {
 			if (ResName != _kresName) {
 				removeLuaEnv();
 				_kresName = ResName;
-				setNeedUpdateRes(true);
+				setNeedUpdate(true);
 			}
 		}
 	}
 
 	void KLogicCom::removeLuaEnv() {
 		// remove environment table from lua
+		std::string ctable = "_G.ENTITIES." + _ktname;
 		if (_klstate != nullptr) {
-			std::string ctable = "_G.ENTITIES." + _kcname;
 			LuaIntf::LuaRef lref(_klstate, ctable.c_str());
 			if (lref.isTable()) {
 				lref.remove(this->getName().c_str());

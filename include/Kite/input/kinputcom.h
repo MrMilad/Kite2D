@@ -29,13 +29,16 @@ KMETA
 namespace Kite {
 	KM_CLASS(COMPONENT)
 	class KITE_FUNC_EXPORT KInputCom : public KComponent {
+		KM_INFO("CType", "Input");
 		KMETA_KINPUTCOM_BODY();
 	public:
-		KInputCom(const std::string &Name);
+		KInputCom(const std::string &Name = "");
 
 		void attached() override;
 
 		void deattached() override;
+
+		KRecieveTypes onMessage(KMessage &Message, KMessageScopeTypes Scope) override ;
 
 		KM_PRO_SET("Keyboard")
 		inline void setEnableKeyboard(bool Enable) { _kkeyboard = Enable; }

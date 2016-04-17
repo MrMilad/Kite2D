@@ -20,9 +20,9 @@
 #ifndef KGEOMETRIC_H
 #define KGEOMETRIC_H
 
-#include "Kite/Core/system/ksystemdef.h"
-#include "Kite/Core/math/kmathstructs.h"
-#include "Kite/Core/math/kmathtypes.h"
+#include "Kite/core/kcoredef.h"
+#include "Kite/math/kmathstructs.h"
+#include "Kite/math/kmathtypes.h"
 
 namespace Kite{
 	class KITE_FUNC_EXPORT KGeometric{

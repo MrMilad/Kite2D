@@ -17,30 +17,12 @@ License along with this library; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 USA
 */
-#ifndef KLOGICSYS_H
-#define KLOGICSYS_H
+#ifndef KLOGIC_H
+#define KLOGIC_H
 
-#include "Kite/core/kcoredef.h"
-#include "Kite/core/ksystem.h"
+#include "Kite/logic/klogic.h"
 #include "Kite/logic/klogiccom.h"
-#include "klogicsys.khgen.h"
+#include "Kite/logic/klogicsys.h"
+#include "Kite/logic/kscript.h"
 
-KMETA
-namespace Kite {
-	KM_CLASS(SYSTEM)
-	class KITE_FUNC_EXPORT KLogicSys : public KSystem {
-		KMETA_KLOGICSYS_BODY();
-	public:
-		void update(F32 Delta, KEntityManager &EManager, KResourceManager &RManager);
-
-		bool inite(void *Data);
-
-	private:
-		void cathcAndRegist(KLogicCom *Component, KResourceManager &RManager);
-		void initeComp(KEntity *Self, KLogicCom *Component);
-		void startComp(KEntity *Self, KLogicCom *Component);
-		void updateComp(F32 Delta,KEntity *Self, KLogicCom *Component);
-		lua_State *_klvm;
-	};
-}
-#endif // KLOGICSYS_H
+#endif // KLOGIC_H

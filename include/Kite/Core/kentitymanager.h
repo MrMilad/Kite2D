@@ -93,10 +93,16 @@ namespace Kite {
 		KM_FUN()
 		bool isRegisteredComponent(const std::string &CType);
 
-		/// create entity in the root branch (parrent = 0)
+		/// create entity in the root branch. (parrent = 0)
+		/// after creating one entity, all previous pointers may be invalid.
+		/// so always use handle whene need an older entity.
 		KM_FUN()
 		KHandle createEntity(const std::string &Name = "");
 
+		/// entity will not be deleted immediately
+		/// but marked as deactive and stored in trash list
+		/// it will removed after calling postWork function.
+		/// we use this methode to prevent dangling pointer during updates.
 		KM_FUN()
 		void removeEntity(const KHandle &Handle);
 
@@ -114,6 +120,8 @@ namespace Kite {
 
 		KM_PRO_GET("root", KHandle, "root entity")
 		inline const KHandle &getRoot() const { return _kroot; }
+
+		void postWork();
 
 		inline auto beginEntity() { return _kestorage.begin(); }
 
@@ -146,6 +154,7 @@ namespace Kite {
 		Internal::BaseCHolder<KComponent> *_kcstorage[KCOMP_MAX_SIZE];
 		std::unordered_map<std::string, KHandle> _kentmap;
 		std::unordered_map<std::string, U16> _kctypes;
+		std::vector<KHandle> _ktrash;
 		U16 _kcompCount;
 	};
 }

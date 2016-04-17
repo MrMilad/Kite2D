@@ -69,7 +69,7 @@ namespace Kite{
 		KM_OPE(KO_MUL)
 		KMatrix3 luaMulOpr(const KMatrix3 &right) const;
 
-        KM_VAR() F32 _kmatrix[9];
+        KM_VAR(UNBIND) F32 _kmatrix[9];
     };
 }
 

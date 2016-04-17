@@ -179,18 +179,6 @@ namespace Kite{
 		static inline void move(KVector2<T>& v, T mx, T my) { v.x += mx; v.y += my; }
 
 		private:
-			KM_PRO_GET("x", T, "value of x")
-				inline T getX() const { return x; }
-
-			KM_PRO_SET("x")
-				inline void setX(T X) { x = X; }
-
-			KM_PRO_GET("y", T, "value of y")
-				inline T getY() const { return y; }
-
-			KM_PRO_SET("y")
-				inline void setY(T Y) { y = Y; }
-
 			KM_OPE(KO_ADD)
 				KVector2<T> luaAddOpr(const KVector2<T> &right) const { return operator+(right); }
 
@@ -244,32 +232,6 @@ namespace Kite{
 			return KRect<T>(left - Right.x, right - Right.x,
 							bottom - Right.y, top - Right.y);
 		}
-
-	private:
-		KM_PRO_GET("left", T, "value of left")
-			inline T getLeft() const { return left; }
-
-		KM_PRO_SET("left")
-			inline void setLeft(T Left) { left = Left; }
-
-		KM_PRO_GET("right", T, "value of right")
-			inline T getRight() const { return right; }
-
-		KM_PRO_SET("right")
-			inline void setRight(T Right) { right = Right; }
-
-		KM_PRO_GET("bottom", T, "value of bottom")
-			inline T getBottom() const { return bottom; }
-
-		KM_PRO_SET("bottom")
-			inline void setBottom(T Bottom) { bottom = Bottom; }
-
-		KM_PRO_GET("top", T, "value of top")
-			inline T getTop() const { return top; }
-
-		KM_PRO_SET("top")
-			inline void setTop(T Top) { top = Top; }
-
 	};
 
 	typedef KRect<U8>  KRectU8;
@@ -311,31 +273,6 @@ namespace Kite{
 			return KRect2<T>(leftBottom - right, leftTop - right,
 							 rightBottom - right, rightTop - right);
 		}
-
-	private:
-		KM_PRO_GET("leftBottom", KVector2<T>, "value of leftBottom")
-			inline KVector2<T> getLeftBottom() const { return leftBottom; }
-
-		KM_PRO_SET("leftBottom")
-			inline void setLeftBottom(KVector2<T> LeftBottom) { leftBottom = LeftBottom; }
-
-		KM_PRO_GET("rightBottom", KVector2<T>, "value of rightBottom")
-			inline KVector2<T> getRightBottom() const { return rightBottom; }
-
-		KM_PRO_SET("rightBottom")
-			inline void setRightBottom(KVector2<T> RightBottom) { rightBottom = RightBottom; }
-
-		KM_PRO_GET("leftTop", KVector2<T>, "value of leftTop")
-			inline KVector2<T> getLeftTop() const { return leftTop; }
-
-		KM_PRO_SET("leftTop")
-			inline void setLeftTop(KVector2<T> LeftTop) { leftTop = LeftTop; }
-
-		KM_PRO_GET("rightTop", KVector2<T>, "value of rightTop")
-			inline KVector2<T> getRightTop() const { return rightTop; }
-
-		KM_PRO_SET("rightTop")
-			inline void setRightTop(KVector2<T> RightTop) { rightTop = RightTop; }
 	};
 
 	typedef KRect2<U8>  KRect2U8;

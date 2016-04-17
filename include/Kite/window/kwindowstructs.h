@@ -23,15 +23,28 @@
 #include <vector>
 #include <string>
 #include "Kite/core/kcoredef.h"
+#include "Kite/meta/kmetadef.h"
 #include "Kite/window/kwindowtypes.h"
+#include "Kite/serialization/kserialization.h"
+#include "kwindowstructs.khgen.h"
 
+KMETA
 namespace Kite{
+	KM_CLASS(POD)
     struct KWindowState{
-        std::string title;
-        U8 oglMajor, oglMinor, swapInterval;
-        I32 width, height;
-        I32 xpos, ypos;
-        bool showCursor, fullscreen, resizable;
+		KMETA_KWINDOWSTATE_BODY();
+
+        KM_VAR() std::string title;
+		KM_VAR() U8 oglMajor;
+		KM_VAR() U8 oglMinor;
+		KM_VAR() U8 swapInterval;
+		KM_VAR() I32 width;
+		KM_VAR() I32 height;
+		KM_VAR() I32 xpos;
+		KM_VAR() I32 ypos;
+		KM_VAR() bool showCursor;
+		KM_VAR() bool fullscreen;
+		KM_VAR() bool resizable;
 
 		KWindowState(const std::string &Title = "Kite2D Window!",
 					 I32 Width = 200, I32 Height = 200,
@@ -50,8 +63,14 @@ namespace Kite{
         {}
     };
 
+	KM_CLASS(POD)
     struct KEnumDisplay{
-        I32 width, height, refreshRate, colorDepth;
+		KMETA_KENUMDISPLAY_BODY();
+
+		KM_VAR() I32 width;
+		KM_VAR() I32 height;
+		KM_VAR() I32 refreshRate;
+		KM_VAR() I32 colorDepth;
 
         KEnumDisplay(I32 Width = 0, I32 Height = 0,
                      I32 RefreshRate = 0, I32 ColorDepth = 0):
@@ -73,15 +92,6 @@ namespace Kite{
             return !(*this == right);
         }
 
-		/*friend KBytesArray &operator>>(KBytesArray &In, KEnumDisplay &Value) {
-			In >> Value.width >> Value.height >> Value.refreshRate >> Value.colorDepth;
-			return In;
-		}
-
-		friend KBytesArray &operator<<(KBytesArray &Out, const KEnumDisplay &Value) {
-			Out << Value.width << Value.height << Value.refreshRate << Value.colorDepth;
-			return Out;
-		}*/
     };
 
 }

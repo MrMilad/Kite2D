@@ -15,9 +15,9 @@ set(MAT_SRC
 
 # all header files
 set(MAT_INC
+    ${INCROOT}/kmath.h
     #${INCROOT}/kgeometric.h
     #${INCROOT}/kinterpolate.h
-    #${INCROOT}/kmath.h
     #${INCROOT}/ktween.h
     ${INCROOT}/kmathdef.h
     ${INCROOT}/kmathstructs.h

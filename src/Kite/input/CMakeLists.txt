@@ -14,7 +14,7 @@ set(INP_SRC
 
 # all header files
 set(INP_INC
-    #${INCROOT}/kinput.h
+    ${INCROOT}/kinput.h
     ${INCROOT}/kinputstructs.h
     ${INCROOT}/kinputtypes.h
     #${INCROOT}/kjoystick.h

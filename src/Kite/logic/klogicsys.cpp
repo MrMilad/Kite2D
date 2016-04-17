@@ -48,7 +48,7 @@ namespace Kite {
 
 						// inite component and bind it to lua vm (only one time when current script changed with a new script)
 						if (lcomp->getNeedUpdate()) {
-							cathcAndRegist(entity, (KLogicCom *)(*comp), RManager);
+							cathcAndRegist((KLogicCom *)(*comp), RManager);
 						}
 
 						// inite component (calling inite, only 1 time befor start)
@@ -95,11 +95,11 @@ namespace Kite {
 		// call update function
 		LuaIntf::LuaRef ctable(_klvm, address.c_str());
 		if (ctable.isFunction()) {
-			ctable(Self, Delta);
+			ctable(&Self, Delta);
 		}
 	}
 
-	void KLogicSys::cathcAndRegist(KEntity *Self, KLogicCom *Component, KResourceManager &RManager) {
+	void KLogicSys::cathcAndRegist(KLogicCom *Component, KResourceManager &RManager) {
 		// retrive script rsource from resource manager
 		KScript *script = (KScript *)RManager.get(Component->getScript());
 		Component->_kscript = script;
@@ -150,7 +150,7 @@ namespace Kite {
 		address.append(".inite");
 		LuaIntf::LuaRef ctable(_klvm, address.c_str());
 		if (ctable.isFunction()) {
-			ctable(Self);
+			ctable(&Self);
 		}
 	}
 
@@ -160,7 +160,7 @@ namespace Kite {
 		address.append(".start");
 		LuaIntf::LuaRef ctable(_klvm, address.c_str());
 		if (ctable.isFunction()) {
-			ctable(Self);
+			ctable(&Self);
 		}
 	}
 

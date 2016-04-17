@@ -25,7 +25,9 @@ USA
 #include "Kite/serialization/types/kstdstring.h"
 #include "Kite/serialization/types/kstdvector.h"
 #include "Kite/serialization/types/kstdpair.h"
+#include "Kite/serialization/types/kstdumap.h"
 #include <luaintf\LuaIntf.h>
+#include <utility>
 
 namespace Kite {
 	KScene::KScene(const std::string &Name) :
@@ -43,7 +45,7 @@ namespace Kite {
 		}
 
 		bserial >> _kname;
-		bserial >> _kassets;
+		bserial >> _kres;
 		bserial >> _keman;
 
 		_kloaded = true;
@@ -54,7 +56,7 @@ namespace Kite {
 		KBinarySerial bserial;
 
 		bserial << _kname;
-		bserial << _kassets;
+		bserial << _kres;
 		bserial << _keman;
 
 		if (!bserial.saveStream(Stream)) {
@@ -63,6 +65,21 @@ namespace Kite {
 		}
 
 		return true;
+	}
+
+	bool KScene::addResource(const std::string &RName, const std::string &RType, U32 Flag) {
+		auto found = _kres.find(RName);
+		if (found != _kres.end()) {
+			KD_FPRINT("this resource is exist. rname: %s", RName.c_str());
+			return false;
+		}
+
+		_kres.insert({ RName, {RType, Flag}});
+		return true;
+	}
+
+	void KScene::removeResource(const std::string &RName) {
+		_kres.erase(RName);
 	}
 
 	KMETA_KSCENE_SOURCE();

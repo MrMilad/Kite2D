@@ -11,6 +11,7 @@ set(LOG_SRC
 
 # all header files
 set(LOG_INC
+    ${INCROOT}/klogic.h
     ${INCROOT}/klogiccom.h
     ${INCROOT}/klogicsys.h
     ${INCROOT}/kscript.h

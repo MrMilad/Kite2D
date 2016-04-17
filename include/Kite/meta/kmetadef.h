@@ -40,6 +40,9 @@ USA
 #define KO_SUB
 #define KO_DIV
 
+// variable modifiers
+#define UNBIND  // add this flag for unbindable pod's variables. eg: arrays or private variables
+
 // property flags
 #define KMFLAG_FINAL	1024
 

@@ -27,7 +27,7 @@ USA
 #include "Kite/core/kostream.h"
 #include "Kite/meta/kmetadef.h"
 #include <string>
-#include <vector>
+#include <unordered_map>
 #include "kscene.khgen.h"
 
 KMETA
@@ -36,6 +36,7 @@ namespace Kite {
 	class KITE_FUNC_EXPORT KScene : public KResource {
 		friend class KSceneManager;
 
+		// KM_INFO("CatchStream", "false"); // false by default
 		KM_INFO("RType", "Scene");
 		KMETA_KSCENE_BODY();
 	public:
@@ -53,11 +54,18 @@ namespace Kite {
 		inline auto &getEManager() { return _keman; }
 		inline const auto &getName() { return _kname; }
 
+		bool addResource(const std::string &RName, const std::string &RType, U32 Flag = 0);
+
+		void removeResource(const std::string &RName);
+
+		inline auto beginResource() { return _kres.begin(); }
+		inline auto endResource() { return _kres.end(); }
+
 	private:
 		inline void setName(const std::string &Name) { _kname = Name; }
 
 		std::string _kname;
-		std::vector<std::pair<std::string, std::string>> _kassets; // <type, name>
+		std::unordered_map<std::string, std::pair<std::string, U32>> _kres; // <name, <type, flag>>
 		KEntityManager _keman;
 		bool _kloaded;
 	};

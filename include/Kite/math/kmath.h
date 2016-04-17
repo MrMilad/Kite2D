@@ -20,12 +20,14 @@
 #ifndef KMATH_H
 #define KMATH_H
 
-#include "Kite/Core/math/kmathdef.h"
-#include "Kite/Core/math/kmathtypes.h"
-#include "Kite/Core/math/kmathstructs.h"
-#include "Kite/Core/math/kgeometric.h"
-#include "Kite/Core/math/kmatrix3.h"
-#include "Kite/Core/math/ktransform.h"
-#include "Kite/Core/math/ktween.h"
+#include "Kite/math/kmathdef.h"
+#include "Kite/math/kmathtypes.h"
+#include "Kite/math/kmathstructs.h"
+//#include "Kite/math/kgeometric.h"
+#include "Kite/math/kmatrix3.h"
+#include "Kite/math/ktransform.h"
+//#include "Kite/math/ktween.h"
+#include "Kite/math/ktransformcom.h"
+#include "Kite/math/ktransformsys.h"
 
 #endif // KMATH_H

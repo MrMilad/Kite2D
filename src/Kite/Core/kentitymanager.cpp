@@ -50,6 +50,7 @@ namespace Kite {
 	KEntityManager::~KEntityManager() {
 		for (U8 i = 0; i < KCOMP_MAX_SIZE; ++i) {
 			if (_kcstorage[i] != nullptr) {
+				_kcstorage[i]->clear();
 				delete _kcstorage[i];
 				_kcstorage[i] = nullptr;
 			}
@@ -100,13 +101,9 @@ namespace Kite {
 			KD_PRINT("invalid handle");
 		}
 
-		// remove all childs
-		if (ent->hasChild()) {
-			for (auto it = ent->beginChild(); it != ent->endChild(); ++it) {
-				_kestorage.remove((*it));
-			}
-		}
-		_kestorage.remove(Handle);
+		// mark removed entity as deactive and store it in trash list
+		ent->setActive(false);
+		_ktrash.push_back(Handle);
 
 		// post a message about this action
 		KMessage msg;
@@ -178,6 +175,32 @@ namespace Kite {
 		}
 
 		return false;
+	}
+
+	void KEntityManager::postWork() {
+		// iterarte over all handle in our trash list
+		for (auto it = _ktrash.begin(); it != _ktrash.end(); ++it) {
+			auto ent = _kestorage.get((*it));
+
+			if (ent != nullptr) {
+				// remove all childs
+				if (ent->hasChild()) {
+					for (auto cit = ent->beginChild(); cit != ent->endChild(); ++cit) {
+						auto child = _kestorage.get((*cit));
+						if (child != nullptr) {
+							child->clearComponents();
+							_kestorage.remove((*cit));
+						}
+					}
+				}
+
+				ent->clearComponents();
+				_kestorage.remove((*it));
+			}
+		}
+
+		// clear trash list
+		_ktrash.clear();
 	}
 
 	void KEntityManager::serial(KBaseSerial &Out) const {

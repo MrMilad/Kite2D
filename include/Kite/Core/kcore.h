@@ -20,10 +20,13 @@
 #ifndef KCORE_H
 #define KCORE_H
 
+#include "Kite/core/kany.h"
+#include "Kite/core/kvariant.h"
 #include "Kite/core/kcoredef.h"
 #include "Kite/core/kcoretypes.h"
 #include "Kite/core/kcorestructs.h"
 #include "Kite/core/kcoreutil.h"
+#include "Kite/core/kostream.h"
 #include "Kite/core/kistream.h"
 #include "Kite/core/kfistream.h"
 #include "Kite/core/kmessage.h"
@@ -31,7 +34,10 @@
 #include "Kite/core/kmessenger.h"
 #include "Kite/core/kentity.h"
 #include "Kite/core/kentitymanager.h"
+#include "Kite/core/kresource.h"
 #include "Kite/core/kresourcemanager.h"
+#include "Kite/core/kscene.h"
+#include "Kite/core/kscenemanager.h"
 #include "Kite/core/kcomponent.h"
 #include "Kite/core/ksystem.h"
 

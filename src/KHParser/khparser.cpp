@@ -120,8 +120,10 @@ struct MOperator {
 struct MVariable {
 	std::string name;
 	std::string tokparam;
+	bool isStatic;
 
-	MVariable() {}
+	MVariable() :
+		isStatic(false) {}
 };
 
 struct MTemplate {
@@ -927,6 +929,12 @@ bool procVar(const std::string &Content, MVariable &Var, unsigned int Pos) {
 	for (auto i = 0; i < VAR_ATTRIB; i++) {
 		if (Pos < tpos && (checkNext(Content, Pos) != PS_BODY_START)) {
 			Pos = getNextWord(Content, Pos, output);
+
+			// is static
+			if (output == "static") {
+				Var.isStatic = true;
+				continue;
+			}
 			vList.push_back(output);
 		} else {
 			break;
@@ -1582,7 +1590,8 @@ void createTemplMacro(const MClass &Cls, std::string &Output) {
 			prpType = "KMP_BOTH";
 		}
 		Output.append("instance.addProperty(KMetaProperty(\"" + Cls.props[count].name + "\", \""
-						+ Cls.props[count].type + "\", \"" + Cls.props[count].comment + "\", " + prpType + "));\\\n");
+					  + Cls.props[count].type + "\", \"" + Cls.props[count].comment + "\", "
+					  + prpType + ", " + Cls.props[count].min + ", " + Cls.props[count].max + "));\\\n");
 	}
 
 	// functions
@@ -1662,6 +1671,25 @@ void createTemplMacro(const MClass &Cls, std::string &Output) {
 			Output.append(".addFunction(\"__div\", &" + Cls.name + "<" + Cls.templType + ">::" + Cls.opes[count].fun.name + ")\\\n");
 			continue;
 		}
+	}
+
+	// variables
+	std::vector<std::string> tpar;
+	for (size_t count = 0; count < Cls.vars.size(); count++) {
+		splitParam(Cls.vars[count].tokparam, tpar);
+		if (!tpar.empty()) {
+			if (tpar[0] == "UNBIND") {
+				continue;
+			}
+		}
+		std::string fista;
+		if (Cls.vars[count].isStatic) {
+			fista = "addStaticVariableRef";
+		} else {
+			fista = "addVariableRef";
+		}
+		Output.append("." + fista + "(\"" + Cls.vars[count].name + "\", &" + Cls.name + "<" + Cls.templType + ">::"
+						+ Cls.vars[count].name + ")\\\n");
 	}
 
 	// end of lua binding
@@ -1832,7 +1860,7 @@ void createMacros(const std::vector<MClass> &Cls, const std::vector<MEnum> &Enms
 		}
 
 		Output.append(exstate + "static void registerMeta(KMetaManager *MMan = nullptr, lua_State *Lua = nullptr);\\\n"
-					  "const std::string &getClassName() const { static std::string name(\"" + Cls[i].name + "\");\\\n"
+					  "virtual const std::string &getClassName() const { static std::string name(\"" + Cls[i].name + "\");\\\n"
 					  "return name;}\n");
 
 		// defention
@@ -1944,9 +1972,8 @@ void createMacros(const std::vector<MClass> &Cls, const std::vector<MEnum> &Enms
 			}
 
 			// functions 
-			std::string fista;
 			for (size_t count = 0; count < Cls[i].funcs.size(); count++) {
-
+				std::string fista;
 				if (Cls[i].funcs[count].ista) {
 					fista = "addStaticFunction";
 				} else {
@@ -1975,6 +2002,27 @@ void createMacros(const std::vector<MClass> &Cls, const std::vector<MEnum> &Enms
 				if (Cls[i].opes[count].type == OT_DIV) {
 					Output.append(".addFunction(\"__div\", &" + Cls[i].name + "::" + Cls[i].opes[count].fun.name + ")\\\n");
 					continue;
+				}
+			}
+
+			// variables (POD's only)
+			std::vector<std::string> tpar;
+			if (isPOD) {
+				for (size_t count = 0; count < Cls[i].vars.size(); count++) {
+					splitParam(Cls[i].vars[count].tokparam, tpar);
+					if (!tpar.empty()) {
+						if (tpar[0] == "UNBIND") {
+							continue;
+						}
+					}
+					std::string fista;
+					if (Cls[i].vars[count].isStatic) {
+						fista = "addStaticVariableRef";
+					} else {
+						fista = "addVariableRef";
+					}
+					Output.append("." + fista + "(\"" + Cls[i].vars[count].name + "\", &" + Cls[i].name + "::" 
+								  + Cls[i].vars[count].name + ")\\\n");
 				}
 			}
 
@@ -2112,9 +2160,17 @@ void createSource(const std::vector<std::string> &Files, const std::vector<MClas
 
 	for (size_t i = 0; i < Cls.size(); i++) {
 		if (Cls[i].type == CT_RES) {
+			std::string cstream("false");
+			for (size_t count = 0; count < Cls[i].infos.size(); ++count) {
+				if (Cls[i].infos[count].key == "CatchStream") {
+					cstream = Cls[i].infos[count].info;
+					continue;
+				}
+			}
 			for (size_t count = 0; count < Cls[i].infos.size(); ++count) {
 				if (Cls[i].infos[count].key == "RType") {
-					Output.append("RMan.registerResource(\"" + Cls[i].infos[count].info + "\", " + Cls[i].name + "::factory);\n");
+					Output.append("RMan.registerResource(\"" + Cls[i].infos[count].info + "\", " + Cls[i].name + "::factory, " 
+								  + cstream + ");\n");
 					break;
 				}
 			}

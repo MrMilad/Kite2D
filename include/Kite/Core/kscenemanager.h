@@ -27,6 +27,7 @@ USA
 #include <unordered_map>
 #include <string>
 #include <list>
+#include "kmeta.khgen.h"
 #include "kscenemanager.khgen.h"
 
 KMETA
@@ -41,26 +42,42 @@ namespace Kite {
 		/// S: stream type
 		template<typename S>
 		bool loadScene(const std::string &Name) {
-			KScene *scene = _krman->load<KScene, S>(Name, false);
+			KScene *scene = (KScene *)_krman->get(Name);
+			if (scene != nullptr) {
+				return true;
+			}
+
+			scene = (KScene *)_krman->load<S>("Scene", Name, false);
 			if (scene == nullptr) {
 				KD_FPRINT("can't load scene. sname: %s", Name.c_str());
 				return false;
 			}
 
-			//scene->_
+			// load scene resources
+			for (auto it = scene->beginResource(); it != scene->endResource(); ++it) {
+				_krman->load<S>(it->second.first, it->first, it->second.second);
+			}
+
+			registerCTypes(scene->getEManager());
 		}
 
+		KM_FUN()
 		void unloadScene(const std::string &Name);
 
+		KM_FUN()
 		KScene *getScene(const std::string &Name);
 
+		KM_PRO_GET("activeScene", KScene, "get active scene")
 		inline KScene *getActiveScene() { return _kactive; }
 
-		bool setActiveScene(const std::string &Name);
+		KM_PRO_SET("activeScene")
+		inline void setActiveScene(KScene *Scene) { _kactive = Scene; }
 
 	private:
+		void initeDefScene();
 		KResourceManager *_krman;
 		KScene *_kactive;
+		KScene _kdef;			// default scene (Kite2D Intro!)
 	};
 }
 

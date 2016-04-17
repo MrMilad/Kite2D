@@ -20,26 +20,23 @@ USA
 #include "Kite/core/kresourcemanager.h"
 
 namespace Kite {
-	KResourceManager::KResourceManager() :
-		_kdict(nullptr) {}
-		
 	KResourceManager::~KResourceManager() {
 		clear();
 	}
 
 
-	bool KResourceManager::registerResource(const std::string &RType, KResource *(*Func)(const std::string &)) {
+	bool KResourceManager::registerResource(const std::string &RType, KResource *(*Func)(const std::string &), bool CatchStream) {
 		auto found = _kfactory.find(RType);
 		if (found != _kfactory.end()) {
 			KD_FPRINT("this type has already been registered. rtype: %s", RType.c_str());
 			return false;
 		}
 
-		_kfactory.insert({ RType, Func });
+		_kfactory.insert({ RType, {Func, CatchStream}});
 		return true;
 	}
 
-	bool KResourceManager::add(const std::string &ResName, KResource *Resource, KIStream *CatchStream) {
+	/*bool KResourceManager::add(const std::string &ResName, KResource *Resource, KIStream *CatchStream) {
 		// checking file name
 		if (ResName.empty()) {
 			KD_PRINT("empty resource name is not valid");
@@ -74,13 +71,24 @@ namespace Kite {
 		// storing resource
 		_kmap.insert({ tempKey, pair });
 		return true;
-	}
+	}*/
 
-	KResource *KResourceManager::get(const std::string &ResName) {
+	KResource *KResourceManager::get(const std::string &Name) {
 		// checking file name
-		if (ResName.empty()) {
+		if (Name.empty()) {
 			KD_PRINT("empty resource name is not valid");
 			return nullptr;
+		}
+
+		// first check our dictionary
+		std::string ResName;
+		auto dfound = _kdict.find(ResName);
+
+		// using dictionary key
+		if (dfound != _kdict.end()) {
+			ResName = dfound->second;
+		} else {
+			ResName = Name;
 		}
 
 		// create key from file name
@@ -97,12 +105,24 @@ namespace Kite {
 		return nullptr;
 	}
 
-	void KResourceManager::unload(const std::string &ResName) {
+	void KResourceManager::unload(const std::string &Name) {
 		// checking file name
-		if (ResName.empty()) {
+		if (Name.empty()) {
 			KD_PRINT("empty resource name is not valid");
 			return;
 		}
+
+		// first check our dictionary
+		std::string ResName;
+		auto dfound = _kdict.find(ResName);
+
+		// using dictionary key
+		if (dfound != _kdict.end()) {
+			ResName = dfound->second;
+		} else {
+			ResName = Name;
+		}
+
 
 		// create key from file name
 		std::string tempKey = ResName;

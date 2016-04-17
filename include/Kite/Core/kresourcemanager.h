@@ -32,15 +32,16 @@ USA
 namespace Kite{
 	class KResourceManager{
 	public:
-		KResourceManager();
 		~KResourceManager();
 
-		bool registerResource(const std::string &RType, KResource *(*Func)(const std::string &));
+		bool registerResource(const std::string &RType, KResource *(*Func)(const std::string &), bool CatchStream);
+
+		bool loadDictionary(const std::string &Name);
 
 		/// use catch stream for stream resource eg: KStreamSource
 		/// S: stream type
 		template <typename S>
-		KResource *load(const std::string &RType, const std::string &Name, bool CatchStream, U32 Flag = 0){
+		KResource *load(const std::string &RType, const std::string &Name, U32 Flag = 0){
 			// check base of S (resource and stream)
 			static_assert(std::is_base_of<KIStream, S>::value, "S must be derived from KIStream");
 
@@ -50,6 +51,8 @@ namespace Kite{
 				KD_FPRINT("unregistered resource type. rtype: %s", RType.c_str());
 				return nullptr;
 			}
+
+			bool CatchStream = factory->second.second;
 			
 			// checking file name
 			std::string ResName;
@@ -59,15 +62,11 @@ namespace Kite{
 			}
 
 			// first check our dictionary
-			if (_kdict != nullptr) {
-				auto found = _kdict->find(ResName);
+			auto dfound = _kdict.find(ResName);
 
-				// using dictionary key
-				if (found != _kdict->end()) {
-					ResName = found->second;
-				} else {
-					ResName = Name;
-				}
+			// using dictionary key
+			if (dfound != _kdict.end()) {
+				ResName = dfound->second;
 			} else {
 				ResName = Name;
 			}
@@ -84,7 +83,7 @@ namespace Kite{
 			}
 
 			// create new resoyrce and assocated input stream
-			KResource *resource = factory->second(ResName);
+			KResource *resource = factory->second.first(ResName);
 			auto stream = new S();
 			stream->open(ResName, KIOTypes::KRT_BIN);
 
@@ -116,7 +115,7 @@ namespace Kite{
 		/// add a loadded resource to resource manager
 		/// pass stream if resource hase a catched stream 
 		/// replace current loaded resource not allowed
-		bool add(const std::string &ResName, KResource *Resource, KIStream *CatchStream = nullptr);
+		//bool add(const std::string &ResName, KResource *Resource, KIStream *CatchStream = nullptr);
 
 		/// get loaded resource
 		/// dont increment refrence counter
@@ -130,13 +129,10 @@ namespace Kite{
 		/// clear all resources
 		void clear();
 
-		inline void setDictionary(const std::unordered_map<std::string, std::string> *Dictionary) { _kdict = Dictionary; }
-		inline const auto getDictionary() const { return _kdict; }
-
 	private:
-		const std::unordered_map<std::string, std::string> *_kdict;
+		const std::unordered_map<std::string, std::string> _kdict;
 		std::unordered_map<std::string, std::pair<KResource *, KIStream *>> _kmap;
-		std::unordered_map<std::string, KResource *(*)(const std::string &)> _kfactory;
+		std::unordered_map<std::string, std::pair<KResource *(*)(const std::string &), bool>> _kfactory;
 	};
 }
 

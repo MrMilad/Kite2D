@@ -17,40 +17,14 @@ License along with this library; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 USA
 */
-#include "Kite/core/kscenemanager.h"
+#include "Kite/window/kwindowstructs.h"
 #include "Kite/meta/kmetamanager.h"
 #include "Kite/meta/kmetaclass.h"
+#include "Kite/serialization/types/kstdstring.h"
 #include <luaintf\LuaIntf.h>
 
 namespace Kite {
-	KSceneManager::KSceneManager(KResourceManager &RMan) :
-		_kactive(&_kdef), _krman(&RMan), _kdef("Kite2D default") 
-	{
-		initeDefScene();
-	}
+	KMETA_KWINDOWSTATE_SOURCE();
 
-	void KSceneManager::unloadScene(const std::string &Name) {
-		KScene *scene = (KScene *)_krman->get(Name);
-		if (scene == nullptr) {
-			return;
-		}
-
-		// unload scene resources
-		for (auto it = scene->beginResource(); it != scene->endResource(); ++it) {
-			_krman->unload(it->first);
-		}
-
-		// unload scene itself
-		_krman->unload(Name);
-	}
-
-	KScene *KSceneManager::getScene(const std::string &Name) {
-		return (KScene *)_krman->get(Name);
-	}
-
-	void KSceneManager::initeDefScene() {
-		// TODO: display Kite2D logo
-	}
-
-	KMETA_KSCENEMANAGER_SOURCE();
+	KMETA_KENUMDISPLAY_SOURCE();
 }

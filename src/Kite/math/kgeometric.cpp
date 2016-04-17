@@ -18,7 +18,7 @@
     USA
 */
 
-#include "Kite/core/math/kgeometric.h"
+#include "Kite/math/kgeometric.h"
 
 namespace Kite{
 	bool KGeometric::isPointIn(const KRectF32 &Box, const KVector2F32 &HitPoint){

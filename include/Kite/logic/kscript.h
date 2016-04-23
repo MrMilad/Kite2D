@@ -30,13 +30,15 @@ KMETA
 namespace Kite {
 	KM_CLASS(RESOURCE)
 	class KITE_FUNC_EXPORT KScript : public KResource {
-
-		KM_INFO("RType", "Script");
 		KMETA_KSCRIPT_BODY();
 	public:
 		KScript(const std::string &Name);
 
-		bool loadStream(KIStream &Stream, U32 Flag = 0);
+		bool loadStream(KIStream &Stream, U32 Flag = 0) override;
+
+		bool saveStream(KOStream &Stream, U32 Flag = 0) override;
+
+		inline void setCode(const std::string &Code) { _kcode = Code; }
 
 		inline const std::string &getCode() const { return _kcode; }
 

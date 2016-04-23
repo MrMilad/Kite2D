@@ -28,8 +28,8 @@ USA
 
 namespace Kite {
 	KEntity::KEntity(const std::string &Name):
-		_kplistid(0), _kname(Name), _khparrent(false),
-		_kcstorage(nullptr), _kestorage(nullptr), _kctypes(nullptr)
+		_kplistid(0), _kname(Name), _kcstorage(nullptr),
+		_kestorage(nullptr), _kctypes(nullptr)
 	{}
 
 	KEntity::~KEntity() {}
@@ -121,53 +121,15 @@ namespace Kite {
 		}
 
 		// deattach from old parrents
-		if (Child->hasParrent()) {
-			auto parrent = _kestorage->get(Child->getParrentHandle());
+		auto parrent = _kestorage->get(Child->getParrentHandle());
+		if (parrent != nullptr) {
 			parrent->remChildIndex(Child->_kplistid);
 		}
 
 		// attach to new parrent
 		Child->_kphandle = getHandle();
 		Child->_kplistid = _kchilds.size();
-		Child->_khparrent = true;
 		_kchilds.push_back(EHandle);
-	}
-
-	void KEntity::removeChild(const KHandle &EHandle) {
-		if (_kestorage == nullptr) {
-			KD_PRINT("set entity storage at first");
-			return;
-		}
-		
-		auto Child = _kestorage->get(EHandle);
-		if (Child == nullptr) {
-			KD_PRINT("invalid handle");
-			return;
-
-		} else if (Child->getParrentHandle() != getHandle()) {
-			KD_PRINT("this entity is not in the children list");
-			return;
-		}
-
-		// add it to root
-		KHandle root;
-		root.index = 0;
-		root.signature = 0;
-		_kestorage->get(root)->addChild(EHandle);
-	}
-
-	void KEntity::clearChilds() {
-		if (_kestorage == nullptr) {
-			KD_PRINT("set entity storage at first");
-			return;
-		}
-
-		for (auto it = _kchilds.begin(); it != _kchilds.end(); ++it) {
-			KHandle root;
-			root.index = 0;
-			root.signature = 1;
-			_kestorage->get(root)->addChild((*it));
-		}
 	}
 
 	bool KEntity::hasChild() const {
@@ -289,34 +251,31 @@ namespace Kite {
 
 	void KEntity::clearComponents() {
 		// cehck storage
-		if (_kcstorage == nullptr) {
-			KD_PRINT("set component storage at first");
-			return;
-		} 
+		if (_kcstorage != nullptr) {
+			// first remove all script components
+			auto found = _kctypes->find("Logic");
+			if (found != _kctypes->end()) {
+				for (auto it = _kscriptComp.begin(); it != _kscriptComp.end(); ++it) {
 
-		// first remove all script components
-		auto found = _kctypes->find("Logic");
-		if (found != _kctypes->end()) {
-			for (auto it = _kscriptComp.begin(); it != _kscriptComp.end(); ++it) {
+					// call deattach on all components
+					auto comPtr = _kcstorage[found->second]->get(it->second);
+					comPtr->deattached();
+
+					_kcstorage[found->second]->remove(it->second);
+				}
+			}
+			_kscriptComp.clear();
+
+			for (auto it = _kfixedComp.begin(); it != _kfixedComp.end(); ++it) {
 
 				// call deattach on all components
-				auto comPtr = _kcstorage[found->second]->get(it->second);
+				auto comPtr = _kcstorage[_kctypes->find(it->first)->second]->get(it->second);
 				comPtr->deattached();
 
-				_kcstorage[found->second]->remove(it->second);
+				_kcstorage[_kctypes->find(it->first)->second]->remove(it->second);
 			}
+			_kfixedComp.clear();
 		}
-		_kscriptComp.clear();
-
-		for (auto it = _kfixedComp.begin(); it != _kfixedComp.end(); ++it) {
-
-			// call deattach on all components
-			auto comPtr = _kcstorage[_kctypes->find(it->first)->second]->get(it->second);
-			comPtr->deattached();
-
-			_kcstorage[_kctypes->find(it->first)->second]->remove(it->second);
-		}
-		_kfixedComp.clear();
 
 	}
 

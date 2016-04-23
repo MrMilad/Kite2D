@@ -80,7 +80,6 @@ namespace Kite {
 		ent->_kctypes = &_kctypes;
 
 		// added it to root by default
-		ent->_khparrent = false;
 		getEntity(getRoot())->addChild(hndl);
 
 		// register it's to map
@@ -95,15 +94,62 @@ namespace Kite {
 		return hndl;
 	}
 
-	void KEntityManager::removeEntity(const KHandle &Handle) {
+	bool KEntityManager::renameEntity(const KHandle &EHandle, const std::string &NewName) {
+		auto ent = _kestorage.get(EHandle);
+		if (ent == nullptr) {
+			KD_PRINT("invalid handle");
+			return false;
+		}
+
+		if (EHandle == _kroot) {
+			KD_PRINT("renaming root is not allowed.");
+			return false;
+		}
+
+		// check new name is available
+		if (NewName.empty()) {
+			KD_PRINT("empty name as new name is not allowed.");
+			return false;
+		}
+
+		auto found = _kentmap.find(NewName);
+		// entiti is already registered, so we return it
+		if (found != _kentmap.end()) {
+			KD_FPRINT("this name is already exist. ename: %s", NewName.c_str());
+			return false;
+		}
+
+		// insert new name to map
+		_kentmap.insert({ NewName, ent->getHandle() });
+
+		// remove old name
+		_kentmap.erase(ent->getName());
+
+		// change entity name
+		ent->_kname = NewName;
+
+		return true;
+	}
+
+	void KEntityManager::removeEntity(KHandle Handle) {
 		auto ent = _kestorage.get(Handle);
 		if (ent == nullptr) {
 			KD_PRINT("invalid handle");
+			return;
+		}
+
+		if (Handle == _kroot) {
+			KD_PRINT("removing root is not allowed.");
+			return;
 		}
 
 		// mark removed entity as deactive and store it in trash list
 		ent->setActive(false);
+		auto parrent = _kestorage.get(ent->getParrentHandle());
+		parrent->remChildIndex(ent->_kplistid);
+		_kentmap.erase(ent->getName());
 		_ktrash.push_back(Handle);
+		recursiveDeleter(Handle);
 
 		// post a message about this action
 		KMessage msg;
@@ -183,18 +229,7 @@ namespace Kite {
 			auto ent = _kestorage.get((*it));
 
 			if (ent != nullptr) {
-				// remove all childs
-				if (ent->hasChild()) {
-					for (auto cit = ent->beginChild(); cit != ent->endChild(); ++cit) {
-						auto child = _kestorage.get((*cit));
-						if (child != nullptr) {
-							child->clearComponents();
-							_kestorage.remove((*cit));
-						}
-					}
-				}
-
-				ent->clearComponents();
+				ent->clearComponents(); 
 				_kestorage.remove((*it));
 			}
 		}
@@ -229,6 +264,21 @@ namespace Kite {
 		In >> _kentmap;
 		In >> _kctypes;
 		In >> _kcompCount;
+	}
+
+	void KEntityManager::recursiveDeleter(KHandle EHandle) {
+		auto ent = _kestorage.get(EHandle);
+
+		for (auto it = ent->beginChild(); it != ent->endChild(); ++it) {
+			auto child = _kestorage.get((*it));
+			if (child->hasChild()) {
+				recursiveDeleter((*it));
+			}
+
+			_kentmap.erase(child->getName());
+			child->setActive(false);
+			_ktrash.push_back((*it));
+		}
 	}
 
 	KMETA_KENTITYMANAGER_SOURCE();

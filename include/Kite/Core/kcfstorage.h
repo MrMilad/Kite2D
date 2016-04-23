@@ -64,14 +64,12 @@ namespace Kite {
 
 			// there are some free handle				  
 			} else {
-				KHandle hndl;
-				hndl = _khandle[_kfreeIndex.front()];
-				hndl.index = _kcontiner.size() - 1;
-				++hndl.signature;
+				_khandle[_kfreeIndex.front()].index = _kcontiner.size() - 1;
+				++_khandle[_kfreeIndex.front()].signature;
 
 				// set external handle
 				_kexhandle.back().index = _kfreeIndex.front();
-				_kexhandle.back().signature = hndl.signature;
+				_kexhandle.back().signature = _khandle[_kfreeIndex.front()].signature;
 
 				// consume free handle
 				_kfreeIndex.pop_front();

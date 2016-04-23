@@ -24,6 +24,7 @@
 #include "Kite/core/kcoretypes.h"
 #include "Kite/core/knoncopyable.h"
 #include "Kite/core/kistream.h"
+#include "Kite/core/kostream.h"
 #include "Kite/meta/kmetadef.h"
 #include <cstring>
 #include "kresource.khgen.h"
@@ -48,10 +49,14 @@ namespace Kite{
 		*/
 		virtual bool loadStream(KIStream &Stream, U32 Flag = 0) = 0;
 
+		virtual bool saveStream(KOStream &Stream, U32 Flag = 0) = 0;
+
 		inline U32 getReferencesCount() const { return _kref; }
 
+		KM_PRO_GET("name", std::string)
 		inline const std::string &getResourceName() const { return _kname; }
 
+		KM_PRO_GET("type", std::string)
 		inline const std::string &getResourceType() const { return _ktype; }
 
 	private:

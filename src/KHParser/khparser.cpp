@@ -59,7 +59,8 @@ enum MClassType {
 	CT_COMP,
 	CT_SYS,
 	CT_POD,
-	CT_RES
+	CT_RES,
+	CT_ISTREAM
 };
 
 enum MExportState{
@@ -1201,27 +1202,30 @@ bool procClass(const std::string &Content, MClass &Cls, unsigned int Pos) {
 	pos = getNextBody(Content, Pos, output);
 	Cls.tokparam = output;
 
-	// is component
+	// class type
 	std::vector<std::string> tags;
 	splitParam(output, tags);
 	Cls.type = CT_OTHER;
-	if (std::find(tags.begin(), tags.end(), "COMPONENT") != tags.end()) {
-		if (std::find(tags.begin(), tags.end(), "ABSTRACT") == tags.end()) {
+
+	if (std::find(tags.begin(), tags.end(), "ABSTRACT") == tags.end()) {
+		// is component
+		if (std::find(tags.begin(), tags.end(), "COMPONENT") != tags.end()) {
 			Cls.type = CT_COMP;
 		}
-	}
 
-	// is system
-	if (std::find(tags.begin(), tags.end(), "SYSTEM") != tags.end()) {
-		if (std::find(tags.begin(), tags.end(), "ABSTRACT") == tags.end()) {
+		// is system
+		if (std::find(tags.begin(), tags.end(), "SYSTEM") != tags.end()) {
 			Cls.type = CT_SYS;
 		}
-	}
 
-	// is resource
-	if (std::find(tags.begin(), tags.end(), "RESOURCE") != tags.end()) {
-		if (std::find(tags.begin(), tags.end(), "ABSTRACT") == tags.end()) {
+		// is resource
+		if (std::find(tags.begin(), tags.end(), "RESOURCE") != tags.end()) {
 			Cls.type = CT_RES;
+		}
+
+		// is resource
+		if (std::find(tags.begin(), tags.end(), "ISTREAM") != tags.end()) {
+			Cls.type = CT_ISTREAM;
 		}
 	}
 
@@ -1570,9 +1574,7 @@ void createTemplMacro(const MClass &Cls, std::string &Output) {
 	// meta registration
 	replaceTok(cParam, ',', '|');
 	Output.append("static void registerMeta(const std::string &Name, KMetaManager *MMan, lua_State *Lua = nullptr){\\\n"
-					"static bool inite = true;\\\n"
 					"static KMetaClass instance(Name," + cParam + ", sizeof(" + Cls.name + "<" + Cls.templType + ">));\\\n"
-					"if (inite) {\\\n"
 					"if (MMan != nullptr){\\\n"
 					"MMan->setMeta((KMetaBase *)&instance);\\\n");
 
@@ -1694,7 +1696,7 @@ void createTemplMacro(const MClass &Cls, std::string &Output) {
 
 	// end of lua binding
 	Output.append(".endClass().endModule();}\\\n");
-	Output.append("} inite = false;}\n");
+	Output.append("}\n");
 }
 
 void createMacros(const std::vector<MClass> &Cls, const std::vector<MEnum> &Enms, std::string &Output) {
@@ -1718,9 +1720,7 @@ void createMacros(const std::vector<MClass> &Cls, const std::vector<MEnum> &Enms
 		Output.append("#define KMETA_" + upname + "_SOURCE() \\\n"
 					  //"namespace Internal{\\\n"
 					  "void Internal::Register" + Enms[i].name + "::registerMeta(KMetaManager *MMan, lua_State *Lua){\\\n"
-					  "static bool inite = true;\\\n"
 					  "static KMetaEnum instance(\"" + Enms[i].name + "\", 0, sizeof(" + Enms[i].name + "));\\\n"
-					  "if (inite) {\\\n"
 					  "if (MMan != nullptr){\\\n"
 					  "MMan->setMeta((KMetaBase *)&instance);\\\n");
 
@@ -1750,7 +1750,7 @@ void createMacros(const std::vector<MClass> &Cls, const std::vector<MEnum> &Enms
 		Output.append(".endModule().endModule();}\\\n");
 
 		// end of definition
-		Output.append("} inite = false;}\n");
+		Output.append("}\n");
 	}
 
 	// class
@@ -1810,13 +1810,19 @@ void createMacros(const std::vector<MClass> &Cls, const std::vector<MEnum> &Enms
 		}
 
 		// is scriptable
+		bool isIStream = false;
+		if (std::find(ctags.begin(), ctags.end(), "ISTREAM") != ctags.end()) {
+			isIStream = true;
+		}
+
+		// is scriptable
 		bool isScriptable = false;
 		if (std::find(ctags.begin(), ctags.end(), "SCRIPTABLE") != ctags.end()) {
 			isScriptable = true;
 		}
 
 		// class without any flag will ignored
-		if (!isPOD && !isEntity && !isResource && !isComponent && !isSystem && !isScriptable && !isContiner) {
+		if (!isPOD && !isEntity && !isResource && !isComponent && !isSystem && !isScriptable && !isContiner && !isIStream) {
 			printf("message: class without any supported flags. %s ignored. \n", Cls[i].name.c_str());
 			continue;
 		}
@@ -1836,9 +1842,13 @@ void createMacros(const std::vector<MClass> &Cls, const std::vector<MEnum> &Enms
 		// register functions
 		Output.append("public:\\\n");
 
-		// factory methode (only resources have factory methode)
-		if (isResource && !isAbstract) {
-			Output.append(exstate + "static KResource *factory(const std::string &Name);\\\n");
+		// factory methode 
+		if (!isAbstract) {
+			if (isResource) {
+				Output.append(exstate + "static KResource *factory(const std::string &Name);\\\n");
+			} else if (isIStream) {
+				Output.append(exstate + "static KIStream *factory();\\\n");
+			}
 		}
 
 		// property setter/getter (only components have properties)
@@ -1868,9 +1878,14 @@ void createMacros(const std::vector<MClass> &Cls, const std::vector<MEnum> &Enms
 		Output.append("#define KMETA_" + upname + "_SOURCE()\\\n");
 
 		// factory defention
-		if (isResource && !isAbstract) {
-			Output.append("KResource *" + Cls[i].name + "::factory(const std::string &Name){\\\n"
-						  "return new " + Cls[i].name + "(Name);}\\\n");
+		if (!isAbstract) {
+			if (isResource) {
+				Output.append("KResource *" + Cls[i].name + "::factory(const std::string &Name){\\\n"
+							  "return new " + Cls[i].name + "(Name);}\\\n");
+			} else if (isIStream) {
+				Output.append("KIStream *" + Cls[i].name + "::factory(){\\\n"
+							  "return new " + Cls[i].name + "();}\\\n");
+			}
 		}
 
 		// register properties
@@ -1903,9 +1918,7 @@ void createMacros(const std::vector<MClass> &Cls, const std::vector<MEnum> &Enms
 		// meta registration
 		replaceTok(cParam, ',', '|');
 		Output.append("void " + Cls[i].name + "::registerMeta(KMetaManager *MMan, lua_State *Lua){\\\n"
-					  "static bool inite = true;\\\n"
 					  "static KMetaClass instance(\"" + Cls[i].name + "\"," + cParam + ", sizeof(" + Cls[i].name + "));\\\n"
-					  "if (inite) {\\\n"
 					  "if (MMan != nullptr){\\\n"
 					  "MMan->setMeta((KMetaBase *)&instance);\\\n");
 
@@ -1939,7 +1952,7 @@ void createMacros(const std::vector<MClass> &Cls, const std::vector<MEnum> &Enms
 		Output.append("}\\\n");
 
 		// lua binding 
-		if (isComponent || isScriptable || isEntity || isPOD || isSystem) {
+		if (isComponent || isScriptable || isEntity || isPOD || isSystem || isIStream) {
 			Output.append("if (Lua != nullptr) { \\\n"
 						  "LuaIntf::LuaBinding(Lua).beginModule(\"Kite\").beginClass<"
 						  + Cls[i].name + ">(\"" + Cls[i].name + "\")\\\n");
@@ -2030,16 +2043,11 @@ void createMacros(const std::vector<MClass> &Cls, const std::vector<MEnum> &Enms
 			Output.append(".endClass().endModule();}\\\n");
 		}
 
-		// register components
-		if (isComponent && !isAbstract) {
-			//Output.append("if (EMan != nullptr) { \\\n");
-		}
-
 		// end of rgisterMeta
 		if (isPOD || isComponent || isEntity) {
-			Output.append("} inite = false;}\\\n");
+			Output.append("}\\\n");
 		} else {
-			Output.append("} inite = false;}\n");
+			Output.append("}\n");
 		}
 
 		// serial definition
@@ -2092,8 +2100,8 @@ void createHead(std::string &Output) {
 				  "KMETA\n"
 				  "namespace Kite{\n"
 				  "KITE_FUNC_EXPORT extern void registerKiteMeta(KMetaManager *MMan = nullptr, lua_State *Lua = nullptr);\n"
-				  "KITE_FUNC_EXPORT extern void registerCTypes(KEntityManager &EMan);\n"
-				  "KITE_FUNC_EXPORT extern void registerRTypes(KResourceManager &RMan);\n"
+				  "KITE_FUNC_EXPORT extern void registerCTypes(KEntityManager *EMan);\n"
+				  "KITE_FUNC_EXPORT extern void registerRTypes(KResourceManager *RMan);\n"
 				  "KITE_FUNC_EXPORT extern void createSystems(std::vector<std::unique_ptr<KSystem>> &Systems);\n"
 				  "}\n"
 				  "#endif // KITEMETA_H");
@@ -2139,13 +2147,13 @@ void createSource(const std::vector<std::string> &Files, const std::vector<MClas
 	Output.append("}\n");
 
 	// register component types
-	Output.append("void registerCTypes(KEntityManager &EMan){\n");
+	Output.append("void registerCTypes(KEntityManager *EMan){\n");
 
 	for (size_t i = 0; i < Cls.size(); i++) {
 		if (Cls[i].type == CT_COMP) {
 			for (size_t count = 0; count < Cls[i].infos.size(); ++count) {
 				if (Cls[i].infos[count].key == "CType") {
-					Output.append("EMan.registerComponent<" + Cls[i].name + ">(\"" + Cls[i].infos[count].info + "\");\n");
+					Output.append("EMan->registerComponent<" + Cls[i].name + ">(\"" + Cls[i].infos[count].info + "\");\n");
 					break;
 				}
 			}
@@ -2156,9 +2164,10 @@ void createSource(const std::vector<std::string> &Files, const std::vector<MClas
 	Output.append("}\n");
 
 	// register resource types
-	Output.append("void registerRTypes(KResourceManager &RMan){\n");
+	Output.append("void registerRTypes(KResourceManager *RMan){\n");
 
 	for (size_t i = 0; i < Cls.size(); i++) {
+		// resource factory
 		if (Cls[i].type == CT_RES) {
 			std::string cstream("false");
 			for (size_t count = 0; count < Cls[i].infos.size(); ++count) {
@@ -2167,13 +2176,14 @@ void createSource(const std::vector<std::string> &Files, const std::vector<MClas
 					continue;
 				}
 			}
-			for (size_t count = 0; count < Cls[i].infos.size(); ++count) {
-				if (Cls[i].infos[count].key == "RType") {
-					Output.append("RMan.registerResource(\"" + Cls[i].infos[count].info + "\", " + Cls[i].name + "::factory, " 
-								  + cstream + ");\n");
-					break;
-				}
-			}
+		Output.append("RMan->registerResource(\"" + Cls[i].name + "\", " + Cls[i].name + "::factory, " 
+						+ cstream + ");\n");
+
+		}
+
+		// stream factory
+		if (Cls[i].type == CT_ISTREAM) {
+			Output.append("RMan->registerIStream(\"" + Cls[i].name + "\", " + Cls[i].name + "::factory);\n");
 		}
 	}
 

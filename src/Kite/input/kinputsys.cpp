@@ -26,12 +26,12 @@ USA
 #include <luaintf/LuaIntf.h>
 
 namespace Kite {
-	void KInputSys::update(F32 Delta, KEntityManager &EManager, KResourceManager &RManager) {
-		if (EManager.isRegisteredComponent("Input")) {
-			for (auto it = EManager.beginComponent<KInputCom>("Input");
-			it != EManager.endComponent<KInputCom>("Input"); ++it) {
+	void KInputSys::update(F32 Delta, KEntityManager *EManager, KResourceManager *RManager) {
+		if (EManager->isRegisteredComponent("Input")) {
+			for (auto it = EManager->beginComponent<KInputCom>("Input");
+			it != EManager->endComponent<KInputCom>("Input"); ++it) {
 				auto EHandle = it->getOwnerHandle();
-				auto entity = EManager.getEntity(EHandle);
+				auto entity = EManager->getEntity(EHandle);
 				if (entity->getActive()) {
 					if (it->getNeedUpdate()) {
 						if (it->getEnableKeyboard() && KKeyboard::isAnyKeyDown()) {

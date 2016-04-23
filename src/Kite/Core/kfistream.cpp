@@ -18,6 +18,9 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 USA
 */
 #include "Kite/core/kfistream.h"
+#include "Kite/meta/kmetamanager.h"
+#include "Kite/meta/kmetaclass.h"
+#include <luaintf\LuaIntf.h>
 #include <cstdio>
 
 namespace Kite{
@@ -111,4 +114,6 @@ namespace Kite{
 		}
 		return 0;
 	}
+
+	KMETA_KFISTREAM_SOURCE();
 }

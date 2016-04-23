@@ -37,7 +37,6 @@ namespace Kite {
 		friend class KSceneManager;
 
 		// KM_INFO("CatchStream", "false"); // false by default
-		KM_INFO("RType", "Scene");
 		KMETA_KSCENE_BODY();
 	public:
 		KScene(const std::string &Name);
@@ -47,11 +46,11 @@ namespace Kite {
 		bool loadStream(KIStream &Stream, U32 Flag = 0) override;
 
 		/// save to an open stream
-		bool saveStream(KOStream &Stream);
+		bool saveStream(KOStream &Stream, U32 Flag = 0) override;
 
 		inline bool isLoaded() const { return _kloaded; }
 		inline bool isModified() { if (isLoaded()) return _keman.isModified(); return false; }
-		inline auto &getEManager() { return _keman; }
+		inline auto *getEManager() { return &_keman; }
 		inline const auto &getName() { return _kname; }
 
 		bool addResource(const std::string &RName, const std::string &RType, U32 Flag = 0);

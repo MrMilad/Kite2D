@@ -50,7 +50,7 @@ namespace Kite{
 					 I32 Width = 200, I32 Height = 200,
 					 I32 XPosition = 0, I32 YPosition = 0,
 					 bool ShowCursor = true, bool Fullscreen = false,
-					 bool Border = true, bool Resizable = false,
+					 bool Resizable = false,
 					 U8 SwapInterval = 0,								// Vsync is disabled by default
 					 U8 OGLMajorVer = 3, U8 OGLMinorVer = 3):			// minimum version is 3.3):
             title(Title),

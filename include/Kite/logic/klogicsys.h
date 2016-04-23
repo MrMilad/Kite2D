@@ -31,12 +31,12 @@ namespace Kite {
 	class KITE_FUNC_EXPORT KLogicSys : public KSystem {
 		KMETA_KLOGICSYS_BODY();
 	public:
-		void update(F32 Delta, KEntityManager &EManager, KResourceManager &RManager);
+		void update(F32 Delta, KEntityManager *EManager, KResourceManager *RManager);
 
 		bool inite(void *Data);
 
 	private:
-		void cathcAndRegist(KLogicCom *Component, KResourceManager &RManager);
+		void cathcAndRegist(KLogicCom *Component, KResourceManager *RManager);
 		void initeComp(KEntity *Self, KLogicCom *Component);
 		void startComp(KEntity *Self, KLogicCom *Component);
 		void updateComp(F32 Delta,KEntity *Self, KLogicCom *Component);

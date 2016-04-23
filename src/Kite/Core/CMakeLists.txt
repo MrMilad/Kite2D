@@ -6,6 +6,7 @@ set(COR_SRC
     ${SRCROOT}/kcorestructs.cpp
     ${SRCROOT}/kresource.cpp
     ${SRCROOT}/kresourcemanager.cpp
+    ${SRCROOT}/kistream.cpp
     ${SRCROOT}/kfistream.cpp
     ${SRCROOT}/klistener.cpp
     ${SRCROOT}/ksystem.cpp

@@ -31,7 +31,7 @@ USA
 
 namespace Kite {
 	KScene::KScene(const std::string &Name) :
-		KResource(Name, "Scene"),
+		KResource(Name, "KScene"),
 		_kloaded(false) {}
 
 	KScene::~KScene() {}
@@ -52,7 +52,7 @@ namespace Kite {
 		return true;
 	}
 
-	bool KScene::saveStream(KOStream &Stream) {
+	bool KScene::saveStream(KOStream &Stream, U32 Flag) {
 		KBinarySerial bserial;
 
 		bserial << _kname;

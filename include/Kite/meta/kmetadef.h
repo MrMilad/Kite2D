@@ -32,7 +32,9 @@ USA
 #define SYSTEM		16
 #define ABSTRACT	32
 #define CONTINER	64
-#define SCRIPTABLE	128
+#define ISTREAM		128
+#define OSTREAM		256
+#define SCRIPTABLE	512
 
 // supported operators
 #define KO_ADD

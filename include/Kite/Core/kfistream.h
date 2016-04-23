@@ -22,14 +22,21 @@ USA
 
 #include "Kite/core/kcoredef.h"
 #include "Kite/core/kistream.h"
+#include "Kite/meta/kmetadef.h"
 #include <cstring>
+#include "kfistream.khgen.h"
 
+KMETA
 namespace Kite{
+	KM_CLASS(ISTREAM)
 	class KITE_FUNC_EXPORT KFIStream : public KIStream{
+		KMETA_KFISTREAM_BODY();
 	public:
+		KM_CON()
 		KFIStream();
 		~KFIStream();
 
+		KM_FUN()
 		bool open(const std::string &Address, KIOTypes Type) override;
 
 		SIZE read(void *Data, SIZE DataSize) override;
@@ -40,10 +47,13 @@ namespace Kite{
 
 		I32 eof() override;
 
+		KM_FUN()
 		U64 getSize() override;
 
+		KM_FUN()
 		bool isOpen() override;
 
+		KM_FUN()
 		I32 close() override;
 
 	private:

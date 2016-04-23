@@ -71,9 +71,6 @@ namespace Kite {
 		KM_PRO_SET("active")
 		inline void setActive(bool Active) { _kactive = Active; }
 
-		KM_PRO_GET("hasParrent", bool, "component has parrent")
-		inline bool hasParrent() const { return _khparrent; }
-
 		KM_FUN()
 		KHandle addComponent(const std::string &CType, const std::string &CName = "");
 
@@ -105,12 +102,6 @@ namespace Kite {
 		void addChild(const KHandle &EHandle);
 
 		KM_FUN()
-		void removeChild(const KHandle &EHandle);
-
-		KM_FUN()
-		void clearChilds();
-
-		KM_FUN()
 		bool hasChild() const;
 
 		inline auto beginChild() { return _kchilds.cbegin(); }
@@ -123,7 +114,6 @@ namespace Kite {
 		void remChildIndex(U32 ID);
 		
 		KM_VAR() bool _kactive;											// entity actitvity state
-		KM_VAR() bool _khparrent;										// entity actitvity state
 		KM_VAR() KHandle _khandle;										// entity handle in the entity manager
 		KM_VAR() KHandle _kphandle;										// entity parrent handle
 		KM_VAR() U32 _kplistid;											// entity self id in the parrent list

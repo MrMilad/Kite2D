@@ -25,17 +25,17 @@ USA
 #include <luaintf/LuaIntf.h>
 
 namespace Kite {
-	void KLogicSys::update(F32 Delta, KEntityManager &EManager, KResourceManager &RManager) {
+	void KLogicSys::update(F32 Delta, KEntityManager *EManager, KResourceManager *RManager) {
 		// check component registration
-		if (EManager.isRegisteredComponent("Logic")) {
+		if (EManager->isRegisteredComponent("Logic")) {
 
 			// iterate over components
-			for (auto it = EManager.beginComponent<KLogicCom>("Logic");
-			it != EManager.endComponent<KLogicCom>("Logic"); ++it) {
+			for (auto it = EManager->beginComponent<KLogicCom>("Logic");
+			it != EManager->endComponent<KLogicCom>("Logic"); ++it) {
 				auto ehandle = it->getOwnerHandle();
 
 				// get associated entity for each component
-				auto entity = EManager.getEntity(ehandle);
+				auto entity = EManager->getEntity(ehandle);
 				if (entity->getActive()) {
 
 					// retrive all script components from entity
@@ -99,9 +99,9 @@ namespace Kite {
 		}
 	}
 
-	void KLogicSys::cathcAndRegist(KLogicCom *Component, KResourceManager &RManager) {
+	void KLogicSys::cathcAndRegist(KLogicCom *Component, KResourceManager *RManager) {
 		// retrive script rsource from resource manager
-		KScript *script = (KScript *)RManager.get(Component->getScript());
+		KScript *script = (KScript *)RManager->get(Component->getScript());
 		Component->_kscript = script;
 
 		Component->setLuaState(_klvm);

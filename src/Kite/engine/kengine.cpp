@@ -54,7 +54,7 @@ namespace Kite {
 		_ksman = new KSceneManager(*_krman);
 
 		registerKiteMeta(_kmman, _klstate);
-		registerRTypes(*_krman); // CTypes will registered for every scene in KSceneManager
+		registerRTypes(_krman); // CTypes will registered for every scene in KSceneManager
 
 		// create systems
 		createSystems(_ksys);
@@ -101,11 +101,11 @@ namespace Kite {
 
 		while (_kwindow->update()) {
 			for (auto it = _ksys.begin(); it != _ksys.end(); ++it) {
-				(*it)->update(0, _ksman->getActiveScene()->getEManager(), *_krman);
+				(*it)->update(0, _ksman->getActiveScene()->getEManager(), _krman);
 
 
 				// clear trash list
-				_ksman->getActiveScene()->getEManager().postWork();
+				_ksman->getActiveScene()->getEManager()->postWork();
 			}
 		}
 	}

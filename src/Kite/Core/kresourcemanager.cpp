@@ -18,22 +18,125 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 USA
 */
 #include "Kite/core/kresourcemanager.h"
+#include "Kite/meta/kmetamanager.h"
+#include "Kite/meta/kmetaclass.h"
+#include <luaintf\LuaIntf.h>
 
 namespace Kite {
 	KResourceManager::~KResourceManager() {
 		clear();
 	}
 
+	bool KResourceManager::registerIStream(const std::string &SType, KIStream *(*Func)()) {
+		auto found = _ksfactory.find(SType);
+		if (found != _ksfactory.end()) {
+			KD_FPRINT("this type has already been registered. stype: %s", SType.c_str());
+			return false;
+		}
+
+		_ksfactory.insert({ SType, Func });
+		return true;
+	}
 
 	bool KResourceManager::registerResource(const std::string &RType, KResource *(*Func)(const std::string &), bool CatchStream) {
-		auto found = _kfactory.find(RType);
-		if (found != _kfactory.end()) {
+		auto found = _krfactory.find(RType);
+		if (found != _krfactory.end()) {
 			KD_FPRINT("this type has already been registered. rtype: %s", RType.c_str());
 			return false;
 		}
 
-		_kfactory.insert({ RType, {Func, CatchStream}});
+		_krfactory.insert({ RType, {Func, CatchStream}});
 		return true;
+	}
+
+	bool KResourceManager::loadDictionary(const std::string &Name) {
+		return false;
+	}
+
+	KResource *KResourceManager::create(const std::string &RType, const std::string &Name) {
+		auto factory = _krfactory.find(RType);
+		if (factory == _krfactory.end()) {
+			KD_FPRINT("unregistered resource type. rtype: %s", RType.c_str());
+			return nullptr;
+		}
+
+		// create new resource and return it
+		return factory->second.first(Name);
+	}
+
+	KResource *KResourceManager::load(const std::string &SType, const std::string &RType, const std::string &Name, U32 Flag){
+		// check for stream factory methode
+		auto sfactory = _ksfactory.find(SType);
+		if (sfactory == _ksfactory.end()) {
+			KD_FPRINT("unregistered stream type. rtype: %s", RType.c_str());
+			return nullptr;
+		}
+
+		// check for resource factory methode
+		auto rfactory = _krfactory.find(RType);
+		if (rfactory == _krfactory.end()) {
+			KD_FPRINT("unregistered resource type. rtype: %s", RType.c_str());
+			return nullptr;
+		}
+
+		bool CatchStream = rfactory->second.second;
+
+		// checking file name
+		std::string ResName;
+		if (ResName.empty()) {
+			KD_PRINT("empty resource name is not valid");
+			return nullptr;
+		}
+
+		// first check our dictionary
+		auto dfound = _kdict.find(ResName);
+
+		// using dictionary key
+		if (dfound != _kdict.end()) {
+			ResName = dfound->second;
+		} else {
+			ResName = Name;
+		}
+
+		// create key from file name
+		std::string tempKey(ResName);
+		std::transform(ResName.begin(), ResName.end(), tempKey.begin(), ::tolower);
+
+		// first, check our resource catch
+		auto found = _kmap.find(tempKey);
+		if (found != _kmap.end()) {
+			found->second.first->incRef();
+			return found->second.first;
+		}
+
+		// create new resource and assocated input stream
+		KResource *resource = rfactory->second.first(ResName);
+		auto stream = sfactory->second();
+		stream->open(ResName, KIOTypes::KRT_BIN);
+
+		if (!resource->loadStream(*stream, Flag)) {
+			KD_FPRINT("can't load resource. rname: %s", ResName.c_str());
+			delete resource;
+			delete stream;
+			return nullptr;
+		}
+
+		// stream lifetime
+		std::pair<KResource *, KIStream *> pair;
+		if (CatchStream) {
+			pair = std::make_pair(resource, stream);
+		} else {
+			pair = std::make_pair(resource, nullptr);
+			stream->close();
+			delete stream;
+		}
+
+		// increment refrence count
+		resource->incRef();
+
+		// storing resource
+		_kmap.insert({ tempKey, pair });
+		return resource;
 	}
 
 	/*bool KResourceManager::add(const std::string &ResName, KResource *Resource, KIStream *CatchStream) {
@@ -176,4 +279,6 @@ namespace Kite {
 		// clear map
 		_kmap.clear();
 	}
+
+	KMETA_KRESOURCEMANAGER_SOURCE();
 }

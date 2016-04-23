@@ -32,7 +32,7 @@ namespace Kite {
 	class KITE_FUNC_EXPORT KInputSys : public KSystem {
 		KMETA_KINPUTSYS_BODY();
 	public:
-		void update(F32 Delta, KEntityManager &EManager, KResourceManager &RManager);
+		void update(F32 Delta, KEntityManager *EManager, KResourceManager *RManager);
 
 		bool inite(void *Data);
 	};

@@ -20,28 +20,32 @@ USA
 #include "Kite/logic/kscript.h"
 #include "Kite/meta/kmetamanager.h"
 #include "Kite/meta/kmetaclass.h"
+#include "Kite/serialization/kbinaryserial.h"
+#include "Kite/serialization/types/kstdstring.h"
 
 namespace Kite {
 	KScript::KScript(const std::string &Name) :
-		KResource(Name, "Script") 
+		KResource(Name, "KScript") 
 	{}
 
 	bool KScript::loadStream(KIStream &Stream, U32 Flag) {
 		_kcode.clear();
-		SIZE size = Stream.getSize();
-		auto data = new char[size];
-		auto ret = Stream.read(data, size);
 
-		if (size > 0) {
-			_kcode.assign(data, size);
+		KBinarySerial ser;
+		if (!ser.loadStream(Stream)) {
+			return false;
 		}
+		ser >> _kcode;
+		return true;
+	}
 
-		delete[] data;
-
-		if (ret = size) {
-			return true;
+	bool KScript::saveStream(KOStream &Stream, U32 Flag) {
+		KBinarySerial ser;
+		ser << _kcode;
+		if (!ser.saveStream(Stream)) {
+			return false;
 		}
-		return false;
+		return true;
 	}
 
 	KMETA_KSCRIPT_SOURCE();

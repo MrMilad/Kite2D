@@ -23,94 +23,36 @@ USA
 #include "Kite/core/kcoredef.h"
 #include "Kite/core/kresource.h"
 #include "Kite/core/kistream.h"
+#include "Kite/meta/kmetadef.h"
 #include <type_traits>
 #include <unordered_map>
 #include <algorithm>
 #include <utility>
 #include <string>
+#include "kresourcemanager.khgen.h"
 
+KMETA
 namespace Kite{
-	class KResourceManager{
+	KM_CLASS(SCRIPTABLE)
+	class KITE_FUNC_EXPORT KResourceManager{
+		KMETA_KRESOURCEMANAGER_BODY();
 	public:
 		~KResourceManager();
+
+		bool registerIStream(const std::string &SType, KIStream *(*Func)());
 
 		bool registerResource(const std::string &RType, KResource *(*Func)(const std::string &), bool CatchStream);
 
 		bool loadDictionary(const std::string &Name);
 
+		KM_FUN()
+		KResource *create(const std::string &RType, const std::string &Name);
+
 		/// use catch stream for stream resource eg: KStreamSource
+		/// R: resource type
 		/// S: stream type
-		template <typename S>
-		KResource *load(const std::string &RType, const std::string &Name, U32 Flag = 0){
-			// check base of S (resource and stream)
-			static_assert(std::is_base_of<KIStream, S>::value, "S must be derived from KIStream");
-
-			// check for factory methode
-			auto factory = _kfactory.find(RType);
-			if (factory == _kfactory.end()) {
-				KD_FPRINT("unregistered resource type. rtype: %s", RType.c_str());
-				return nullptr;
-			}
-
-			bool CatchStream = factory->second.second;
-			
-			// checking file name
-			std::string ResName;
-			if (ResName.empty()){
-				KD_PRINT("empty resource name is not valid");
-				return nullptr;
-			}
-
-			// first check our dictionary
-			auto dfound = _kdict.find(ResName);
-
-			// using dictionary key
-			if (dfound != _kdict.end()) {
-				ResName = dfound->second;
-			} else {
-				ResName = Name;
-			}
-
-			// create key from file name
-			std::string tempKey(ResName);
-			std::transform(ResName.begin(), ResName.end(), tempKey.begin(), ::tolower);
-
-			// first, check our resource catch
-			auto found = _kmap.find(tempKey);
-			if (found != _kmap.end()) {
-				found->second.first->incRef();
-				return static_cast<R *>(found->second.first);
-			}
-
-			// create new resoyrce and assocated input stream
-			KResource *resource = factory->second.first(ResName);
-			auto stream = new S();
-			stream->open(ResName, KIOTypes::KRT_BIN);
-
-			if (!resource->loadStream(*stream, Flag)) {
-				KD_FPRINT("can't load resource. rname: %s", ResName.c_str());
-				delete resource;
-				delete stream;
-				return nullptr;
-			}
-
-			// stream lifetime
-			std::pair<KResource *, KIStream *> pair;
-			if (CatchStream){
-				pair = std::make_pair(resource, stream);
-			}else{
-				pair = std::make_pair(resource, nullptr);
-				stream->close();
-				delete stream;
-			}
-
-			// increment refrence count
-			resource->incRef();
-
-			// storing resource
-			_kmap.insert({ tempKey, pair });
-			return static_cast<R *>(resource);
-		}
+		KM_FUN()
+		KResource *load(const std::string &SType, const std::string &RType, const std::string &Name, U32 Flag = 0);
 
 		/// add a loadded resource to resource manager
 		/// pass stream if resource hase a catched stream 
@@ -119,20 +61,24 @@ namespace Kite{
 
 		/// get loaded resource
 		/// dont increment refrence counter
+		KM_FUN()
 		KResource *get(const std::string &ResName);
 
 		/// unload any resource with any type
+		KM_FUN()
 		void unload(const std::string &ResName);
 
 		const std::vector<KResource *> &dump();
 
 		/// clear all resources
+		KM_FUN()
 		void clear();
 
 	private:
 		const std::unordered_map<std::string, std::string> _kdict;
 		std::unordered_map<std::string, std::pair<KResource *, KIStream *>> _kmap;
-		std::unordered_map<std::string, std::pair<KResource *(*)(const std::string &), bool>> _kfactory;
+		std::unordered_map<std::string, std::pair<KResource *(*)(const std::string &), bool>> _krfactory;
+		std::unordered_map<std::string, KIStream *(*)()> _ksfactory;
 	};
 }
 

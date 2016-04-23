@@ -99,12 +99,15 @@ namespace Kite {
 		KM_FUN()
 		KHandle createEntity(const std::string &Name = "");
 
+		KM_FUN()
+			bool renameEntity(const KHandle &EHandle, const std::string &NewName);
+
 		/// entity will not be deleted immediately
 		/// but marked as deactive and stored in trash list
 		/// it will removed after calling postWork function.
 		/// we use this methode to prevent dangling pointer during updates.
 		KM_FUN()
-		void removeEntity(const KHandle &Handle);
+		void removeEntity(KHandle Handle);
 
 		KM_FUN()
 		void removeEntityByName(const std::string &Name);
@@ -148,6 +151,8 @@ namespace Kite {
 	private:
 		void serial(KBaseSerial &Out) const;
 		void deserial(KBaseSerial &In);
+
+		void recursiveDeleter(KHandle EHandle);
 
 		KHandle _kroot;
 		KCFStorage<KEntity> _kestorage;

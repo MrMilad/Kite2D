@@ -23,7 +23,6 @@ USA
 #include "Kite/serialization/kbinaryserial.h"
 #include "Kite/serialization/kserialization.h"
 #include "Kite/serialization/types/kstdstring.h"
-#include "Kite/serialization/types/kstdvector.h"
 #include "Kite/serialization/types/kstdpair.h"
 #include "Kite/serialization/types/kstdumap.h"
 #include <luaintf\LuaIntf.h>
@@ -36,7 +35,7 @@ namespace Kite {
 
 	KScene::~KScene() {}
 
-	bool KScene::loadStream(KIStream &Stream, U32 Flag) {
+	bool KScene::loadStream(KIStream *Stream, U32 Flag) {
 		KBinarySerial bserial;
 		if (!bserial.loadStream(Stream)) {
 			_kloaded = false;
@@ -52,7 +51,7 @@ namespace Kite {
 		return true;
 	}
 
-	bool KScene::saveStream(KOStream &Stream, U32 Flag) {
+	bool KScene::saveStream(KOStream *Stream, U32 Flag) {
 		KBinarySerial bserial;
 
 		bserial << _kname;

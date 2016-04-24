@@ -21,9 +21,9 @@ USA
 #define KBINARYSERIAL_H
 
 #include "Kite/core/kcoredef.h"
+#include "Kite/core/kistream.h"
+#include "Kite/core/kostream.h"
 #include "Kite/serialization/kbaseserial.h"
-#include "Kite/utility/kistream.h"
-#include "Kite/utility/kostream.h"
 #include <string>
 #include <vector>
 
@@ -34,11 +34,11 @@ namespace Kite {
 
 		bool loadFile(const std::string &FileName, U32 FileType = 0);
 
-		bool loadStream(KIStream &Stream, U32 FileType = 0);
+		bool loadStream(KIStream *Stream, U32 FileType = 0);
 
 		bool saveFile(const std::string &FileName);
 
-		bool saveStream(KOStream &Stream);
+		bool saveStream(KOStream *Stream);
 
 		inline bool endOfFile() const { return _kendfile; }
 

@@ -27,27 +27,27 @@ namespace Kite {
 		_kpos(0),
 		_kendfile(true) {}
 
-	bool KBinarySerial::loadStream(KIStream &Stream, U32 FileType) {
+	bool KBinarySerial::loadStream(KIStream *Stream, U32 FileType) {
 		bool ret = false;
 
-		if (Stream.isOpen()) {
+		if (Stream->isOpen()) {
 			// read header
 			char header[8];
-			if (Stream.read(&header, 7) == 7) {
+			if (Stream->read(&header, 7) == 7) {
 				header[7] = '\0';
 
 				// check header
 				if (strcmp("kserial\0", header) == 0) {
 
 					// get file size
-					U64 size = Stream.getSize();
-					Stream.seek(0, SEEK_SET);
+					U64 size = Stream->getSize();
+					Stream->seek(0, SEEK_SET);
 
 					// read date
 					_kdata.clear();
 					_kdata.resize((U32)size);
 					_kpos = 0;
-					if (Stream.read(&_kdata[0], size) == size) {
+					if (Stream->read(&_kdata[0], size) == size) {
 						_kdata.erase(_kdata.begin(), _kdata.begin() + 7);
 						_kendfile = false;
 						ret = true;
@@ -92,18 +92,18 @@ namespace Kite {
 		return ret;
 	}
 
-	bool KBinarySerial::saveStream(KOStream &Stream) {
+	bool KBinarySerial::saveStream(KOStream *Stream) {
 		bool ret = false;
 
 		// open file
-		if (Stream.isOpen()) {
+		if (Stream->isOpen()) {
 
 			// inite header (30 bytes lenght)
 			char format[] = { 'k', 's', 'e', 'r', 'i', 'a', 'l' };
 			_kdata.insert(_kdata.begin(), &format[0], &format[7]);
 
 			// write data
-			if (Stream.write((void *)&_kdata[0], _kdata.size())) {
+			if (Stream->write((void *)&_kdata[0], _kdata.size())) {
 				ret = true;
 			} else {
 				KD_PRINT("can't write data to stream");

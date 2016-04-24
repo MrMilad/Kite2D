@@ -6,6 +6,8 @@ set(COR_SRC
     ${SRCROOT}/kcorestructs.cpp
     ${SRCROOT}/kresource.cpp
     ${SRCROOT}/kresourcemanager.cpp
+    ${SRCROOT}/kostream.cpp
+    ${SRCROOT}/kfostream.cpp
     ${SRCROOT}/kistream.cpp
     ${SRCROOT}/kfistream.cpp
     ${SRCROOT}/klistener.cpp
@@ -26,8 +28,9 @@ set(COR_SRC
 # all header files
 set(COR_INC
     ${INCROOT}/kcore.h
-    ${INCROOT}/kistream.h
     ${INCROOT}/kostream.h
+    ${INCROOT}/kfostream.h
+    ${INCROOT}/kistream.h
     ${INCROOT}/kfistream.h
     ${INCROOT}/kdelegate.h
     ${INCROOT}/kany.h

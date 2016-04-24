@@ -22,19 +22,27 @@ USA
 
 #include "Kite/core/kcoredef.h"
 #include "Kite/core/kcoretypes.h"
+#include "Kite/meta/kmetadef.h"
 #include <string>
+#include "kostream.khgen.h"
 
+KMETA
 namespace Kite {
+	KM_CLASS(ABSTRACT, OSTREAM)
 	class KITE_FUNC_EXPORT KOStream {
+		KMETA_KOSTREAM_BODY();
 	public:
 		virtual ~KOStream() {}
 
+		KM_FUN()
 		virtual bool open(const std::string &Address, KIOTypes Type) = 0;
 
-		virtual bool write(void *Data, SIZE DataSize) = 0;
+		virtual SIZE write(void *Data, SIZE DataSize) = 0;
 
+		KM_FUN()
 		virtual bool isOpen() = 0;
 
+		KM_FUN()
 		virtual I32 close() = 0;
 	};
 }

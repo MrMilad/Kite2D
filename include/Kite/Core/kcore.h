@@ -27,6 +27,7 @@
 #include "Kite/core/kcorestructs.h"
 #include "Kite/core/kcoreutil.h"
 #include "Kite/core/kostream.h"
+#include "Kite/core/kfostream.h"
 #include "Kite/core/kistream.h"
 #include "Kite/core/kfistream.h"
 #include "Kite/core/kmessage.h"

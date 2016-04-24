@@ -21,7 +21,6 @@ USA
 #define KMETAENUM_H
 
 #include "Kite/core/kcoredef.h"
-#include "Kite/utility/kutilitytypes.h"
 #include "Kite/meta/kmetabase.h"
 #include <string>
 #include <list>

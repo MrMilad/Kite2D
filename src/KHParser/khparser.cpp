@@ -1809,10 +1809,16 @@ void createMacros(const std::vector<MClass> &Cls, const std::vector<MEnum> &Enms
 			isContiner = true;
 		}
 
-		// is scriptable
+		// is istream
 		bool isIStream = false;
 		if (std::find(ctags.begin(), ctags.end(), "ISTREAM") != ctags.end()) {
 			isIStream = true;
+		}
+
+		// is ostream
+		bool isOStream = false;
+		if (std::find(ctags.begin(), ctags.end(), "OSTREAM") != ctags.end()) {
+			isOStream = true;
 		}
 
 		// is scriptable
@@ -1822,7 +1828,9 @@ void createMacros(const std::vector<MClass> &Cls, const std::vector<MEnum> &Enms
 		}
 
 		// class without any flag will ignored
-		if (!isPOD && !isEntity && !isResource && !isComponent && !isSystem && !isScriptable && !isContiner && !isIStream) {
+		if (!isPOD && !isEntity && !isResource &&
+			!isComponent && !isSystem && !isScriptable &&
+			!isContiner && !isIStream && !isOStream) {
 			printf("message: class without any supported flags. %s ignored. \n", Cls[i].name.c_str());
 			continue;
 		}
@@ -1952,7 +1960,8 @@ void createMacros(const std::vector<MClass> &Cls, const std::vector<MEnum> &Enms
 		Output.append("}\\\n");
 
 		// lua binding 
-		if (isComponent || isScriptable || isEntity || isPOD || isSystem || isIStream) {
+		if (isComponent || isScriptable || isEntity || isPOD ||
+			isSystem || isIStream || isOStream) {
 			Output.append("if (Lua != nullptr) { \\\n"
 						  "LuaIntf::LuaBinding(Lua).beginModule(\"Kite\").beginClass<"
 						  + Cls[i].name + ">(\"" + Cls[i].name + "\")\\\n");

@@ -17,8 +17,8 @@ License along with this library; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 USA
 */
-#ifndef KFILEISTREAM_H
-#define KFILEISTREAM_H
+#ifndef KFISTREAM_H
+#define KFISTREAM_H
 
 #include "Kite/core/kcoredef.h"
 #include "Kite/core/kistream.h"
@@ -61,4 +61,4 @@ namespace Kite{
 	};
 }
 
-#endif // KFILEISTREAM_H
+#endif // KFISTREAM_H

@@ -24,7 +24,6 @@ USA
 #include "Kite/core/kentitymanager.h"
 #include "Kite/core/kresourcemanager.h"
 #include "Kite/core/kresource.h"
-#include "Kite/core/kostream.h"
 #include "Kite/meta/kmetadef.h"
 #include <string>
 #include <unordered_map>
@@ -43,10 +42,10 @@ namespace Kite {
 		~KScene();
 
 		/// load from an open stream
-		bool loadStream(KIStream &Stream, U32 Flag = 0) override;
+		bool loadStream(KIStream *Stream, U32 Flag = 0) override;
 
 		/// save to an open stream
-		bool saveStream(KOStream &Stream, U32 Flag = 0) override;
+		bool saveStream(KOStream *Stream, U32 Flag = 0) override;
 
 		inline bool isLoaded() const { return _kloaded; }
 		inline bool isModified() { if (isLoaded()) return _keman.isModified(); return false; }

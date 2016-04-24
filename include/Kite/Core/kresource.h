@@ -47,9 +47,9 @@ namespace Kite{
 
 		\return True if loading was successful
 		*/
-		virtual bool loadStream(KIStream &Stream, U32 Flag = 0) = 0;
+		virtual bool loadStream(KIStream *Stream, U32 Flag = 0) = 0;
 
-		virtual bool saveStream(KOStream &Stream, U32 Flag = 0) = 0;
+		virtual bool saveStream(KOStream *Stream, U32 Flag = 0) = 0;
 
 		inline U32 getReferencesCount() const { return _kref; }
 

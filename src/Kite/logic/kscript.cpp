@@ -28,7 +28,7 @@ namespace Kite {
 		KResource(Name, "KScript") 
 	{}
 
-	bool KScript::loadStream(KIStream &Stream, U32 Flag) {
+	bool KScript::loadStream(KIStream *Stream, U32 Flag) {
 		_kcode.clear();
 
 		KBinarySerial ser;
@@ -39,7 +39,7 @@ namespace Kite {
 		return true;
 	}
 
-	bool KScript::saveStream(KOStream &Stream, U32 Flag) {
+	bool KScript::saveStream(KOStream *Stream, U32 Flag) {
 		KBinarySerial ser;
 		ser << _kcode;
 		if (!ser.saveStream(Stream)) {

@@ -29,8 +29,9 @@ namespace Kite{
 		_kfile(nullptr) {}
 
 	KFIStream::~KFIStream() {
-		if (_kfile)
+		if (_kfile) {
 			fclose(_kfile);
+		}
 	}
 
 	bool KFIStream::open(const std::string &Address, KIOTypes Type) {

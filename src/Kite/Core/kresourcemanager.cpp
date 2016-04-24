@@ -114,7 +114,7 @@ namespace Kite {
 		auto stream = sfactory->second();
 		stream->open(ResName, KIOTypes::KRT_BIN);
 
-		if (!resource->loadStream(*stream, Flag)) {
+		if (!resource->loadStream(stream, Flag)) {
 			KD_FPRINT("can't load resource. rname: %s", ResName.c_str());
 			delete resource;
 			delete stream;

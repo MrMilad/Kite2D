@@ -13,5 +13,5 @@ private slots:
 	void ButtonPressed();
 
 private:
-	QTreeWidgetItem* m_pItem;
+	QTreeWidgetItem	*item;
 };

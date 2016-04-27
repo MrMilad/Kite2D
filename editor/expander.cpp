@@ -2,9 +2,10 @@
 #include <QTreeWidget>
 #include <QTreeWidgetItem>
 #include <QIcon>
+#include <QHBoxLayout>
 
 Expander::Expander(const QString& Text, const QIcon &Icon, QWidget* Parent, QTreeWidgetItem* TreeItem):
-	QToolButton(Parent), m_pItem(TreeItem)
+	QToolButton(Parent), item(TreeItem)
 {
 	this->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
 	this->setIcon(Icon);
@@ -13,5 +14,5 @@ Expander::Expander(const QString& Text, const QIcon &Icon, QWidget* Parent, QTre
 }
 
 void Expander::ButtonPressed() {
-	m_pItem->setExpanded(!m_pItem->isExpanded());
+	item->setExpanded(!item->isExpanded());
 }

@@ -17,12 +17,18 @@ class QToolBox;
 class QStatusBar;
 class QListWidget;
 class QAction;
+class QFormLayout;
+class QFrame;
 
 struct Project {
 	QString name;
 	QString Path;
 };
 
+struct ComBinder {
+	QString cname;
+	QString pname;
+};
 
 class MainWindow : public QMainWindow
 {
@@ -56,6 +62,11 @@ void entityAdd();
 void entityRemove();
 void entityRename();
 
+void componentClicked();
+void componentRClicked(const QPoint & pos);
+void componentAdd(QAction *Action);
+void componentRemove();
+
 void exitApp();
 
 private:
@@ -85,6 +96,12 @@ private:
 	void removeScene(Kite::KResource *Scene);
 	void loadChilds(Kite::KEntityManager *Eman, const Kite::KHandle &Entity, QTreeWidgetItem *Parrent);
 
+	// KComponents
+	/// CName used in Logic component
+	void createComponent(Kite::KHandle Entity, QString CName, QString CType);
+	void bindProperties(Kite::KHandle Ehandle, QString CName , QString CType, QFrame *Frame);
+	void addGUIItem(QFormLayout *Layout, const Kite::KMetaProperty *Prop, const Kite::KMetaBase *Meta);
+
     QDockWidget *resDock;
     QDockWidget *objDock;
     QDockWidget *prpDock;
@@ -95,6 +112,7 @@ private:
 
 	QMenu *fileMenu;
 	QMenu *winMenu;
+	QMenu *compMenu;
 
     QToolBar *fileTolb;
 	QAction *newProj;
@@ -110,6 +128,7 @@ private:
 	QAction *addObj;
 	QAction *remObj;
 	QAction *renObj;
+	QAction *remCom;
 	QAction *exit;
 
 	Kite::KMetaManager *kmman;
@@ -126,12 +145,15 @@ private:
 	};
 
 	QList<QString> kresCatList;
+	QList<QString> kcompList;
 	QHash<QTreeWidgetItem *, QHash<QString, Kite::KResource *>> kresMap;
 	QHash<QString, ResourceCallbacks> kresCallbackMap;
+	QHash<QString, QString> kcompNameMap;
 
 	Project *curProject;
 	Kite::KScene *kcurScene;
 	QTreeWidgetItem *curEnt;
+	QString curCom;
 };
 
 #endif // MAINWINDOW_H

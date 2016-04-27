@@ -10,6 +10,7 @@ greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
 TARGET = K2DEditor
 TEMPLATE = app
+CONFIG += console
 
 INCLUDEPATH += F:/KEngineLab/Lab/CMakeBase/extlibs/headers
 INCLUDEPATH += F:/KEngineLab/Lab/CMakeBase/include
@@ -23,12 +24,14 @@ SOURCES += main.cpp\
         mainwindow.cpp \
     gridscene.cpp \
 	expander.cpp \
-    frmnewproj.cpp
+    frmnewproj.cpp\
+    comproperty.cpp
 
 HEADERS  += mainwindow.h \
     gridscene.h \
 	expander.h \
-    frmnewproj.h
+    frmnewproj.h\
+    comproperty.h
 
 RESOURCES += \
     res.qrc

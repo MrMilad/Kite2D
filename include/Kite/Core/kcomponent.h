@@ -51,21 +51,21 @@ namespace Kite {
 		virtual bool setProperty(const std::string &Name, KAny &Value) = 0;
 
 		/// will be implemented by KHParser
-		virtual KAny getProperty(const std::string &Name) = 0;
+		virtual KAny getProperty(const std::string &Name) const = 0;
 
-		KM_PRO_GET("name", std::string, "name of the component")
+		KM_PRO_GET(NAME = "name", TYPE = std::string, CM = "name of the component")
 		inline const std::string &getName() const { return _kname; }
 
-		KM_PRO_GET("needUpdate", bool, "update state of the component")
+		KM_PRO_GET(NAME = "needUpdate", TYPE = bool, CM = "update state of the component")
 		inline bool getNeedUpdate() const { return _kneedup; }
 
-		KM_PRO_GET("handle", KHandle, "component handle")
+		KM_PRO_GET(NAME = "handle", TYPE = KHandle, CM = "component handle")
 		inline const KHandle &getHandle() const { return _khandle; }
 
-		KM_PRO_GET("ownerHandle", KHandle, "owner (entity) handle")
+		KM_PRO_GET(NAME = "ownerHandle", TYPE = KHandle, CM = "owner (entity) handle")
 			inline const KHandle &getOwnerHandle() const { return _kohandle; }
 
-		KM_PRO_GET("lsitener", KListener, "cmponent message listener")
+		KM_PRO_GET(NAME = "lsitener", TYPE = KListener, CM = "cmponent message listener")
 			inline KListener &getListener() { return *(KListener *)this; }
 
 		/// for simulate polymorphism in script

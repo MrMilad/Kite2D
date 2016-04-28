@@ -62,20 +62,16 @@ namespace Kite {
 
 		void addFunction(const KMetaFunction &Base);
 
-		void addInfo(const std::pair<std::string, std::string> &Info);
-
 		inline U32 getFlags() const { return _kflags; }
 
 		inline const auto getProperties() const { return &_kprop; }
 
 		inline const auto getFunctiond() const { return &_kfunc; }
 
-		inline const auto getInfo() const { return &_kinfo; }
-
 	private:
 		std::list<KMetaProperty> _kprop;
 		std::list<KMetaFunction> _kfunc;
-		std::list<std::pair<std::string, std::string>> _kinfo;
+		
 		U32 _kflags;
 	};
 }

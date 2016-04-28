@@ -24,4 +24,8 @@ namespace Kite {
 		_kname(Name), _kflag(Flag), _ksize(Size), _kmetatype(MetaType) {}
 
 	KMetaBase::~KMetaBase() {};
+
+	void KMetaBase::addInfo(const std::pair<std::string, std::string> &Info) {
+		_kinfo.push_back(Info);
+	}
 }

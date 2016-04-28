@@ -42,6 +42,17 @@ USA
 #define KO_SUB
 #define KO_DIV
 
+// property tags
+#define NAME
+#define TYPE
+#define CM
+#define MIN
+#define MAX
+#define RES
+
+// info tags
+#define CTYPE // component name
+
 // variable modifiers
 #define UNBIND  // add this flag for unbindable pod's variables. eg: arrays or private variables
 

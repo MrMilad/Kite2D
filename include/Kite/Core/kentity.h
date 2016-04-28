@@ -50,25 +50,25 @@ namespace Kite {
 		KM_FUN()
 		KRecieveTypes onMessage(KMessage &Message, KMessageScopeTypes Scope);
 
-		KM_PRO_GET("pHandle", KHandle, "parrent handle")
+		KM_PRO_GET(NAME = "pHandle", TYPE = KHandle, CM = "parrent handle")
 		inline const KHandle &getParrentHandle() const { return _kphandle; }
 
-		KM_PRO_GET("handle", KHandle, "entity handle")
+		KM_PRO_GET(NAME = "handle", TYPE = KHandle, CM = "entity handle")
 		inline const KHandle &getHandle() const { return _khandle; }
 
-		KM_PRO_GET("name", std::string, "entity unique name")
+		KM_PRO_GET(NAME = "name", TYPE = std::string, CM = "entity unique name")
 		inline const std::string &getName() const { return _kname; }
 
-		KM_PRO_GET("listener", KListener, "entity message listener")
+		KM_PRO_GET(NAME = "listener", TYPE = KListener, CM = "entity message listener")
 		inline KListener &getListener() { return *(KListener *)this; }
 
-		KM_PRO_GET("messenger", KMessenger, "entity messenger")
+		KM_PRO_GET(NAME = "messenger", TYPE = KMessenger, CM = "entity messenger")
 		inline KMessenger &getMessenger() { return *(KMessenger *)this; }
 
-		KM_PRO_GET("active", bool, "is active")
+		KM_PRO_GET(NAME = "active", TYPE = bool, CM = "is active")
 		inline bool getActive() const { return _kactive; }
 
-		KM_PRO_SET("active")
+		KM_PRO_SET(NAME = "active")
 		inline void setActive(bool Active) { _kactive = Active; }
 
 		KM_FUN()

@@ -41,7 +41,7 @@ namespace Kite {
 				KMetaPOD("F32", 0, (U32)sizeof(F32), KPT_F32),
 				KMetaPOD("F64", 0, (U32)sizeof(F64), KPT_F64),
 				KMetaPOD("bool", 0, (U32)sizeof(bool), KPT_BOOL),
-				KMetaPOD("string", 0, 0, KPT_STR) // std::string
+				KMetaPOD("std::string", 0, 0, KPT_STR) // std::string
 			};
 
 			if (!registered && MMan != nullptr) {

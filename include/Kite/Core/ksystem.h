@@ -40,7 +40,7 @@ namespace Kite {
 
 		virtual bool inite(void *Data) = 0;
 
-		inline bool getInite() const { return _kisinite; }
+		inline bool isInite() const { return _kisinite; }
 
 	protected:
 		inline void setInite(bool Inite) { _kisinite = Inite; }

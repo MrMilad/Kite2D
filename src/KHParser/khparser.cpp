@@ -55,12 +55,17 @@ enum MClassBaseAccs {
 };
 
 enum MClassType {
-	CT_OTHER = 0,
-	CT_COMP,
-	CT_SYS,
-	CT_POD,
-	CT_RES,
-	CT_ISTREAM
+	CT_POD = 1,
+	CT_COMPONENT = 2,
+	CT_RESOURCE = 4,
+	CT_ENTITY = 8,
+	CT_SYSTEM = 16,
+	CT_ABSTRACT = 32,
+	CT_CONTINER = 64,
+	CT_ISTREAM = 128,
+	CT_OSTREAM = 256,
+	CT_SCRIPTABLE = 512,
+	CT_OTHER = 1024
 };
 
 enum MExportState{
@@ -143,7 +148,7 @@ struct MTemplate {
 struct MClass {
 	std::string name;
 	std::string tokparam;
-	MClassType type;
+	unsigned int type;
 	MExportState exstate;
 	MFunction constructure;
 	std::string flags;
@@ -578,7 +583,7 @@ void removeSSComments(std::string &Content) {
 	}
 }
 
-void splitBy(const std::string &Content, std::string Tok, std::vector<std::string> &OutList) {
+void splitBy(const std::string &Content, std::string Tok, std::vector<std::pair<std::string, std::string>> &OutList) {
 	OutList.clear();
 	size_t pos = 0;
 	size_t tsize = Tok.length();
@@ -586,15 +591,28 @@ void splitBy(const std::string &Content, std::string Tok, std::vector<std::strin
 
 	tstr.append(Tok);
 
+	std::vector<std::string> pairs;
+
+	// splite pairs list
 	while ((pos = tstr.find(Tok)) != std::string::npos) {
-		if (!tstr.substr(0, pos).empty())
-			OutList.push_back(tstr.substr(0, pos));
+		if (!tstr.substr(0, pos).empty()) {
+			pairs.push_back(tstr.substr(0, pos));
+		}
 		tstr.erase(0, pos + tsize);
+	}
+
+	// splite pairs
+	for (auto it = pairs.begin(); it != pairs.end(); ++it) {
+		if ((pos = it->find("=")) != std::string::npos) {
+			OutList.push_back({ it->substr(0, pos), it->substr(pos, it->size()) });
+		} else {
+			OutList.push_back({ (*it), "" });
+		}
 	}
 }
 
 // split a list of parameter by token (,)
-void splitParamRaw(const std::string &Content, std::vector<std::string> &OutList, bool IgnoreSN) {
+void splitParamRaw(const std::string &Content, std::vector<std::pair<std::string, std::string>> &OutList, bool IgnoreSN) {
 	OutList.clear();
 
 	std::string temp = Content;
@@ -618,15 +636,27 @@ void splitParamRaw(const std::string &Content, std::vector<std::string> &OutList
 
 	size_t pos = 0;
 	size_t tsize = strlen(",");
+	std::vector<std::string> pairs;
+
+	// splite pairs list
 	while ((pos = temp.find(",")) != std::string::npos) {
 		if (!temp.substr(0, pos).empty()) {
-			OutList.push_back(temp.substr(0, pos));
+			pairs.push_back(temp.substr(0, pos));
 		}
 		temp.erase(0, pos + tsize);
 	}
+
+	// splite pairs
+	for (auto it = pairs.begin(); it != pairs.end(); ++it) {
+		if ((pos = it->find("=")) != std::string::npos) {
+			OutList.push_back({ it->substr(0, pos), it->substr(pos + 1, it->size()) });
+		} else {
+			OutList.push_back({ (*it), "" });
+		}
+	}
 }
 
-void splitParam(const std::string &Content, std::vector<std::string> &OutList) {
+void splitParam(const std::string &Content, std::vector<std::pair<std::string, std::string>> &OutList) {
 	splitParamRaw(Content, OutList, true);
 }
 
@@ -751,7 +781,7 @@ bool procConstructure(const std::string &Content, MFunction &Func) {
 
 bool procProp(const std::vector<MFunction> &AllGet, const std::vector<MFunction> &AllSet
 			  , std::vector<MProperty> &Output) {
-	std::vector<std::string> param;
+	std::vector<std::pair<std::string, std::string>> param;
 	std::unordered_map<std::string, MProperty> map;
 	Output.clear();
 
@@ -777,80 +807,118 @@ bool procProp(const std::vector<MFunction> &AllGet, const std::vector<MFunction>
 
 		}
 
+		std::string name, type, cm, min = "0", max = "0", res;
+
+		for (auto it = param.begin(); it != param.end(); ++it) {
+			if (it->first == "NAME") {
+				name = it->second;
+			} else if (it->first == "TYPE") {
+				if (it->second.empty()) {
+					printf("error: tag without any value detected ==> function name: %s  TAG: TYPE\n", AllGet[i].name.c_str());
+					return false;
+				}
+				type = it->second;
+			} else if (it->first == "CM") {
+				if (it->second.empty()) {
+					printf("error: tag without any value detected ==> function name: %s  TAG: CM\n", AllGet[i].name.c_str());
+					return false;
+				}
+				cm = it->second;
+			} else if (it->first == "MIN") {
+				if (it->second.empty()) {
+					printf("error: tag without any value detected ==> function name: %s  TAG: MIN\n", AllGet[i].name.c_str());
+					return false;
+				}
+				min = it->second;
+			} else if (it->first == "MAX") {
+				if (it->second.empty()) {
+					printf("error: tag without any value detected ==> function name: %s  TAG: MAX\n", AllGet[i].name.c_str());
+					return false;
+				}
+				max = it->second;
+			} else if (it->first == "RES") {
+				if (it->second.empty()) {
+					printf("error: tag without any value detected ==> function name: %s  RES: MIN\n", AllGet[i].name.c_str());
+					return false;
+				}
+				res = it->second;
+			} else {
+				printf("warning: unsupported tag detected ==> function name: %s\n", AllGet[i].name.c_str());
+			}
+		}
+
 		// extract string name from string map
-		auto pname = strmap.find(param[0]);
-		if (pname == strmap.end()) {
+		if (name.empty() || (strmap.find(name) == strmap.end())) {
 			printf("error: could not extract prperty name from string map ==> function name: %s\n", AllGet[i].name.c_str());
 			return false;
 		}
+		name = strmap[name];
 
-		// check for comment
-		std::string comment;
-		if (param.size() >= 3) {
-			auto pcomm = strmap.find(param[2]);
-			if (pcomm == strmap.end()) {
-				printf("warning: could not extract prperty comment from string map ==> function name: %s\n", AllGet[i].name.c_str());
-			} else {
-				comment = pcomm->second;
+		// extract comment from string map
+		if (!cm.empty()){
+			if (strmap.find(cm) == strmap.end()) {
+				printf("error: could not extract prperty name from string map ==> function name: %s\n", AllGet[i].name.c_str());
+				return false;
 			}
-		}
-
-		// check for min/max
-		std::string minv("0");
-		std::string maxv("0");
-		if (param.size() >= 4) {
-			minv = param[3];
-			if (param.size() >= 5) {
-				maxv = param[4];
-			}
+			cm = strmap[cm];
 		}
 
 		// register property to map
-		auto prop = map.find(pname->second);
+		auto prop = map.find(name);
 		if (prop != map.end()) {
 			printf("error: property overload not supported ==> function name: %s\n", AllGet[i].name.c_str());
 			return false;
 		}
 
 		// register getter/name/type/comment
-		map.insert({ pname->second, MProperty() });
-		map[pname->second].name = pname->second;
-		map[pname->second].comment = comment;
-		map[pname->second].get = AllGet[i];
-		map[pname->second].type = param[1];
-		map[pname->second].min = minv;
-		map[pname->second].max = maxv;
+		map.insert({ name, MProperty() });
+		map[name].name = name;
+		map[name].comment = cm;
+		map[name].get = AllGet[i];
+		map[name].type = type;
+		map[name].min = min;
+		map[name].max = max;
 	}
 
-	// first register all setters
+	// then register all setters
 	for (size_t i = 0; i < AllSet.size(); i++) {
 
 		// exteract token parameter
 		splitParam(AllSet[i].tokparam, param);
 
 		if (param.empty()) {
-printf("error: missing property info ==> function name: %s\n", AllGet[i].name.c_str());
-return false;
+			printf("error: missing property info ==> function name: %s\n", AllGet[i].name.c_str());
+			return false;
 		} else if (param.size() > 1) {
 			printf("warning: extera property info (ignored) ==> function name: %s\n", AllGet[i].name.c_str());
 		}
 
+		std::string name;
+
+		for (auto it = param.begin(); it != param.end(); ++it) {
+			if (it->first == "NAME") {
+				name = it->second;
+			} else {
+				printf("warning: unsupported tag detected ==> function name: %s\n", AllGet[i].name.c_str());
+			}
+		}
+
 		// extract string name from string map
-		auto pname = strmap.find(param[0]);
-		if (pname == strmap.end()) {
+		if (name.empty() || (strmap.find(name) == strmap.end())) {
 			printf("error: could not extract prperty name from string map ==> function name: %s\n", AllGet[i].name.c_str());
 			return false;
 		}
+		name = strmap[name];
 
 		// register property to map
-		auto prop = map.find(pname->second);
+		auto prop = map.find(name);
 		if (prop == map.end()) {
 			printf("error: setter-only property not allowed ==> function name: %s\n", AllGet[i].name.c_str());
 			return false;
 		}
 
 		// register getter/name/type/comment
-		map[pname->second].set = AllSet[i];
+		map[name].set = AllSet[i];
 	}
 
 	// fill output vector
@@ -979,7 +1047,7 @@ bool procAllVar(const std::string &Content, std::vector<MVariable> &Vars) {
 	return ret;
 }
 
-bool procInfo(const std::string &Content, MInfo &Info, unsigned int Pos) {
+bool procInfo(const std::string &Content, std::vector<MInfo> &AllInfo, unsigned int Pos) {
 	std::string output;
 	if (checkNext(Content, Pos) != PS_BODY_START) {
 		printf("error: missing ().\n");
@@ -990,18 +1058,21 @@ bool procInfo(const std::string &Content, MInfo &Info, unsigned int Pos) {
 	// and there is no warning for empty parameter list
 	Pos = getNextBody(Content, Pos, output);
 	
-	std::vector<std::string> param;
+	std::vector<std::pair<std::string, std::string>> param;
 	splitParam(output, param);
 
-	if (param.size() >= 2) {
-		Info.key = strmap[param[0]];
-		Info.info = strmap[param[1]];
-		return true;
-	} else {
+	if (!param.empty()) {
+		for (auto it = param.begin(); it != param.end(); ++it) {
+			MInfo info;
+			info.key = it->first;
+			info.info = strmap[it->second];
+			AllInfo.push_back(info);
+		}
+	}else{
 		printf("missing info parameter.");
 	}
 
-	return false;
+	return true;
 }
 
 // parse all INFO tokens
@@ -1016,14 +1087,7 @@ bool procAllInfo(const std::string &Content, std::vector<MInfo> &Info) {
 	}
 
 	while ((pos = findToken(Content, pos, "KM_INFO")) != std::string::npos) {
-		MInfo tinfo;
-		if (procInfo(Content, tinfo, pos)) {
-			Info.push_back(tinfo);
-
-		} else {
-			printf("info token number: %u \n", count);
-			ret = false;
-		}
+		procInfo(Content, Info, pos);
 		++count;
 	}
 
@@ -1031,7 +1095,7 @@ bool procAllInfo(const std::string &Content, std::vector<MInfo> &Info) {
 }
 
 bool procOper(std::vector<MOperator> &Oprs, const std::vector<MFunction> &Funs) {
-	std::vector<std::string> param;
+	std::vector<std::pair<std::string, std::string>> param;
 
 	for (size_t i = 0; i < Funs.size(); ++i) {
 		splitParam(Funs[i].tokparam, param);
@@ -1042,7 +1106,7 @@ bool procOper(std::vector<MOperator> &Oprs, const std::vector<MFunction> &Funs) 
 			printf("extera operator type ignored. oname: %s\n", Funs[i].name.c_str());
 		}
 
-		if (param[0] == "KO_ADD") {
+		if (param[0].first == "KO_ADD") {
 			MOperator opr;
 			opr.fun = Funs[i];
 			opr.type = OT_ADD;
@@ -1050,7 +1114,7 @@ bool procOper(std::vector<MOperator> &Oprs, const std::vector<MFunction> &Funs) 
 			continue;
 		}
 
-		if (param[0] == "KO_SUB") {
+		if (param[0].first == "KO_SUB") {
 			MOperator opr;
 			opr.fun = Funs[i];
 			opr.type = OT_SUB;
@@ -1058,7 +1122,7 @@ bool procOper(std::vector<MOperator> &Oprs, const std::vector<MFunction> &Funs) 
 			continue;
 		}
 
-		if (param[0] == "KO_MUL") {
+		if (param[0].first == "KO_MUL") {
 			MOperator opr;
 			opr.fun = Funs[i];
 			opr.type = OT_MUL;
@@ -1066,7 +1130,7 @@ bool procOper(std::vector<MOperator> &Oprs, const std::vector<MFunction> &Funs) 
 			continue;
 		}
 
-		if (param[0] == "KO_DIV") {
+		if (param[0].first == "KO_DIV") {
 			MOperator opr;
 			opr.fun = Funs[i];
 			opr.type = OT_DIV;
@@ -1116,7 +1180,7 @@ bool procTemplate(const std::string &Content, MTemplate &Temps, unsigned int Pos
 
 	Pos = getNextBody(Content, Pos, output);
 
-	std::vector<std::string> param;
+	std::vector<std::pair<std::string, std::string>> param;
 	splitParam(output, param);
 
 	if (param.size() < 2) {
@@ -1124,10 +1188,10 @@ bool procTemplate(const std::string &Content, MTemplate &Temps, unsigned int Pos
 		return false;
 	}
 
-	Temps.name = strmap[param[0]];
+	Temps.name = strmap[param[0].first];
 
 	for (size_t i = 1; i < param.size(); ++i) {
-		Temps.types.append(param[i]);
+		Temps.types.append(param[i].first);
 		if ((i + 1) < param.size()) {
 			Temps.types.append(", ");
 		}
@@ -1155,7 +1219,7 @@ bool procAllTemplate(const std::string &Content, MClass &Cls) {
 
 		pos = getNextBody(Content, pos, output);
 
-		std::vector<std::string> param;
+		std::vector<std::pair<std::string, std::string>> param;
 		splitParam(output, param);
 
 		if (param.empty()) {
@@ -1164,7 +1228,7 @@ bool procAllTemplate(const std::string &Content, MClass &Cls) {
 		}
 
 		for (size_t i = 0; i < param.size(); ++i) {
-			Cls.templType.append(param[i]);
+			Cls.templType.append(param[i].first);
 			if ((i + 1) < param.size()) {
 				Cls.templType.append(", ");
 			}
@@ -1190,7 +1254,7 @@ bool procAllTemplate(const std::string &Content, MClass &Cls) {
 bool procClass(const std::string &Content, MClass &Cls, unsigned int Pos) {
 	size_t pos;
 	std::string output;
-	std::vector<std::string> params;
+	//std::vector<std::pair<std::string, std::string>> params;
 
 	// checking token parameter(s)
 	if (checkNext(Content, Pos) != PS_BODY_START) {
@@ -1203,29 +1267,34 @@ bool procClass(const std::string &Content, MClass &Cls, unsigned int Pos) {
 	Cls.tokparam = output;
 
 	// class type
-	std::vector<std::string> tags;
+	std::vector<std::pair<std::string,std::string>> tags;
 	splitParam(output, tags);
 	Cls.type = CT_OTHER;
 
-	if (std::find(tags.begin(), tags.end(), "ABSTRACT") == tags.end()) {
+	for (auto it = tags.begin(); it != tags.end(); ++it) {
+		// is abstract
+		if (it->first == "ABSTRACT") {
+			Cls.type = Cls.type | CT_ABSTRACT;
+		}
+
 		// is component
-		if (std::find(tags.begin(), tags.end(), "COMPONENT") != tags.end()) {
-			Cls.type = CT_COMP;
+		if (it->first == "COMPONENT") {
+			Cls.type = Cls.type | CT_COMPONENT;
 		}
 
 		// is system
-		if (std::find(tags.begin(), tags.end(), "SYSTEM") != tags.end()) {
-			Cls.type = CT_SYS;
+		if (it->first == "SYSTEM") {
+			Cls.type = Cls.type | CT_SYSTEM;
 		}
 
 		// is resource
-		if (std::find(tags.begin(), tags.end(), "RESOURCE") != tags.end()) {
-			Cls.type = CT_RES;
+		if (it->first == "RESOURCE") {
+			Cls.type = Cls.type | CT_RESOURCE;
 		}
 
 		// is resource
-		if (std::find(tags.begin(), tags.end(), "ISTREAM") != tags.end()) {
-			Cls.type = CT_ISTREAM;
+		if (it->first == "ISTREAM") {
+			Cls.type = Cls.type | CT_ISTREAM;
 		}
 	}
 
@@ -1350,8 +1419,7 @@ bool procAllClass(const std::string &Content, std::vector<MClass> &Classes) {
 }
 
 bool procEnumMem(const std::string &Content, std::vector<MEnumMember> &Memers) {
-	std::vector<std::string> param;
-	std::vector<std::string> defval;
+	std::vector<std::pair<std::string, std::string>> param;
 	Memers.clear();
 	splitParam(Content, param);
 	if (param.empty()) {
@@ -1360,24 +1428,14 @@ bool procEnumMem(const std::string &Content, std::vector<MEnumMember> &Memers) {
 	}
 
 	// member value
-	for (size_t i = 0; i < param.size(); i++) {
-		splitBy(param[i], "=", defval);
-
+	for (size_t i = 0; i < param.size(); ++i) {
 		// without value
-		if (defval.size() == 1) {
+		if (!param[i].first.empty()) {
 			MEnumMember emem;
-			emem.name = param[i];
+			emem.name = param[i].first;
+			emem.value = param[i].second;
 			Memers.push_back(emem);
 			continue;
-
-		// with value
-		} else if (defval.size() == 2) {
-			removeAfter(param[i], "=");
-			MEnumMember emem;
-			emem.name = param[i];
-			emem.value = defval[1];
-			Memers.push_back(emem);
-
 		// extra or incorrect state
 		} else {
 			printf("error: incorrect enum member defention.\n");
@@ -1540,11 +1598,11 @@ void createTemplMacro(const MClass &Cls, std::string &Output) {
 	std::string upname = Cls.name;
 	std::string cParam = Cls.tokparam;
 	replaceTok(cParam, '|', ',');
-	std::vector<std::string> ctags;
+	std::vector<std::pair<std::string,std::string>> ctags;
 	splitParam(cParam, ctags);
 
 	// we only support POD's class for template
-	if (std::find(ctags.begin(), ctags.end(), "POD") == ctags.end()) {
+	if (std::find(ctags.begin(), ctags.end(), std::pair<std::string, std::string>({ "POD", "" })) == ctags.end()) {
 		printf("parser only support template for POD's\n");
 		return;
 	}
@@ -1615,11 +1673,11 @@ void createTemplMacro(const MClass &Cls, std::string &Output) {
 	// constructure
 	std::string param;
 	if (!Cls.constructure.name.empty()) {
-		std::vector<std::string> cplist;
+		std::vector<std::pair<std::string, std::string>> cplist;
 		splitParam(Cls.constructure.tokparam, cplist);
 		if (!cplist.empty()) {
 			for (size_t count = 0; count < cplist.size(); count++) {
-				param.append("LuaIntf::_opt<" + cplist[count] + ">");
+				param.append("LuaIntf::_opt<" + cplist[count].first + ">");
 				if ((count + 1) != cplist.size()) {
 					param.append(", ");
 				}
@@ -1676,11 +1734,11 @@ void createTemplMacro(const MClass &Cls, std::string &Output) {
 	}
 
 	// variables
-	std::vector<std::string> tpar;
+	std::vector<std::pair<std::string, std::string>> tpar;
 	for (size_t count = 0; count < Cls.vars.size(); count++) {
 		splitParam(Cls.vars[count].tokparam, tpar);
 		if (!tpar.empty()) {
-			if (tpar[0] == "UNBIND") {
+			if (tpar[0].first == "UNBIND") {
 				continue;
 			}
 		}
@@ -1758,7 +1816,7 @@ void createMacros(const std::vector<MClass> &Cls, const std::vector<MEnum> &Enms
 		std::string upname = Cls[i].name;
 		std::string cParam = Cls[i].tokparam;
 		replaceTok(cParam, '|', ',');
-		std::vector<std::string> ctags;
+		std::vector<std::pair<std::string, std::string>> ctags;
 		splitParam(cParam, ctags);
 
 		// is template class (templated class)
@@ -1769,62 +1827,64 @@ void createMacros(const std::vector<MClass> &Cls, const std::vector<MEnum> &Enms
 
 		// is serializable
 		bool isPOD = false;
-		if (std::find(ctags.begin(), ctags.end(), "POD") != ctags.end()) {
-			isPOD = true;
-		}
-
-		// is scriptable
 		bool isResource = false;
-		if (std::find(ctags.begin(), ctags.end(), "RESOURCE") != ctags.end()) {
-			isResource = true;
-		}
-
-		// is editable
 		bool isComponent = false;
-		if (std::find(ctags.begin(), ctags.end(), "COMPONENT") != ctags.end()) {
-			isComponent = true;
-		}
-
-		// is entity
 		bool isEntity = false;
-		if (std::find(ctags.begin(), ctags.end(), "ENTITY") != ctags.end()) {
-			isEntity = true;
-		}
-
-		// is system
 		bool isSystem = false;
-		if (std::find(ctags.begin(), ctags.end(), "SYSTEM") != ctags.end()) {
-			isSystem = true;
-		}
-
-		// is abstract
-		bool isAbstract = false;
-		if (std::find(ctags.begin(), ctags.end(), "ABSTRACT") != ctags.end()) {
-			isAbstract = true;
-		}
-
-		// is continer
 		bool isContiner = false;
-		if (std::find(ctags.begin(), ctags.end(), "CONTINER") != ctags.end()) {
-			isContiner = true;
-		}
-
-		// is istream
 		bool isIStream = false;
-		if (std::find(ctags.begin(), ctags.end(), "ISTREAM") != ctags.end()) {
-			isIStream = true;
-		}
-
-		// is ostream
 		bool isOStream = false;
-		if (std::find(ctags.begin(), ctags.end(), "OSTREAM") != ctags.end()) {
-			isOStream = true;
-		}
-
-		// is scriptable
 		bool isScriptable = false;
-		if (std::find(ctags.begin(), ctags.end(), "SCRIPTABLE") != ctags.end()) {
-			isScriptable = true;
+		bool isAbstract = false;
+		for (auto it = ctags.begin(); it != ctags.end(); ++it) {
+			if (it->first == "POD") {
+				isPOD = true;
+			}
+
+			// is scriptable
+			if (it->first == "RESOURCE") {
+				isResource = true;
+			}
+
+			// is editable
+			if (it->first == "COMPONENT") {
+				isComponent = true;
+			}
+
+			// is entity
+			if (it->first == "ENTITY") {
+				isEntity = true;
+			}
+
+			// is system
+			if (it->first == "SYSTEM") {
+				isSystem = true;
+			}
+
+			// is abstract
+			if (it->first == "ABSTRACT") {
+				isAbstract = true;
+			}
+
+			// is continer
+			if (it->first == "CONTINER") {
+				isContiner = true;
+			}
+
+			// is istream
+			if (it->first == "ISTREAM") {
+				isIStream = true;
+			}
+
+			// is ostream
+			if (it->first == "OSTREAM") {
+				isOStream = true;
+			}
+
+			// is scriptable
+			if (it->first == "SCRIPTABLE") {
+				isScriptable = true;
+			}
 		}
 
 		// class without any flag will ignored
@@ -1862,7 +1922,7 @@ void createMacros(const std::vector<MClass> &Cls, const std::vector<MEnum> &Enms
 		// property setter/getter (only components have properties)
 		if (isComponent && !isAbstract) {
 			Output.append(exstate + "bool setProperty(const std::string &Name, KAny &Value) override;\\\n" +
-						  exstate + "KAny getProperty(const std::string &Name) override;\\\n");
+						  exstate + "KAny getProperty(const std::string &Name) const override;\\\n");
 		}
 
 		// serializable
@@ -1913,7 +1973,7 @@ void createMacros(const std::vector<MClass> &Cls, const std::vector<MEnum> &Enms
 			Output.append("return false;}\\\n");
 
 			// get
-			Output.append("KAny " + Cls[i].name + "::getProperty(const std::string &Name){\\\n");
+			Output.append("KAny " + Cls[i].name + "::getProperty(const std::string &Name) const {\\\n");
 			for (size_t count = 0; count < Cls[i].props.size(); ++count) {
 				if (!Cls[i].props[count].get.name.empty()) {
 					Output.append("if (Name == \"" + Cls[i].props[count].name + "\"){\\\n"
@@ -1961,7 +2021,7 @@ void createMacros(const std::vector<MClass> &Cls, const std::vector<MEnum> &Enms
 
 		// lua binding 
 		if (isComponent || isScriptable || isEntity || isPOD ||
-			isSystem || isIStream || isOStream) {
+			isSystem || isIStream || isOStream || isResource) {
 			Output.append("if (Lua != nullptr) { \\\n"
 						  "LuaIntf::LuaBinding(Lua).beginModule(\"Kite\").beginClass<"
 						  + Cls[i].name + ">(\"" + Cls[i].name + "\")\\\n");
@@ -1969,11 +2029,11 @@ void createMacros(const std::vector<MClass> &Cls, const std::vector<MEnum> &Enms
 			// constructure
 			std::string param;
 			if (!Cls[i].constructure.name.empty() && !isAbstract) {
-				std::vector<std::string> cplist;
+				std::vector<std::pair<std::string, std::string>> cplist;
 				splitParam(Cls[i].constructure.tokparam, cplist);
 				if (!cplist.empty()) {
 					for (size_t count = 0; count < cplist.size(); count++) {
-						param.append("LuaIntf::_opt<" + cplist[count] + ">");
+						param.append("LuaIntf::_opt<" + cplist[count].first + ">");
 						if ((count + 1) != cplist.size()) {
 							param.append(", ");
 						}
@@ -2028,12 +2088,12 @@ void createMacros(const std::vector<MClass> &Cls, const std::vector<MEnum> &Enms
 			}
 
 			// variables (POD's only)
-			std::vector<std::string> tpar;
+			std::vector<std::pair<std::string, std::string>> tpar;
 			if (isPOD) {
 				for (size_t count = 0; count < Cls[i].vars.size(); count++) {
 					splitParam(Cls[i].vars[count].tokparam, tpar);
 					if (!tpar.empty()) {
-						if (tpar[0] == "UNBIND") {
+						if (tpar[0].first == "UNBIND") {
 							continue;
 						}
 					}
@@ -2159,9 +2219,9 @@ void createSource(const std::vector<std::string> &Files, const std::vector<MClas
 	Output.append("void registerCTypes(KEntityManager *EMan){\n");
 
 	for (size_t i = 0; i < Cls.size(); i++) {
-		if (Cls[i].type == CT_COMP) {
+		if (Cls[i].type & CT_COMPONENT && !(Cls[i].type & CT_ABSTRACT)) {
 			for (size_t count = 0; count < Cls[i].infos.size(); ++count) {
-				if (Cls[i].infos[count].key == "CType") {
+				if (Cls[i].infos[count].key == "CTYPE") {
 					Output.append("EMan->registerComponent<" + Cls[i].name + ">(\"" + Cls[i].infos[count].info + "\");\n");
 					break;
 				}
@@ -2177,7 +2237,7 @@ void createSource(const std::vector<std::string> &Files, const std::vector<MClas
 
 	for (size_t i = 0; i < Cls.size(); i++) {
 		// resource factory
-		if (Cls[i].type == CT_RES) {
+		if (Cls[i].type & CT_RESOURCE && !(Cls[i].type & CT_ABSTRACT)) {
 			std::string cstream("false");
 			for (size_t count = 0; count < Cls[i].infos.size(); ++count) {
 				if (Cls[i].infos[count].key == "CatchStream") {
@@ -2191,7 +2251,7 @@ void createSource(const std::vector<std::string> &Files, const std::vector<MClas
 		}
 
 		// stream factory
-		if (Cls[i].type == CT_ISTREAM) {
+		if (Cls[i].type & CT_ISTREAM && !(Cls[i].type & CT_ABSTRACT)) {
 			Output.append("RMan->registerIStream(\"" + Cls[i].name + "\", " + Cls[i].name + "::factory);\n");
 		}
 	}
@@ -2203,7 +2263,7 @@ void createSource(const std::vector<std::string> &Files, const std::vector<MClas
 	Output.append("void createSystems(std::vector<std::unique_ptr<KSystem>> &Systems){\n");
 	Output.append("Systems.clear();\n");
 	for (size_t i = 0; i < Cls.size(); i++) {
-		if (Cls[i].type == CT_SYS) {
+		if (Cls[i].type & CT_SYSTEM && !(Cls[i].type & CT_ABSTRACT)) {
 			Output.append("Systems.push_back(std::unique_ptr<KSystem>(new " + Cls[i].name + "));\n");
 		}
 	}

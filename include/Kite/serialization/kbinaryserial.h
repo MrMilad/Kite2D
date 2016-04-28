@@ -32,15 +32,11 @@ namespace Kite {
 	public:
 		KBinarySerial();
 
-		bool loadFile(const std::string &FileName, U32 FileType = 0);
+		bool loadStream(KIStream *Stream, const std::string &Key = std::string());
 
-		bool loadStream(KIStream *Stream, U32 FileType = 0);
+		bool saveStream(KOStream *Stream, const std::string &Key = std::string());
 
-		bool saveFile(const std::string &FileName);
-
-		bool saveStream(KOStream *Stream);
-
-		inline bool endOfFile() const { return _kendfile; }
+		inline bool endOfFile() const { if (_kdata.size() > _kpos) return false;  return true; }
 
 		void clearCatch();
 

@@ -20,6 +20,7 @@ USA
 #include "Kite/core/kresource.h"
 #include "Kite/meta/kmetamanager.h"
 #include "Kite/meta/kmetaclass.h"
+#include <luaintf\LuaIntf.h>
 
 namespace Kite {
 	KResource::KResource(const std::string &Name, const std::string &Type) :

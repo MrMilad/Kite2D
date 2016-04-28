@@ -121,9 +121,12 @@ namespace Kite {
 		}
 
 		// deattach from old parrents
-		auto parrent = _kestorage->get(Child->getParrentHandle());
-		if (parrent != nullptr) {
-			parrent->remChildIndex(Child->_kplistid);
+		auto phandle = Child->getParrentHandle();
+		if (phandle != KHandle()) {
+			auto parrent = _kestorage->get(phandle);
+			if (parrent != nullptr) {
+				parrent->remChildIndex(Child->_kplistid);
+			}
 		}
 
 		// attach to new parrent

@@ -37,10 +37,10 @@ namespace Kite {
 
 		virtual KRecieveTypes onMessage(KMessage &Message, KMessageScopeTypes Scope) = 0;
 
-		KM_PRO_GET("Enable", bool, "enable/disable recieving message")
+		KM_PRO_GET(NAME = "Enable", TYPE = bool, CM = "enable/disable recieving message")
 		inline bool getEnableRecieveMsg() const { return _kenable; }
 
-		KM_PRO_SET("Enable")
+		KM_PRO_SET(NAME = "Enable")
 		inline void setEnableRecieveMsg(bool Value) { _kenable = Value; }
 
 	private:

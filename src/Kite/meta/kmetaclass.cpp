@@ -31,8 +31,4 @@ namespace Kite {
 	void KMetaClass::addFunction(const KMetaFunction &Function) {
 		_kfunc.push_back(Function);
 	}
-
-	void KMetaClass::addInfo(const std::pair<std::string, std::string> &Info) {
-		_kinfo.push_back(Info);
-	}
 }

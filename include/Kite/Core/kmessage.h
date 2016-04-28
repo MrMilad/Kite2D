@@ -39,16 +39,16 @@ namespace Kite {
 		KMessage(const std::string &Type);
 		virtual ~KMessage();
 		
-		KM_PRO_SET("type")
+		KM_PRO_SET(NAME = "type")
 		void setType(const std::string &Type);
 
-		KM_PRO_GET("type", std::string, , "message type")
+		KM_PRO_GET(NAME = "type", TYPE = std::string, , CM = "message type")
 		inline const std::string &getType() const { return _ktype; }
 
-		KM_PRO_GET("getHash", U32, "32 bit hash code of message type")
+		KM_PRO_GET(NAME = "getHash", TYPE = U32, CM = "32 bit hash code of message type")
 		inline U32 getHash() const { return _khash; }
 
-		KM_PRO_GET("getConsume", bool, "consume state of message")
+		KM_PRO_GET(NAME = "getConsume", TYPE = bool, CM = "consume state of message")
 		inline bool getConsume() const { return _kconsume; }
 
 		KM_FUN()
@@ -65,10 +65,10 @@ namespace Kite {
 		KM_FUN()
 		inline LuaIntf::LuaRef &getDataTable() { return _kdtable; }
 
-		KM_PRO_GET("getUse", U32, "use counter")
+		KM_PRO_GET(NAME = "getUse", TYPE = U32, CM = "use counter")
 		inline U32 getUse() const { return _kused; }
 
-		KM_PRO_GET("getSize", U32, "size of message")
+		KM_PRO_GET(NAME = "getSize", TYPE = U32, CM = "size of message")
 		inline U32 getSize() const { return _ksize; }
 
 		// c++ only

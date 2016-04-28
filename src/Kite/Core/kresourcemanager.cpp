@@ -82,16 +82,16 @@ namespace Kite {
 		bool CatchStream = rfactory->second.second;
 
 		// checking file name
-		std::string ResName;
-		if (ResName.empty()) {
+		if (Name.empty()) {
 			KD_PRINT("empty resource name is not valid");
 			return nullptr;
 		}
 
 		// first check our dictionary
-		auto dfound = _kdict.find(ResName);
+		auto dfound = _kdict.find(Name);
 
 		// using dictionary key
+		std::string ResName;
 		if (dfound != _kdict.end()) {
 			ResName = dfound->second;
 		} else {

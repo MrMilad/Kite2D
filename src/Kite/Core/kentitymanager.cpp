@@ -196,7 +196,7 @@ namespace Kite {
 		}
 	}
 
-	bool KEntityManager::isModified() {
+	bool KEntityManager::isModified() const {
 		if (_kestorage.getModified()) {
 			return true;
 		}

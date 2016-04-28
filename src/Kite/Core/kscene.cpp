@@ -35,11 +35,19 @@ namespace Kite {
 
 	KScene::~KScene() {}
 
-	bool KScene::loadStream(KIStream *Stream, U32 Flag) {
+	bool KScene::loadStream(KIStream *Stream, U32 Flag, const std::string &Key) {
 		KBinarySerial bserial;
-		if (!bserial.loadStream(Stream)) {
+		if (!bserial.loadStream(Stream, Key)) {
 			_kloaded = false;
 			KD_PRINT("can't load stream");
+			return false;
+		}
+		std::string format;
+
+		bserial >> format;
+
+		if (format != "KScene") {
+			KD_PRINT("incorrect file format.");
 			return false;
 		}
 
@@ -51,14 +59,15 @@ namespace Kite {
 		return true;
 	}
 
-	bool KScene::saveStream(KOStream *Stream, U32 Flag) {
+	bool KScene::saveStream(KOStream *Stream, U32 Flag, const std::string &Key) {
 		KBinarySerial bserial;
 
+		bserial << std::string("KScene");
 		bserial << _kname;
 		bserial << _kres;
 		bserial << _keman;
 
-		if (!bserial.saveStream(Stream)) {
+		if (!bserial.saveStream(Stream, Key)) {
 			KD_PRINT("can't save stream");
 			return false;
 		}

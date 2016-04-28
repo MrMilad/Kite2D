@@ -34,9 +34,9 @@ namespace Kite {
 	public:
 		KScript(const std::string &Name);
 
-		bool loadStream(KIStream *Stream, U32 Flag = 0) override;
+		bool loadStream(KIStream *Stream, U32 Flag = 0, const std::string &Key = std::string()) override;
 
-		bool saveStream(KOStream *Stream, U32 Flag = 0) override;
+		bool saveStream(KOStream *Stream, U32 Flag = 0, const std::string &Key = std::string()) override;
 
 		inline void setCode(const std::string &Code) { _kcode = Code; }
 

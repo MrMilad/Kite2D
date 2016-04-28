@@ -74,7 +74,7 @@ namespace Kite {
 	}
 
 	bool KLogicSys::inite(void *Data) {
-		if (Data != nullptr && !getInite()) {
+		if (Data != nullptr && !isInite()) {
 			_klvm = static_cast<lua_State *>(Data);
 
 			// creata entiti table in global
@@ -86,7 +86,7 @@ namespace Kite {
 			return true;
 		}
 
-		return getInite();
+		return isInite();
 	}
 
 	void KLogicSys::updateComp(F32 Delta, KEntity *Self, KLogicCom *Component) {

@@ -4,6 +4,9 @@ set(SRCROOT ${PROJECT_SOURCE_DIR}/src/Kite/serialization)
 # all source files
 set(SER_SRC
     #${SRCROOT}/kbaseserial.cpp
+    ${SRCROOT}/tp/blowfish.cpp
+    ${SRCROOT}/tp/blowfish.h
+    ${SRCROOT}/kbinaryserial.cpp
     ${SRCROOT}/kbinaryserial.cpp
     PARENT_SCOPE
 )

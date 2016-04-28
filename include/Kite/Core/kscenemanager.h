@@ -67,10 +67,10 @@ namespace Kite {
 		KM_FUN()
 		KScene *getScene(const std::string &Name);
 
-		KM_PRO_GET("activeScene", KScene, "get active scene")
+		KM_PRO_GET(NAME = "activeScene", TYPE = KScene, CM = "get active scene")
 		inline KScene *getActiveScene() { return _kactive; }
 
-		KM_PRO_SET("activeScene")
+		KM_PRO_SET(NAME = "activeScene")
 		inline void setActiveScene(KScene *Scene) { _kactive = Scene; }
 
 	private:

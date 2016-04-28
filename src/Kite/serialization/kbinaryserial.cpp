@@ -21,98 +21,184 @@ USA
 #include "Kite/serialization/kbinaryserial.h"
 #include "Kite/core/kcoreutil.h"
 #include <cstdio>
+#include "src/Kite/serialization/tp/blowfish.h"
 
 namespace Kite {
 	KBinarySerial::KBinarySerial() :
 		_kpos(0),
 		_kendfile(true) {}
 
-	bool KBinarySerial::loadStream(KIStream *Stream, U32 FileType) {
-		bool ret = false;
-
-		if (Stream->isOpen()) {
-			// read header
-			char header[8];
-			if (Stream->read(&header, 7) == 7) {
-				header[7] = '\0';
-
-				// check header
-				if (strcmp("kserial\0", header) == 0) {
-
-					// get file size
-					U64 size = Stream->getSize();
-					Stream->seek(0, SEEK_SET);
-
-					// read date
-					_kdata.clear();
-					_kdata.resize((U32)size);
-					_kpos = 0;
-					if (Stream->read(&_kdata[0], size) == size) {
-						_kdata.erase(_kdata.begin(), _kdata.begin() + 7);
-						_kendfile = false;
-						ret = true;
-					} else {
-						KD_PRINT("can't read stream");
-					}
-				} else {
-					KD_PRINT("wrong data format");
-				}
-			} else {
-				KD_PRINT("cant read header");
-			}
-		} else {
-			KD_PRINT("can't open stream");
+	bool KBinarySerial::loadStream(KIStream *Stream, const std::string &Key) {
+		_kpos = 0;
+		_kdata.clear();
+		// open file
+		if (!Stream->isOpen()) {
+			KD_PRINT("stream is closed");
+			return false;
 		}
 
-		return ret;
-	}
-
-	bool KBinarySerial::saveFile(const std::string &FileName) {
-		bool ret = false;
-
-		// open file
-		FILE *file = fopen(FileName.c_str(), "wb");
-		if (file != NULL) {
-
-			// inite header 
-			char format[] = { 'k', 's', 'e', 'r', 'i', 'a', 'l' };
-			_kdata.insert(_kdata.begin(), &format[0], &format[7]);
-			// write data
-			if (fwrite(&_kdata[0], _kdata.size(), 1, file) == 1) {
-				ret = true;
-			} else {
-				KD_FPRINT("write data error. fname: %s", FileName.c_str());
-			}
-		} else {
-			KD_FPRINT("can't open file. fname: %s", FileName.c_str());
+		// read header
+		char format[8];
+		if (!Stream->read((void *)&format[0], sizeof(format))) {
+			KD_PRINT("can't read data from stream.");
+			return false;
 		}
 
-		// cleanup
-		fclose(file);
-		return ret;
+		if (std::strcmp(format, "kserial") != 0) {
+			KD_PRINT("incorrect file format.");
+			return false;
+		}
+
+		// read marker
+		char marker[4];
+		if (!Stream->read((void *)&marker[0], sizeof(marker))) {
+			KD_PRINT("can't read data from stream.");
+			return false;
+		}
+
+		if (std::strcmp(marker, "enc") != 0 && std::strcmp(marker, "nor") != 0) {
+			KD_PRINT("incorrect file format.");
+			return false;
+		}
+
+		// decript data
+		// key must be a multiple of 8 bytes (up to a maximum of 56)
+		if (!Key.empty()) {
+			if (Key.size() > 56 || ((Key.size() % 8) != 0)) {
+				KD_PRINT("key must be a multiple of 8 bytes and up to a maximum of 56.");
+				return false;
+			}
+
+			if (std::strcmp(marker, "enc") != 0) {
+				KD_PRINT("this stream is not encripted!");
+				return false;
+			}
+
+			// read encripted data
+			_kdata.resize(Stream->getSize() - (sizeof(format) + sizeof(marker)));
+			if (!Stream->read((void *)&_kdata[0], _kdata.size())) {
+				KD_PRINT("can't read data from stream");
+				return false;
+			}
+			// create key
+			std::vector<U8> key(Key.begin(), Key.end());
+			Blowfish encript(key);
+
+			// decript data
+			encript.Decrypt(_kdata);
+
+			// check signature
+			char sig[8];
+			U8 counter = 0;
+			if (_kdata.size() < sizeof(sig)) {
+				_kdata.clear();
+				KD_PRINT("incorrect key.");
+				return false;
+			}
+
+			for (SIZE i = _kdata.size() - sizeof(sig); i < _kdata.size(); ++i) {
+				sig[counter] = _kdata[i];
+				++counter;
+			}
+
+			if (std::strcmp(sig, "kserial") != 0) {
+				_kdata.clear();
+				KD_PRINT("incorrect key.");
+				return false;
+			}
+
+			// remove signature
+			for (SIZE i = 0; i < sizeof(sig); ++i) {
+				_kdata.pop_back();
+			}
+
+			return true;
+		}
+
+		if (std::strcmp(marker, "nor") != 0) {
+			KD_PRINT("this stream is encripted!");
+			return false;
+		}
+
+		// read data
+		_kdata.resize(Stream->getSize() - sizeof(format));
+		if (!Stream->read((void *)&_kdata[0], _kdata.size())) {
+			KD_PRINT("can't read data from stream");
+			return false;
+		}
+
+		return true;
 	}
 
-	bool KBinarySerial::saveStream(KOStream *Stream) {
-		bool ret = false;
-
+	bool KBinarySerial::saveStream(KOStream *Stream, const std::string &Key) {
 		// open file
-		if (Stream->isOpen()) {
+		if (!Stream->isOpen()) {
+			KD_PRINT("stream is closed");
+			return false;
+		}
 
-			// inite header (30 bytes lenght)
-			char format[] = { 'k', 's', 'e', 'r', 'i', 'a', 'l' };
-			_kdata.insert(_kdata.begin(), &format[0], &format[7]);
+		// write header
+		char format[] = "kserial";
+		if (!Stream->write((void *)&format[0], sizeof(format))) {
+			KD_PRINT("can't write data to stream");
+			return false;
+		}
 
-			// write data
-			if (Stream->write((void *)&_kdata[0], _kdata.size())) {
-				ret = true;
+		// encript data
+		// key must be a multiple of 8 bytes (up to a maximum of 56)
+		if (!Key.empty()){
+			if (Key.size() > 56 || ((Key.size() % 8) != 0)) {
+				KD_PRINT("key must be a multiple of 8 bytes and up to a maximum of 56.");
+				return false;
+			}
+
+			// write encription marker
+			char marker[] = "enc";
+			if (!Stream->write((void *)&marker[0], sizeof(marker))) {
+				KD_PRINT("can't write data to stream");
+				return false;
+			}
+
+			// encript data
+			std::vector<U8> encdata = _kdata;
+			std::vector<U8> key(Key.begin(), Key.end());
+			Blowfish encript(key);
+
+			// add signature
+			encdata.push_back('k');
+			encdata.push_back('s');
+			encdata.push_back('e');
+			encdata.push_back('r');
+			encdata.push_back('i');
+			encdata.push_back('a');
+			encdata.push_back('l');
+			encdata.push_back('\0');
+
+			encript.Encrypt(encdata);
+
+			// write encripted data
+			if (Stream->write((void *)&encdata[0], encdata.size())) {
+				return true;
 			} else {
 				KD_PRINT("can't write data to stream");
+				return false;
 			}
-		} else {
-			KD_PRINT("can't open stream");
 		}
 
-		return ret;
+		// write normal marker
+		char marker[] = "nor";
+		if (!Stream->write((void *)&marker[0], sizeof(marker))) {
+			KD_PRINT("can't write data to stream");
+			return false;
+		}
+
+		// write data
+		if (!Stream->write((void *)&_kdata[0], _kdata.size())) {
+			KD_PRINT("can't write data to stream");
+			return false;
+		}
+
+		return true;
 	}
 
 	void KBinarySerial::writePOD(const void *Value, SIZE Size, bool Str) {

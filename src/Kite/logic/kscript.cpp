@@ -22,27 +22,36 @@ USA
 #include "Kite/meta/kmetaclass.h"
 #include "Kite/serialization/kbinaryserial.h"
 #include "Kite/serialization/types/kstdstring.h"
+#include <luaintf/LuaIntf.h>
 
 namespace Kite {
 	KScript::KScript(const std::string &Name) :
 		KResource(Name, "KScript") 
 	{}
 
-	bool KScript::loadStream(KIStream *Stream, U32 Flag) {
+	bool KScript::loadStream(KIStream *Stream, U32 Flag, const std::string &Key) {
 		_kcode.clear();
 
 		KBinarySerial ser;
-		if (!ser.loadStream(Stream)) {
+		if (!ser.loadStream(Stream, Key)) {
 			return false;
 		}
+		std::string  format;
+		ser >> format;
+		if (format != "KScript") {
+			KD_PRINT("incorrect file format.");
+			return false;
+		}
+
 		ser >> _kcode;
 		return true;
 	}
 
-	bool KScript::saveStream(KOStream *Stream, U32 Flag) {
+	bool KScript::saveStream(KOStream *Stream, U32 Flag, const std::string &Key) {
 		KBinarySerial ser;
+		ser << std::string("KScript");
 		ser << _kcode;
-		if (!ser.saveStream(Stream)) {
+		if (!ser.saveStream(Stream,Key)) {
 			return false;
 		}
 		return true;

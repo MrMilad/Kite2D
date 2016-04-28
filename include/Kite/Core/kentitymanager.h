@@ -50,7 +50,7 @@ namespace Kite {
 		~KEntityManager();
 
 		KM_FUN()
-		bool isModified();
+		bool isModified() const;
 
 		template <typename T>
 		bool registerComponent(const std::string &CType) {
@@ -121,7 +121,7 @@ namespace Kite {
 		KM_FUN()
 		KEntity *getEntityByName(const std::string &Name);
 
-		KM_PRO_GET("root", KHandle, "root entity")
+		KM_PRO_GET(NAME = "root", TYPE = KHandle, CM = "root entity")
 		inline const KHandle &getRoot() const { return _kroot; }
 
 		void postWork();

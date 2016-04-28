@@ -47,16 +47,16 @@ namespace Kite{
 
 		\return True if loading was successful
 		*/
-		virtual bool loadStream(KIStream *Stream, U32 Flag = 0) = 0;
+		virtual bool loadStream(KIStream *Stream, U32 Flag = 0, const std::string &Key = std::string()) = 0;
 
-		virtual bool saveStream(KOStream *Stream, U32 Flag = 0) = 0;
+		virtual bool saveStream(KOStream *Stream, U32 Flag = 0, const std::string &Key = std::string()) = 0;
 
 		inline U32 getReferencesCount() const { return _kref; }
 
-		KM_PRO_GET("name", std::string)
+		KM_PRO_GET(NAME = "name", TYPE = std::string)
 		inline const std::string &getResourceName() const { return _kname; }
 
-		KM_PRO_GET("type", std::string)
+		KM_PRO_GET(NAME = "type", TYPE = std::string)
 		inline const std::string &getResourceType() const { return _ktype; }
 
 	private:

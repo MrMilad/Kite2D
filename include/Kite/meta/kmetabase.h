@@ -22,6 +22,7 @@ USA
 
 #include "Kite/core/kcoredef.h"
 #include "Kite/Meta/kmetatypes.h"
+#include <list>
 #include <string>
 
 namespace Kite {
@@ -31,6 +32,9 @@ namespace Kite {
 
 		virtual ~KMetaBase();
 
+		void addInfo(const std::pair<std::string, std::string> &Info);
+
+		inline const auto getInfo() const { return &_kinfo; }
 		inline const std::string &getName() const { return _kname; }
 		inline U32 getFlag() const { return _kflag; }
 		inline U32 getSize() const { return _ksize; }
@@ -41,6 +45,7 @@ namespace Kite {
 		U32 _kflag;
 		U32 _ksize;
 		KMetaTypes _kmetatype;
+		std::list<std::pair<std::string, std::string>> _kinfo;
 	};
 }
 

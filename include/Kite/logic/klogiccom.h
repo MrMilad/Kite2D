@@ -32,7 +32,7 @@ namespace Kite {
 	KM_CLASS(COMPONENT)
 	class KITE_FUNC_EXPORT KLogicCom : public KComponent {
 		friend class KLogicSys;
-		KM_INFO(CTYPE = "Logic");
+		KM_INFO(KI_CTYPE = "Logic");
 		KMETA_KLOGICCOM_BODY();
 
 	public:
@@ -46,13 +46,13 @@ namespace Kite {
 		KM_FUN()
 		KRecieveTypes onMessage(KMessage &Message, KMessageScopeTypes Scope) override;
 
-		KM_PRO_SET(NAME = "script")
+		KM_PRO_SET(KP_NAME = "script")
 		void setScript(const std::string &ResName);
 		
-		KM_PRO_GET(NAME = "script", TYPE = std::string, CM = "Lua script")
+		KM_PRO_GET(KP_NAME = "script", KP_TYPE = std::string, KP_CM = "Lua script", KP_RES = "KScript")
 		inline const std::string &getScript() const { return _kresName; }
 
-		KM_PRO_GET(NAME = "ownerTable", TYPE = std::string, CM = "Owner table in lua")
+		KM_PRO_GET(KP_NAME = "ownerTable", KP_TYPE = std::string, KP_CM = "Owner table in lua")
 		inline const std::string &getTName() const { return _ktname; }
 
 	private:

@@ -47,16 +47,16 @@ namespace Kite {
 		/// save to an open stream
 		bool saveStream(KOStream *Stream, U32 Flag = 0, const std::string &Key = std::string()) override;
 
-		KM_PRO_GET(NAME = "isLoaded", TYPE = bool, CM = "is scene loaded")
+		KM_PRO_GET(KP_NAME = "isLoaded", KP_TYPE = bool, KP_CM = "is scene loaded")
 		inline bool isLoaded() const { return _kloaded; }
 
-		KM_PRO_GET(NAME = "isModified", TYPE = bool, CM = "is scene modified")
+		KM_PRO_GET(KP_NAME = "isModified", KP_TYPE = bool, KP_CM = "is scene modified")
 		inline bool isModified() const { if (isLoaded()) return _keman.isModified(); return false; }
 
-		KM_PRO_GET(NAME = "entityManager", TYPE = KEntityManager, CM = "getting scene entity manager")
+		KM_PRO_GET(KP_NAME = "entityManager", KP_TYPE = KEntityManager, KP_CM = "getting scene entity manager")
 		inline auto *getEManager() { return &_keman; }
 
-		KM_PRO_GET(NAME = "name", TYPE = std::string, CM = "scene name")
+		KM_PRO_GET(KP_NAME = "name", KP_TYPE = std::string, KP_CM = "scene name")
 		inline const auto &getName() const { return _kname; }
 
 		bool addResource(const std::string &RName, const std::string &RType, U32 Flag = 0);

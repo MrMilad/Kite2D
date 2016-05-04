@@ -29,7 +29,7 @@ KMETA
 namespace Kite {
 	KM_CLASS(COMPONENT)
 	class KITE_FUNC_EXPORT KInputCom : public KComponent {
-		KM_INFO(CTYPE = "Input");
+		KM_INFO(KI_CTYPE = "Input");
 		KMETA_KINPUTCOM_BODY();
 	public:
 		KInputCom(const std::string &Name = "");
@@ -40,22 +40,22 @@ namespace Kite {
 
 		KRecieveTypes onMessage(KMessage &Message, KMessageScopeTypes Scope) override ;
 
-		KM_PRO_SET(NAME = "Keyboard")
+		KM_PRO_SET(KP_NAME = "Keyboard")
 		inline void setEnableKeyboard(bool Enable) { _kkeyboard = Enable; }
 
-		KM_PRO_GET(NAME = "Keyboard", TYPE = bool, CM = "enable keyboard events")
+		KM_PRO_GET(KP_NAME = "Keyboard", KP_TYPE = bool, KP_CM = "enable keyboard events")
 		inline bool getEnableKeyboard() const { return _kkeyboard; }
 
-		KM_PRO_SET(NAME = "Mouse")
+		KM_PRO_SET(KP_NAME = "Mouse")
 		inline void setEnableMouse(bool Enable) { _kmouse = Enable; }
 
-		KM_PRO_GET(NAME = "Mouse", TYPE = bool, CM = "enable mouse events")
+		KM_PRO_GET(KP_NAME = "Mouse", KP_TYPE = bool, KP_CM = "enable mouse events")
 		inline bool getEnableMouse() const { return _kmouse; }
 
-		KM_PRO_SET(NAME = "Joystick")
+		KM_PRO_SET(KP_NAME = "Joystick")
 		inline void setEnableJoystick(bool Enable) { _kjoystick = Enable; }
 
-		KM_PRO_GET(NAME = "Joystick", TYPE = bool, CM = "enable joystick events")
+		KM_PRO_GET(KP_NAME = "Joystick", KP_TYPE = bool, KP_CM = "enable joystick events")
 		inline bool getEnableJoystick() const { return _kjoystick; }
 
 	private:

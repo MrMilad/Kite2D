@@ -25,13 +25,19 @@ SOURCES += main.cpp\
     gridscene.cpp \
 	expander.cpp \
     frmnewproj.cpp\
-    comproperty.cpp
+    comproperty.cpp\
+	resourcetree.cpp\
+	objecttree.cpp\
+	componenttree.cpp
 
 HEADERS  += mainwindow.h \
     gridscene.h \
 	expander.h \
     frmnewproj.h\
-    comproperty.h
+    comproperty.h\
+	resourcetree.h\
+	objecttree.h\
+	componenttree.h
 
 RESOURCES += \
     res.qrc

@@ -32,14 +32,17 @@ namespace Kite {
 		std::string name;			//!< Name of property
 		std::string typeName;		//!< Name of property type
 		std::string comment;		//!< A Short comment about the property
+		std::string resType;		//!< Type of inpu resource
 		I32 min;					//!< Minimum value of the property
 		I32 max;					//!< Maximum value of the property
 		KMetaPropertyTypes type;	//!< Available properties
 
 		KMetaProperty(const std::string &Name, const std::string &TypeName,
 					  const std::string &Comment, KMetaPropertyTypes Type,
-					  I32 Min, I32 Max) :
-			name(Name), typeName(TypeName), comment(Comment), type(Type), min(Min), max(Max){}
+					  I32 Min, I32 Max, const std::string &ResType) :
+			name(Name), typeName(TypeName), comment(Comment),
+			type(Type), min(Min), max(Max),
+			resType(ResType){}
 	};
 
 	struct KMetaFunction {

@@ -4,6 +4,9 @@
 #include <QMainWindow>
 #include <qlist>
 #include <qhash>
+#include <qstringlist.h>
+#include <resourcetree.h>
+#include <objecttree.h>
 #include <Kite/engine/kengine.h>
 
 class QGraphicsView;
@@ -16,13 +19,16 @@ class QTableWidget;
 class QToolBox;
 class QStatusBar;
 class QListWidget;
+class QLineEdit;
 class QAction;
 class QFormLayout;
 class QFrame;
+class QCheckBox;
 
 struct Project {
 	QString name;
 	QString Path;
+	QString resPath;
 };
 
 struct ComBinder {
@@ -41,21 +47,14 @@ public:
 	void run();
 
 private slots:
-void closeEvent(QCloseEvent *event);
+void closeEvent(QCloseEvent *event) override;
 
 void newProject();
 void openProject();
 void saveProject();
 void closeProject();
 
-void resourceClicked();
-void resourceRClicked(const QPoint & pos);
-void resourceAdd();
-void resourceOpen();
-void resourceSave();
-void resourceEdit();
-void resourceRemove();
-
+void entityChecked(QTreeWidgetItem *Item, int Col);
 void entityClicked();
 void entityRClicked(const QPoint & pos);
 void entityAdd();
@@ -65,7 +64,9 @@ void entityRename();
 void componentClicked();
 void componentRClicked(const QPoint & pos);
 void componentAdd(QAction *Action);
+void componentEdited();
 void componentRemove();
+void componentClear();
 
 void exitApp();
 
@@ -98,17 +99,20 @@ private:
 
 	// KComponents
 	/// CName used in Logic component
-	void createComponent(Kite::KHandle Entity, QString CName, QString CType);
-	void bindProperties(Kite::KHandle Ehandle, QString CName , QString CType, QFrame *Frame);
-	void addGUIItem(QFormLayout *Layout, const Kite::KMetaProperty *Prop, const Kite::KMetaBase *Meta);
+	void loadComponents(Kite::KHandle Entity);
+	void removeComponentGUI();
+	void createComponent(const Kite::KEntity *Entity, const Kite::KComponent *Component);
+	void bindProperties(const Kite::KEntity *Entity, const Kite::KComponent *Component, QFrame *Frame);
+	void addGUIItem(QFormLayout *Layout, const Kite::KMetaBase *Meta, const Kite::KEntity *Entity,
+					const Kite::KComponent *Component, const Kite::KMetaProperty *PropMeta);
 
     QDockWidget *resDock;
     QDockWidget *objDock;
     QDockWidget *prpDock;
     QGraphicsView *sceneView;
 	QTreeWidget *propTree;
-    QTreeWidget *resTree;
-	QTreeWidget *objTree;
+    ResourceTree *resTree;
+	ObjectTree *objTree;
 
 	QMenu *fileMenu;
 	QMenu *winMenu;
@@ -120,11 +124,7 @@ private:
 	QAction *saveProj;
 	QAction *closeProj;
 	QAction *playScene;
-	QAction *addRes;
-	QAction *openRes;
-	QAction *saveRes;
-	QAction *editRes;
-	QAction *remRes;
+
 	QAction *addObj;
 	QAction *remObj;
 	QAction *renObj;
@@ -146,9 +146,9 @@ private:
 
 	QList<QString> kresCatList;
 	QList<QString> kcompList;
-	QHash<QTreeWidgetItem *, QHash<QString, Kite::KResource *>> kresMap;
+	QHash<QString, QHash<QString, Kite::KResource *>> kresMap;
+	QHash<QString, QString> kresDict;
 	QHash<QString, ResourceCallbacks> kresCallbackMap;
-	QHash<QString, QString> kcompNameMap;
 
 	Project *curProject;
 	Kite::KScene *kcurScene;

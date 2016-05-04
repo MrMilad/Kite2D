@@ -53,10 +53,10 @@ namespace Kite{
 
 		inline U32 getReferencesCount() const { return _kref; }
 
-		KM_PRO_GET(NAME = "name", TYPE = std::string)
+		KM_PRO_GET(KP_NAME = "name", KP_TYPE = std::string)
 		inline const std::string &getResourceName() const { return _kname; }
 
-		KM_PRO_GET(NAME = "type", TYPE = std::string)
+		KM_PRO_GET(KP_NAME = "type", KP_TYPE = std::string)
 		inline const std::string &getResourceType() const { return _ktype; }
 
 	private:

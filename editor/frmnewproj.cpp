@@ -2,6 +2,7 @@
 #include "ui_frmnewproj.h"
 #include <qfiledialog.h>
 #include <qmessagebox.h>
+#include <qdir.h>
 
 frmNewProj::frmNewProj(QWidget *parent) :
     QDialog(parent, Qt::WindowTitleHint | Qt::WindowCloseButtonHint),
@@ -67,7 +68,30 @@ void frmNewProj::cancel() {
 }
 
 void frmNewProj::ok() {
-	QFile file(ui->txtPath->text() + "/" + ui->txtName->text() + ".k2d");
+	if (QDir(ui->txtPath->text() + "/" + ui->txtName->text()).exists()) {
+		if (QFile(ui->txtPath->text() + "/" + ui->txtName->text() + "/" + ui->txtName->text() + ".k2d").exists()) {
+			int ret = QMessageBox::warning(this, "Kite2D Editor",
+										   ui->txtName->text() + " already exists.\nDo you want to replace it?",
+										   QMessageBox::Yes | QMessageBox::No,
+										   QMessageBox::No);
+
+			if (ret == QMessageBox::No) {
+				return;
+			} 
+		}
+	}
+
+	QDir maindir(ui->txtPath->text() + "/" + ui->txtName->text());
+	if (!maindir.exists()) {
+		maindir.mkdir(".");
+	}
+
+	QDir resdir(ui->txtPath->text() + "/" + ui->txtName->text() + "/resources");
+	if (!resdir.exists()) {
+		resdir.mkdir(".");
+	}
+
+	QFile file(ui->txtPath->text() + "/" + ui->txtName->text() + "/" + ui->txtName->text() + ".k2d");
 	if (file.open(QIODevice::ReadWrite)) {
 		misok = true;
 		file.close();

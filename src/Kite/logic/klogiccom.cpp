@@ -51,12 +51,10 @@ namespace Kite {
 	}
 
 	void KLogicCom::setScript(const std::string &ResName) {
-		if (!ResName.empty()) {
-			if (ResName != _kresName) {
-				removeLuaEnv();
-				_kresName = ResName;
-				setNeedUpdate(true);
-			}
+		if (ResName != _kresName) {
+			removeLuaEnv();
+			_kresName = ResName;
+			setNeedUpdate(true);
 		}
 	}
 

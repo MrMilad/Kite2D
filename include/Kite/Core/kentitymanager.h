@@ -121,7 +121,7 @@ namespace Kite {
 		KM_FUN()
 		KEntity *getEntityByName(const std::string &Name);
 
-		KM_PRO_GET(NAME = "root", TYPE = KHandle, CM = "root entity")
+		KM_PRO_GET(KP_NAME = "root", KP_TYPE = KHandle, KP_CM = "root entity")
 		inline const KHandle &getRoot() const { return _kroot; }
 
 		void postWork();

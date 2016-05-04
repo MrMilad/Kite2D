@@ -113,7 +113,8 @@ struct MProperty {
 	MFunction get;
 	MFunction set;
 	std::string comment;
-	std::string type;
+	std::string type; 
+	std::string resType;
 	std::string min;
 	std::string max;
 };
@@ -810,35 +811,39 @@ bool procProp(const std::vector<MFunction> &AllGet, const std::vector<MFunction>
 		std::string name, type, cm, min = "0", max = "0", res;
 
 		for (auto it = param.begin(); it != param.end(); ++it) {
-			if (it->first == "NAME") {
-				name = it->second;
-			} else if (it->first == "TYPE") {
+			if (it->first == "KP_NAME") {
 				if (it->second.empty()) {
-					printf("error: tag without any value detected ==> function name: %s  TAG: TYPE\n", AllGet[i].name.c_str());
+					printf("error: tag without any value detected ==> function name: %s  TAG: KP_NAME\n", AllGet[i].name.c_str());
+					return false;
+				}
+				name = it->second;
+			} else if (it->first == "KP_TYPE") {
+				if (it->second.empty()) {
+					printf("error: tag without any value detected ==> function name: %s  TAG: KP_TYPE\n", AllGet[i].name.c_str());
 					return false;
 				}
 				type = it->second;
-			} else if (it->first == "CM") {
+			} else if (it->first == "KP_CM") {
 				if (it->second.empty()) {
-					printf("error: tag without any value detected ==> function name: %s  TAG: CM\n", AllGet[i].name.c_str());
+					printf("error: tag without any value detected ==> function name: %s  TAG: KP_CM\n", AllGet[i].name.c_str());
 					return false;
 				}
 				cm = it->second;
-			} else if (it->first == "MIN") {
+			} else if (it->first == "KP_MIN") {
 				if (it->second.empty()) {
-					printf("error: tag without any value detected ==> function name: %s  TAG: MIN\n", AllGet[i].name.c_str());
+					printf("error: tag without any value detected ==> function name: %s  TAG: KP_MIN\n", AllGet[i].name.c_str());
 					return false;
 				}
 				min = it->second;
-			} else if (it->first == "MAX") {
+			} else if (it->first == "KP_MAX") {
 				if (it->second.empty()) {
-					printf("error: tag without any value detected ==> function name: %s  TAG: MAX\n", AllGet[i].name.c_str());
+					printf("error: tag without any value detected ==> function name: %s  TAG: KP_MAX\n", AllGet[i].name.c_str());
 					return false;
 				}
 				max = it->second;
-			} else if (it->first == "RES") {
+			} else if (it->first == "KP_RES") {
 				if (it->second.empty()) {
-					printf("error: tag without any value detected ==> function name: %s  RES: MIN\n", AllGet[i].name.c_str());
+					printf("error: tag without any value detected ==> function name: %s  TAG: KP_RES\n", AllGet[i].name.c_str());
 					return false;
 				}
 				res = it->second;
@@ -863,6 +868,15 @@ bool procProp(const std::vector<MFunction> &AllGet, const std::vector<MFunction>
 			cm = strmap[cm];
 		}
 
+		// extract comment from string map
+		if (!res.empty()) {
+			if (strmap.find(res) == strmap.end()) {
+				printf("error: could not extract prperty resource from string map ==> function name: %s\n", AllGet[i].name.c_str());
+				return false;
+			}
+			res = strmap[res];
+		}
+
 		// register property to map
 		auto prop = map.find(name);
 		if (prop != map.end()) {
@@ -878,6 +892,7 @@ bool procProp(const std::vector<MFunction> &AllGet, const std::vector<MFunction>
 		map[name].type = type;
 		map[name].min = min;
 		map[name].max = max;
+		map[name].resType = res;
 	}
 
 	// then register all setters
@@ -896,7 +911,7 @@ bool procProp(const std::vector<MFunction> &AllGet, const std::vector<MFunction>
 		std::string name;
 
 		for (auto it = param.begin(); it != param.end(); ++it) {
-			if (it->first == "NAME") {
+			if (it->first == "KP_NAME") {
 				name = it->second;
 			} else {
 				printf("warning: unsupported tag detected ==> function name: %s\n", AllGet[i].name.c_str());
@@ -2005,7 +2020,8 @@ void createMacros(const std::vector<MClass> &Cls, const std::vector<MEnum> &Enms
 			}
 			Output.append("instance.addProperty(KMetaProperty(\"" + Cls[i].props[count].name + "\", \""
 						  + Cls[i].props[count].type + "\", \"" + Cls[i].props[count].comment + "\", "
-						  + prpType + ", " + Cls[i].props[count].min + ", " + Cls[i].props[count].max + "));\\\n");
+						  + prpType + ", " + Cls[i].props[count].min + ", " + Cls[i].props[count].max + ", " 
+						  + "\"" + Cls[i].props[count].resType + "\"));\\\n");
 		}
 
 		// functions
@@ -2221,7 +2237,7 @@ void createSource(const std::vector<std::string> &Files, const std::vector<MClas
 	for (size_t i = 0; i < Cls.size(); i++) {
 		if (Cls[i].type & CT_COMPONENT && !(Cls[i].type & CT_ABSTRACT)) {
 			for (size_t count = 0; count < Cls[i].infos.size(); ++count) {
-				if (Cls[i].infos[count].key == "CTYPE") {
+				if (Cls[i].infos[count].key == "KI_CTYPE") {
 					Output.append("EMan->registerComponent<" + Cls[i].name + ">(\"" + Cls[i].infos[count].info + "\");\n");
 					break;
 				}

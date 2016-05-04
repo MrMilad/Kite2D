@@ -43,15 +43,15 @@ USA
 #define KO_DIV
 
 // property tags
-#define NAME
-#define TYPE
-#define CM
-#define MIN
-#define MAX
-#define RES
+#define KP_NAME
+#define KP_TYPE
+#define KP_CM
+#define KP_MIN
+#define KP_MAX
+#define KP_RES
 
 // info tags
-#define CTYPE // component name
+#define KI_CTYPE // component name
 
 // variable modifiers
 #define UNBIND  // add this flag for unbindable pod's variables. eg: arrays or private variables
@@ -65,7 +65,7 @@ USA
 
 #define TOSTR(S) #S
 
-#define KREM_QUAL(TYPE) std::remove_pointer<std::remove_all_extents<std::remove_reference<std::remove_cv<TYPE>::type>::type>::type>::type
+#define KREM_QUAL(KP_TYPE) std::remove_pointer<std::remove_all_extents<std::remove_reference<std::remove_cv<KP_TYPE>::type>::type>::type>::type
 
 // takes a pointer and returns a pointer offset in bytes
 #define KPTR_GET_ADDR( PTR, OFFSET ) \

@@ -5,6 +5,7 @@
 #include <vector>
 #include <thread>
 #include <string>
+#include <climits>
 #include "frmnewproj.h"
 #include "comproperty.h"
 
@@ -31,250 +32,45 @@ MainWindow::MainWindow(QWidget *parent)
 	loadDockState();
 	registerResCallbacks();
 	disGUI();
+
 }
 
 MainWindow::~MainWindow()
 {}
 
 void MainWindow::closeEvent(QCloseEvent *event) {
+	//! Ignore the event by default.. otherwise the window will be closed always.
+	event->ignore();
+
+	closeProject();
+	if (curProject != nullptr) {
+		return;
+	}
+
 	saveDockState();
-	QMainWindow::closeEvent(event);
+	event->accept();
 }
 
-void MainWindow::resourceClicked() {
-
-}
-
-void MainWindow::resourceRClicked(const QPoint & pos) {
-	QTreeWidgetItem *item = resTree->itemAt(pos);
-	QMenu cmenu(this);
-	
-	// checking user rclicked on category or items??
-	if (item != nullptr) {
-		auto found = kresMap.find(item);
-		if (found != kresMap.end()) {
-			QPoint pt(pos);
-			addRes->setText("Add New " + item->text(0));
-			openRes->setText("Add Existing " + item->text(0));
-			cmenu.addAction(addRes);
-			cmenu.addAction(openRes);
-			cmenu.exec(resTree->mapToGlobal(pos));
+void MainWindow::entityChecked(QTreeWidgetItem *Item, int Col) {
+	if (kcurScene != nullptr) {
+		auto eman = kcurScene->getEManager();
+		auto entity = eman->getEntityByName(Item->text(0).toStdString());
+		if (Item->checkState(0) == Qt::Checked) {
+			entity->setActive(true);
 		} else {
-			QPoint pt(pos);
-			editRes->setText("Edit " + item->text(0));
-			remRes->setText("Remove " + item->text(0));
-			saveRes->setText("Save " + item->text(0));
-			cmenu.addAction(editRes);
-			cmenu.addSeparator();
-			cmenu.addAction(remRes);
-			cmenu.addSeparator();
-			cmenu.addAction(saveRes);
-			cmenu.exec(resTree->mapToGlobal(pos));
+			entity->setActive(false);
 		}
 	}
-}
-
-void MainWindow::resourceAdd() {
-	auto parrent = resTree->currentItem();
-	auto restype = parrent->text(0);
-
-	// create new resource and add it to res tree
-	auto resmap = kresMap.find(parrent);
-
-	bool ok = false;
-	QString text;
-	do {
-		text = QInputDialog::getText(this, "New " + restype,
-										restype + " name:", QLineEdit::Normal,
-										"", &ok);
-
-		// cancel pressed
-		if (!ok) {
-			return;
-		}
-
-		// empty name
-		if (text.isEmpty()) {
-			QMessageBox msg;
-			msg.setWindowTitle("Message");
-			msg.setText("resource name is empty!");
-			msg.exec();
-			continue;
-		}
-
-		// available name
-		auto avail = resmap->find(text);
-		if (avail != resmap->end()) {
-			QMessageBox msg;
-			msg.setWindowTitle("Message");
-			msg.setText("this name is already exist!");
-			msg.exec();
-			continue;
-		}
-
-		// ok pressed
-		if (ok) {
-			break;
-		}
-	} while (true);
-
-	auto newres = krman->create(restype.toStdString(), text.toStdString());
-	if (newres != nullptr) {
-		resmap->insert(text, newres);
-
-		// register ctypes
-		if (restype == "KScene") {
-			auto scene = (KScene *)newres;
-			Kite::registerCTypes(scene->getEManager());
-		}
-
-		auto item = new QTreeWidgetItem(parrent);
-		item->setText(0, text);
-		parrent->setExpanded(true);
-	} else {
-		QMessageBox msg;
-		msg.setWindowTitle("Message");
-		msg.setText("resource add module return nullptr!\nresource type: " + restype);
-		msg.exec();
-	}
-}
-
-void MainWindow::resourceOpen() {
-	auto parrent = resTree->currentItem();
-	auto restype = parrent->text(0);
-
-	QString fileName = QFileDialog::getOpenFileName(this,
-													"Open " + restype, "", "Kite2D Resource File (*.kres)");
-
-	// chck name is available
-	if (!fileName.isEmpty()) {
-		QFileInfo finfo(fileName);
-		auto resmap = kresMap.find(parrent);
-		auto avail = resmap->find(finfo.baseName());
-		if (avail != resmap->end()) {
-			QMessageBox msg;
-			msg.setWindowTitle("Message");
-			msg.setText("this name is already exist!");
-			msg.exec();
-			return;
-		}
-
-		// cretae new resource 
-		auto newres = krman->create(restype.toStdString(), finfo.baseName().toStdString());
-		if (newres != nullptr) {
-			// load resource
-			Kite::KFIStream istream;
-			if (!istream.open(fileName.toStdString(), Kite::KIOTypes::KRT_BIN)) {
-				QMessageBox msg;
-				msg.setWindowTitle("Message");
-				msg.setText("cant open file stream with the given address.\nfile address: " + fileName);
-				msg.exec();
-				return;
-			}
-
-			if (!newres->loadStream(&istream)) {
-				QMessageBox msg;
-				msg.setWindowTitle("Message");
-				msg.setText("cant load resource data from file.\nfile address: " + fileName);
-				msg.exec();
-
-				delete newres;
-				return;
-			}
-
-			resmap->insert(finfo.baseName(), newres);
-			auto item = new QTreeWidgetItem(parrent);
-			item->setText(0, finfo.baseName());
-			parrent->setExpanded(true);
-		} else {
-			QMessageBox msg;
-			msg.setWindowTitle("Message");
-			msg.setText("resource add module return nullptr!\nresource type: " + restype);
-			msg.exec();
-		}
-	}
-}
-
-void MainWindow::resourceSave() {
-	auto item = resTree->currentItem();
-	auto resmap = kresMap.find(item->parent());
-	
-	QString fileName = QFileDialog::getSaveFileName(this, "Save " + item->text(0),
-													"", "Kite2D Resource File (*.kres)");
-
-	if (!fileName.isEmpty()) {
-		auto res = (*resmap->find(item->text(0)));
-		Kite::KFOStream ostream;
-		if (!ostream.open(fileName.toStdString(), Kite::KIOTypes::KRT_BIN)) {
-			QMessageBox msg;
-			msg.setWindowTitle("Message");
-			msg.setText("cant open file stream with the given address.\nfile address: " + fileName);
-			msg.exec();
-			return;
-		}
-
-		res->saveStream(&ostream);
-	}
-}
-
-void MainWindow::resourceEdit() {
-	auto item = resTree->currentItem();
-	auto restype = item->parent()->text(0);
-
-	// checking edit callback
-	auto callb = kresCallbackMap.find(restype);
-	if (callb == kresCallbackMap.end()) {
-		QMessageBox msg;
-		msg.setWindowTitle("Message");
-		msg.setText("Edit module for this type does not exist.\nResource type: " + restype);
-		msg.exec();
-		return;
-	}
-
-	if (callb->editCallback == nullptr) {
-		QMessageBox msg;
-		msg.setWindowTitle("Message");
-		msg.setText("Edit module for this type does not exist.\nResource type: " + restype);
-		msg.exec();
-		return;
-	}
-
-	// retrieve resource pointer from map and pass it to its edit function
-	auto resmap = kresMap.find(item->parent());
-	(this->*callb->editCallback)((*resmap->find(item->text(0))));
-}
-
-void MainWindow::resourceRemove() {
-	auto item = resTree->currentItem();
-	auto restype = item->parent()->text(0);
-
-	// checking remove callback
-	auto callb = kresCallbackMap.find(restype);
-	if (callb == kresCallbackMap.end()) {
-		QMessageBox msg;
-		msg.setWindowTitle("Message");
-		msg.setText("Remove module for this type does not exist.\nResource type: " + restype);
-		msg.exec();
-		return;
-	}
-
-	if (callb->removeCallb == nullptr) {
-		QMessageBox msg;
-		msg.setWindowTitle("Message");
-		msg.setText("Remove module for this type does not exist.\nResource type: " + restype);
-		msg.exec();
-		return;
-	}
-
-	// retrieve resource pointer from map and pass it to its remove function
-	auto resmap = kresMap.find(item->parent());
-	(this->*callb->removeCallb)((*resmap->find(item->text(0))));
-	resmap->erase(resmap->find(item->text(0)));
-	delete item;
 }
 
 void MainWindow::entityClicked() {
-
+	componentClear();
+	curEnt = objTree->currentItem();
+	if (kcurScene != nullptr) {
+		auto eman = kcurScene->getEManager();
+		auto entity = eman->getEntityByName(curEnt->text(0).toStdString());
+		loadComponents(entity->getHandle());
+	}
 }
 
 void MainWindow::entityRClicked(const QPoint & pos) {
@@ -345,6 +141,8 @@ void MainWindow::entityAdd() {
 		if (curEnt == nullptr) {
 			auto node = new QTreeWidgetItem(objTree);
 			node->setText(0, text);
+			node->setFlags(node->flags() | Qt::ItemIsUserCheckable);
+			node->setCheckState(0, Qt::Checked);
 			node->setChildIndicatorPolicy(QTreeWidgetItem::DontShowIndicatorWhenChildless);
 			objTree->setCurrentItem(node);
 
@@ -354,6 +152,8 @@ void MainWindow::entityAdd() {
 			parrent->addChild(ent);
 			auto node = new QTreeWidgetItem(curEnt);
 			node->setText(0, text);
+			node->setFlags(node->flags() | Qt::ItemIsUserCheckable);
+			node->setCheckState(0, Qt::Checked);
 			node->setChildIndicatorPolicy(QTreeWidgetItem::DontShowIndicatorWhenChildless);
 			curEnt->setExpanded(true);
 			objTree->setCurrentItem(node);
@@ -464,6 +264,7 @@ void MainWindow::componentRClicked(const QPoint & pos) {
 
 	// checking user rclicked on tree itself or entity??
 	if (item != nullptr) {
+		remCom->setData(obj->text());
 		cmenu.addAction(remCom);
 		cmenu.exec(obj->mapToGlobal(pos));
 	}
@@ -511,8 +312,8 @@ void MainWindow::componentAdd(QAction *Action) {
 					break;
 				}
 			} while (true);
-			entity->addComponent("Logic", text.toStdString());
-			createComponent(entity->getHandle(), text, "Logic");
+			auto chandle = entity->addComponent("Logic", text.toStdString());
+			createComponent(entity, entity->getComponent("Logic", chandle));
 
 		// fixed components
 		} else {
@@ -525,8 +326,8 @@ void MainWindow::componentAdd(QAction *Action) {
 				msg.exec();
 				return;
 			}
-			entity->addComponent(Action->text().toStdString(), Action->text().toStdString());
-			createComponent(entity->getHandle(), Action->text(), Action->text());
+			auto chandle = entity->addComponent(Action->text().toStdString(), Action->text().toStdString());
+			createComponent(entity, entity->getComponent(Action->text().toStdString(), chandle));
 		}
 	} else {
 		QMessageBox msg;
@@ -536,15 +337,42 @@ void MainWindow::componentAdd(QAction *Action) {
 	}
 }
 
+void MainWindow::componentEdited() {
+	auto pholder = (ComProperty *)sender();
+
+	auto eman = kcurScene->getEManager();
+	auto entity = eman->getEntity(pholder->getEntity());
+	if (entity != nullptr) {
+		auto comp = entity->getComponentByName(pholder->getCType().toStdString(), pholder->getCName().toStdString());
+		comp->setProperty(pholder->getPName().toStdString(), pholder->getValue());
+	} else {
+		QMessageBox msg;
+		msg.setWindowTitle("Message");
+		msg.setText("There is no entity for this component.");
+		msg.exec();
+	}
+}
+
 void MainWindow::componentRemove() {
-	auto item = propTree->currentItem();
-	auto child = item->child(0);
-	auto expander = propTree->itemWidget(item, 0);
-	auto cframe = propTree->itemWidget(child, 0);
-	delete child;
-	delete item;
-	delete expander;
-	delete cframe;
+	auto act = (QAction *)sender();
+	auto ctype = act->data().toString().section("\t",0 , 0);
+	auto cname = act->data().toString().section("\t", 1, 1);
+	if (kcurScene != nullptr) {
+		auto eman = kcurScene->getEManager();
+		auto entity = eman->getEntityByName(curEnt->text(0).toStdString());
+		entity->removeComponent(ctype.toStdString(), cname.toStdString());
+	}
+	removeComponentGUI();
+}
+
+void MainWindow::componentClear() {
+	auto number = propTree->topLevelItemCount();
+	for (auto i = 0; i < number; ++i) {
+		auto item = propTree->topLevelItem(0);
+		propTree->setCurrentItem(item);
+		removeComponentGUI();
+	}
+	//propTree->clear();
 }
 
 void MainWindow::exitApp() {
@@ -558,43 +386,30 @@ void MainWindow::setupDocks(){
 	QMainWindow::statusBar()->showMessage("Initializing GUI (Docks) ...");
 
     // resource dock
-    resDock = new QDockWidget(tr("Resources"), this);
+    resDock = new QDockWidget(tr("Resource Explorer"), this);
 	resDock->setObjectName("Resources");
     resDock->setAllowedAreas(Qt::LeftDockWidgetArea | Qt::RightDockWidgetArea);
     resDock->setMinimumWidth(120);
     addDockWidget(Qt::LeftDockWidgetArea, resDock);
 
-	/*QStringList headers;
-	headers.clear();
-	headers << "Name";*/
-	resTree = new QTreeWidget;
-	resTree->setColumnCount(1);
-	resTree->setHeaderHidden(true);
-	resTree->setSelectionMode(QAbstractItemView::SingleSelection);
-	resTree->setContextMenuPolicy(Qt::CustomContextMenu);
+	resTree = new ResourceTree(this);
+	resTree->setupCategories(kresCatList);
 	resDock->setWidget(resTree);
-	connect(resTree, &QTreeWidget::itemSelectionChanged, this, &MainWindow::resourceClicked);
-	connect(resTree, &QTreeWidget::customContextMenuRequested, this, &MainWindow::resourceRClicked);
+	resDock->setTitleBarWidget(resTree->getHeaderTools());
 
     // objects dock
-    objDock = new QDockWidget(tr("Objects"), this);
-	objDock->setObjectName("Objects");
+    objDock = new QDockWidget(tr("Hierarchy"), this);
+	objDock->setObjectName("Hierarchy");
     objDock->setAllowedAreas(Qt::LeftDockWidgetArea | Qt::RightDockWidgetArea);
     objDock->setMinimumWidth(120);
     addDockWidget(Qt::LeftDockWidgetArea, objDock);
 
-	objTree = new QTreeWidget;
-	objTree->setColumnCount(1);
-	objTree->setHeaderHidden(true);
-	objTree->setContextMenuPolicy(Qt::CustomContextMenu);
-	objTree->setSelectionMode(QAbstractItemView::SingleSelection);
-
+	objTree = new ObjectTree(this);
 	objDock->setWidget(objTree);
-	connect(objTree, &QTreeWidget::itemSelectionChanged, this, &MainWindow::entityClicked);
-	connect(objTree, &QTreeWidget::customContextMenuRequested, this, &MainWindow::entityRClicked);
+	objDock->setTitleBarWidget(objTree->getHeaderTools());
 
     // component/properties dock
-    prpDock = new QDockWidget(tr("Components"), this);
+    prpDock = new QDockWidget(tr("Component Editor"), this);
 	prpDock->setObjectName("Components");
     prpDock->setAllowedAreas(Qt::LeftDockWidgetArea | Qt::RightDockWidgetArea);
     prpDock->setMinimumWidth(120);
@@ -616,7 +431,7 @@ void MainWindow::setupScene(){
     sceneView = new QGraphicsView();
 	setCentralWidget(sceneView);
 	
-	GridScene *scene1 = new GridScene(25, 15, 32, 32);
+	GridScene *scene1 = new GridScene(25, 20, 32, 32);
 	QPixmap plogo("F:\\MyImage\\Kite\\Logo-2-tr.png");
 	QGraphicsPixmapItem *logo = new QGraphicsPixmapItem(plogo);
 	logo->setPos((scene1->width() / 2) - (plogo.width() / 2), (scene1->height() / 2) - (plogo.height() / 2));
@@ -636,39 +451,24 @@ void MainWindow::setupActions() {
 	saveProj = new QAction(QIcon(":/icons/save"), "Save Project", this);
 	connect(saveProj, &QAction::triggered, this, &MainWindow::saveProject);
 
-	closeProj = new QAction(QIcon(":/icons/save"), "Close Project", this);
+	closeProj = new QAction("Close Project", this);
 	connect(closeProj, &QAction::triggered, this, &MainWindow::closeProject);
 
 	playScene = new QAction(QIcon(":/icons/play"), "Play", this);
 
-	addRes = new QAction(QIcon(":/icons/save"), "Add New Resource", this);
-	connect(addRes, &QAction::triggered, this, &MainWindow::resourceAdd);
-
-	openRes = new QAction(QIcon(":/icons/save"), "Add Existing Resource", this);
-	connect(openRes, &QAction::triggered, this, &MainWindow::resourceOpen);
-
-	saveRes = new QAction(QIcon(":/icons/save"), "Save Resource", this);
-	connect(saveRes, &QAction::triggered, this, &MainWindow::resourceSave);
-
-	editRes = new QAction(QIcon(":/icons/save"), "Edit", this);
-	connect(editRes, &QAction::triggered, this, &MainWindow::resourceEdit);
-
-	remRes = new QAction(QIcon(":/icons/save"), "Remove", this);
-	connect(remRes, &QAction::triggered, this, &MainWindow::resourceRemove);
-
-	addObj = new QAction(QIcon(":/icons/save"), "Add New Entity", this);
+	addObj = new QAction(QIcon(":/icons/add"), "Add New Entity", this);
 	connect(addObj, &QAction::triggered, this, &MainWindow::entityAdd);
 
-	remObj = new QAction(QIcon(":/icons/save"), "Remove", this);
+	remObj = new QAction(QIcon(":/icons/remove"), "Remove", this);
 	connect(remObj, &QAction::triggered, this, &MainWindow::entityRemove);
 
-	renObj = new QAction(QIcon(":/icons/save"), "Rename", this);
+	renObj = new QAction(QIcon(":/icons/edit"), "Rename", this);
 	connect(renObj, &QAction::triggered, this, &MainWindow::entityRename);
 
-	remCom = new QAction(QIcon(":/icons/save"), "Remove", this);
+	remCom = new QAction(QIcon(":/icons/remove"), "Remove", this);
 	connect(remCom, &QAction::triggered, this, &MainWindow::componentRemove);
 
-	exit = new QAction(this->style()->standardIcon(QStyle::SP_DockWidgetCloseButton), "Exit", this);
+	exit = new QAction(QIcon(":/icons/exit"), "Exit", this);
 	connect(exit, &QAction::triggered, this, &MainWindow::exitApp);
 
 	QMainWindow::statusBar()->showMessage("Ready");
@@ -700,7 +500,7 @@ void MainWindow::setupMenus(){
 	compMenu->setTitle("Add New Component...");
 	connect(compMenu, &QMenu::triggered, this, &MainWindow::componentAdd);
 	for (auto it = kcompList.begin(); it != kcompList.end(); ++it) {
-		compMenu->addAction((*it));
+		compMenu->addAction((*it))->setIcon(QIcon(":/icons/com"));
 	}
 }
 
@@ -740,10 +540,6 @@ void MainWindow::disGUI() {
 	saveProj->setDisabled(true);
 	closeProj->setDisabled(true);
 	playScene->setDisabled(true);
-	addRes->setDisabled(true);
-	openRes->setDisabled(true);
-	editRes->setDisabled(true);
-	remRes->setDisabled(true);
 	addObj->setDisabled(true);
 	remObj->setDisabled(true);
 	renObj->setDisabled(true);
@@ -754,10 +550,6 @@ void MainWindow::enGUI() {
 	saveProj->setDisabled(false);
 	closeProj->setDisabled(false);
 	playScene->setDisabled(false);
-	addRes->setDisabled(false);
-	openRes->setDisabled(false);
-	editRes->setDisabled(false);
-	remRes->setDisabled(false);
 	addObj->setDisabled(false);
 	remObj->setDisabled(false);
 	renObj->setDisabled(false);
@@ -819,8 +611,7 @@ void MainWindow::scanKiteMeta() {
 		if (((*it)->getFlag() & COMPONENT) && !((*it)->getFlag() & ABSTRACT)) {
 			auto infoList = (*it)->getInfo();
 			for (auto ilit = infoList->begin(); ilit != infoList->end(); ++ilit) {
-				if (ilit->first == "CType") {
-					kcompNameMap.insert(ilit->second.c_str(), (*it)->getName().c_str());
+				if (ilit->first == "KI_CTYPE") {
 					kcompList.push_back(ilit->second.c_str());
 				}
 			}
@@ -833,7 +624,7 @@ void MainWindow::scanKiteMeta() {
 }
 
 void MainWindow::setupResources() {
-	resTree->clear();
+	/*resTree->clear();
 	kresMap.clear();
 
 	for (auto it = kresCatList.begin(); it != kresCatList.end(); ++it) {
@@ -841,8 +632,8 @@ void MainWindow::setupResources() {
 		category->setChildIndicatorPolicy(QTreeWidgetItem::DontShowIndicatorWhenChildless);
 		category->setText(0, (*it));
 		category->setIcon(0, this->style()->standardIcon(QStyle::SP_DirOpenIcon));
-		kresMap.insert(category, QHash<QString, Kite::KResource *>());
-	}
+		kresMap.insert((*it), QHash<QString, Kite::KResource *>());
+	}*/
 }
 
 void MainWindow::newProject() {
@@ -857,7 +648,8 @@ void MainWindow::newProject() {
 		if (frm.isOk()) {
 			curProject = new Project;
 			curProject->name = frm.getName();
-			curProject->Path = frm.getPath();
+			curProject->Path = frm.getPath() + "/" + curProject->name;
+			curProject->resPath = curProject->Path  + "/resources";
 
 			this->setWindowTitle("Kite2D Editor - " + frm.getName());
 
@@ -907,7 +699,7 @@ void MainWindow::closeProject() {
 
 		// clear resource tree
 		for (auto it = kresMap.begin(); it != kresMap.end(); ++it) {
-			auto callb = kresCallbackMap.find(it.key()->text(0));
+			auto callb = kresCallbackMap.find(it.key());
 			if (callb != kresCallbackMap.end()) {
 				if (callb->removeCallb != nullptr) {
 					for (auto rit = it->begin(); rit != it->end(); ++rit) {
@@ -931,6 +723,12 @@ void MainWindow::loadChilds(Kite::KEntityManager *Eman, const Kite::KHandle &Ent
 	for (auto it = ent->beginChild(); it != ent->endChild(); ++it) {
 		auto child = Eman->getEntity((*it));
 		auto chnode = new QTreeWidgetItem(Parrent);
+		chnode->setFlags(chnode->flags() | Qt::ItemIsUserCheckable);
+		if (child->getActive()) {
+			chnode->setCheckState(0, Qt::Checked);
+		} else {
+			chnode->setCheckState(0, Qt::Unchecked);
+		}
 		chnode->setChildIndicatorPolicy(QTreeWidgetItem::DontShowIndicatorWhenChildless);
 		chnode->setText(0, child->getName().c_str());
 
@@ -940,16 +738,58 @@ void MainWindow::loadChilds(Kite::KEntityManager *Eman, const Kite::KHandle &Ent
 	}
 }
 
-void MainWindow::createComponent(Kite::KHandle Entity, QString CName, QString CType) {
+void MainWindow::loadComponents(Kite::KHandle EHandle) {
+	if (kcurScene != nullptr) {
+		auto eman = kcurScene->getEManager();
+		auto entity = eman->getEntity(EHandle);
+
+		if (entity == nullptr) {
+			return;
+		}
+
+		for (auto it = kcompList.begin(); it != kcompList.end(); ++it) {
+			if ((*it) == "Logic") {
+				// load logic components at the end
+				continue;
+			} else {
+				auto comp = entity->getComponentByName(it->toStdString(), it->toStdString());
+				if (comp != nullptr) {
+					createComponent(entity, comp);
+				}
+			}
+		}
+
+		std::vector<Kite::KComponent *> compList;
+		entity->getScriptComponents(compList);
+		for (auto it = compList.begin(); it != compList.end(); ++it) {
+			createComponent(entity, (*it));
+		}
+	}
+}
+
+void MainWindow::removeComponentGUI() {
+	auto item = propTree->currentItem();
+	auto child = item->child(0);
+	auto expander = (Expander *)propTree->itemWidget(item, 0);
+	auto cframe = (QFrame *) propTree->itemWidget(child, 0);
+	delete child;
+	delete item;
+	delete expander;
+	delete cframe;
+}
+
+void MainWindow::createComponent(const Kite::KEntity *Entity, const Kite::KComponent *Comp) {
 	// header
 	auto category = new QTreeWidgetItem(propTree);
 	QString name;
-	if (CType == "Logic") {
-		name = CType + "\t(" + CName + ")";
+	if (Comp->getClassName() == "KLogicCom") {
+		QString lname(Comp->getName().c_str());
+		name = "Logic\t" + lname;
 	} else {
-		name = CType;
+		name = Comp->getName().c_str();
+		name.append("\t");
 	}
-	auto btnExpander = new Expander(name, QIcon(":/icons/save"), propTree, category);
+	auto btnExpander = new Expander(name, QIcon(":/icons/com"), propTree, category);
 	btnExpander->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
 	btnExpander->setAutoRaise(true);
 	btnExpander->setContextMenuPolicy(Qt::CustomContextMenu);
@@ -958,39 +798,26 @@ void MainWindow::createComponent(Kite::KHandle Entity, QString CName, QString CT
 
 	// contetnts
 	auto cframe = new QFrame(propTree);
-	bindProperties(Entity, CName, CType, cframe);
+	bindProperties(Entity, Comp, cframe);
 
 	auto pContainer = new QTreeWidgetItem(category);
 	pContainer->setDisabled(true);
 	propTree->setItemWidget(pContainer, 0, cframe);
 }
 
-void MainWindow::bindProperties(Kite::KHandle EHandle, QString CName, QString CType, QFrame *Frame) {
-	auto found = kcompNameMap.find(CType);
-	if (found == kcompNameMap.end()) {
-		QMessageBox msg;
-		msg.setWindowTitle("Message");
-		msg.setText("unregistred component name.\ncname: " + CName);
-		msg.exec();
-		return;
-	}
+void MainWindow::bindProperties(const Kite::KEntity *Entity, const Kite::KComponent *Comp, QFrame *Frame) {
 
-	auto compMeta = (Kite::KMetaClass *)kmman->getMeta(found->toStdString());
+	auto compMeta = (Kite::KMetaClass *)kmman->getMeta(Comp->getClassName().c_str());
 	auto propList = compMeta->getProperties();
-	auto flayout = new QFormLayout(Frame);
-	auto prop = new KV2F32(Frame);
-
-	prop->setCName(CName);
-	prop->setCType(CType);
-	prop->setEntity(EHandle);
+	auto flayout = new QFormLayout();
 
 	flayout->setContentsMargins(10, 0, 10, 0);
-	flayout->setHorizontalSpacing(20);
-	flayout->setVerticalSpacing(0);
+	flayout->setHorizontalSpacing(5);
+	flayout->setVerticalSpacing(3);
 	for (auto it = propList->begin(); it != propList->end(); ++it) {
 		auto propMeta = kmman->getMeta(it->typeName);
 		if (propMeta != nullptr) {
-			addGUIItem(flayout, &(*it), propMeta);
+			addGUIItem(flayout, propMeta, Entity, Comp, &(*it));
 		} else {
 			QString val("Unregistred Property! Name: ");
 			auto invalidType = new QLabel(val + it->name.c_str() + "Type: " + it->typeName.c_str());
@@ -1002,29 +829,114 @@ void MainWindow::bindProperties(Kite::KHandle EHandle, QString CName, QString CT
 	Frame->setLayout(flayout);
 }
 
-void MainWindow::addGUIItem(QFormLayout *Layout, const Kite::KMetaProperty *Prop, const Kite::KMetaBase *Meta) {
-	if (Meta->getMetaType() == KMetaTypes::KMT_POD) {
-		//Layout->addRow(new QLabel(Prop->name.c_str()));
+void MainWindow::addGUIItem(QFormLayout *Layout, const Kite::KMetaBase *Meta, const Kite::KEntity *Entity,
+							const Kite::KComponent *Comp, const Kite::KMetaProperty *PropMeta) {
+	if (Meta->getMetaType() == KMetaTypes::KMT_POD ) {
+		// std string
+		if (PropMeta->typeName == "std::string") {
+			// create property binder
+			auto pholder = new KSTR(Layout, Comp->getName().c_str(), Comp->getName().c_str(),
+									PropMeta->name.c_str(), PropMeta->typeName.c_str(), Entity->getHandle());
+			if (Comp->getClassName() == "KLogicCom") { pholder->setCType("Logic");}
+			connect(pholder, &KSTR::finishEdit, this, &MainWindow::componentEdited);
+
+			bool ronly = false;
+			if (PropMeta->type == Kite::KMetaPropertyTypes::KMP_GETTER) ronly = true;
+
+			// getting def value
+			auto defval = Comp->getProperty(PropMeta->name).as<std::string>();
+
+			// non-resource string
+			if (PropMeta->resType.empty()) {
+				// create gui element and bind to property
+				auto line = lineEdit(Layout, PropMeta->name.c_str(), defval.c_str(), ronly);
+				connect(line, &QLineEdit::textChanged, pholder, &KSTR::editedStr);
+				
+
+			// resource string
+			} else {
+				auto resCat = kresMap.find(PropMeta->resType.c_str());
+				// getting all available resources with the given category
+				if (resCat != kresMap.end()) {
+					QStringList items;
+					for (auto it = resCat->begin(); it != resCat->end(); ++it) {
+						items.push_back(it.key());
+					}
+					items.push_back("--EMPTY--");
+					auto combo = comboEdit(Layout, PropMeta->name.c_str(), items, true);
+					combo->setObjectName(PropMeta->resType.c_str());
+					combo->setCurrentText(defval.c_str());
+					if (combo->currentText() != defval.c_str()) {
+						combo->setCurrentText("--EMPTY--");
+					}
+					
+					connect(combo, static_cast<void(QComboBox::*)(const QString &)>(&QComboBox::currentIndexChanged),
+							pholder, &KSTR::editedStr);
+				}
+			}
+
+		// bool
+		} else if (PropMeta->typeName == "bool") {
+			// create property binder
+			auto pholder = new KBOOL(Layout, Comp->getName().c_str(), Comp->getName().c_str(),
+									PropMeta->name.c_str(), PropMeta->typeName.c_str(), Entity->getHandle());
+			if (Comp->getClassName() == "KLogicCom") { pholder->setCType("Logic"); }
+			connect(pholder, &KBOOL::finishEdit, this, &MainWindow::componentEdited);
+
+			bool ronly = false;
+			if (PropMeta->type == Kite::KMetaPropertyTypes::KMP_GETTER) ronly = true;
+
+			// getting def value
+			auto defval = Comp->getProperty(PropMeta->name).as<bool>();
+
+			// create gui element and bind to property
+			auto check = checkEdit(Layout, PropMeta->name.c_str(), defval,ronly);
+			connect(check, &QCheckBox::stateChanged, pholder, &KBOOL::editedBool);
+		} else if (PropMeta->typeName == "F32") {
+			// create property binder
+			auto pholder = new KFLT(Layout, Comp->getName().c_str(), Comp->getName().c_str(),
+									  PropMeta->name.c_str(), PropMeta->typeName.c_str(), Entity->getHandle());
+			if (Comp->getClassName() == "KLogicCom") { pholder->setCType("Logic"); }
+			connect(pholder, &KFLT::finishEdit, this, &MainWindow::componentEdited);
+
+			bool ronly = false;
+			if (PropMeta->type == Kite::KMetaPropertyTypes::KMP_GETTER) ronly = true;
+
+			// getting def value
+			auto defval = Comp->getProperty(PropMeta->name).as<float>();
+
+			// create gui element and bind to property
+			auto spin = singleSpin<QDoubleSpinBox>(Layout, PropMeta->name.c_str(), defval, ronly);
+			connect(spin, static_cast<void(QDoubleSpinBox::*)(double)>(&QDoubleSpinBox::valueChanged), pholder, &KFLT::editedFloat);
+		}
 
 	} else if (Meta->getFlag() & POD && Meta->getMetaType() == KMetaTypes::KMT_CLASS) {
-		if (Prop->typeName == "KVector2F32" || Prop->typeName == "KVector2I32") {
-			QString pname(Prop->name.c_str());
-			auto ledit = new QLineEdit();
-			ledit->setValidator(new QIntValidator(0, 100, this));
-			ledit->setStyleSheet("border: 1px solid gray; border-radius: 4px;");
-			Layout->addRow(pname + ".x: ", ledit);
+		if (PropMeta->typeName == "KVector2F32") {
+			// create property binder
+			auto pholder = new KV2F32(Layout, Comp->getName().c_str(), Comp->getName().c_str(),
+									  PropMeta->name.c_str(), PropMeta->typeName.c_str(), Entity->getHandle());
+			if (Comp->getClassName() == "KLogicCom") { pholder->setCType("Logic");}
+			connect(pholder, &KV2F32::finishEdit, this, &MainWindow::componentEdited);
 
-			ledit = new QLineEdit();
-			ledit->setValidator(new QDoubleValidator(0, 100, 2, this));
-			ledit->setStyleSheet("border: 1px solid gray; border-radius: 4px;");
-			Layout->addRow(pname + ".y: ", ledit);
+			// read only
+			bool ronly = false;
+			if (PropMeta->type == Kite::KMetaPropertyTypes::KMP_GETTER) ronly = true;
 
-			Layout->addItem(new QSpacerItem(0, 5));
+			// getting def value
+			auto defval = Comp->getProperty(PropMeta->name).as<Kite::KVector2F32>();
+
+			// create gui element and bind to property
+			pholder->editedX(defval.x);
+			auto spinPair = doubleSpin<QDoubleSpinBox>(Layout, PropMeta->name.c_str(), "X", "Y", defval.x, defval.y, ronly, PropMeta->max, PropMeta->max);
+			connect(spinPair.first, static_cast<void(QDoubleSpinBox::*)(double)>(&QDoubleSpinBox::valueChanged) , pholder, &KV2F32::editedX);
+
+			pholder->editedY(defval.y);	
+			connect(spinPair.second, static_cast<void(QDoubleSpinBox::*)(double)>(&QDoubleSpinBox::valueChanged), pholder, &KV2F32::editedY);
 		}
 
 	}else{
 		QString val("Invalid Property! Name: ");
-		auto invalidType = new QLabel(val + Prop->name.c_str() + " Type: " + Prop->typeName.c_str());
+		auto invalidType = new QLabel(val + PropMeta->name.c_str() + " Type: " + PropMeta->typeName.c_str());
 		invalidType->setStyleSheet("QLabel { color : red; }");
 		Layout->addRow(invalidType);
 	}
@@ -1032,7 +944,6 @@ void MainWindow::addGUIItem(QFormLayout *Layout, const Kite::KMetaProperty *Prop
 
 void MainWindow::editScene(Kite::KResource *Scene) {
 	QMainWindow::statusBar()->showMessage("Loading scene ...");
-
 	objTree->clear();
 
 	auto scene = (Kite::KScene *)Scene;
@@ -1043,6 +954,12 @@ void MainWindow::editScene(Kite::KResource *Scene) {
 	for (auto it = root->beginChild(); it != root->endChild(); ++it) {
 		auto child = eman->getEntity((*it));
 		auto node = new QTreeWidgetItem(objTree);
+		node->setFlags(node->flags() | Qt::ItemIsUserCheckable);
+		if (child->getActive()) {
+			node->setCheckState(0, Qt::Checked);
+		} else {
+			node->setCheckState(0, Qt::Unchecked);
+		}
 		node->setChildIndicatorPolicy(QTreeWidgetItem::DontShowIndicatorWhenChildless);
 		node->setText(0, child->getName().c_str());
 		loadChilds(eman, (*it), node);
@@ -1058,6 +975,7 @@ void MainWindow::removeScene(Kite::KResource *Scene) {
 	auto scene = (Kite::KScene *)Scene;
 	if (kcurScene == scene) {
 		objTree->clear();
+		componentClear();
 		kcurScene = nullptr;
 	}
 

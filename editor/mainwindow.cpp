@@ -84,7 +84,7 @@ void MainWindow::setupDocks(){
 	objDock->setWidget(objTree);
 	objDock->setTitleBarWidget(objTree->getHeaderTools());
 
-	connect(resTree, &ResourceTree::resourceEdit, objTree, &ObjectTree::sceneEdit);
+	connect(resTree, &ResourceTree::resourceSelected, objTree, &ObjectTree::sceneEdit);
 	connect(resTree, &ResourceTree::resourceDelete, objTree, &ObjectTree::sceneDelete);
 
     // component/properties dock
@@ -96,6 +96,7 @@ void MainWindow::setupDocks(){
 
 	propTree = new ComponentTree;
 	propTree->setupTypes(kcompList);
+	propTree->setResDictionary(resTree->getDictionary());
 	prpDock->setWidget(propTree);
 	prpDock->setTitleBarWidget(propTree->getHeaderTools());
 

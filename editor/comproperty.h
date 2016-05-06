@@ -15,7 +15,7 @@ T * singleSpin(QFormLayout *Layout, QString Label,
 						   int Min = 0, int Max = 0, bool unsig = false) {
 	auto spin1 = new T();
 
-	spin1->setFixedWidth(70);
+	spin1->setFixedWidth(100);
 	spin1->setStyleSheet("color: DarkViolet;");
 
 	// is unsigned
@@ -58,9 +58,9 @@ QPair<T *, T *> doubleSpin(QFormLayout *Layout, QString Label, QString Sub1, QSt
 	auto spin1 = new T();
 	auto spin2 = new T();
 
-	spin1->setFixedWidth(70);
+	spin1->setFixedWidth(100);
 	spin1->setStyleSheet("color: DarkViolet;");
-	spin2->setFixedWidth(70);
+	spin2->setFixedWidth(100);
 	spin2->setStyleSheet("color: DarkViolet;");
 
 	// is unsigned
@@ -208,11 +208,7 @@ public:
 
 	public slots:
 	void editedStr(const QString & text) {
-		if (text == "--EMPTY--") {
-			value.clear();
-		} else {
-			value = text.toStdString();
-		}
+		value = text.toStdString();
 		emit(finishEdit());
 	}
 

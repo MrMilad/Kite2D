@@ -7,21 +7,7 @@
 #include <qhash.h>
 #include <Kite/core/kresource.h>
 #include <Kite/core/kresourcemanager.h>
-
-struct ResourceItem {
-	QString address;
-	QString type;
-	Kite::KResource *resource;
-
-	ResourceItem(const QString &Address, const QString &Type, Kite::KResource *Resource) :
-		address(Address), type(Type), resource(Resource) {}
-};
-
-enum ActionsState {
-	AS_ON_CAT,
-	AS_ON_ITEM,
-	AS_ON_INITE
-};
+#include "shared.h"
 
 class ResourceTree : public QTreeWidget {
 	Q_OBJECT
@@ -31,6 +17,7 @@ public:
 	~ResourceTree();
 
 	void setupCategories(const QStringList &CatList);
+	inline auto const getDictionary() const { return &dictinary; }
 	void clearResources();
 	inline QFrame *getHeaderTools() { return htools; }
 
@@ -61,6 +48,7 @@ private:
 	void setupShortcuts();
 	void setupHTools();
 	void actionsControl(ActionsState State);
+
 	QAction *addRes;
 	QAction *openRes;
 	QAction *saveRes;

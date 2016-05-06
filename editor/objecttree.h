@@ -7,12 +7,7 @@
 #include <Kite/core/kscene.h>
 #include <Kite/core/kentity.h>
 #include <Kite/core/kentitymanager.h>
-
-enum ObjectActState {
-	OA_ON_LOAD,
-	OA_ON_ITEM,
-	OA_ON_INITE
-};
+#include "shared.h"
 
 class ObjectTree : public QTreeWidget {
 	Q_OBJECT
@@ -51,7 +46,7 @@ private:
 	void setupActions();
 	void setupShortcuts();
 	void setupHTools();
-	void actionsControl(ObjectActState State);
+	void actionsControl(ActionsState State);
 	void loadChilds(Kite::KEntityManager *Eman, const Kite::KHandle &Entity, QTreeWidgetItem *Parrent);
 	QString getAvailName();
 

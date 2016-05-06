@@ -31,6 +31,7 @@ SOURCES += main.cpp\
 	componenttree.cpp
 
 HEADERS  += mainwindow.h \
+    shared.h \
     gridscene.h \
 	expander.h \
     frmnewproj.h\

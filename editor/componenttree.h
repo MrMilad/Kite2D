@@ -10,15 +10,10 @@
 #include <Kite/meta/kmetabase.h>
 #include <Kite/meta/kmetaclass.h>
 #include <Kite/meta/kmetapod.h>
+#include "shared.h"
 
 class QMenu;
 class QFormLayout;
-
-enum ComActState {
-	CA_ON_LOAD,
-	CA_ON_ITEM,
-	CA_ON_INITE
-};
 
 class ComponentTree : public QTreeWidget {
 	Q_OBJECT
@@ -28,6 +23,7 @@ public:
 	~ComponentTree();
 
 	void setupTypes(const QStringList &TypeList);
+	inline void setResDictionary(const QHash<QString, ResourceItem> *Dictionary) { resDict = Dictionary; }
 	inline QFrame *getHeaderTools() { return htools; }
 
 public slots:
@@ -56,8 +52,9 @@ private:
 	void setupActions();
 	void setupShortcuts();
 	void setupHTools();
-	void actionsControl(ComActState State);
+	void actionsControl(ActionsState State);
 	QString getAvailName(Kite::KEntity *Entity);
+	bool eventFilter(QObject *object, QEvent *event); // resource combo box event filter
 	void removeComponentGUI();
 	void createComponent(const Kite::KEntity *Entity, const Kite::KComponent *Component);
 	void bindProperties(const Kite::KEntity *Entity, const Kite::KComponent *Component, QFrame *Frame);
@@ -73,6 +70,7 @@ private:
 	Kite::KEntity *currEntity;
 	QStringList types;
 	Kite::KMetaManager mman;
+	const QHash<QString, ResourceItem> *resDict;
 };
 
 #endif // COMPONENTTREE_H

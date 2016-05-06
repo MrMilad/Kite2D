@@ -6,8 +6,9 @@
 #include "kmeta.khgen.h"
 
 ComponentTree::ComponentTree(QWidget *parrent) :
-	QTreeWidget(parrent), currEntity(nullptr), mtypes(new QMenu(this))
+	QTreeWidget(parrent), currEntity(nullptr), mtypes(new QMenu(this)), resDict(nullptr)
 {
+	setMinimumWidth(330);
 	setHeaderLabel("Components Editor");
 	setHeaderHidden(true);
 	setSelectionMode(QAbstractItemView::SingleSelection);
@@ -18,7 +19,7 @@ ComponentTree::ComponentTree(QWidget *parrent) :
 	connect(mtypes, &QMenu::triggered, this, &ComponentTree::actAdd);
 
 	setupActions();
-	actionsControl(CA_ON_INITE);
+	actionsControl(AS_ON_INITE);
 	setupHTools();
 	setupShortcuts();
 
@@ -87,12 +88,12 @@ void ComponentTree::focusOutEvent(QFocusEvent *Event) {
 	}
 }
 
-void ComponentTree::actionsControl(ComActState State) {
-	if (State == CA_ON_INITE) {
+void ComponentTree::actionsControl(ActionsState State) {
+	if (State == AS_ON_INITE) {
 		addDefComp->setDisabled(true);
 		remComp->setDisabled(true);
 		mtypes->setDisabled(true);
-	} else if (State == CA_ON_LOAD) {
+	} else if (State == AS_ON_LOAD) {
 		addDefComp->setDisabled(false);
 		remComp->setDisabled(false);
 		mtypes->setDisabled(false);
@@ -150,6 +151,29 @@ QString ComponentTree::getAvailName(Kite::KEntity *Entity) {
 	return text;
 }
 
+bool ComponentTree::eventFilter(QObject *object, QEvent *event) {
+	if (event->type() == QEvent::MouseButtonPress) {
+		auto combo = (QComboBox *)object;
+
+		auto text = combo->currentText();
+		combo->clear();
+		auto type = combo->objectName();
+
+		if (resDict != nullptr) {
+			QStringList items;
+			for (auto it = resDict->cbegin(); it != resDict->cend(); ++it) {
+				if ((*it).type == type) {
+					items.push_back(it.key());
+				}
+			}
+
+			combo->addItems(items);
+			combo->setCurrentText(text);
+		}
+	}
+	return false;
+}
+
 void ComponentTree::removeComponentGUI() {
 	auto item = currentItem();
 	if (item != nullptr) {
@@ -174,6 +198,7 @@ void ComponentTree::createComponent(const Kite::KEntity *Entity, const Kite::KCo
 		name = Comp->getName().c_str();
 		name.append("\t");
 	}
+	category->setText(0, name);
 	auto btnExpander = new Expander(name, QIcon(":/icons/com"), this, category);
 	btnExpander->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
 	btnExpander->setContextMenuPolicy(Qt::CustomContextMenu);
@@ -192,7 +217,7 @@ void ComponentTree::createComponent(const Kite::KEntity *Entity, const Kite::KCo
 void ComponentTree::bindProperties(const Kite::KEntity *Entity, const Kite::KComponent *Comp, QFrame *Frame) {
 	auto compMeta = (Kite::KMetaClass *)mman.getMeta(Comp->getClassName().c_str());
 	auto propList = compMeta->getProperties();
-	auto flayout = new QFormLayout();
+	auto flayout = new QFormLayout(Frame);
 
 	flayout->setContentsMargins(10, 0, 10, 0);
 	flayout->setHorizontalSpacing(5);
@@ -235,27 +260,16 @@ void ComponentTree::addGUIItem(QFormLayout *Layout, const Kite::KMetaBase *Meta,
 				auto line = lineEdit(Layout, PropMeta->name.c_str(), defval.c_str(), ronly);
 				connect(line, &QLineEdit::textChanged, pholder, &KSTR::editedStr);
 
-
 				// resource string
 			} else {
-				/*auto resCat = kresMap.find(PropMeta->resType.c_str());
-				// getting all available resources with the given category
-				if (resCat != kresMap.end()) {
-					QStringList items;
-					for (auto it = resCat->begin(); it != resCat->end(); ++it) {
-						items.push_back(it.key());
-					}
-					items.push_back("--EMPTY--");
-					auto combo = comboEdit(Layout, PropMeta->name.c_str(), items, true);
-					combo->setObjectName(PropMeta->resType.c_str());
-					combo->setCurrentText(defval.c_str());
-					if (combo->currentText() != defval.c_str()) {
-						combo->setCurrentText("--EMPTY--");
-					}
-
-					connect(combo, static_cast<void(QComboBox::*)(const QString &)>(&QComboBox::currentIndexChanged),
-							pholder, &KSTR::editedStr);
-				}*/
+				QStringList items;
+				auto combo = comboEdit(Layout, PropMeta->name.c_str(), items, true);
+				combo->setObjectName(PropMeta->resType.c_str());
+				combo->installEventFilter(this);
+				eventFilter(combo, &QEvent(QEvent::MouseButtonPress));
+				combo->setCurrentText(defval.c_str());
+				connect(combo, static_cast<void(QComboBox::*)(const QString &)>(&QComboBox::currentIndexChanged),
+						pholder, &KSTR::editedStr);
 			}
 
 			// bool
@@ -290,6 +304,7 @@ void ComponentTree::addGUIItem(QFormLayout *Layout, const Kite::KMetaBase *Meta,
 
 			// create gui element and bind to property
 			auto spin = singleSpin<QDoubleSpinBox>(Layout, PropMeta->name.c_str(), defval, ronly);
+			spin->setDecimals(4);
 			connect(spin, static_cast<void(QDoubleSpinBox::*)(double)>(&QDoubleSpinBox::valueChanged), pholder, &KFLT::editedFloat);
 		}
 
@@ -311,9 +326,11 @@ void ComponentTree::addGUIItem(QFormLayout *Layout, const Kite::KMetaBase *Meta,
 			// create gui element and bind to property
 			pholder->editedX(defval.x);
 			auto spinPair = doubleSpin<QDoubleSpinBox>(Layout, PropMeta->name.c_str(), "X", "Y", defval.x, defval.y, ronly, PropMeta->max, PropMeta->max);
+			spinPair.first->setDecimals(4);
 			connect(spinPair.first, static_cast<void(QDoubleSpinBox::*)(double)>(&QDoubleSpinBox::valueChanged), pholder, &KV2F32::editedX);
 
 			pholder->editedY(defval.y);
+			spinPair.second->setDecimals(4);
 			connect(spinPair.second, static_cast<void(QDoubleSpinBox::*)(double)>(&QDoubleSpinBox::valueChanged), pholder, &KV2F32::editedY);
 		}
 
@@ -350,13 +367,13 @@ void ComponentTree::entityEdit(Kite::KEntity *Entity) {
 		createComponent(Entity, (*it));
 	}
 
-	actionsControl(CA_ON_LOAD);
+	actionsControl(AS_ON_LOAD);
 }
 
 void ComponentTree::entityDelete(Kite::KEntity *Entity) {
 	if (Entity == currEntity || Entity == nullptr) {
 		actClear();
-		actionsControl(CA_ON_INITE);
+		actionsControl(AS_ON_INITE);
 		currEntity = nullptr;
 	}
 }
@@ -444,9 +461,9 @@ void ComponentTree::actSearch(const QString &Pharase) {
 	auto allItems = QTreeWidgetItemIterator(this);
 	while (*allItems) {
 		if ((*allItems)->text(0).contains(Pharase) && !Pharase.isEmpty()) {
-			(*allItems)->setBackgroundColor(0, QColor(Qt::gray));
+			itemWidget((*allItems), 0)->setStyleSheet("background-color: green;");
 		} else {
-			(*allItems)->setBackgroundColor(0, QColor(34, 34, 34));
+			itemWidget((*allItems), 0)->setStyleSheet("");
 		}
 		++allItems;
 	}

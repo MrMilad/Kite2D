@@ -14,7 +14,7 @@ ObjectTree::ObjectTree(QWidget *parent):
 	connect(this, &QTreeWidget::customContextMenuRequested, this, &ObjectTree::actRClicked);
 
 	setupActions();
-	actionsControl(OA_ON_INITE);
+	actionsControl(AS_ON_INITE);
 	setupHTools();
 	setupShortcuts();
 }
@@ -111,18 +111,18 @@ void ObjectTree::setupHTools() {
 	htools->setLayout(vlayout);
 }
 
-void ObjectTree::actionsControl(ObjectActState State) {
-	if (State == OA_ON_INITE) {
+void ObjectTree::actionsControl(ActionsState State) {
+	if (State == AS_ON_INITE) {
 		addRootObj->setDisabled(true);
 		addChildObj->setDisabled(true);
 		renameObj->setDisabled(true);
 		remObj->setDisabled(true);
-	} else if(State == OA_ON_ITEM) {
+	} else if(State == AS_ON_ITEM) {
 		addRootObj->setDisabled(false);
 		addChildObj->setDisabled(false);
 		renameObj->setDisabled(false);
 		remObj->setDisabled(false);
-	} else if (State == OA_ON_LOAD) {
+	} else if (State == AS_ON_LOAD) {
 		addRootObj->setDisabled(false);
 		addChildObj->setDisabled(true);
 		renameObj->setDisabled(true);
@@ -184,14 +184,14 @@ void ObjectTree::sceneEdit(Kite::KResource *Scene) {
 
 	connect(this, &QTreeWidget::itemChanged, this, &ObjectTree::entityChecked);
 
-	actionsControl(OA_ON_LOAD);
+	actionsControl(AS_ON_LOAD);
 }
 
 void ObjectTree::sceneDelete(Kite::KResource *Scene){
 	if (Scene == currScene) {
 		clear();
 		currScene = nullptr;
-		actionsControl(OA_ON_INITE);
+		actionsControl(AS_ON_INITE);
 		emit(objectDelete(nullptr));
 	}
 }
@@ -213,10 +213,10 @@ void ObjectTree::actClicked() {
 	if (item != nullptr) {
 		auto eman = currScene->getEManager();
 		auto entity = eman->getEntityByName(item->text(0).toStdString());
-		actionsControl(OA_ON_ITEM);
+		actionsControl(AS_ON_ITEM);
 		emit(objectSelected(entity));
 	} else {
-		actionsControl(OA_ON_LOAD);
+		actionsControl(AS_ON_LOAD);
 	}
 }
 

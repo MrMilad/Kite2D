@@ -1,0 +1,17 @@
+<RCC>
+    <qresource prefix="/icons">
+        <file alias="new">res/ico/new.png</file>
+        <file alias="open">res/ico/open.png</file>
+        <file alias="save">res/ico/save.png</file>
+        <file alias="add">res/ico/add.png</file>
+        <file alias="edit">res/ico/edit.png</file>
+        <file alias="exit">res/ico/exit.png</file>
+        <file alias="remove">res/ico/remove.png</file>
+        <file alias="resEdit">res/ico/resEdit.png</file>
+        <file alias="saveAs">res/ico/saveAs.png</file>
+        <file alias="comp">res/ico/component.png</file>
+        <file alias="search">res/ico/search.png</file>
+        <file alias="addChild">res/ico/addChild.png</file>
+        <file alias="play">res/ico/play.png</file>
+    </qresource>
+</RCC>

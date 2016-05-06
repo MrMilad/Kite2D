@@ -1647,9 +1647,10 @@ void createTemplMacro(const MClass &Cls, std::string &Output) {
 	// meta registration
 	replaceTok(cParam, ',', '|');
 	Output.append("static void registerMeta(const std::string &Name, KMetaManager *MMan, lua_State *Lua = nullptr){\\\n"
-					"static KMetaClass instance(Name," + cParam + ", sizeof(" + Cls.name + "<" + Cls.templType + ">));\\\n"
-					"if (MMan != nullptr){\\\n"
-					"MMan->setMeta((KMetaBase *)&instance);\\\n");
+				  "static KMetaClass instance(Name," + cParam + ", sizeof(" + Cls.name + "<" + Cls.templType + ">));\\\n"
+				  "static bool initeMeta = false;\\\n"
+				  "if (MMan != nullptr){MMan->setMeta((KMetaBase *)&instance);}\\\n"
+				  "if (!initeMeta){\\\n");
 
 	// informations
 	for (size_t count = 0; count < Cls.infos.size(); ++count) {
@@ -2002,8 +2003,9 @@ void createMacros(const std::vector<MClass> &Cls, const std::vector<MEnum> &Enms
 		replaceTok(cParam, ',', '|');
 		Output.append("void " + Cls[i].name + "::registerMeta(KMetaManager *MMan, lua_State *Lua){\\\n"
 					  "static KMetaClass instance(\"" + Cls[i].name + "\"," + cParam + ", sizeof(" + Cls[i].name + "));\\\n"
-					  "if (MMan != nullptr){\\\n"
-					  "MMan->setMeta((KMetaBase *)&instance);\\\n");
+					  "static bool initeMeta = false;\\\n"
+					  "if (MMan != nullptr){MMan->setMeta((KMetaBase *)&instance);}\\\n"
+					  "if (!initeMeta){\\\n");
 
 		// informations
 		for (size_t count = 0; count < Cls[i].infos.size(); ++count) {
@@ -2033,7 +2035,7 @@ void createMacros(const std::vector<MClass> &Cls, const std::vector<MEnum> &Enms
 
 			Output.append("instance.addFunction(KMetaFunction(\"" + Cls[i].funcs[count].name + "\", " + ista + " ));\\\n");
 		}
-		Output.append("}\\\n");
+		Output.append("initeMeta = true;}\\\n");
 
 		// lua binding 
 		if (isComponent || isScriptable || isEntity || isPOD ||

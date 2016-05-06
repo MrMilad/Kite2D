@@ -13,7 +13,6 @@ QCheckBox *checkEdit(QFormLayout *Layout, QString Label, bool defval, bool ReadO
 	if (ReadOnly) {
 		check->setCheckable(false);
 	}
-	check->setLayoutDirection(Qt::RightToLeft);
 	check->setStyleSheet("color: DarkViolet;");
 	Layout->addRow(Label, check);
 	return check;

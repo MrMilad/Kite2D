@@ -9,6 +9,11 @@ int main() {
 	auto num = rand() % 99999999 + 10000000;
 	*/
 
+	KMetaManager mman;
+	KMetaManager mman2;
+	registerKiteMeta(&mman);
+	registerKiteMeta(&mman2);
+
 	KFIStream fstream;
 	fstream.open("E:\\loader.txt", KIOTypes::KRT_BIN);
 	std::string code;

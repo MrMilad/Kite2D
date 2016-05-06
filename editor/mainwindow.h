@@ -7,6 +7,7 @@
 #include <qstringlist.h>
 #include <resourcetree.h>
 #include <objecttree.h>
+#include <componenttree.h>
 #include <Kite/engine/kengine.h>
 
 class QGraphicsView;
@@ -54,20 +55,6 @@ void openProject();
 void saveProject();
 void closeProject();
 
-void entityChecked(QTreeWidgetItem *Item, int Col);
-void entityClicked();
-void entityRClicked(const QPoint & pos);
-void entityAdd();
-void entityRemove();
-void entityRename();
-
-void componentClicked();
-void componentRClicked(const QPoint & pos);
-void componentAdd(QAction *Action);
-void componentEdited();
-void componentRemove();
-void componentClear();
-
 void exitApp();
 
 private:
@@ -92,25 +79,12 @@ private:
 	void saveXML(QIODevice *device);
 	void loadXML(QIODevice *device);
 
-	// KScene
-	void editScene(Kite::KResource *Scene);
-	void removeScene(Kite::KResource *Scene);
-	void loadChilds(Kite::KEntityManager *Eman, const Kite::KHandle &Entity, QTreeWidgetItem *Parrent);
-
-	// KComponents
-	/// CName used in Logic component
-	void loadComponents(Kite::KHandle Entity);
-	void removeComponentGUI();
-	void createComponent(const Kite::KEntity *Entity, const Kite::KComponent *Component);
-	void bindProperties(const Kite::KEntity *Entity, const Kite::KComponent *Component, QFrame *Frame);
-	void addGUIItem(QFormLayout *Layout, const Kite::KMetaBase *Meta, const Kite::KEntity *Entity,
-					const Kite::KComponent *Component, const Kite::KMetaProperty *PropMeta);
 
     QDockWidget *resDock;
     QDockWidget *objDock;
     QDockWidget *prpDock;
     QGraphicsView *sceneView;
-	QTreeWidget *propTree;
+	ComponentTree *propTree;
     ResourceTree *resTree;
 	ObjectTree *objTree;
 
@@ -125,10 +99,6 @@ private:
 	QAction *closeProj;
 	QAction *playScene;
 
-	QAction *addObj;
-	QAction *remObj;
-	QAction *renObj;
-	QAction *remCom;
 	QAction *exit;
 
 	Kite::KMetaManager *kmman;

@@ -174,15 +174,17 @@ void ResourceTree::clearResources() {
 void ResourceTree::actClicked() {
 	auto item = currentItem();
 
-	if (item->parent() == nullptr) {
-		actionsControl(AS_ON_CAT);
-		addRes->setText("Add New " + item->text(0));
-		openRes->setText("Add Existing " + item->text(0));
-	} else {
-		actionsControl(AS_ON_ITEM);
-		editRes->setText("Edit " + item->text(0));
-		remRes->setText("Remove " + item->text(0));
-		emit(resourceSelected(dictinary.find(item->text(0))->resource));
+	if (item != nullptr) {
+		if (item->parent() == nullptr) {
+			actionsControl(AS_ON_CAT);
+			addRes->setText("Add New " + item->text(0));
+			openRes->setText("Add Existing " + item->text(0));
+		} else {
+			actionsControl(AS_ON_ITEM);
+			editRes->setText("Edit " + item->text(0));
+			remRes->setText("Remove " + item->text(0));
+			emit(resourceSelected(dictinary.find(item->text(0))->resource));
+		}
 	}
 }
 
@@ -411,7 +413,6 @@ void ResourceTree::actRemove() {
 	}
 
 	auto item = currentItem();
-	setCurrentItem(item->parent());
 	auto res = dictinary.find(item->text(0))->resource;
 
 	// first we emit the corresponding signal
@@ -425,21 +426,18 @@ void ResourceTree::actRemove() {
 
 void ResourceTree::actSearch(const QString &Pharase) {
 	auto allItems = QTreeWidgetItemIterator(this);
-	if (Pharase.isEmpty()) {
-		while (*allItems) {
-			if ((*allItems)->parent() != nullptr) {
-				(*allItems)->setHidden(false);
-			}
-			++allItems;
-		}
-	} else {
-		while (*allItems) {
-			if ((*allItems)->parent() != nullptr) {
-				if (!(*allItems)->text(0).contains(Pharase)) {
+	while (*allItems) {
+		if ((*allItems)->parent() != nullptr) {
+			if (!Pharase.isEmpty()) {
+				if ((*allItems)->text(0).contains(Pharase)) {
+					(*allItems)->setHidden(false);
+				} else {
 					(*allItems)->setHidden(true);
 				}
+			} else {
+				(*allItems)->setHidden(false);
 			}
-			++allItems;
 		}
+		++allItems;
 	}
 }

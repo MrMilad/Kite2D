@@ -27,7 +27,6 @@ namespace Kite {
 
 	namespace Internal {
 		void registerMetaPOD(KMetaManager *MMan) {
-			static bool registered = false;
 			static KMetaPOD instances[] =
 			{
 				KMetaPOD("I8", 0, (U32)sizeof(I8), KPT_I8),
@@ -44,21 +43,18 @@ namespace Kite {
 				KMetaPOD("std::string", 0, 0, KPT_STR) // std::string
 			};
 
-			if (!registered && MMan != nullptr) {
-				registered = true;
-				MMan->setMeta(&instances[0]);
-				MMan->setMeta(&instances[1]);
-				MMan->setMeta(&instances[2]);
-				MMan->setMeta(&instances[3]);
-				MMan->setMeta(&instances[4]);
-				MMan->setMeta(&instances[5]);
-				MMan->setMeta(&instances[6]);
-				MMan->setMeta(&instances[7]);
-				MMan->setMeta(&instances[8]);
-				MMan->setMeta(&instances[9]);
-				MMan->setMeta(&instances[10]);
-				MMan->setMeta(&instances[11]);
-			}
+			MMan->setMeta(&instances[0]);
+			MMan->setMeta(&instances[1]);
+			MMan->setMeta(&instances[2]);
+			MMan->setMeta(&instances[3]);
+			MMan->setMeta(&instances[4]);
+			MMan->setMeta(&instances[5]);
+			MMan->setMeta(&instances[6]);
+			MMan->setMeta(&instances[7]);
+			MMan->setMeta(&instances[8]);
+			MMan->setMeta(&instances[9]);
+			MMan->setMeta(&instances[10]);
+			MMan->setMeta(&instances[11]);
 		}
 	}
 }

@@ -9,6 +9,7 @@
 #include <Kite/core/kentitymanager.h>
 
 enum ObjectActState {
+	OA_ON_LOAD,
 	OA_ON_ITEM,
 	OA_ON_INITE
 };
@@ -23,20 +24,21 @@ public:
 	inline QFrame *getHeaderTools() { return htools; }
 
 public slots:
-	void sceneEdit(Kite::KScene *Scene);
-	void sceneDelete(Kite::KScene *Scene);
+	void sceneEdit(Kite::KResource *Scene);
+	void sceneDelete(Kite::KResource *Scene);
 
 signals:
 	void objectAdded(Kite::KEntity *Obj);
-	void objectSelected(Kite::KResource *Res);
-	void objectDelete(Kite::KResource *Res);
-	void objectRenamed(Kite::KResource *Res);
+	void objectSelected(Kite::KEntity *Obj);
+	void objectDelete(Kite::KEntity *Obj);
+	void objectRenamed(Kite::KEntity *RObjes);
 
 private slots:
 	void entityChecked(QTreeWidgetItem *Item, int Col);
 	void actClicked();
 	void actRClicked(const QPoint & pos);
-	void actAdd();
+	void actAddChild();
+	void actAddRoot();
 	void actRemove();
 	void actRename();
 	void actSearch(const QString &Pharase);
@@ -51,6 +53,7 @@ private:
 	void setupHTools();
 	void actionsControl(ObjectActState State);
 	void loadChilds(Kite::KEntityManager *Eman, const Kite::KHandle &Entity, QTreeWidgetItem *Parrent);
+	QString getAvailName();
 
 	QAction *addRootObj;
 	QAction *addChildObj;
@@ -59,7 +62,7 @@ private:
 	QFrame *htools;
 	QLineEdit *ledit;
 	QVector<QShortcut *> shortcuts;
-	Kite::KScene *scene;
+	Kite::KScene *currScene;
 };
 
 #endif // OBJECTTREE_H

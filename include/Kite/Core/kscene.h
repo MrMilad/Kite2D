@@ -56,9 +56,6 @@ namespace Kite {
 		KM_PRO_GET(KP_NAME = "entityManager", KP_TYPE = KEntityManager, KP_CM = "getting scene entity manager")
 		inline auto *getEManager() { return &_keman; }
 
-		KM_PRO_GET(KP_NAME = "name", KP_TYPE = std::string, KP_CM = "scene name")
-		inline const auto &getName() const { return _kname; }
-
 		bool addResource(const std::string &RName, const std::string &RType, U32 Flag = 0);
 
 		void removeResource(const std::string &RName);
@@ -67,9 +64,6 @@ namespace Kite {
 		inline auto endResource() { return _kres.end(); }
 
 	private:
-		inline void setName(const std::string &Name) { _kname = Name; }
-
-		std::string _kname;
 		std::unordered_map<std::string, std::pair<std::string, U32>> _kres; // <name, <type, flag>>
 		KEntityManager _keman;
 		bool _kloaded;

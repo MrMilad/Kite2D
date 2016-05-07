@@ -28,6 +28,7 @@ SOURCES += main.cpp\
     comproperty.cpp\
 	resourcetree.cpp\
 	objecttree.cpp\
+	codeeditor.cpp\
 	componenttree.cpp
 
 HEADERS  += mainwindow.h \
@@ -38,6 +39,7 @@ HEADERS  += mainwindow.h \
     comproperty.h\
 	resourcetree.h\
 	objecttree.h\
+	codeeditor.h\
 	componenttree.h
 
 RESOURCES += \

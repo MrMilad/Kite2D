@@ -30,8 +30,11 @@ USA
 
 namespace Kite {
 	KScene::KScene(const std::string &Name) :
-		KResource(Name, "KScene"),
-		_kloaded(false) {}
+		KResource("KScene"),
+		_kloaded(false) 
+	{
+		setResourceName(Name);
+	}
 
 	KScene::~KScene() {}
 
@@ -51,9 +54,12 @@ namespace Kite {
 			return false;
 		}
 
-		bserial >> _kname;
+		std::string name;
+		bserial >> name;
 		bserial >> _kres;
 		bserial >> _keman;
+
+		setResourceName(name);
 
 		_kloaded = true;
 		return true;
@@ -63,7 +69,7 @@ namespace Kite {
 		KBinarySerial bserial;
 
 		bserial << std::string("KScene");
-		bserial << _kname;
+		bserial << getResourceName();
 		bserial << _kres;
 		bserial << _keman;
 

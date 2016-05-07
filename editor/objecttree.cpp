@@ -296,9 +296,9 @@ void ObjectTree::actAddChild() {
 	auto item = currentItem();
 	if (item != nullptr) {
 		auto eman = currScene->getEManager();
-		auto parrent = eman->getEntityByName(item->text(0).toStdString())->getHandle();
+		auto pitem = eman->getEntityByName(item->text(0).toStdString())->getHandle();
 		auto ent = eman->createEntity(text.toStdString());
-		eman->getEntity(parrent)->addChild(ent);
+		eman->getEntity(pitem)->addChild(ent);
 
 		disconnect(this, &QTreeWidget::itemChanged, this, &ObjectTree::entityChecked);
 		auto node = new QTreeWidgetItem(item);

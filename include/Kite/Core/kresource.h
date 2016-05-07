@@ -37,7 +37,7 @@ namespace Kite{
 
 	KMETA_KRESOURCE_BODY();
 	public:
-		KResource(const std::string &Name, const std::string &Type);
+		KResource(const std::string &Type);
 
 		virtual ~KResource();
 
@@ -56,18 +56,26 @@ namespace Kite{
 		KM_PRO_GET(KP_NAME = "name", KP_TYPE = std::string)
 		inline const std::string &getResourceName() const { return _kname; }
 
+		KM_PRO_SET(KP_NAME = "name")
+		inline void setResourceName(const std::string &Name) { _kname = Name; }
+
 		KM_PRO_GET(KP_NAME = "type", KP_TYPE = std::string)
 		inline const std::string &getResourceType() const { return _ktype; }
 
+		KM_PRO_GET(KP_NAME = "address", KP_TYPE = std::string)
+		inline const std::string &getResourceAddress() const { return _kaddress; }
+
+		KM_PRO_SET(KP_NAME = "address")
+		inline void setResourceAddress(const std::string &Address) { _kaddress = Address; }
+
 	private:
-		// internal use by resource manager
-		inline void setResourceName(const std::string &Name) { _kname = Name; }
 		inline void incRef() { ++_kref; }
 		inline void decRef() { _kref > 0 ? --_kref : _kref; }
 
 		U32 _kref;
 		std::string _ktype;
 		std::string _kname;
+		std::string _kaddress;
 	};
 }
 

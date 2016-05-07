@@ -165,10 +165,68 @@ void ResourceTree::actionsControl(ActionsState State) {
 
 void ResourceTree::clearResources() {
 	for (auto it = dictinary.begin(); it != dictinary.end(); ++it) {
-		emit(resourceDelete(it->resource));
+		emit(resourceDelete((*it)));
 	}
-	clear();
 	dictinary.clear();
+	clear();
+}
+
+bool ResourceTree::openResource(const QString &Address, const QString &Type) {
+	auto pitem = this->findItems(Type, Qt::MatchFlag::MatchExactly);
+	if (pitem.isEmpty()) {
+		QMessageBox msg;
+		msg.setWindowTitle("Message");
+		msg.setText("Unregistered resource type.\nType: " + Type + "\nAddress: " + Address);
+		msg.exec();
+		return false;
+	}
+
+	// cretae new resource 
+	auto newres = rman.create(Type.toStdString(), "");
+	if (newres != nullptr) {
+		// register ctypes with kcene
+		if (Type == "KScene") {
+			auto scene = (Kite::KScene *)newres;
+			Kite::registerCTypes(scene->getEManager());
+		}
+
+		// load resource
+		Kite::KFIStream istream;
+		if (!istream.open(Address.toStdString(), Kite::KIOTypes::KRT_BIN)) {
+			QMessageBox msg;
+			msg.setWindowTitle("Message");
+			msg.setText("cant open file stream with the given address.\nfile address: " + Address);
+			msg.exec();
+			return false;
+		}
+
+		if (!newres->loadStream(&istream)) {
+			QMessageBox msg;
+			msg.setWindowTitle("Message");
+			msg.setText("cant load resource data from file.\nfile address: " + Address);
+			msg.exec();
+
+			delete newres;
+			return false;
+		}
+
+		newres->setResourceAddress(Address.toStdString());
+		dictinary.insert(newres->getResourceName().c_str(), newres);
+
+		auto item = new QTreeWidgetItem(pitem.first());
+		item->setText(0, newres->getResourceName().c_str());
+		pitem.first()->setExpanded(true);
+
+		emit(resourceOpen(newres));
+
+		return true;
+	} else {
+		QMessageBox msg;
+		msg.setWindowTitle("Message");
+		msg.setText("Resource add module return nullptr!\nresource type: " + Type);
+		msg.exec();
+	}
+	return false;
 }
 
 void ResourceTree::actClicked() {
@@ -179,11 +237,11 @@ void ResourceTree::actClicked() {
 			actionsControl(AS_ON_CAT);
 			addRes->setText("Add New " + item->text(0));
 			openRes->setText("Add Existing " + item->text(0));
-		} else {
+		} else if (!dictinary.isEmpty()) {
 			actionsControl(AS_ON_ITEM);
 			editRes->setText("Edit " + item->text(0));
 			remRes->setText("Remove " + item->text(0));
-			emit(resourceSelected(dictinary.find(item->text(0))->resource));
+			emit(resourceSelected((*dictinary.find(item->text(0)))));
 		}
 	}
 }
@@ -222,8 +280,8 @@ void ResourceTree::actAdd() {
 	if (!addRes->isEnabled()) {
 		return;
 	}
-	auto parrent = currentItem();
-	auto restype = parrent->text(0);
+	auto pitem = currentItem();
+	auto restype = pitem->text(0);
 
 	// create new resource and add it to res tree
 	bool ok = false;
@@ -266,7 +324,7 @@ void ResourceTree::actAdd() {
 	auto newres = rman.create(restype.toStdString(), text.toStdString());
 	if (newres != nullptr) {
 		// add to resource dictionary map
-		dictinary.insert(text, ResourceItem( "", restype, newres));
+		dictinary.insert(text, newres);
 
 		// register ctypes
 		if (restype == "KScene") {
@@ -274,9 +332,9 @@ void ResourceTree::actAdd() {
 			Kite::registerCTypes(scene->getEManager());
 		}
 
-		auto item = new QTreeWidgetItem(parrent);
+		auto item = new QTreeWidgetItem(pitem);
 		item->setText(0, text);
-		parrent->setExpanded(true);
+		pitem->setExpanded(true);
 
 		emit(resourceAdded(newres));
 
@@ -292,64 +350,13 @@ void ResourceTree::actOpen() {
 	if (!openRes->isEnabled()) {
 		return;
 	}
-	auto parrent = currentItem();
-	auto restype = parrent->text(0);
+	auto pitem = currentItem();
+	auto restype = pitem->text(0);
 
 	QString fileName = QFileDialog::getOpenFileName(this, "Open " + restype, "", "Kite2D Resource File (*.kres)");
 
-	// chck name is available
 	if (!fileName.isEmpty()) {
-		QFileInfo finfo(fileName);
-		auto avail = dictinary.find(finfo.baseName());
-		if (avail != dictinary.end()) {
-			QMessageBox msg;
-			msg.setWindowTitle("Message");
-			msg.setText("this name is already exist!");
-			msg.exec();
-			return;
-		}
-
-		// cretae new resource 
-		auto newres = rman.create(restype.toStdString(), fileName.toStdString());
-		if (newres != nullptr) {
-			// register ctypes with kcene
-			if (restype == "KScene") {
-				auto scene = (Kite::KScene *)newres;
-				Kite::registerCTypes(scene->getEManager());
-			}
-
-			// load resource
-			Kite::KFIStream istream;
-			if (!istream.open(fileName.toStdString(), Kite::KIOTypes::KRT_BIN)) {
-				QMessageBox msg;
-				msg.setWindowTitle("Message");
-				msg.setText("cant open file stream with the given address.\nfile address: " + fileName);
-				msg.exec();
-				return;
-			}
-
-			if (!newres->loadStream(&istream)) {
-				QMessageBox msg;
-				msg.setWindowTitle("Message");
-				msg.setText("cant load resource data from file.\nfile address: " + fileName);
-				msg.exec();
-
-				delete newres;
-				return;
-			}
-
-			dictinary.insert(finfo.baseName(), ResourceItem(fileName, restype, newres));
-			auto item = new QTreeWidgetItem(parrent);
-			item->setText(0, finfo.baseName());
-			parrent->setExpanded(true);
-
-			emit(resourceOpen(newres));
-		} else {
-			QMessageBox msg;
-			msg.setWindowTitle("Message");
-			msg.setText("resource add module return nullptr!\nresource type: " + restype);
-			msg.exec();
-		}
+		openResource(fileName, restype);
 	}
 }
 
@@ -358,7 +365,7 @@ void ResourceTree::actSave() {
 		return;
 	}
 	auto item = currentItem();
-	auto res = dictinary.find(item->text(0))->resource;
+	auto res = (*dictinary.find(item->text(0)));
 
 	Kite::KFOStream ostream;
 	if (!ostream.open(res->getResourceName(), Kite::KIOTypes::KRT_BIN)) {
@@ -377,7 +384,7 @@ void ResourceTree::actSaveAs() {
 		return;
 	}
 	auto item = currentItem();
-	auto res = dictinary.find(item->text(0))->resource;
+	auto res = (*dictinary.find(item->text(0)));
 
 	QString fileName = QFileDialog::getSaveFileName(this, "Save " + item->text(0),
 													"", "Kite2D Resource File (*.kres)");
@@ -401,7 +408,7 @@ void ResourceTree::actEdit() {
 		return;
 	}
 	auto item = currentItem();
-	auto res = dictinary.find(item->text(0))->resource;
+	auto res = (*dictinary.find(item->text(0)));
 	
 	// emit edit signal
 	emit(resourceEdit(res));
@@ -411,9 +418,19 @@ void ResourceTree::actRemove() {
 	if (!remRes->isEnabled()) {
 		return;
 	}
+	if (currentItem()->parent() == nullptr) {
+		return;
+	}
+
+	QMessageBox::StandardButton reply;
+	reply = QMessageBox::question(this, "Message", "Are you sure you want to remove this resource?",
+								  QMessageBox::Yes | QMessageBox::No);
+	if (reply != QMessageBox::Yes) {
+		return;
+	}
 
 	auto item = currentItem();
-	auto res = dictinary.find(item->text(0))->resource;
+	auto res = (*dictinary.find(item->text(0)));
 
 	// first we emit the corresponding signal
 	emit(resourceDelete(res));

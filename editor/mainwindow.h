@@ -8,6 +8,7 @@
 #include <resourcetree.h>
 #include <objecttree.h>
 #include <componenttree.h>
+#include <codeeditor.h>
 #include <Kite/engine/kengine.h>
 
 class QGraphicsView;
@@ -54,8 +55,12 @@ void newProject();
 void openProject();
 void saveProject();
 void closeProject();
-
 void exitApp();
+
+void selectTabs(Kite::KResource *Res);
+void openTabs(Kite::KResource *Res);
+void closeTabs(Kite::KResource *Res);
+void clearTabs();
 
 private:
 	void setupActions();
@@ -66,7 +71,6 @@ private:
 	void setupStatusBar();
 
 	void scanKiteMeta();
-	void setupResources();
 
 	void loadDockState();
 	void saveDockState();
@@ -74,15 +78,13 @@ private:
 	void disGUI();
 	void enGUI();
 
-	void registerResCallbacks();
-
-	void saveXML(QIODevice *device);
-	void loadXML(QIODevice *device);
-
+	void saveXML(QIODevice *device, const QString &Address);
+	bool loadXML(QIODevice *device, const QString &Address);
 
     QDockWidget *resDock;
     QDockWidget *objDock;
     QDockWidget *prpDock;
+	QTabWidget *mainTab;
     QGraphicsView *sceneView;
 	ComponentTree *propTree;
     ResourceTree *resTree;
@@ -98,32 +100,13 @@ private:
 	QAction *saveProj;
 	QAction *closeProj;
 	QAction *playScene;
-
 	QAction *exit;
-
-	Kite::KMetaManager *kmman;
-	Kite::KResourceManager *krman;
-
-	typedef void(MainWindow::*resEditCallb)(Kite::KResource *);
-	typedef void(MainWindow::*resRemoveCallb)(Kite::KResource *);
-	struct ResourceCallbacks {
-		resEditCallb editCallback;
-		resRemoveCallb removeCallb;
-
-		ResourceCallbacks() :
-			editCallback(nullptr), removeCallb(nullptr) {}
-	};
 
 	QList<QString> kresCatList;
 	QList<QString> kcompList;
-	QHash<QString, QHash<QString, Kite::KResource *>> kresMap;
-	QHash<QString, QString> kresDict;
-	QHash<QString, ResourceCallbacks> kresCallbackMap;
+	QHash<QString, int> resTabs;
 
 	Project *curProject;
-	Kite::KScene *kcurScene;
-	QTreeWidgetItem *curEnt;
-	QString curCom;
 };
 
 #endif // MAINWINDOW_H

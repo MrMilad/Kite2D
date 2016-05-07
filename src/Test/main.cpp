@@ -47,7 +47,7 @@ int main() {
 	fostream.close();
 
 	Kite::KScene scene("");
-	if (fstream.open("E:\\kc.kres", KIOTypes::KRT_BIN)) {
+	if (fstream.open("C:/Users/_M1L4D_/Desktop/kc/resources/sen2.kres", KIOTypes::KRT_BIN)) {
 		Kite::registerCTypes(scene.getEManager());
 		scene.loadStream(&fstream);
 	}

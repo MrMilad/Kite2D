@@ -52,7 +52,7 @@ namespace Kite{
 		/// R: resource type
 		/// S: stream type
 		KM_FUN()
-		KResource *load(const std::string &SType, const std::string &RType, const std::string &Name, U32 Flag = 0);
+		KResource *load(const std::string &SType, const std::string &RType, const std::string &Address, U32 Flag = 0);
 
 		/// add a loadded resource to resource manager
 		/// pass stream if resource hase a catched stream 
@@ -62,11 +62,11 @@ namespace Kite{
 		/// get loaded resource
 		/// dont increment refrence counter
 		KM_FUN()
-		KResource *get(const std::string &ResName);
+		KResource *get(const std::string &Address);
 
 		/// unload any resource with any type
 		KM_FUN()
-		void unload(const std::string &ResName);
+		void unload(const std::string &Address);
 
 		const std::vector<KResource *> &dump();
 

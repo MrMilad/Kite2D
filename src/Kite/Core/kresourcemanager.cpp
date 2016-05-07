@@ -64,7 +64,8 @@ namespace Kite {
 		return factory->second.first(Name);
 	}
 
-	KResource *KResourceManager::load(const std::string &SType, const std::string &RType, const std::string &Name, U32 Flag){
+	KResource *KResourceManager::load(const std::string &SType, const std::string &RType,
+									  const std::string &Address, U32 Flag){
 		// check for stream factory methode
 		auto sfactory = _ksfactory.find(SType);
 		if (sfactory == _ksfactory.end()) {
@@ -82,20 +83,20 @@ namespace Kite {
 		bool CatchStream = rfactory->second.second;
 
 		// checking file name
-		if (Name.empty()) {
-			KD_PRINT("empty resource name is not valid");
+		if (Address.empty()) {
+			KD_PRINT("empty Address is not valid");
 			return nullptr;
 		}
 
 		// first check our dictionary
-		auto dfound = _kdict.find(Name);
+		auto dfound = _kdict.find(Address);
 
 		// using dictionary key
 		std::string ResName;
 		if (dfound != _kdict.end()) {
 			ResName = dfound->second;
 		} else {
-			ResName = Name;
+			ResName = Address;
 		}
 
 		// create key from file name
@@ -110,7 +111,9 @@ namespace Kite {
 		}
 
 		// create new resource and assocated input stream
-		KResource *resource = rfactory->second.first(ResName);
+		KResource *resource = rfactory->second.first("");
+		resource->setResourceAddress(ResName);
+
 		auto stream = sfactory->second();
 		stream->open(ResName, KIOTypes::KRT_BIN);
 

@@ -23,7 +23,7 @@ public:
 	~ComponentTree();
 
 	void setupTypes(const QStringList &TypeList);
-	inline void setResDictionary(const QHash<QString, ResourceItem> *Dictionary) { resDict = Dictionary; }
+	inline void setResDictionary(const QHash<QString, Kite::KResource *> *Dictionary) { resDict = Dictionary; }
 	inline QFrame *getHeaderTools() { return htools; }
 
 public slots:
@@ -70,7 +70,7 @@ private:
 	Kite::KEntity *currEntity;
 	QStringList types;
 	Kite::KMetaManager mman;
-	const QHash<QString, ResourceItem> *resDict;
+	const QHash<QString, Kite::KResource *> *resDict;
 };
 
 #endif // COMPONENTTREE_H

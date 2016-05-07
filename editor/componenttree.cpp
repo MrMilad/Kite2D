@@ -5,8 +5,8 @@
 #include "comproperty.h"
 #include "kmeta.khgen.h"
 
-ComponentTree::ComponentTree(QWidget *parrent) :
-	QTreeWidget(parrent), currEntity(nullptr), mtypes(new QMenu(this)), resDict(nullptr)
+ComponentTree::ComponentTree(QWidget *Par) :
+	QTreeWidget(Par), currEntity(nullptr), mtypes(new QMenu(this)), resDict(nullptr)
 {
 	setMinimumWidth(330);
 	setHeaderLabel("Components Editor");
@@ -162,7 +162,7 @@ bool ComponentTree::eventFilter(QObject *object, QEvent *event) {
 		if (resDict != nullptr) {
 			QStringList items;
 			for (auto it = resDict->cbegin(); it != resDict->cend(); ++it) {
-				if ((*it).type == type) {
+				if ((*it)->getResourceType().c_str() == type) {
 					items.push_back(it.key());
 				}
 			}

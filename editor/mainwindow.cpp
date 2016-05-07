@@ -17,7 +17,6 @@ using namespace Kite;
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent),
-	kcurScene(nullptr), curEnt(nullptr),
 	curProject(nullptr)
 {
     this->setMinimumSize(1000, 600);
@@ -28,11 +27,8 @@ MainWindow::MainWindow(QWidget *parent)
 	setupMenus();
     setupDocks();
     setupScene();
-	setupResources();
 	loadDockState();
-	registerResCallbacks();
-	//disGUI();
-
+	disGUI();
 }
 
 MainWindow::~MainWindow()
@@ -56,6 +52,55 @@ void MainWindow::exitApp() {
 	if (curProject == nullptr) {
 		this->close();
 	}
+}
+
+void MainWindow::selectTabs(Kite::KResource *Res) {
+	auto found = resTabs.find(Res->getResourceName().c_str());
+
+	if (found == resTabs.end()) {
+		if (Res->getResourceType() == "KScene") {
+			mainTab->setTabText(0, Res->getResourceName().c_str());
+			mainTab->setCurrentIndex(0);
+		}
+
+	} else {
+		if (Res->getResourceType() == "KScript") {
+			mainTab->setCurrentIndex((*found));
+		}
+	}
+}
+
+void MainWindow::openTabs(Kite::KResource *Res) {
+	auto found = resTabs.find(Res->getResourceName().c_str());
+
+	if (found == resTabs.end()) {
+		if (Res->getResourceType() == "KScript") {
+			auto tb = new QToolButton();
+			tb->setFixedSize(15, 15);
+			auto tid = mainTab->addTab(new CodeEditor(), Res->getResourceName().c_str());
+			mainTab->tabBar()->setTabButton(tid, QTabBar::ButtonPosition::RightSide, tb);
+			mainTab->setCurrentIndex(tid);
+			resTabs.insert(Res->getResourceName().c_str(), tid);
+		}
+
+		if (Res->getResourceType() == "KScene") {
+			mainTab->setTabText(0, Res->getResourceName().c_str());
+			mainTab->setCurrentIndex(0);
+		}
+
+	} else {
+		if (Res->getResourceType() == "KScript") {
+			mainTab->setCurrentIndex((*found));
+		}
+	}
+}
+
+void MainWindow::closeTabs(Kite::KResource *Res) {
+
+}
+
+void MainWindow::clearTabs() {
+
 }
 
 void MainWindow::setupDocks(){
@@ -103,12 +148,23 @@ void MainWindow::setupDocks(){
 	connect(objTree, &ObjectTree::objectSelected, propTree, &ComponentTree::entityEdit);
 	connect(objTree, &ObjectTree::objectDelete, propTree, &ComponentTree::entityDelete);
 
+	// code editor
+	connect(resTree, &ResourceTree::resourceSelected, this, &MainWindow::selectTabs);
+	connect(resTree, &ResourceTree::resourceEdit, this, &MainWindow::openTabs);
+	connect(resTree, &ResourceTree::resourceDelete, this, &MainWindow::closeTabs);
+
 	QMainWindow::statusBar()->showMessage("Ready");
 }
 
 void MainWindow::setupScene(){
+	mainTab = new QTabWidget(this);
+	mainTab->setStyleSheet("QTabBar::tab { height: 23px; }");
+	mainTab->setMovable(true);
+
     sceneView = new QGraphicsView();
-	setCentralWidget(sceneView);
+	mainTab->addTab(sceneView, "Scene");
+
+	setCentralWidget(mainTab);
 	
 	GridScene *scene1 = new GridScene(25, 20, 32, 32);
 	QPixmap plogo("F:\\MyImage\\Kite\\Logo-2-tr.png");
@@ -200,6 +256,9 @@ void MainWindow::disGUI() {
 	saveProj->setDisabled(true);
 	closeProj->setDisabled(true);
 	playScene->setDisabled(true);
+	resDock->setDisabled(true);
+	objDock->setDisabled(true);
+	prpDock->setDisabled(true);
 }
 
 void MainWindow::enGUI() {
@@ -207,49 +266,93 @@ void MainWindow::enGUI() {
 	saveProj->setDisabled(false);
 	closeProj->setDisabled(false);
 	playScene->setDisabled(false);
+	resDock->setDisabled(false);
+	objDock->setDisabled(false);
+	prpDock->setDisabled(false);
 }
 
-void MainWindow::registerResCallbacks() {
-	ResourceCallbacks sceneCallb;
-	kresCallbackMap.insert("KScene", sceneCallb);
-}
-
-void MainWindow::saveXML(QIODevice *device){
+void MainWindow::saveXML(QIODevice *device, const QString &Address){
 	QXmlStreamWriter stream(device);
 	stream.setAutoFormatting(true);
 	stream.writeStartDocument();
-	stream.writeStartElement("bookmark");
-	stream.writeAttribute("href", "http://qt-project.org/");
-	stream.writeTextElement("title", "Qt Project");
-	stream.writeEndElement(); // bookmark
+
+	stream.writeStartElement("k2dproject");
+	stream.writeAttribute("name", curProject->name);
+	stream.writeAttribute("version", "1.0");
+
+	stream.writeStartElement("resources");
+	auto resDict = resTree->getDictionary();
+	for (auto it = resDict->cbegin(); it != resDict->cend(); ++it) {
+		KFOStream fstream;
+		fstream.open(Address.toStdString() + "/resources/" + it.key().toStdString() + ".kres", Kite::KIOTypes::KRT_BIN);
+		(*it)->saveStream(&fstream);
+		fstream.close();
+		stream.writeStartElement("item");
+		stream.writeAttribute("name", it.key());
+		stream.writeAttribute("type", (*it)->getResourceType().c_str());
+		stream.writeEndElement();
+	}
+
+	stream.writeEndElement(); // resources
+	stream.writeEndElement(); // k2dproject
 	stream.writeEndDocument();
 }
 
-void MainWindow::loadXML(QIODevice *device) {
+bool MainWindow::loadXML(QIODevice *device, const QString &Address) {
 	QXmlStreamReader xml(device);
-	while (!xml.atEnd()) {
-		xml.readNext();
-		// do processing
+	bool head = false;
+	bool res = false;
+
+	if (xml.readNextStartElement()) {
+		if (xml.name() == "k2dproject" && xml.attributes().value("version") == "1.0") {
+			QFileInfo finfo(Address);
+			curProject = new Project;
+			curProject->name = xml.attributes().value("name").toString();
+			curProject->Path = finfo.path();
+			curProject->resPath = finfo.path() + "/resources";
+			head = true;
+		}
+
+		while (!xml.atEnd()) {
+			xml.readNext();
+			if (xml.isStartElement() && xml.name() == "resources") {
+				res = true;
+				while (!xml.atEnd()) {
+					xml.readNext();
+					if (xml.isStartElement() && xml.name() == "item") {
+						if (!resTree->openResource(curProject->resPath + "/" + xml.attributes().value("name").toString() + ".kres",
+												  xml.attributes().value("type").toString())) {
+							return false;
+						}
+					}
+				}
+			}
+		}
 	}
+
+
+
 	if (xml.hasError()) {
-		// do error handling
+		QMessageBox msg;
+		msg.setWindowTitle("Message");
+		msg.setText("cant load project file.\nfile address: " + Address 
+					+ "\nXML Error: " + xml.errorString());
+		msg.exec();
+		return false;
 	}
+	return (head && res);
 }
 
 void MainWindow::scanKiteMeta() {
 	QMainWindow::statusBar()->showMessage("Scaning Kite2D ...");
 
 	// register kiet meta system
-	kmman = new Kite::KMetaManager();
-	Kite::registerKiteMeta(kmman);
-
-	// register resource types
-	krman = new Kite::KResourceManager();
-	Kite::registerRTypes(krman);
+	Kite::KMetaManager kmman;
+	Kite::registerKiteMeta(&kmman);
 
 	// dump all mete information
 	std::vector<const KMetaBase *> meta;
-	kmman->dump(meta);
+	kmman.dump(meta);
 
 	// searching for resource categories
 	kresCatList.clear();
@@ -275,19 +378,6 @@ void MainWindow::scanKiteMeta() {
 	QMainWindow::statusBar()->showMessage("Ready");
 }
 
-void MainWindow::setupResources() {
-	/*resTree->clear();
-	kresMap.clear();
-
-	for (auto it = kresCatList.begin(); it != kresCatList.end(); ++it) {
-		auto category = new QTreeWidgetItem(resTree);
-		category->setChildIndicatorPolicy(QTreeWidgetItem::DontShowIndicatorWhenChildless);
-		category->setText(0, (*it));
-		category->setIcon(0, this->style()->standardIcon(QStyle::SP_DirOpenIcon));
-		kresMap.insert((*it), QHash<QString, Kite::KResource *>());
-	}*/
-}
-
 void MainWindow::newProject() {
 
 	// close current project if any
@@ -305,9 +395,6 @@ void MainWindow::newProject() {
 
 			this->setWindowTitle("Kite2D Editor - " + frm.getName());
 
-			// reset resources
-			setupResources();
-
 			enGUI();
 		}
 	}
@@ -320,6 +407,16 @@ void MainWindow::openProject() {
 	if (curProject == nullptr) {
 		QString fileName = QFileDialog::getOpenFileName(this,
 												"Open Project", "", "Kite2D Project File (*.k2d)");
+
+		if (!fileName.isEmpty()) {
+			QFile file(fileName);
+			if (file.open(QIODevice::ReadOnly)) {
+				if (loadXML(&file, fileName)) {
+					enGUI();
+				}
+				file.close();
+			}
+		}
 	}
 }
 
@@ -327,7 +424,7 @@ void MainWindow::saveProject() {
 	if (curProject != nullptr) {
 		QFile file(curProject->Path + "/" + curProject->name + ".k2d");
 		if (file.open(QIODevice::WriteOnly)) {
-			saveXML(&file);
+			saveXML(&file, curProject->Path);
 			file.close();
 		}
 	}
@@ -350,17 +447,8 @@ void MainWindow::closeProject() {
 		this->setWindowTitle("Kite2D Editor");
 
 		// clear resource tree
-		for (auto it = kresMap.begin(); it != kresMap.end(); ++it) {
-			auto callb = kresCallbackMap.find(it.key());
-			if (callb != kresCallbackMap.end()) {
-				if (callb->removeCallb != nullptr) {
-					for (auto rit = it->begin(); rit != it->end(); ++rit) {
-						(this->*callb->removeCallb)((*rit));
-					}
-				}
-			}
-		}
-		setupResources();
+		resTree->clearResources();
+		resTree->setupCategories(kresCatList);
 
 		delete curProject;
 		curProject = nullptr;

@@ -26,8 +26,10 @@ USA
 
 namespace Kite {
 	KScript::KScript(const std::string &Name) :
-		KResource(Name, "KScript") 
-	{}
+		KResource("KScript") 
+	{
+		setResourceName(Name);
+	}
 
 	bool KScript::loadStream(KIStream *Stream, U32 Flag, const std::string &Key) {
 		_kcode.clear();
@@ -43,6 +45,9 @@ namespace Kite {
 			return false;
 		}
 
+		std::string name;
+		ser >> name;
+		setResourceName(name);
 		ser >> _kcode;
 		return true;
 	}
@@ -50,6 +55,7 @@ namespace Kite {
 	bool KScript::saveStream(KOStream *Stream, U32 Flag, const std::string &Key) {
 		KBinarySerial ser;
 		ser << std::string("KScript");
+		ser << getResourceName();
 		ser << _kcode;
 		if (!ser.saveStream(Stream,Key)) {
 			return false;

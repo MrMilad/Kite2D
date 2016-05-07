@@ -17,9 +17,11 @@ public:
 	~ResourceTree();
 
 	void setupCategories(const QStringList &CatList);
-	inline auto const getDictionary() const { return &dictinary; }
+	bool openResource(const QString &Address, const QString &Type);
 	void clearResources();
+	inline auto const getDictionary() const { return &dictinary; }
 	inline QFrame *getHeaderTools() { return htools; }
+	
 
 signals:
 	void resourceAdded(Kite::KResource *Res);
@@ -57,7 +59,7 @@ private:
 	QAction *remRes;
 	QFrame *htools;
 	QLineEdit *ledit;
-	QHash<QString, ResourceItem> dictinary; 
+	QHash<QString, Kite::KResource *> dictinary;
 	QVector<QShortcut *> shortcuts;
 	Kite::KResourceManager rman;
 };

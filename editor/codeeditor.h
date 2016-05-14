@@ -11,6 +11,7 @@ class QPaintEvent;
 class QResizeEvent;
 class QSize;
 class QWidget;
+class QCompleter;
 QT_END_NAMESPACE
 
 class LineNumberArea;
@@ -24,8 +25,13 @@ public:
     void lineNumberAreaPaintEvent(QPaintEvent *Event);
     int lineNumberAreaWidth();
 
+	void setCompleter(QCompleter *c);
+	QCompleter *completer() const;	
+
 protected:
     void resizeEvent(QResizeEvent *event) Q_DECL_OVERRIDE;
+	void keyPressEvent(QKeyEvent *e) Q_DECL_OVERRIDE;
+	void focusInEvent(QFocusEvent *e) Q_DECL_OVERRIDE;
 
 public slots:
 	void scriptEdit(Kite::KResource *Res);
@@ -35,10 +41,13 @@ private slots:
     void updateLineNumberAreaWidth(int newBlockCount);
     void highlightCurrentLine();
     void updateLineNumberArea(const QRect &, int);
+	void insertCompletion(const QString &completion);
 
 private:
+	QString textUnderCursor() const;
     QWidget *lineNumberArea;
 	Kite::KScript *currScript;
+	QCompleter *c;
 };
 
 

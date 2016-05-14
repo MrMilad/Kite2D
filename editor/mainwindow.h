@@ -8,7 +8,7 @@
 #include <resourcetree.h>
 #include <objecttree.h>
 #include <componenttree.h>
-#include <codeeditor.h>
+#include <maintab.h>
 #include <Kite/engine/kengine.h>
 
 class QGraphicsView;
@@ -33,11 +33,6 @@ struct Project {
 	QString resPath;
 };
 
-struct ComBinder {
-	QString cname;
-	QString pname;
-};
-
 class MainWindow : public QMainWindow
 {
     Q_OBJECT
@@ -56,11 +51,6 @@ void openProject();
 void saveProject();
 void closeProject();
 void exitApp();
-
-void selectTabs(Kite::KResource *Res);
-void openTabs(Kite::KResource *Res);
-void closeTabs(Kite::KResource *Res);
-void clearTabs();
 
 private:
 	void setupActions();
@@ -84,7 +74,7 @@ private:
     QDockWidget *resDock;
     QDockWidget *objDock;
     QDockWidget *prpDock;
-	QTabWidget *mainTab;
+	MainTab *mainTab;
     QGraphicsView *sceneView;
 	ComponentTree *propTree;
     ResourceTree *resTree;
@@ -104,7 +94,8 @@ private:
 
 	QList<QString> kresCatList;
 	QList<QString> kcompList;
-	QHash<QString, int> resTabs;
+	QStandardItemModel *completerModel;
+	QHash<QString, QWidget *> resTabs;
 
 	Project *curProject;
 };

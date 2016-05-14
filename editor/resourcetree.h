@@ -41,13 +41,8 @@ private slots:
 	void actRemove();
 	void actSearch(const QString &Pharase);
 
-protected:
-	void focusInEvent(QFocusEvent *Event) override;
-	void focusOutEvent(QFocusEvent *Event) override;
-
 private:
 	void setupActions();
-	void setupShortcuts();
 	void setupHTools();
 	void actionsControl(ActionsState State);
 
@@ -60,7 +55,6 @@ private:
 	QFrame *htools;
 	QLineEdit *ledit;
 	QHash<QString, Kite::KResource *> dictinary;
-	QVector<QShortcut *> shortcuts;
 	Kite::KResourceManager rman;
 };
 

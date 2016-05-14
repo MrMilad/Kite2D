@@ -4,6 +4,7 @@
 #include <qtreewidget.h>
 #include <qstringlist.h>
 #include <qaction.h>
+#include <qlabel.h>
 #include <Kite/core/kscene.h>
 #include <Kite/core/kentity.h>
 #include <Kite/core/kentitymanager.h>
@@ -38,13 +39,8 @@ private slots:
 	void actRename();
 	void actSearch(const QString &Pharase);
 
-protected:
-	void focusInEvent(QFocusEvent *Event) override;
-	void focusOutEvent(QFocusEvent *Event) override;
-
 private:
 	void setupActions();
-	void setupShortcuts();
 	void setupHTools();
 	void actionsControl(ActionsState State);
 	void loadChilds(Kite::KEntityManager *Eman, const Kite::KHandle &Entity, QTreeWidgetItem *Parrent);
@@ -56,7 +52,7 @@ private:
 	QAction *remObj;
 	QFrame *htools;
 	QLineEdit *ledit;
-	QVector<QShortcut *> shortcuts;
+	QLabel *hlabel;
 	Kite::KScene *currScene;
 };
 

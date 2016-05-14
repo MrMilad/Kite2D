@@ -21,7 +21,6 @@ ComponentTree::ComponentTree(QWidget *Par) :
 	setupActions();
 	actionsControl(AS_ON_INITE);
 	setupHTools();
-	setupShortcuts();
 
 	Kite::registerKiteMeta(&mman);
 }
@@ -33,11 +32,10 @@ void ComponentTree::setupActions() {
 	connect(remComp, &QAction::triggered, this, &ComponentTree::actRemove);
 
 	addDefComp = new QAction(QIcon(":/icons/add"), "Add Logic Component", this);
+	addDefComp->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_N));
+	addDefComp->setShortcutContext(Qt::WidgetWithChildrenShortcut);
 	connect(addDefComp, &QAction::triggered, this, &ComponentTree::actAddDef);
-}
-
-void ComponentTree::setupShortcuts() {
-
+	this->addAction(addDefComp);
 }
 
 void ComponentTree::setupHTools() {
@@ -46,10 +44,10 @@ void ComponentTree::setupHTools() {
 	vlayout->setMargin(2);
 	vlayout->setSpacing(0);
 
-	auto name = new QLabel(htools);
-	name->setText("Components Editor");
-	name->setStyleSheet("color: DodgerBlue;");
-	vlayout->addWidget(name);
+	hlabel = new QLabel(htools);
+	hlabel->setText("Components Editor");
+	hlabel->setStyleSheet("color: DodgerBlue;");
+	vlayout->addWidget(hlabel);
 
 	auto hlayout = new QHBoxLayout(htools);
 	hlayout->setMargin(3);
@@ -76,18 +74,6 @@ void ComponentTree::setupHTools() {
 	htools->setLayout(vlayout);
 }
 
-void ComponentTree::focusInEvent(QFocusEvent *Event) {
-	for (auto it = shortcuts.begin(); it != shortcuts.end(); ++it) {
-		(*it)->setEnabled(true);
-	}
-}
-
-void ComponentTree::focusOutEvent(QFocusEvent *Event) {
-	for (auto it = shortcuts.begin(); it != shortcuts.end(); ++it) {
-		(*it)->setEnabled(false);
-	}
-}
-
 void ComponentTree::actionsControl(ActionsState State) {
 	if (State == AS_ON_INITE) {
 		addDefComp->setDisabled(true);
@@ -105,7 +91,7 @@ void ComponentTree::setupTypes(const QStringList &TypeList) {
 	
 	mtypes->clear();
 	for (auto it = types.begin(); it != types.end(); ++it) {
-		auto comtype = new QAction(QIcon(":/icons/comp"), (*it), mtypes);
+		auto comtype = new QAction(QIcon(":/icons/comp32"), (*it), mtypes);
 		mtypes->addAction(comtype);
 	}
 }
@@ -368,6 +354,8 @@ void ComponentTree::entityEdit(Kite::KEntity *Entity) {
 	}
 
 	actionsControl(AS_ON_LOAD);
+	QString name(Entity->getName().c_str());
+	hlabel->setText("Components Editor (" + name + ")");
 }
 
 void ComponentTree::entityDelete(Kite::KEntity *Entity) {
@@ -375,6 +363,7 @@ void ComponentTree::entityDelete(Kite::KEntity *Entity) {
 		actClear();
 		actionsControl(AS_ON_INITE);
 		currEntity = nullptr;
+		hlabel->setText("Components Editor");
 	}
 }
 

@@ -4,6 +4,7 @@
 #include <qtreewidget.h>
 #include <qstringlist.h>
 #include <qaction.h>
+#include <qlabel.h>
 #include <Kite/core/kentity.h>
 #include <Kite/core/kcomponent.h>
 #include <Kite/meta/kmetamanager.h>
@@ -44,13 +45,8 @@ private slots:
 	void actClear();
 	void actSearch(const QString &Pharase);
 
-protected:
-	void focusInEvent(QFocusEvent *Event) override;
-	void focusOutEvent(QFocusEvent *Event) override;
-
 private:
 	void setupActions();
-	void setupShortcuts();
 	void setupHTools();
 	void actionsControl(ActionsState State);
 	QString getAvailName(Kite::KEntity *Entity);
@@ -65,7 +61,7 @@ private:
 	QAction *remComp;
 	QFrame *htools;
 	QLineEdit *ledit;
-	QVector<QShortcut *> shortcuts;
+	QLabel *hlabel;
 	QMenu *mtypes;
 	Kite::KEntity *currEntity;
 	QStringList types;

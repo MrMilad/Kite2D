@@ -1,6 +1,7 @@
 #include "mainwindow.h"
 #include <QtWidgets>
 #include <gridscene.h>
+#include <qstandarditemmodel.h>
 #include <expander.h>
 #include <vector>
 #include <thread>
@@ -9,6 +10,8 @@
 #include "frmnewproj.h"
 #include "comproperty.h"
 
+#include <Kite/meta/kmetaclass.h>
+#include <Kite/meta/kmetaenum.h>
 #include <Kite/meta/kmetamanager.h>
 #include <Kite/core/kresourcemanager.h>
 #include <kmeta.khgen.h>
@@ -54,54 +57,7 @@ void MainWindow::exitApp() {
 	}
 }
 
-void MainWindow::selectTabs(Kite::KResource *Res) {
-	auto found = resTabs.find(Res->getResourceName().c_str());
 
-	if (found == resTabs.end()) {
-		if (Res->getResourceType() == "KScene") {
-			mainTab->setTabText(0, Res->getResourceName().c_str());
-			mainTab->setCurrentIndex(0);
-		}
-
-	} else {
-		if (Res->getResourceType() == "KScript") {
-			mainTab->setCurrentIndex((*found));
-		}
-	}
-}
-
-void MainWindow::openTabs(Kite::KResource *Res) {
-	auto found = resTabs.find(Res->getResourceName().c_str());
-
-	if (found == resTabs.end()) {
-		if (Res->getResourceType() == "KScript") {
-			auto tb = new QToolButton();
-			tb->setFixedSize(15, 15);
-			auto tid = mainTab->addTab(new CodeEditor(), Res->getResourceName().c_str());
-			mainTab->tabBar()->setTabButton(tid, QTabBar::ButtonPosition::RightSide, tb);
-			mainTab->setCurrentIndex(tid);
-			resTabs.insert(Res->getResourceName().c_str(), tid);
-		}
-
-		if (Res->getResourceType() == "KScene") {
-			mainTab->setTabText(0, Res->getResourceName().c_str());
-			mainTab->setCurrentIndex(0);
-		}
-
-	} else {
-		if (Res->getResourceType() == "KScript") {
-			mainTab->setCurrentIndex((*found));
-		}
-	}
-}
-
-void MainWindow::closeTabs(Kite::KResource *Res) {
-
-}
-
-void MainWindow::clearTabs() {
-
-}
 
 void MainWindow::setupDocks(){
 	QMainWindow::statusBar()->showMessage("Initializing GUI (Docks) ...");
@@ -148,18 +104,15 @@ void MainWindow::setupDocks(){
 	connect(objTree, &ObjectTree::objectSelected, propTree, &ComponentTree::entityEdit);
 	connect(objTree, &ObjectTree::objectDelete, propTree, &ComponentTree::entityDelete);
 
-	// code editor
-	connect(resTree, &ResourceTree::resourceSelected, this, &MainWindow::selectTabs);
-	connect(resTree, &ResourceTree::resourceEdit, this, &MainWindow::openTabs);
-	connect(resTree, &ResourceTree::resourceDelete, this, &MainWindow::closeTabs);
-
 	QMainWindow::statusBar()->showMessage("Ready");
 }
 
 void MainWindow::setupScene(){
-	mainTab = new QTabWidget(this);
-	mainTab->setStyleSheet("QTabBar::tab { height: 23px; }");
-	mainTab->setMovable(true);
+	mainTab = new MainTab(this);
+	mainTab->setCompleterModel(completerModel);
+	connect(resTree, &ResourceTree::resourceSelected, mainTab, &MainTab::selectResource);
+	connect(resTree, &ResourceTree::resourceEdit, mainTab, &MainTab::openTabs);
+	connect(resTree, &ResourceTree::resourceDelete, mainTab, &MainTab::closeResource);
 
     sceneView = new QGraphicsView();
 	mainTab->addTab(sceneView, "Scene");
@@ -178,20 +131,30 @@ void MainWindow::setupActions() {
 	QMainWindow::statusBar()->showMessage("setup actions ...");
 
 	newProj = new QAction(QIcon(":/icons/new"), "New Project", this);
+	newProj->setShortcut(QKeySequence(Qt::CTRL + Qt::SHIFT + Qt::Key_N));
+	newProj->setShortcutContext(Qt::ApplicationShortcut);
 	connect(newProj, &QAction::triggered, this, &MainWindow::newProject);
 
 	openProj = new QAction(QIcon(":/icons/open"), "Open Project", this);
+	openProj->setShortcut(QKeySequence(Qt::CTRL + Qt::SHIFT + Qt::Key_O));
+	openProj->setShortcutContext(Qt::ApplicationShortcut);
 	connect(openProj, &QAction::triggered, this, &MainWindow::openProject);
 
 	saveProj = new QAction(QIcon(":/icons/save"), "Save Project", this);
+	saveProj->setShortcut(QKeySequence(Qt::CTRL + Qt::SHIFT + Qt::Key_S));
+	saveProj->setShortcutContext(Qt::ApplicationShortcut);
 	connect(saveProj, &QAction::triggered, this, &MainWindow::saveProject);
 
 	closeProj = new QAction("Close Project", this);
 	connect(closeProj, &QAction::triggered, this, &MainWindow::closeProject);
 
 	playScene = new QAction(QIcon(":/icons/play"), "Play", this);
+	playScene->setShortcut(QKeySequence(Qt::Key_F5));
+	playScene->setShortcutContext(Qt::ApplicationShortcut);
 
 	exit = new QAction(QIcon(":/icons/exit"), "Exit", this);
+	exit->setShortcut(QKeySequence(Qt::ALT + Qt::Key_F4));
+	exit->setShortcutContext(Qt::ApplicationShortcut);
 	connect(exit, &QAction::triggered, this, &MainWindow::exitApp);
 
 	QMainWindow::statusBar()->showMessage("Ready");
@@ -357,24 +320,91 @@ void MainWindow::scanKiteMeta() {
 	// searching for resource categories
 	kresCatList.clear();
 	kcompList.clear();
+	completerModel = new QStandardItemModel(this);
 	for (auto it = meta.begin(); it != meta.end(); ++it) {
+		// Resorces
 		if (((*it)->getFlag() & RESOURCE) && !((*it)->getFlag() & ABSTRACT)) {
 			kresCatList.push_back((*it)->getName().c_str());
-			continue;
+			completerModel->appendRow(new QStandardItem(QIcon(":/icons/res16"), (*it)->getName().c_str()));
 		}
 
+		// Components
 		if (((*it)->getFlag() & COMPONENT) && !((*it)->getFlag() & ABSTRACT)) {
+			auto comp = (Kite::KMetaClass *)(*it);
 			auto infoList = (*it)->getInfo();
 			for (auto ilit = infoList->begin(); ilit != infoList->end(); ++ilit) {
 				if (ilit->first == "KI_CTYPE") {
 					kcompList.push_back(ilit->second.c_str());
+					completerModel->appendRow(new QStandardItem(QIcon(":/icons/comp16"), ilit->second.c_str()));
+					break;
 				}
 			}
-			continue;
+			
+			auto propList = comp->getProperties();
+			for (auto piit = propList->begin(); piit != propList->end(); ++piit) {
+				auto item = new QStandardItem(QIcon(":/icons/prop16"), piit->name.c_str());
+				QString tip("<property>\ncomment: ");
+				tip += piit->comment.c_str();
+				if (piit->type == Kite::KMetaPropertyTypes::KMP_BOTH) {
+					tip += "\naccess type: read/write\ntype: ";
+				} else {
+					tip += "\naccess type: read-only\ntype: ";
+				}
+				item->setToolTip(tip + QString(piit->typeName.c_str()));
+				completerModel->appendRow(item);
+			}
 		}
 
-	}
+		// Enum
+		if ((*it)->getMetaType() == Kite::KMetaTypes::KMT_ENUM) {
+			auto kenum = (Kite::KMetaEnum *)(*it);
+			QString ename((*it)->getName().c_str());
+			completerModel->appendRow(new QStandardItem(QIcon(":/icons/enum"), ename));
+			auto members = kenum->getMembers();
+			for (auto eit = members->begin(); eit != members->end(); ++eit) {
+				auto item = new QStandardItem();
+				item->setIcon(QIcon(":/icons/enumItem"));
+				item->setText(ename + "." + eit->name.c_str());
+				if (eit->name.length() >= 3) {
+					completerModel->appendRow(new QStandardItem(QIcon(":/icons/enumItem"), eit->name.c_str()));
+				}
+			}
+		}
 
+		// POD
+		if ((*it)->getMetaType() == Kite::KMetaTypes::KMT_CLASS && ((*it)->getFlag() & POD)) {
+			completerModel->appendRow(new QStandardItem(QIcon(":/icons/pod16"), (*it)->getName().c_str()));
+		}
+
+		// Scriptables
+		if ((*it)->getMetaType() == Kite::KMetaTypes::KMT_CLASS && 
+			((*it)->getFlag() & SCRIPTABLE) && !((*it)->getFlag() & ABSTRACT)) {
+			auto cls = (Kite::KMetaClass *)(*it);
+			QString cname(cls->getName().c_str());
+
+			// functions
+			auto funList = cls->getFunctions();
+			for (auto fit = funList->begin(); fit != funList->end(); ++fit) {
+				if (fit->isStatic) {
+					completerModel->appendRow(new QStandardItem(QIcon(":/icons/fun16"), cname + "." + fit->name.c_str()));
+				} else {
+					completerModel->appendRow(new QStandardItem(QIcon(":/icons/fun16"), fit->name.c_str()));
+				}
+			}
+
+			// properties
+			auto propList = cls->getProperties();
+			for (auto pit = propList->begin(); pit != propList->end(); ++pit) {
+				if (pit->type == Kite::KMetaPropertyTypes::KMP_BOTH) {
+					completerModel->appendRow(new QStandardItem(QIcon(":/icons/prop16"), pit->name.c_str()));
+				} else {
+					completerModel->appendRow(new QStandardItem(QIcon(":/icons/propro16"), pit->name.c_str()));
+				}
+			}
+		}
+		
+	}
+	
 	QMainWindow::statusBar()->showMessage("Ready");
 }
 

@@ -21,24 +21,11 @@ ResourceTree::ResourceTree(QWidget *Parrent) :
 	setupActions();
 	actionsControl(AS_ON_INITE);
 	setupHTools();
-	setupShortcuts();
 
 	registerRTypes(&rman);
 }
 
 ResourceTree::~ResourceTree() {}
-
-void ResourceTree::focusInEvent(QFocusEvent *Event) {
-	for (auto it = shortcuts.begin(); it != shortcuts.end(); ++it) {
-		(*it)->setEnabled(true);
-	}
-}
-
-void ResourceTree::focusOutEvent(QFocusEvent *Event) {
-	for (auto it = shortcuts.begin(); it != shortcuts.end(); ++it) {
-		(*it)->setEnabled(false);
-	}
-}
 
 void ResourceTree::setupCategories(const QStringList &CatList) {
 	clear();
@@ -51,40 +38,40 @@ void ResourceTree::setupCategories(const QStringList &CatList) {
 
 void ResourceTree::setupActions() {
 	addRes = new QAction(QIcon(":/icons/add"), "Add New Resource", this);
+	addRes->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_N));
+	addRes->setShortcutContext(Qt::WidgetWithChildrenShortcut);
 	connect(addRes, &QAction::triggered, this, &ResourceTree::actAdd);
+	this->addAction(addRes);
 
 	openRes = new QAction(QIcon(":/icons/open"), "Add Existing Resource", this);
+	openRes->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_O));
+	openRes->setShortcutContext(Qt::WidgetWithChildrenShortcut);
 	connect(openRes, &QAction::triggered, this, &ResourceTree::actOpen);
+	this->addAction(openRes);
 
 	saveRes = new QAction(QIcon(":/icons/save"), "Save Resource", this);
+	saveRes->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_S));
+	saveRes->setShortcutContext(Qt::WidgetWithChildrenShortcut);
 	connect(saveRes, &QAction::triggered, this, &ResourceTree::actSave);
+	this->addAction(saveRes);
 
 	saveAsRes = new QAction(QIcon(":/icons/saveAs"), "Save Resource As", this);
+	saveAsRes->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_A));
+	saveAsRes->setShortcutContext(Qt::WidgetWithChildrenShortcut);
 	connect(saveAsRes, &QAction::triggered, this, &ResourceTree::actSaveAs);
+	this->addAction(saveAsRes);
 
 	editRes = new QAction(QIcon(":/icons/resEdit"), "Edit", this);
+	editRes->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_E));
+	editRes->setShortcutContext(Qt::WidgetWithChildrenShortcut);
 	connect(editRes, &QAction::triggered, this, &ResourceTree::actEdit);
+	this->addAction(editRes);
 
 	remRes = new QAction(QIcon(":/icons/remove"), "Remove", this);
+	remRes->setShortcut(QKeySequence(Qt::Key_Delete));
+	remRes->setShortcutContext(Qt::WidgetWithChildrenShortcut);
 	connect(remRes, &QAction::triggered, this, &ResourceTree::actRemove);
-
-}
-
-void ResourceTree::setupShortcuts() {
-	shortcuts.push_back(new QShortcut(QKeySequence(Qt::Key_Delete), this));
-	connect(shortcuts.back(), &QShortcut::activated, remRes, &QAction::trigger);
-
-	shortcuts.push_back(new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_O), this));
-	connect(shortcuts.back(), &QShortcut::activated, openRes, &QAction::trigger);
-
-	shortcuts.push_back(new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_S), this));
-	connect(shortcuts.back(), &QShortcut::activated, saveRes, &QAction::trigger);
-
-	shortcuts.push_back(new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_N), this));
-	connect(shortcuts.back(), &QShortcut::activated, addRes, &QAction::trigger);
-
-	shortcuts.push_back(new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_E), this));
-	connect(shortcuts.back(), &QShortcut::activated, editRes, &QAction::trigger);
+	this->addAction(remRes);
 }
 
 void ResourceTree::setupHTools() {
@@ -215,6 +202,11 @@ bool ResourceTree::openResource(const QString &Address, const QString &Type) {
 
 		auto item = new QTreeWidgetItem(pitem.first());
 		item->setText(0, newres->getResourceName().c_str());
+		if (Type == "KScript") {
+			item->setIcon(0, QIcon(":/icons/script"));
+		} else if (Type == "KScene") {
+			item->setIcon(0, QIcon(":/icons/scene"));
+		}
 		pitem.first()->setExpanded(true);
 
 		emit(resourceOpen(newres));
@@ -277,9 +269,6 @@ void ResourceTree::actRClicked(const QPoint & pos) {
 }
 
 void ResourceTree::actAdd() {
-	if (!addRes->isEnabled()) {
-		return;
-	}
 	auto pitem = currentItem();
 	auto restype = pitem->text(0);
 
@@ -334,6 +323,11 @@ void ResourceTree::actAdd() {
 
 		auto item = new QTreeWidgetItem(pitem);
 		item->setText(0, text);
+		if (restype == "KScript") {
+			item->setIcon(0, QIcon(":/icons/script"));
+		} else if (restype == "KScene") {
+			item->setIcon(0, QIcon(":/icons/scene"));
+		}
 		pitem->setExpanded(true);
 
 		emit(resourceAdded(newres));
@@ -347,9 +341,6 @@ void ResourceTree::actAdd() {
 }
 
 void ResourceTree::actOpen() {
-	if (!openRes->isEnabled()) {
-		return;
-	}
 	auto pitem = currentItem();
 	auto restype = pitem->text(0);
 
@@ -361,9 +352,6 @@ void ResourceTree::actOpen() {
 }
 
 void ResourceTree::actSave() {
-	if (!saveRes->isEnabled()) {
-		return;
-	}
 	auto item = currentItem();
 	auto res = (*dictinary.find(item->text(0)));
 
@@ -380,9 +368,6 @@ void ResourceTree::actSave() {
 }
 
 void ResourceTree::actSaveAs() {
-	if (!saveAsRes->isEnabled()) {
-		return;
-	}
 	auto item = currentItem();
 	auto res = (*dictinary.find(item->text(0)));
 
@@ -404,9 +389,6 @@ void ResourceTree::actSaveAs() {
 }
 
 void ResourceTree::actEdit() {
-	if (!editRes->isEnabled()) {
-		return;
-	}
 	auto item = currentItem();
 	auto res = (*dictinary.find(item->text(0)));
 	
@@ -415,9 +397,6 @@ void ResourceTree::actEdit() {
 }
 
 void ResourceTree::actRemove() {
-	if (!remRes->isEnabled()) {
-		return;
-	}
 	if (currentItem()->parent() == nullptr) {
 		return;
 	}

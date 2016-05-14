@@ -16,49 +16,34 @@ ObjectTree::ObjectTree(QWidget *parent):
 	setupActions();
 	actionsControl(AS_ON_INITE);
 	setupHTools();
-	setupShortcuts();
 }
 
 ObjectTree::~ObjectTree() {}
 
-void ObjectTree::focusInEvent(QFocusEvent *Event) {
-	for (auto it = shortcuts.begin(); it != shortcuts.end(); ++it) {
-		(*it)->setEnabled(true);
-	}
-}
-
-void ObjectTree::focusOutEvent(QFocusEvent *Event) {
-	for (auto it = shortcuts.begin(); it != shortcuts.end(); ++it) {
-		(*it)->setEnabled(false);
-	}
-}
-
 void ObjectTree::setupActions() {
 	addRootObj = new QAction(QIcon(":/icons/add"), "Add New Object", this);
+	addRootObj->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_N));
+	addRootObj->setShortcutContext(Qt::WidgetWithChildrenShortcut);
 	connect(addRootObj, &QAction::triggered, this, &ObjectTree::actAddRoot);
+	this->addAction(addRootObj);
 
 	addChildObj = new QAction(QIcon(":/icons/addChild"), "Add New Child", this);
+	addChildObj->setShortcut(QKeySequence(Qt::CTRL + Qt::ALT + Qt::Key_N));
+	addChildObj->setShortcutContext(Qt::WidgetWithChildrenShortcut);
 	connect(addChildObj, &QAction::triggered, this, &ObjectTree::actAddChild);
+	this->addAction(addChildObj);
 
 	renameObj = new QAction(QIcon(":/icons/edit"), "Rename Object", this);
+	renameObj->setShortcut(QKeySequence(Qt::Key_F2));
+	renameObj->setShortcutContext(Qt::WidgetWithChildrenShortcut);
 	connect(renameObj, &QAction::triggered, this, &ObjectTree::actRename);
+	this->addAction(renameObj);
 
 	remObj = new QAction(QIcon(":/icons/remove"), "Remove Object", this);
+	remObj->setShortcut(QKeySequence(Qt::Key_Delete));
+	remObj->setShortcutContext(Qt::WidgetWithChildrenShortcut);
 	connect(remObj, &QAction::triggered, this, &ObjectTree::actRemove);
-}
-
-void ObjectTree::setupShortcuts() {
-	shortcuts.push_back(new QShortcut(QKeySequence(Qt::Key_Delete), this));
-	connect(shortcuts.back(), &QShortcut::activated, remObj, &QAction::trigger);
-
-	shortcuts.push_back(new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_N), this));
-	connect(shortcuts.back(), &QShortcut::activated, addRootObj, &QAction::trigger);
-
-	shortcuts.push_back(new QShortcut(QKeySequence(Qt::CTRL + Qt::ALT + Qt::Key_N), this));
-	connect(shortcuts.back(), &QShortcut::activated, addChildObj, &QAction::trigger);
-
-	shortcuts.push_back(new QShortcut(QKeySequence(Qt::Key_F2), this));
-	connect(shortcuts.back(), &QShortcut::activated, renameObj, &QAction::trigger);
+	this->addAction(remObj);
 }
 
 void ObjectTree::setupHTools() {
@@ -67,10 +52,10 @@ void ObjectTree::setupHTools() {
 	vlayout->setMargin(2);
 	vlayout->setSpacing(0);
 
-	auto name = new QLabel(htools);
-	name->setText("Hierarchy");
-	name->setStyleSheet("color: DodgerBlue;");
-	vlayout->addWidget(name);
+	hlabel = new QLabel(htools);
+	hlabel->setText("Hierarchy");
+	hlabel->setStyleSheet("color: DodgerBlue;");
+	vlayout->addWidget(hlabel);
 
 	auto hlayout = new QHBoxLayout(htools);
 	hlayout->setMargin(3);
@@ -181,6 +166,8 @@ void ObjectTree::sceneEdit(Kite::KResource *Scene) {
 
 	// set current scene
 	currScene = scene;
+	QString name(Scene->getResourceName().c_str());
+	hlabel->setText("Hierarchy (" + name + ")");
 
 	connect(this, &QTreeWidget::itemChanged, this, &ObjectTree::entityChecked);
 
@@ -192,6 +179,7 @@ void ObjectTree::sceneDelete(Kite::KResource *Scene){
 		clear();
 		currScene = nullptr;
 		actionsControl(AS_ON_INITE);
+		hlabel->setText("Hierarchy");
 		emit(objectDelete(nullptr));
 	}
 }
@@ -285,7 +273,7 @@ QString ObjectTree::getAvailName() {
 }
 
 void ObjectTree::actAddChild() {
-	if (!addChildObj->isEnabled() || currScene == nullptr) {
+	if (currScene == nullptr) {
 		return;
 	}
 	auto text = getAvailName();
@@ -315,7 +303,7 @@ void ObjectTree::actAddChild() {
 }
 
 void ObjectTree::actAddRoot() {
-	if (!addRootObj->isEnabled() || currScene == nullptr) {
+	if (currScene == nullptr) {
 		return;
 	}
 	auto text = getAvailName();
@@ -337,7 +325,7 @@ void ObjectTree::actAddRoot() {
 }
 
 void ObjectTree::actRemove(){
-	if (!remObj->isEnabled() || currScene == nullptr) {
+	if (currScene == nullptr) {
 		return;
 	}
 	auto item = currentItem();
@@ -355,7 +343,7 @@ void ObjectTree::actRemove(){
 }
 
 void ObjectTree::actRename() {
-	if (!renameObj->isEnabled() || currScene == nullptr) {
+	if (currScene == nullptr) {
 		return;
 	}
 	auto text = getAvailName();

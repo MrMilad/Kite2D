@@ -29,6 +29,7 @@ int main(int argc, char *argv[])
 
     a.setPalette(palette);
     MainWindow w;
+	w.setStyleSheet("QToolTip { border: 1px solid darkGray; color: #313131;}");
     w.show();
 
     return a.exec();

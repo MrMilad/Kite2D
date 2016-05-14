@@ -29,7 +29,8 @@ SOURCES += main.cpp\
 	resourcetree.cpp\
 	objecttree.cpp\
 	codeeditor.cpp\
-	componenttree.cpp
+	componenttree.cpp\
+	maintab.cpp
 
 HEADERS  += mainwindow.h \
     shared.h \
@@ -40,7 +41,8 @@ HEADERS  += mainwindow.h \
 	resourcetree.h\
 	objecttree.h\
 	codeeditor.h\
-	componenttree.h
+	componenttree.h\
+	maintab.h
 
 RESOURCES += \
     res.qrc

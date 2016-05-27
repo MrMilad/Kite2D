@@ -13,6 +13,7 @@ ComponentTree::ComponentTree(QWidget *Par) :
 	setHeaderHidden(true);
 	setSelectionMode(QAbstractItemView::SingleSelection);
 	setRootIsDecorated(false);
+	setExpandsOnDoubleClick(false);
 	setIndentation(0);
 	setAnimated(true);
 	connect(this, &QTreeWidget::customContextMenuRequested, this, &ComponentTree::actRClicked);
@@ -28,9 +29,6 @@ ComponentTree::ComponentTree(QWidget *Par) :
 ComponentTree::~ComponentTree() {}
 
 void ComponentTree::setupActions() {
-	remComp = new QAction(QIcon(":/icons/remove"), "Remove Component", this);
-	connect(remComp, &QAction::triggered, this, &ComponentTree::actRemove);
-
 	addDefComp = new QAction(QIcon(":/icons/add"), "Add Logic Component", this);
 	addDefComp->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_N));
 	addDefComp->setShortcutContext(Qt::WidgetWithChildrenShortcut);
@@ -63,6 +61,7 @@ void ComponentTree::setupHTools() {
 	hlayout->addSpacing(10);
 
 	ledit = new QLineEdit(htools);
+	ledit->setPlaceholderText("Search");
 	ledit->addAction(QIcon(":/icons/search"), QLineEdit::ActionPosition::TrailingPosition);
 	ledit->setStyleSheet("background-color: gray;");
 	connect(ledit, &QLineEdit::textChanged, this, &ComponentTree::actSearch);
@@ -77,11 +76,9 @@ void ComponentTree::setupHTools() {
 void ComponentTree::actionsControl(ActionsState State) {
 	if (State == AS_ON_INITE) {
 		addDefComp->setDisabled(true);
-		remComp->setDisabled(true);
 		mtypes->setDisabled(true);
 	} else if (State == AS_ON_LOAD) {
 		addDefComp->setDisabled(false);
-		remComp->setDisabled(false);
 		mtypes->setDisabled(false);
 	}
 }
@@ -160,42 +157,45 @@ bool ComponentTree::eventFilter(QObject *object, QEvent *event) {
 	return false;
 }
 
-void ComponentTree::removeComponentGUI() {
-	auto item = currentItem();
-	if (item != nullptr) {
-		auto child = item->child(0);
-		auto expander = (Expander *)itemWidget(item, 0);
+void ComponentTree::removeComponentGUI(QTreeWidgetItem *Item) {
+	if (Item != nullptr) {
+		auto child = Item->child(0);
+		auto expander = (Expander *)itemWidget(Item, 0);
 		auto cframe = (QFrame *)itemWidget(child, 0);
 		delete child;
-		delete item;
+		delete Item;
 		delete expander;
 		delete cframe;
 	}
 }
 
 void ComponentTree::createComponent(const Kite::KEntity *Entity, const Kite::KComponent *Comp) {
-	// header
-	auto category = new QTreeWidgetItem(this);
 	QString name;
+	QString type;
 	if (Comp->getClassName() == "KLogicCom") {
-		QString lname(Comp->getName().c_str());
-		name = "Logic\t" + lname;
-	} else {
+		type = "Logic";
 		name = Comp->getName().c_str();
-		name.append("\t");
+	} else {
+		type = Comp->getName().c_str();
+		name = "";
 	}
-	category->setText(0, name);
-	auto btnExpander = new Expander(name, QIcon(":/icons/com"), this, category);
-	btnExpander->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
-	btnExpander->setContextMenuPolicy(Qt::CustomContextMenu);
-	connect(btnExpander, &Expander::customContextMenuRequested, this, &ComponentTree::actRClicked);
-	this->setItemWidget(category, 0, btnExpander);
+
+	// header
+	auto header = new QTreeWidgetItem(this);
+	header->setChildIndicatorPolicy(QTreeWidgetItem::ShowIndicator);
+	header->setText(0, type + " " + name);
+
+	auto hframe = new Expander(type + " " + name, QIcon(":/icons/comp32"), header, this);
+	hframe->setName(name);
+	hframe->setType(type);
+	this->setItemWidget(header, 0, hframe);
+	connect(hframe, &Expander::closeClicked, this, &ComponentTree::actRemove);
 
 	// contetnts
 	auto cframe = new QFrame(this);
 	bindProperties(Entity, Comp, cframe);
 
-	auto pContainer = new QTreeWidgetItem(category);
+	auto pContainer = new QTreeWidgetItem(header);
 	pContainer->setDisabled(true);
 	this->setItemWidget(pContainer, 0, cframe);
 }
@@ -368,16 +368,7 @@ void ComponentTree::entityDelete(Kite::KEntity *Entity) {
 }
 
 void ComponentTree::actRClicked(const QPoint & pos) {
-	auto obj = (Expander *)sender();
-	auto item = itemAt(pos);
-	QMenu cmenu(this);
 
-	// checking user rclicked on tree itself or entity??
-	if (item != nullptr) {
-		remComp->setData(obj->text());
-		cmenu.addAction(remComp);
-		cmenu.exec(obj->mapToGlobal(pos));
-	}
 }
 
 void ComponentTree::actAdd(QAction *Action) {
@@ -421,13 +412,10 @@ void ComponentTree::actAddDef() {
 	emit(componentAdded(currEntity, currEntity->getComponentByName("Logic", text.toStdString())));
 }
 
-void ComponentTree::actRemove() {
-	auto act = (QAction *)sender();
-	auto ctype = act->data().toString().section("\t", 0, 0);
-	auto cname = act->data().toString().section("\t", 1, 1);
-	emit(componentDelete(currEntity, currEntity->getComponentByName(ctype.toStdString(), cname.toStdString())));
-	currEntity->removeComponent(ctype.toStdString(), cname.toStdString());
-	removeComponentGUI();
+void ComponentTree::actRemove(const QString &CName, const QString &CType, QTreeWidgetItem *Item) {
+	emit(componentDelete(currEntity, currEntity->getComponentByName(CType.toStdString(), CName.toStdString())));
+	currEntity->removeComponent(CType.toStdString(), CName.toStdString());
+	removeComponentGUI(Item);
 }
 
 void ComponentTree::actEdit() {
@@ -441,8 +429,7 @@ void ComponentTree::actClear() {
 	auto number = topLevelItemCount();
 	for (auto i = 0; i < number; ++i) {
 		auto item = topLevelItem(0);
-		setCurrentItem(item);
-		removeComponentGUI();
+		removeComponentGUI(item);
 	}
 }
 

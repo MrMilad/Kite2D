@@ -21,28 +21,34 @@ win32:LIBS += F:/KEngineLab/Lab/CMakeBase/extlibs/lib-vc/win32/lua_dll.lib
 win32:LIBS += C:/Users/_M1L4D_/Desktop/cmtest/lib/Debug/Kite2Dd.lib
 
 SOURCES += main.cpp\
-        mainwindow.cpp \
+    mainwindow.cpp \
     gridscene.cpp \
-	expander.cpp \
+    expander.cpp \
     frmnewproj.cpp\
     comproperty.cpp\
-	resourcetree.cpp\
-	objecttree.cpp\
-	codeeditor.cpp\
-	componenttree.cpp\
-	maintab.cpp
+    resourcetree.cpp\
+    objecttree.cpp\
+    codeeditor.cpp\
+    componenttree.cpp\
+    maintab.cpp\
+    completer.cpp\
+    kiteinfo.cpp\
+    highlighter.cpp
 
 HEADERS  += mainwindow.h \
     shared.h \
     gridscene.h \
-	expander.h \
+    expander.h \
     frmnewproj.h\
     comproperty.h\
-	resourcetree.h\
-	objecttree.h\
-	codeeditor.h\
-	componenttree.h\
-	maintab.h
+    resourcetree.h\
+    objecttree.h\
+    codeeditor.h\
+    componenttree.h\
+    maintab.h\
+    completer.h\
+    kiteinfo.h\
+    highlighter.h
 
 RESOURCES += \
     res.qrc

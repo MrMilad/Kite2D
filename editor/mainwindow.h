@@ -5,6 +5,7 @@
 #include <qlist>
 #include <qhash>
 #include <qstringlist.h>
+#include <kiteinfo.h>
 #include <resourcetree.h>
 #include <objecttree.h>
 #include <componenttree.h>
@@ -60,8 +61,6 @@ private:
     void setupScene();
 	void setupStatusBar();
 
-	void scanKiteMeta();
-
 	void loadDockState();
 	void saveDockState();
 
@@ -74,6 +73,7 @@ private:
     QDockWidget *resDock;
     QDockWidget *objDock;
     QDockWidget *prpDock;
+	QDockWidget *expDock;
 	MainTab *mainTab;
     QGraphicsView *sceneView;
 	ComponentTree *propTree;
@@ -90,14 +90,13 @@ private:
 	QAction *saveProj;
 	QAction *closeProj;
 	QAction *playScene;
+	QAction *projSettings;
 	QAction *exit;
 
-	QList<QString> kresCatList;
-	QList<QString> kcompList;
-	QStandardItemModel *completerModel;
 	QHash<QString, QWidget *> resTabs;
 
 	Project *curProject;
+	KiteInfo *kinfo;
 };
 
 #endif // MAINWINDOW_H

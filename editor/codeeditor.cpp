@@ -1,11 +1,25 @@
 #include <QtWidgets>
-
 #include "codeeditor.h"
 
+Completer *CodeEditor::completer = new Completer();
 CodeEditor::CodeEditor(QWidget *parent) :
-	QPlainTextEdit(parent), currScript(nullptr), c(nullptr)
+	QPlainTextEdit(parent), currScript(nullptr)
 {
     lineNumberArea = new LineNumberArea(this);
+	QFont font;
+	font.setFamily("Consolas");
+	font.setStyleHint(QFont::Monospace);
+	font.setFixedPitch(true);
+	font.setPointSize(10);
+	setFont(font);
+
+	QFontMetrics metrics(font);
+	setTabStopWidth(4 * metrics.width(' '));
+
+	auto p = palette();
+	p.setColor(QPalette::Active, QPalette::Base, QColor(0x111111));
+	p.setColor(QPalette::Inactive, QPalette::Base, QColor(0x111111));
+	setPalette(p);
 
     connect(this, SIGNAL(blockCountChanged(int)), this, SLOT(updateLineNumberAreaWidth(int)));
     connect(this, SIGNAL(updateRequest(QRect,int)), this, SLOT(updateLineNumberArea(QRect,int)));
@@ -13,40 +27,55 @@ CodeEditor::CodeEditor(QWidget *parent) :
 
     updateLineNumberAreaWidth(0);
     highlightCurrentLine();
+
+	QObject::connect(completer, SIGNAL(activated(QString)),
+					 this, SLOT(insertCompletion(QString)));
+
+	hlight = new Highlighter(document());
 }
 
 int CodeEditor::lineNumberAreaWidth()
 {
-    int digits = 1;
-    int max = qMax(1, blockCount());
+    int digits = 7;
+    /*int max = qMax(1, blockCount());
     while (max >= 10) {
         max /= 10;
         ++digits;
-    }
+    }*/
 
     int space = 3 + fontMetrics().width(QLatin1Char('9')) * digits;
 
     return space;
 }
 
-void CodeEditor::setCompleter(QCompleter *completer) {
-	if (c)
-		QObject::disconnect(c, 0, this, 0);
+void CodeEditor::setCompleterModel(QStandardItemModel *Model) {
+	bool inite = false;
+	completer->setModel(Model);
+	
+	if (!inite) {
+		completer->setSeparator(QLatin1String("."));
+		completer->popup()->setStyleSheet("QToolTip { border: 1px solid #2c2c2c; background-color: #242424; color: white;}");
+		completer->setMaxVisibleItems(9);
+		completer->setCaseSensitivity(Qt::CaseInsensitive);
+		completer->setWrapAround(false);
 
-	c = completer;
+		// add lua keywords into the model
+		QStringList luaKeys;
+		luaKeys << "and" << "break" << "do"
+			<< "false" << "for" << "function"
+			<< "local" << "nil" << "not"
+			<< "then" << "true" << "until"
+			<< "else" << "elseif" << "in"
+			<< "goto" << "if" << "return"
+			<< "or" << "repeat" << "while"
+			<< "end";
 
-	if (!c)
-		return;
+		for (auto it = luaKeys.begin(); it != luaKeys.end(); ++it) {
+			Model->appendRow(new QStandardItem(QIcon(":/icons/key16"), (*it)));
+		}
 
-	c->setWidget(this);
-	c->setCompletionMode(QCompleter::PopupCompletion);
-	c->setCaseSensitivity(Qt::CaseInsensitive);
-	QObject::connect(c, SIGNAL(activated(QString)),
-					 this, SLOT(insertCompletion(QString)));
-}
-
-QCompleter *CodeEditor::completer() const {
-	return c;
+		inite = true;
+	}
 }
 
 void CodeEditor::scriptEdit(Kite::KResource *Res) {
@@ -83,28 +112,62 @@ void CodeEditor::updateLineNumberArea(const QRect &rect, int dy)
         updateLineNumberAreaWidth(0);
 }
 
-void CodeEditor::insertCompletion(const QString& completion) {
-	if (c->widget() != this)
+void CodeEditor::insertCompletion(const QString &completion) {
+	if (completer->widget() != this)
 		return;
 	QTextCursor tc = textCursor();
-	int extra = completion.length() - c->completionPrefix().length();
-	tc.movePosition(QTextCursor::StartOfWord);
 	tc.select(QTextCursor::WordUnderCursor);
+	if (tc.selectedText() == ".") {
+		tc.clearSelection();
+	}
 	tc.removeSelectedText();
-	tc.insertText(completion);
+	tc.insertText(completion.split(".").back());
 	setTextCursor(tc);
 }
 
-void CodeEditor::resizeEvent(QResizeEvent *e)
-{
+QString CodeEditor::textUnderCursor() const {
+	QTextCursor tc = textCursor();
+	QTextCursor scan = textCursor();
+
+	scan.movePosition(QTextCursor::PreviousWord, QTextCursor::KeepAnchor);
+
+	// Object.
+	if (!scan.atBlockStart() && scan.selectedText() == ".") { 
+		tc.movePosition(QTextCursor::PreviousWord, QTextCursor::KeepAnchor); // .
+		tc.movePosition(QTextCursor::PreviousWord, QTextCursor::KeepAnchor); // Object.
+
+	} else { 
+		scan.clearSelection();
+		scan.movePosition(QTextCursor::PreviousWord, QTextCursor::KeepAnchor);
+
+		// Object.pro
+		if (!scan.atBlockStart() && scan.selectedText() == ".") {
+			tc.movePosition(QTextCursor::PreviousWord, QTextCursor::KeepAnchor); // pro
+			tc.movePosition(QTextCursor::PreviousWord, QTextCursor::KeepAnchor); // .pro
+			tc.movePosition(QTextCursor::PreviousWord, QTextCursor::KeepAnchor); // Object.pro
+
+		// Obj
+		} else { 
+			tc.select(QTextCursor::WordUnderCursor);
+		}
+	}
+	return tc.selectedText();
+}
+
+void CodeEditor::resizeEvent(QResizeEvent *e){
     QPlainTextEdit::resizeEvent(e);
 
     QRect cr = contentsRect();
     lineNumberArea->setGeometry(QRect(cr.left(), cr.top(), lineNumberAreaWidth(), cr.height()));
 }
 
+void CodeEditor::focusInEvent(QFocusEvent *e) {
+	completer->setWidget(this);
+	QPlainTextEdit::focusInEvent(e);
+}
+
 void CodeEditor::keyPressEvent(QKeyEvent *e) {
-	if (c && c->popup()->isVisible()) {
+	if (completer->popup()->isVisible()) {
 		// The following keys are forwarded by the completer to the widget
 		switch (e->key()) {
 		case Qt::Key_Enter:
@@ -119,43 +182,33 @@ void CodeEditor::keyPressEvent(QKeyEvent *e) {
 		}
 	}
 
-	//bool isShortcut = false; // CTRL+E
 	bool isShortcut = ((e->modifiers() & Qt::ControlModifier) && e->key() == Qt::Key_E); // CTRL+E
-	if (!c || !isShortcut) // do not process the shortcut when we have a completer
+	if (!isShortcut) // do not process the shortcut when we have a completer
 		QPlainTextEdit::keyPressEvent(e);
 
 	const bool ctrlOrShift = e->modifiers() & (Qt::ControlModifier | Qt::ShiftModifier);
-	if (!c || (ctrlOrShift && e->text().isEmpty()))
+	if ((ctrlOrShift && e->text().isEmpty()))
 		return;
 
-	static QString eow("~!@#$%^&*()_+{}|:\"<>?,./;'[]\\-="); // end of word
 	bool hasModifier = (e->modifiers() != Qt::NoModifier) && !ctrlOrShift;
 	QString completionPrefix = textUnderCursor();
 
-	if (!isShortcut && (hasModifier || e->text().isEmpty() || completionPrefix.length() < 3
-						|| eow.contains(e->text().right(1)))) {
-		c->popup()->hide();
+	if (!isShortcut && (hasModifier || e->text().isEmpty() || completionPrefix.isEmpty())){
+		completer->popup()->hide();
 		return;
 	}
 
-	if (completionPrefix != c->completionPrefix()) {
-		c->setCompletionPrefix(completionPrefix);
-		c->popup()->setCurrentIndex(c->completionModel()->index(0, 0));
+	if (completionPrefix != completer->completionPrefix()) {
+		completer->setCompletionPrefix(completionPrefix);
+		completer->popup()->setCurrentIndex(completer->completionModel()->index(0, 0));
 	}
 	QRect cr = cursorRect();
-	cr.setWidth(c->popup()->sizeHintForColumn(0)
-				+ c->popup()->verticalScrollBar()->sizeHint().width());
-	c->complete(cr); // popup it up!
+	cr.setWidth(completer->popup()->sizeHintForColumn(0)
+				+ completer->popup()->verticalScrollBar()->sizeHint().width());
+	completer->complete(cr); // popup it up!
 }
 
-void CodeEditor::focusInEvent(QFocusEvent *e) {
-	if (c)
-		c->setWidget(this);
-	QPlainTextEdit::focusInEvent(e);
-}
-
-void CodeEditor::highlightCurrentLine()
-{
+void CodeEditor::highlightCurrentLine(){
     QList<QTextEdit::ExtraSelection> extraSelections;
 
     if (!isReadOnly()) {
@@ -173,8 +226,7 @@ void CodeEditor::highlightCurrentLine()
     setExtraSelections(extraSelections);
 }
 
-void CodeEditor::lineNumberAreaPaintEvent(QPaintEvent *event)
-{
+void CodeEditor::lineNumberAreaPaintEvent(QPaintEvent *event){
     QPainter painter(lineNumberArea);
     painter.fillRect(event->rect(), Qt::black);
 
@@ -187,8 +239,9 @@ void CodeEditor::lineNumberAreaPaintEvent(QPaintEvent *event)
         if (block.isVisible() && bottom >= event->rect().top()) {
             QString number = QString::number(blockNumber + 1);
             painter.setPen(QColor("DodgerBlue"));
+			painter.setFont(font());
             painter.drawText(0, top, lineNumberArea->width(), fontMetrics().height(),
-                             Qt::AlignRight, number);
+                             Qt::AlignCenter, number);
         }
 
         block = block.next();
@@ -196,10 +249,4 @@ void CodeEditor::lineNumberAreaPaintEvent(QPaintEvent *event)
         bottom = top + (int) blockBoundingRect(block).height();
         ++blockNumber;
     }
-}
-
-QString CodeEditor::textUnderCursor() const {
-	QTextCursor tc = textCursor();
-	tc.select(QTextCursor::WordUnderCursor);
-	return tc.selectedText();
 }

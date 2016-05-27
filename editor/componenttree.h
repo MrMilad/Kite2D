@@ -40,7 +40,7 @@ private slots:
 	void actRClicked(const QPoint & pos);
 	void actAdd(QAction *Action);
 	void actAddDef();
-	void actRemove();
+	void actRemove(const QString &CName, const QString &CType, QTreeWidgetItem *Item);
 	void actEdit();
 	void actClear();
 	void actSearch(const QString &Pharase);
@@ -51,14 +51,13 @@ private:
 	void actionsControl(ActionsState State);
 	QString getAvailName(Kite::KEntity *Entity);
 	bool eventFilter(QObject *object, QEvent *event); // resource combo box event filter
-	void removeComponentGUI();
+	void removeComponentGUI(QTreeWidgetItem *Item);
 	void createComponent(const Kite::KEntity *Entity, const Kite::KComponent *Component);
 	void bindProperties(const Kite::KEntity *Entity, const Kite::KComponent *Component, QFrame *Frame);
 	void addGUIItem(QFormLayout *Layout, const Kite::KMetaBase *Meta, const Kite::KEntity *Entity,
 					const Kite::KComponent *Component, const Kite::KMetaProperty *PropMeta);
 
 	QAction *addDefComp;
-	QAction *remComp;
 	QFrame *htools;
 	QLineEdit *ledit;
 	QLabel *hlabel;

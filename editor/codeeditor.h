@@ -3,8 +3,11 @@
 
 #include <QPlainTextEdit>
 #include <QObject>
+#include <qstandarditemmodel.h>
 #include <Kite/core/kresource.h>
 #include <kite/logic/kscript.h>
+#include "highlighter.h"
+#include "completer.h"
 
 QT_BEGIN_NAMESPACE
 class QPaintEvent;
@@ -25,8 +28,7 @@ public:
     void lineNumberAreaPaintEvent(QPaintEvent *Event);
     int lineNumberAreaWidth();
 
-	void setCompleter(QCompleter *c);
-	QCompleter *completer() const;	
+	static void setCompleterModel(QStandardItemModel *Model);
 
 protected:
     void resizeEvent(QResizeEvent *event) Q_DECL_OVERRIDE;
@@ -47,7 +49,8 @@ private:
 	QString textUnderCursor() const;
     QWidget *lineNumberArea;
 	Kite::KScript *currScript;
-	QCompleter *c;
+	Highlighter *hlight;
+	static Completer *completer;
 };
 
 

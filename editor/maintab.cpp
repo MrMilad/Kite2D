@@ -121,17 +121,12 @@ void MainTab::openTabs(Kite::KResource *Res) {
 	if (found == resMap.end()) {
 		if (Res->getResourceType() == "KScript") {
 			auto ceditor = new CodeEditor(this);
-
-			static auto completer = new QCompleter(this);
 			static bool ini = false;
 			if (!ini && cmodel != nullptr) {
-				completer->setMaxVisibleItems(9);
-				completer->setModel(cmodel);
-				completer->setCaseSensitivity(Qt::CaseInsensitive);
-				completer->setWrapAround(false);
+				CodeEditor::setCompleterModel(cmodel);
 				ini = true;
 			}
-			ceditor->setCompleter(completer);
+
 			auto tid = createTab(ceditor, Res->getResourceName().c_str());
 			setCurrentIndex(tid);
 			resMap.insert(Res->getResourceName().c_str(), { ceditor, nullptr });

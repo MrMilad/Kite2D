@@ -85,6 +85,7 @@ void ObjectTree::setupHTools() {
 	hlayout->addSpacing(10);
 
 	ledit = new QLineEdit(htools);
+	ledit->setPlaceholderText("Search");
 	ledit->addAction(QIcon(":/icons/search"), QLineEdit::ActionPosition::TrailingPosition);
 	ledit->setStyleSheet("background-color: gray;");
 	connect(ledit, &QLineEdit::textChanged, this, &ObjectTree::actSearch);

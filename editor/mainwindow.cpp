@@ -1,7 +1,6 @@
 #include "mainwindow.h"
 #include <QtWidgets>
 #include <gridscene.h>
-#include <qstandarditemmodel.h>
 #include <expander.h>
 #include <vector>
 #include <thread>
@@ -10,21 +9,15 @@
 #include "frmnewproj.h"
 #include "comproperty.h"
 
-#include <Kite/meta/kmetaclass.h>
-#include <Kite/meta/kmetaenum.h>
-#include <Kite/meta/kmetamanager.h>
-#include <Kite/core/kresourcemanager.h>
-#include <kmeta.khgen.h>
-
 using namespace Kite;
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent),
-	curProject(nullptr)
+	curProject(nullptr),
+	kinfo(new KiteInfo)
 {
     this->setMinimumSize(1000, 600);
 	setupStatusBar();
-	scanKiteMeta();
 	setupActions();
     setupToolbar();
 	setupMenus();
@@ -70,7 +63,7 @@ void MainWindow::setupDocks(){
     addDockWidget(Qt::LeftDockWidgetArea, resDock);
 
 	resTree = new ResourceTree(this);
-	resTree->setupCategories(kresCatList);
+	resTree->setupCategories(*kinfo->getResourceTypes());
 	resDock->setWidget(resTree);
 	resDock->setTitleBarWidget(resTree->getHeaderTools());
 
@@ -96,7 +89,7 @@ void MainWindow::setupDocks(){
     addDockWidget(Qt::RightDockWidgetArea, prpDock);
 
 	propTree = new ComponentTree;
-	propTree->setupTypes(kcompList);
+	propTree->setupTypes(*kinfo->getComponentTypes());
 	propTree->setResDictionary(resTree->getDictionary());
 	prpDock->setWidget(propTree);
 	prpDock->setTitleBarWidget(propTree->getHeaderTools());
@@ -104,12 +97,23 @@ void MainWindow::setupDocks(){
 	connect(objTree, &ObjectTree::objectSelected, propTree, &ComponentTree::entityEdit);
 	connect(objTree, &ObjectTree::objectDelete, propTree, &ComponentTree::entityDelete);
 
+	// kite object browser
+	expDock = new QDockWidget(tr("Object Browser"), this);
+	expDock->setAllowedAreas(Qt::LeftDockWidgetArea | Qt::RightDockWidgetArea);
+	addDockWidget(Qt::LeftDockWidgetArea, expDock);
+	tabifyDockWidget(objDock, expDock);
+
+	auto tview = new QTreeView();
+	tview->setModel(kinfo->getModel());
+	tview->setHeaderHidden(true);
+	expDock->setWidget(tview);
+
 	QMainWindow::statusBar()->showMessage("Ready");
 }
 
 void MainWindow::setupScene(){
 	mainTab = new MainTab(this);
-	mainTab->setCompleterModel(completerModel);
+	mainTab->setCompleterModel(kinfo->getModel());
 	connect(resTree, &ResourceTree::resourceSelected, mainTab, &MainTab::selectResource);
 	connect(resTree, &ResourceTree::resourceEdit, mainTab, &MainTab::openTabs);
 	connect(resTree, &ResourceTree::resourceDelete, mainTab, &MainTab::closeResource);
@@ -151,6 +155,10 @@ void MainWindow::setupActions() {
 	playScene = new QAction(QIcon(":/icons/play"), "Play", this);
 	playScene->setShortcut(QKeySequence(Qt::Key_F5));
 	playScene->setShortcutContext(Qt::ApplicationShortcut);
+
+	projSettings = new QAction(QIcon(":/icons/set"), "Project Settings", this);
+	projSettings->setShortcut(QKeySequence(Qt::ALT + Qt::Key_F7));
+	projSettings->setShortcutContext(Qt::ApplicationShortcut);
 
 	exit = new QAction(QIcon(":/icons/exit"), "Exit", this);
 	exit->setShortcut(QKeySequence(Qt::ALT + Qt::Key_F4));
@@ -195,10 +203,16 @@ void MainWindow::setupToolbar(){
 	fileTolb->addSeparator();
 	fileTolb->addAction(saveProj);
 	fileTolb->addSeparator();
+	fileTolb->addAction(projSettings);
+	fileTolb->addSeparator();
 	fileTolb->addAction(playScene);
 }
 
 void MainWindow::setupStatusBar() {
+	auto klabel = new QLabel(this);
+	klabel->setText("Kite2D Editor ver 0.1");
+	klabel->setStyleSheet("color: orange;");
+	QMainWindow::statusBar()->addPermanentWidget(klabel);
 	QMainWindow::statusBar()->showMessage("Ready");
 }
 
@@ -222,6 +236,7 @@ void MainWindow::disGUI() {
 	resDock->setDisabled(true);
 	objDock->setDisabled(true);
 	prpDock->setDisabled(true);
+	projSettings->setDisabled(true);
 }
 
 void MainWindow::enGUI() {
@@ -232,6 +247,7 @@ void MainWindow::enGUI() {
 	resDock->setDisabled(false);
 	objDock->setDisabled(false);
 	prpDock->setDisabled(false);
+	projSettings->setDisabled(false);
 }
 
 void MainWindow::saveXML(QIODevice *device, const QString &Address){
@@ -306,108 +322,6 @@ bool MainWindow::loadXML(QIODevice *device, const QString &Address) {
 	return (head && res);
 }
 
-void MainWindow::scanKiteMeta() {
-	QMainWindow::statusBar()->showMessage("Scaning Kite2D ...");
-
-	// register kiet meta system
-	Kite::KMetaManager kmman;
-	Kite::registerKiteMeta(&kmman);
-
-	// dump all mete information
-	std::vector<const KMetaBase *> meta;
-	kmman.dump(meta);
-
-	// searching for resource categories
-	kresCatList.clear();
-	kcompList.clear();
-	completerModel = new QStandardItemModel(this);
-	for (auto it = meta.begin(); it != meta.end(); ++it) {
-		// Resorces
-		if (((*it)->getFlag() & RESOURCE) && !((*it)->getFlag() & ABSTRACT)) {
-			kresCatList.push_back((*it)->getName().c_str());
-			completerModel->appendRow(new QStandardItem(QIcon(":/icons/res16"), (*it)->getName().c_str()));
-		}
-
-		// Components
-		if (((*it)->getFlag() & COMPONENT) && !((*it)->getFlag() & ABSTRACT)) {
-			auto comp = (Kite::KMetaClass *)(*it);
-			auto infoList = (*it)->getInfo();
-			for (auto ilit = infoList->begin(); ilit != infoList->end(); ++ilit) {
-				if (ilit->first == "KI_CTYPE") {
-					kcompList.push_back(ilit->second.c_str());
-					completerModel->appendRow(new QStandardItem(QIcon(":/icons/comp16"), ilit->second.c_str()));
-					break;
-				}
-			}
-			
-			auto propList = comp->getProperties();
-			for (auto piit = propList->begin(); piit != propList->end(); ++piit) {
-				auto item = new QStandardItem(QIcon(":/icons/prop16"), piit->name.c_str());
-				QString tip("<property>\ncomment: ");
-				tip += piit->comment.c_str();
-				if (piit->type == Kite::KMetaPropertyTypes::KMP_BOTH) {
-					tip += "\naccess type: read/write\ntype: ";
-				} else {
-					tip += "\naccess type: read-only\ntype: ";
-				}
-				item->setToolTip(tip + QString(piit->typeName.c_str()));
-				completerModel->appendRow(item);
-			}
-		}
-
-		// Enum
-		if ((*it)->getMetaType() == Kite::KMetaTypes::KMT_ENUM) {
-			auto kenum = (Kite::KMetaEnum *)(*it);
-			QString ename((*it)->getName().c_str());
-			completerModel->appendRow(new QStandardItem(QIcon(":/icons/enum"), ename));
-			auto members = kenum->getMembers();
-			for (auto eit = members->begin(); eit != members->end(); ++eit) {
-				auto item = new QStandardItem();
-				item->setIcon(QIcon(":/icons/enumItem"));
-				item->setText(ename + "." + eit->name.c_str());
-				if (eit->name.length() >= 3) {
-					completerModel->appendRow(new QStandardItem(QIcon(":/icons/enumItem"), eit->name.c_str()));
-				}
-			}
-		}
-
-		// POD
-		if ((*it)->getMetaType() == Kite::KMetaTypes::KMT_CLASS && ((*it)->getFlag() & POD)) {
-			completerModel->appendRow(new QStandardItem(QIcon(":/icons/pod16"), (*it)->getName().c_str()));
-		}
-
-		// Scriptables
-		if ((*it)->getMetaType() == Kite::KMetaTypes::KMT_CLASS && 
-			((*it)->getFlag() & SCRIPTABLE) && !((*it)->getFlag() & ABSTRACT)) {
-			auto cls = (Kite::KMetaClass *)(*it);
-			QString cname(cls->getName().c_str());
-
-			// functions
-			auto funList = cls->getFunctions();
-			for (auto fit = funList->begin(); fit != funList->end(); ++fit) {
-				if (fit->isStatic) {
-					completerModel->appendRow(new QStandardItem(QIcon(":/icons/fun16"), cname + "." + fit->name.c_str()));
-				} else {
-					completerModel->appendRow(new QStandardItem(QIcon(":/icons/fun16"), fit->name.c_str()));
-				}
-			}
-
-			// properties
-			auto propList = cls->getProperties();
-			for (auto pit = propList->begin(); pit != propList->end(); ++pit) {
-				if (pit->type == Kite::KMetaPropertyTypes::KMP_BOTH) {
-					completerModel->appendRow(new QStandardItem(QIcon(":/icons/prop16"), pit->name.c_str()));
-				} else {
-					completerModel->appendRow(new QStandardItem(QIcon(":/icons/propro16"), pit->name.c_str()));
-				}
-			}
-		}
-		
-	}
-	
-	QMainWindow::statusBar()->showMessage("Ready");
-}
-
 void MainWindow::newProject() {
 
 	// close current project if any
@@ -478,7 +392,7 @@ void MainWindow::closeProject() {
 
 		// clear resource tree
 		resTree->clearResources();
-		resTree->setupCategories(kresCatList);
+		resTree->setupCategories(*kinfo->getResourceTypes());
 
 		delete curProject;
 		curProject = nullptr;

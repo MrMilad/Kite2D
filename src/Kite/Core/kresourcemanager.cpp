@@ -23,7 +23,10 @@ USA
 #include <luaintf\LuaIntf.h>
 
 namespace Kite {
-	KResourceManager::~KResourceManager() {
+	KResourceManager::KResourceManager() :
+		_kdict(nullptr) {}
+
+	KResourceManager::~KResourceManager(){
 		clear();
 	}
 
@@ -49,8 +52,8 @@ namespace Kite {
 		return true;
 	}
 
-	bool KResourceManager::loadDictionary(const std::string &Name) {
-		return false;
+	void KResourceManager::setDictionary(const std::unordered_map<std::string, std::string> *Dictionary) {
+		_kdict = Dictionary;
 	}
 
 	KResource *KResourceManager::create(const std::string &RType, const std::string &Name) {
@@ -89,14 +92,14 @@ namespace Kite {
 		}
 
 		// first check our dictionary
-		auto dfound = _kdict.find(Address);
+		std::string ResName = Address;
+		if (_kdict != nullptr) {
+			auto dfound = _kdict->find(Address);
 
-		// using dictionary key
-		std::string ResName;
-		if (dfound != _kdict.end()) {
-			ResName = dfound->second;
-		} else {
-			ResName = Address;
+			// using dictionary key
+			if (dfound != _kdict->end()) {
+				ResName = dfound->second;
+			}
 		}
 
 		// create key from file name
@@ -187,14 +190,15 @@ namespace Kite {
 		}
 
 		// first check our dictionary
-		std::string ResName;
-		auto dfound = _kdict.find(ResName);
+		std::string ResName = Name;
 
-		// using dictionary key
-		if (dfound != _kdict.end()) {
-			ResName = dfound->second;
-		} else {
-			ResName = Name;
+		if (_kdict != nullptr) {
+			auto dfound = _kdict->find(ResName);
+
+			// using dictionary key
+			if (dfound != _kdict->end()) {
+				ResName = dfound->second;
+			}
 		}
 
 		// create key from file name
@@ -219,14 +223,15 @@ namespace Kite {
 		}
 
 		// first check our dictionary
-		std::string ResName;
-		auto dfound = _kdict.find(ResName);
+		std::string ResName = Name;
+		
+		if (_kdict != nullptr) {
+			auto dfound = _kdict->find(ResName);
 
-		// using dictionary key
-		if (dfound != _kdict.end()) {
-			ResName = dfound->second;
-		} else {
-			ResName = Name;
+			// using dictionary key
+			if (dfound != _kdict->end()) {
+				ResName = dfound->second;
+			}
 		}
 
 

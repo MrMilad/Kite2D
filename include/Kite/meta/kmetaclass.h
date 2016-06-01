@@ -43,6 +43,9 @@ namespace Kite {
 			name(Name), typeName(TypeName), comment(Comment),
 			type(Type), min(Min), max(Max),
 			resType(ResType){}
+
+		KMetaProperty():
+			type(KMP_GETTER), min(0), max(0) {}
 	};
 
 	struct KMetaFunction {
@@ -69,7 +72,7 @@ namespace Kite {
 
 		inline const auto getProperties() const { return &_kprop; }
 
-		inline const auto getFunctiond() const { return &_kfunc; }
+		inline const auto getFunctions() const { return &_kfunc; }
 
 	private:
 		std::list<KMetaProperty> _kprop;

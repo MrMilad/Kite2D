@@ -41,7 +41,7 @@ namespace Kite {
 
 		void addMember(const KMetaEnumMember &Member);
 
-		inline const auto getMembers() const { return _kmembers; }
+		inline const auto getMembers() const { return &_kmembers; }
 
 	private:
 		std::list<KMetaEnumMember> _kmembers;

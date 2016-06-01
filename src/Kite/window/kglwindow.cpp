@@ -38,7 +38,7 @@ namespace Kite{
     }
 
     void KGLWindow::open(){
-        // initialize glfe
+        // initialize SDL
         Internal::initeSDL();
 
         // destroy currently window

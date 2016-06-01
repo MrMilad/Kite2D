@@ -29,7 +29,12 @@ USA
 #include "Kite/serialization/kserialization.h"
 #include <vector>
 #include <memory>
+#include <unordered_map>
 #include "kengine.khgen.h"
+
+#ifdef KITE_EDITOR
+	#include <atomic>
+#endif
 
 KMETA
 namespace Kite {
@@ -38,16 +43,23 @@ namespace Kite {
 		KMETA_KCONFIG_BODY();
 
 		KM_VAR() KWindowState window;
+		KM_VAR() std::string startUpScene;
+		KM_VAR() std::string dictionary;
 	};
 
 	class KITE_FUNC_EXPORT KEngine : KNonCopyable {
 	public:
-		KEngine();
+		~KEngine();
+		static KEngine *createEngine();
 
-		bool inite(const KScript &Loader, bool IniteMeta);
+		bool inite(const KConfig *Config, bool IniteMeta);
 		void start();
 		void shutdown();
 
+#ifdef KITE_EDITOR // editor hooks	
+		inline void setExitFlag(bool Value) { exitFlag = Value; }
+		inline void setPauseFlag(bool Value) { pauseFlag = Value; }
+#endif
 		inline auto getWindow() { return _kwindow; }
 		inline auto getSceneManager() { return _ksman; }
 		inline auto getMetaManager() { return _kmman; }
@@ -56,6 +68,11 @@ namespace Kite {
 		inline auto getLuaState() { return _klstate; }
 
 	private:
+		KEngine();
+		KEngine(KEngine const&);
+		void operator=(KEngine const&);
+
+		void bindToLua();
 		lua_State *_klstate;
 		KGLWindow *_kwindow;
 		KMetaManager *_kmman;
@@ -65,6 +82,13 @@ namespace Kite {
 		std::vector<std::unique_ptr<KSystem>> _ksys;
 		bool _kinite;
 		KConfig _kconfig;
+		std::unordered_map<std::string, std::string> _kdict;
+		static bool deleted;
+		static KEngine *instance;
+#ifdef KITE_EDITOR // editor hooks
+		std::atomic<bool> exitFlag;
+		std::atomic<bool> pauseFlag;
+#endif
 	};
 }
 

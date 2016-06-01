@@ -6,15 +6,17 @@
 #include <Kite/core/kscene.h>
 #include <Kite/core/kfistream.h>
 #include <Kite/core/kfostream.h>
+#include <Kite/logic/klogic.h>
 #include <kmeta.khgen.h>
 
 ResourceTree::ResourceTree(QWidget *Parrent) :
-	QTreeWidget(Parrent) 
+	QTreeWidget(Parrent), kiteDictionary(new std::unordered_map<std::string, std::string>)
 {
 	setColumnCount(1);
 	setHeaderHidden(true);
 	setSelectionMode(QAbstractItemView::SingleSelection);
 	setContextMenuPolicy(Qt::CustomContextMenu);
+	connect(this, &QTreeWidget::itemDoubleClicked, this, &ResourceTree::actDoubleClicked);
 	connect(this, &QTreeWidget::itemSelectionChanged, this, &ResourceTree::actClicked);
 	connect(this, &QTreeWidget::customContextMenuRequested, this, &ResourceTree::actRClicked);
 
@@ -159,6 +161,70 @@ void ResourceTree::clearResources() {
 	clear();
 }
 
+void ResourceTree::filterByType(const QString &Type, QStringList &List) {
+	List.clear();
+	for (auto it = dictinary.begin(); it != dictinary.end(); ++it) {
+		if (it.value()->getResourceType() == Type.toStdString()) {
+			List.append(it.key());
+		}
+	}
+
+}
+
+void ResourceTree::manageUsedResource(const QHash<QString, QVector<Kite::KMetaProperty>> *ResComponents) {
+	if (ResComponents->empty()) {
+		return;
+	}
+	for (auto it = dictinary.begin(); it != dictinary.end(); ++it) {
+		if (it.value()->getResourceType() == "KScene") {
+			auto scene = (Kite::KScene *)it.value();
+			auto eman = scene->getEManager();
+
+			scene->clearResources();
+
+			for (auto eit = eman->beginEntity(); eit != eman->endEntity(); ++eit) {
+
+				// first we collect scripts from logic components
+				std::vector<Kite::KComponent *> lcomps;
+				eit->getScriptComponents(lcomps);
+				for (auto sit = lcomps.begin(); sit != lcomps.end(); ++sit) {
+					auto script = (Kite::KLogicCom *)(*sit);
+					if (!script->getScript().empty()) {
+						scene->addResource(script->getScript(), "KScript");
+					}
+				}
+
+				// then we collect another resources from components
+				for (auto cit = ResComponents->begin(); cit != ResComponents->end(); ++cit) {
+					if (cit.key() == "Logic") {
+						continue;
+					}
+
+					if (eit->hasComponent(cit.key().toStdString(), "")) {
+						for (auto pit = cit->begin(); pit != cit->end(); ++pit) {
+							auto com = eit->getComponentByName(cit.key().toStdString(), "");
+							auto res = com->getProperty(pit->name);
+							auto resName = res.as<std::string>();
+							if (!resName.empty()) {
+								scene->addResource(resName, pit->resType);
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+}
+
+const std::unordered_map<std::string, std::string> *ResourceTree::getKiteDictionary() const {
+	kiteDictionary->clear();
+	for (auto it = dictinary.begin(); it != dictinary.end(); ++it) {
+		kiteDictionary->insert({ it.key().toStdString(), "resources/" + it.key().toStdString() + ".kres" });
+	}
+
+	return kiteDictionary;
+}
+
 bool ResourceTree::openResource(const QString &Address, const QString &Type) {
 	auto pitem = this->findItems(Type, Qt::MatchFlag::MatchExactly);
 	if (pitem.isEmpty()) {
@@ -222,6 +288,10 @@ bool ResourceTree::openResource(const QString &Address, const QString &Type) {
 	return false;
 }
 
+void ResourceTree::actDoubleClicked(QTreeWidgetItem * item, int column) {
+	actEdit();
+}
+
 void ResourceTree::actClicked() {
 	auto item = currentItem();
 
@@ -272,6 +342,10 @@ void ResourceTree::actRClicked(const QPoint & pos) {
 void ResourceTree::actAdd() {
 	auto pitem = currentItem();
 	auto restype = pitem->text(0);
+
+	if (pitem->parent() != nullptr) {
+		return;
+	}
 
 	// create new resource and add it to res tree
 	bool ok = false;
@@ -345,6 +419,10 @@ void ResourceTree::actOpen() {
 	auto pitem = currentItem();
 	auto restype = pitem->text(0);
 
+	if (pitem->parent() != nullptr) {
+		return;
+	}
+
 	QString fileName = QFileDialog::getOpenFileName(this, "Open " + restype, "", "Kite2D Resource File (*.kres)");
 
 	if (!fileName.isEmpty()) {
@@ -391,10 +469,12 @@ void ResourceTree::actSaveAs() {
 
 void ResourceTree::actEdit() {
 	auto item = currentItem();
-	auto res = (*dictinary.find(item->text(0)));
-	
-	// emit edit signal
-	emit(resourceEdit(res));
+	if (item->parent() != nullptr) {
+		auto res = (*dictinary.find(item->text(0)));
+
+		// emit edit signal
+		emit(resourceEdit(res));
+	}
 }
 
 void ResourceTree::actRemove() {

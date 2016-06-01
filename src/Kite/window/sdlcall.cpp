@@ -23,11 +23,11 @@ namespace Kite{
 namespace Internal{
 
     void initeSDL(){
-		static bool inite = false;
-        if (!inite){
-			DSDL_CALL(SDL_Init(SDL_INIT_VIDEO | SDL_INIT_GAMECONTROLLER | SDL_INIT_EVENTS));
-			inite = true;
-        }
+		Uint32 subsystem_mask = SDL_INIT_VIDEO | SDL_INIT_GAMECONTROLLER | SDL_INIT_EVENTS;
+
+		if (SDL_WasInit(subsystem_mask) != subsystem_mask) {
+			DSDL_CALL(SDL_Init(subsystem_mask));
+		}
     }
 
 	void initeSubSDL(U32 Flag) {

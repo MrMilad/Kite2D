@@ -39,27 +39,8 @@ namespace Kite {
 	public:
 		KSceneManager(KResourceManager &RMan);
 
-		/// S: stream type
-		template<typename S>
-		bool loadScene(const std::string &Name) {
-			KScene *scene = (KScene *)_krman->get(Name);
-			if (scene != nullptr) {
-				return true;
-			}
-
-			scene = (KScene *)_krman->load<S>("Scene", Name, false);
-			if (scene == nullptr) {
-				KD_FPRINT("can't load scene. sname: %s", Name.c_str());
-				return false;
-			}
-
-			// load scene resources
-			for (auto it = scene->beginResource(); it != scene->endResource(); ++it) {
-				_krman->load<S>(it->second.first, it->first, it->second.second);
-			}
-
-			registerCTypes(scene->getEManager());
-		}
+		KM_FUN()
+		bool loadScene(const std::string &Name);
 
 		KM_FUN()
 		void unloadScene(const std::string &Name);

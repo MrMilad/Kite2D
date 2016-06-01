@@ -112,7 +112,7 @@ namespace Kite {
 			KD_PRINT("invalid entity handle");
 			return;
 
-		} else if (Child->getParrentHandle() == getHandle()) {
+		} else if (Child->getParentHandle() == getHandle()) {
 			return;
 
 		} else if (EHandle == getHandle()) {
@@ -120,16 +120,16 @@ namespace Kite {
 			return;
 		}
 
-		// deattach from old parrents
-		auto phandle = Child->getParrentHandle();
+		// deattach from old parents
+		auto phandle = Child->getParentHandle();
 		if (phandle != KHandle()) {
-			auto parrent = _kestorage->get(phandle);
-			if (parrent != nullptr) {
-				parrent->remChildIndex(Child->_kplistid);
+			auto parent = _kestorage->get(phandle);
+			if (parent != nullptr) {
+				parent->remChildIndex(Child->_kplistid);
 			}
 		}
 
-		// attach to new parrent
+		// attach to new parent
 		Child->_kphandle = getHandle();
 		Child->_kplistid = _kchilds.size();
 		_kchilds.push_back(EHandle);

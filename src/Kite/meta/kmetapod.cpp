@@ -43,18 +43,20 @@ namespace Kite {
 				KMetaPOD("std::string", 0, 0, KPT_STR) // std::string
 			};
 
-			MMan->setMeta(&instances[0]);
-			MMan->setMeta(&instances[1]);
-			MMan->setMeta(&instances[2]);
-			MMan->setMeta(&instances[3]);
-			MMan->setMeta(&instances[4]);
-			MMan->setMeta(&instances[5]);
-			MMan->setMeta(&instances[6]);
-			MMan->setMeta(&instances[7]);
-			MMan->setMeta(&instances[8]);
-			MMan->setMeta(&instances[9]);
-			MMan->setMeta(&instances[10]);
-			MMan->setMeta(&instances[11]);
+			if (MMan != nullptr) {
+				MMan->setMeta(&instances[0]);
+				MMan->setMeta(&instances[1]);
+				MMan->setMeta(&instances[2]);
+				MMan->setMeta(&instances[3]);
+				MMan->setMeta(&instances[4]);
+				MMan->setMeta(&instances[5]);
+				MMan->setMeta(&instances[6]);
+				MMan->setMeta(&instances[7]);
+				MMan->setMeta(&instances[8]);
+				MMan->setMeta(&instances[9]);
+				MMan->setMeta(&instances[10]);
+				MMan->setMeta(&instances[11]);
+			}
 		}
 	}
 }

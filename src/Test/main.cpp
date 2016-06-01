@@ -3,61 +3,35 @@
 
 using namespace Kite;
 int main() {
+	auto sc = new KConfig();
+	auto engine = KEngine::createEngine();
 
-	/* 
-	srand(time(NULL));
-	auto num = rand() % 99999999 + 10000000;
-	*/
+	engine->inite(sc, false);
 
-	KMetaManager mman;
-	KMetaManager mman2;
-	registerKiteMeta(&mman);
-	registerKiteMeta(&mman2);
+	engine->getWindow()->setShowCursor(false);
+	//engine->getWindow()->setShowCursor(true);
 
-	KFIStream fstream;
-	fstream.open("E:\\loader.txt", KIOTypes::KRT_BIN);
-	std::string code;
+	engine->start();
 
-	code.resize(fstream.getSize());
-	fstream.read(&code[0], fstream.getSize());
-	fstream.close();
+	engine->shutdown();
 
-	KScript loader("Loader");
-	loader.setCode(code);
+	delete engine;
+	delete sc;
 
-	KFOStream fostream;
-	if (fostream.open("E:\\kc.kres", KIOTypes::KRT_BIN)) {
-		Kite::KScene scene("asdssa");
-		Kite::registerCTypes(scene.getEManager());
-		auto ent1 = scene.getEManager()->createEntity("ent1");
-		scene.getEManager()->createEntity("ent2");
-		scene.getEManager()->createEntity("ent3");
-		scene.getEManager()->createEntity("ent4");
-		scene.getEManager()->createEntity("ent5");
-		scene.getEManager()->getEntity(ent1)->addComponent("Logic", "Log1");
-		scene.getEManager()->getEntity(ent1)->addComponent("Transform", "Tr");
-		scene.getEManager()->getEntity(ent1)->addComponent("Input", "Inp");
-		scene.saveStream(&fostream);
-	}
-	fostream.close();
+	sc = new KConfig();
+	engine = KEngine::createEngine();
 
-	if (fostream.open("E:\\script.kres", KIOTypes::KRT_BIN)) {
-		loader.saveStream(&fostream,0, "12345678");
-	}
-	fostream.close();
+	engine->inite(sc, false);
 
-	Kite::KScene scene("");
-	if (fstream.open("C:/Users/_M1L4D_/Desktop/kc/resources/sen2.kres", KIOTypes::KRT_BIN)) {
-		Kite::registerCTypes(scene.getEManager());
-		scene.loadStream(&fstream);
-	}
+	engine->getWindow()->setShowCursor(false);
+	//engine->getWindow()->setShowCursor(true);
 
-	KEngine engine;
+	engine->start();
 
-	engine.inite(loader, true);
+	engine->shutdown();
 
-	engine.start();
+	delete engine;
+	delete sc;
 
-	engine.shutdown();
 	return 0;
 }

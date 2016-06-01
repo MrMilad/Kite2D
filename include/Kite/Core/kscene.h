@@ -60,6 +60,8 @@ namespace Kite {
 
 		void removeResource(const std::string &RName);
 
+		void clearResources();
+
 		inline auto beginResource() { return _kres.begin(); }
 		inline auto endResource() { return _kres.end(); }
 

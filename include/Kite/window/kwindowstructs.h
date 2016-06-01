@@ -48,7 +48,7 @@ namespace Kite{
 
 		KWindowState(const std::string &Title = "Kite2D Window!",
 					 I32 Width = 200, I32 Height = 200,
-					 I32 XPosition = 0, I32 YPosition = 0,
+					 I32 XPosition = 50, I32 YPosition = 50,
 					 bool ShowCursor = true, bool Fullscreen = false,
 					 bool Resizable = false,
 					 U8 SwapInterval = 0,								// Vsync is disabled by default

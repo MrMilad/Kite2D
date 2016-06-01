@@ -93,7 +93,7 @@ namespace Kite {
 		KM_FUN()
 		bool isRegisteredComponent(const std::string &CType);
 
-		/// create entity in the root branch. (parrent = 0)
+		/// create entity in the root branch. (parent = 0)
 		/// after creating one entity, all previous pointers may be invalid.
 		/// so always use handle whene need an older entity.
 		KM_FUN()

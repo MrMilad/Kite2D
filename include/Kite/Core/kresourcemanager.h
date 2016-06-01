@@ -37,13 +37,16 @@ namespace Kite{
 	class KITE_FUNC_EXPORT KResourceManager{
 		KMETA_KRESOURCEMANAGER_BODY();
 	public:
+		KResourceManager();
 		~KResourceManager();
 
 		bool registerIStream(const std::string &SType, KIStream *(*Func)());
 
 		bool registerResource(const std::string &RType, KResource *(*Func)(const std::string &), bool CatchStream);
 
-		bool loadDictionary(const std::string &Name);
+		void setDictionary(const std::unordered_map<std::string, std::string> *Dictionary);
+
+		inline const auto getDictionary() const { return _kdict; }
 
 		KM_FUN()
 		KResource *create(const std::string &RType, const std::string &Name);
@@ -75,7 +78,7 @@ namespace Kite{
 		void clear();
 
 	private:
-		const std::unordered_map<std::string, std::string> _kdict;
+		const std::unordered_map<std::string, std::string> *_kdict;
 		std::unordered_map<std::string, std::pair<KResource *, KIStream *>> _kmap;
 		std::unordered_map<std::string, std::pair<KResource *(*)(const std::string &), bool>> _krfactory;
 		std::unordered_map<std::string, KIStream *(*)()> _ksfactory;

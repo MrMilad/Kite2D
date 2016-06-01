@@ -246,7 +246,7 @@ void ComponentTree::addGUIItem(QFormLayout *Layout, const Kite::KMetaBase *Meta,
 				auto line = lineEdit(Layout, PropMeta->name.c_str(), defval.c_str(), ronly);
 				connect(line, &QLineEdit::textChanged, pholder, &KSTR::editedStr);
 
-				// resource string
+			// resource string
 			} else {
 				QStringList items;
 				auto combo = comboEdit(Layout, PropMeta->name.c_str(), items, true);
@@ -421,6 +421,7 @@ void ComponentTree::actRemove(const QString &CName, const QString &CType, QTreeW
 void ComponentTree::actEdit() {
 	auto pholder = (ComProperty *)sender();
 	auto comp = currEntity->getComponentByName(pholder->getCType().toStdString(), pholder->getCName().toStdString());
+	//auto val = pholder->getValue().as<std::string>();
 	comp->setProperty(pholder->getPName().toStdString(), pholder->getValue());
 	emit(componentEdited(currEntity, comp));
 }

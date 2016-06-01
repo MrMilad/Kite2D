@@ -50,8 +50,8 @@ namespace Kite {
 		KM_FUN()
 		KRecieveTypes onMessage(KMessage &Message, KMessageScopeTypes Scope);
 
-		KM_PRO_GET(KP_NAME = "pHandle", KP_TYPE = KHandle, KP_CM = "parrent handle")
-		inline const KHandle &getParrentHandle() const { return _kphandle; }
+		KM_PRO_GET(KP_NAME = "pHandle", KP_TYPE = KHandle, KP_CM = "parent handle")
+		inline const KHandle &getParentHandle() const { return _kphandle; }
 
 		KM_PRO_GET(KP_NAME = "handle", KP_TYPE = KHandle, KP_CM = "entity handle")
 		inline const KHandle &getHandle() const { return _khandle; }
@@ -115,8 +115,8 @@ namespace Kite {
 		
 		KM_VAR() bool _kactive;											// entity actitvity state
 		KM_VAR() KHandle _khandle;										// entity handle in the entity manager
-		KM_VAR() KHandle _kphandle;										// entity parrent handle
-		KM_VAR() U32 _kplistid;											// entity self id in the parrent list
+		KM_VAR() KHandle _kphandle;										// entity parent handle
+		KM_VAR() U32 _kplistid;											// entity self id in the parent list
 		KM_VAR() std::string _kname;									// entity unique name
 		KM_VAR() std::unordered_map<std::string, KHandle> _kfixedComp;	// fixed components slots (built-in components)
 		KM_VAR() std::unordered_map<std::string, KHandle> _kscriptComp;	// dynamic components slots (logic components)

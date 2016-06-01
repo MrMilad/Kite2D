@@ -172,7 +172,12 @@ void ObjectTree::sceneEdit(Kite::KResource *Scene) {
 
 	connect(this, &QTreeWidget::itemChanged, this, &ObjectTree::entityChecked);
 
-	actionsControl(AS_ON_LOAD);
+	if (root->hasChild()) {
+		this->setCurrentItem(this->topLevelItem(0));
+	} else {
+		emit(objectDelete(nullptr));
+		actionsControl(AS_ON_LOAD);
+	}
 }
 
 void ObjectTree::sceneDelete(Kite::KResource *Scene){

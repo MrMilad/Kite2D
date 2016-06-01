@@ -20,6 +20,7 @@ public:
 	inline void setCompleterModel(QStandardItemModel *Model) { cmodel = Model; }
 
 public slots:
+	void saveAll();
 	void openTabs(Kite::KResource *Res);
 	void selectResource(Kite::KResource *Res);
 	void closeResource(Kite::KResource *Res);
@@ -36,12 +37,12 @@ protected:
 	void focusOutEvent(QFocusEvent *Event) override;
 
 private:
-	int createTab(QWidget *Widget, const QString &Name);
+	int createTab(QWidget *Widget, Kite::KResource *ResPtr);
 	void deleteTab(QWidget *Widget);
 	void deleteDock(QDockWidget *Dock);
 
 	QVector<QShortcut *> shortcuts;
-	QHash<QString, QPair<QWidget *, QDockWidget *>> resMap;
+	QHash<Kite::KResource *, QPair<QWidget *, QDockWidget *>> resMap;
 	QStandardItemModel *cmodel;
 };
 

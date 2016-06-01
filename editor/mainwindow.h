@@ -10,6 +10,7 @@
 #include <objecttree.h>
 #include <componenttree.h>
 #include <maintab.h>
+#include "executer.h"
 #include <Kite/engine/kengine.h>
 
 class QGraphicsView;
@@ -32,6 +33,7 @@ struct Project {
 	QString name;
 	QString Path;
 	QString resPath;
+	Kite::KConfig config;
 };
 
 class MainWindow : public QMainWindow
@@ -42,15 +44,21 @@ public:
     MainWindow(QWidget *parent = 0);
     ~MainWindow();
 
-	void run();
-
 private slots:
 void closeEvent(QCloseEvent *event) override;
+
+void startEngine();
+
+void engineStarted();
+void enginePaused();
+void engineUnpaused();
+void engineStoped();
 
 void newProject();
 void openProject();
 void saveProject();
 void closeProject();
+void openProjSetting();
 void exitApp();
 
 private:
@@ -90,6 +98,8 @@ private:
 	QAction *saveProj;
 	QAction *closeProj;
 	QAction *playScene;
+	QAction *pauseScene;
+	QAction *stopScene;
 	QAction *projSettings;
 	QAction *exit;
 
@@ -97,6 +107,7 @@ private:
 
 	Project *curProject;
 	KiteInfo *kinfo;
+	Executer *exec;
 };
 
 #endif // MAINWINDOW_H

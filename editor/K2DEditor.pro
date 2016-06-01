@@ -12,6 +12,8 @@ TARGET = K2DEditor
 TEMPLATE = app
 CONFIG += console
 
+DEFINES += KITE_EDITOR
+
 INCLUDEPATH += F:/KEngineLab/Lab/CMakeBase/extlibs/headers
 INCLUDEPATH += F:/KEngineLab/Lab/CMakeBase/include
 INCLUDEPATH += F:/KEngineLab/Lab/CMakeBase/include/KiteMeta
@@ -33,7 +35,9 @@ SOURCES += main.cpp\
     maintab.cpp\
     completer.cpp\
     kiteinfo.cpp\
-    highlighter.cpp
+    highlighter.cpp \
+    frmprojsettings.cpp \
+    executer.cpp
 
 HEADERS  += mainwindow.h \
     shared.h \
@@ -48,10 +52,13 @@ HEADERS  += mainwindow.h \
     maintab.h\
     completer.h\
     kiteinfo.h\
-    highlighter.h
+    highlighter.h \
+    frmprojsettings.h \
+    executer.h
 
 RESOURCES += \
     res.qrc
 
 FORMS += \
-    frmnewproj.ui
+    frmnewproj.ui \
+    frmprojsettings.ui

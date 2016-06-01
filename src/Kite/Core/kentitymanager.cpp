@@ -145,8 +145,8 @@ namespace Kite {
 
 		// mark removed entity as deactive and store it in trash list
 		ent->setActive(false);
-		auto parrent = _kestorage.get(ent->getParrentHandle());
-		parrent->remChildIndex(ent->_kplistid);
+		auto parent = _kestorage.get(ent->getParentHandle());
+		parent->remChildIndex(ent->_kplistid);
 		_kentmap.erase(ent->getName());
 		_ktrash.push_back(Handle);
 		recursiveDeleter(Handle);
@@ -255,6 +255,13 @@ namespace Kite {
 	void KEntityManager::deserial(KBaseSerial &In) {
 		In >> _kroot;
 		In >> _kestorage;
+
+		// inite entities
+		for (auto it = _kestorage.begin(); it != _kestorage.end(); ++it) {
+			it->_kcstorage = _kcstorage;
+			it->_kestorage = &_kestorage;
+			it->_kctypes = &_kctypes;
+		}
 
 		for (U32 i = 0; i < KCOMP_MAX_SIZE; ++i) {
 			if (_kcstorage[i] != nullptr) {

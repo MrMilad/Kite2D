@@ -96,5 +96,9 @@ namespace Kite {
 		_kres.erase(RName);
 	}
 
+	void KScene::clearResources() {
+		_kres.clear();
+	}
+
 	KMETA_KSCENE_SOURCE();
 }

@@ -1,0 +1,317 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>frmProjSettings</class>
+ <widget class="QDialog" name="frmProjSettings">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>382</width>
+    <height>180</height>
+   </rect>
+  </property>
+  <property name="sizePolicy">
+   <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+    <horstretch>0</horstretch>
+    <verstretch>0</verstretch>
+   </sizepolicy>
+  </property>
+  <property name="minimumSize">
+   <size>
+    <width>382</width>
+    <height>149</height>
+   </size>
+  </property>
+  <property name="maximumSize">
+   <size>
+    <width>382</width>
+    <height>1000</height>
+   </size>
+  </property>
+  <property name="font">
+   <font>
+    <family>Arial</family>
+    <pointsize>10</pointsize>
+   </font>
+  </property>
+  <property name="windowTitle">
+   <string>Dialog</string>
+  </property>
+  <widget class="QDialogButtonBox" name="buttonBox">
+   <property name="geometry">
+    <rect>
+     <x>220</x>
+     <y>150</y>
+     <width>156</width>
+     <height>24</height>
+    </rect>
+   </property>
+   <property name="orientation">
+    <enum>Qt::Horizontal</enum>
+   </property>
+   <property name="standardButtons">
+    <set>QDialogButtonBox::Cancel|QDialogButtonBox::Ok</set>
+   </property>
+  </widget>
+  <widget class="QLineEdit" name="txtTitle">
+   <property name="geometry">
+    <rect>
+     <x>93</x>
+     <y>9</y>
+     <width>281</width>
+     <height>22</height>
+    </rect>
+   </property>
+  </widget>
+  <widget class="QLabel" name="label">
+   <property name="geometry">
+    <rect>
+     <x>9</x>
+     <y>10</y>
+     <width>78</width>
+     <height>16</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Window Title:</string>
+   </property>
+  </widget>
+  <widget class="QLabel" name="label_2">
+   <property name="geometry">
+    <rect>
+     <x>9</x>
+     <y>40</y>
+     <width>38</width>
+     <height>16</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Width:</string>
+   </property>
+  </widget>
+  <widget class="QSpinBox" name="spnWidth">
+   <property name="geometry">
+    <rect>
+     <x>93</x>
+     <y>37</y>
+     <width>91</width>
+     <height>22</height>
+    </rect>
+   </property>
+   <property name="frame">
+    <bool>true</bool>
+   </property>
+   <property name="suffix">
+    <string> px</string>
+   </property>
+   <property name="maximum">
+    <number>3000</number>
+   </property>
+   <property name="value">
+    <number>800</number>
+   </property>
+  </widget>
+  <widget class="QLabel" name="label_3">
+   <property name="geometry">
+    <rect>
+     <x>194</x>
+     <y>40</y>
+     <width>41</width>
+     <height>16</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Height:</string>
+   </property>
+  </widget>
+  <widget class="QSpinBox" name="spnHeight">
+   <property name="geometry">
+    <rect>
+     <x>280</x>
+     <y>37</y>
+     <width>91</width>
+     <height>22</height>
+    </rect>
+   </property>
+   <property name="frame">
+    <bool>true</bool>
+   </property>
+   <property name="suffix">
+    <string> px</string>
+   </property>
+   <property name="maximum">
+    <number>3000</number>
+   </property>
+   <property name="value">
+    <number>600</number>
+   </property>
+  </widget>
+  <widget class="QLabel" name="label_4">
+   <property name="geometry">
+    <rect>
+     <x>9</x>
+     <y>70</y>
+     <width>62</width>
+     <height>16</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>X Position:</string>
+   </property>
+  </widget>
+  <widget class="QSpinBox" name="spnX">
+   <property name="geometry">
+    <rect>
+     <x>93</x>
+     <y>65</y>
+     <width>91</width>
+     <height>22</height>
+    </rect>
+   </property>
+   <property name="frame">
+    <bool>true</bool>
+   </property>
+   <property name="suffix">
+    <string> px</string>
+   </property>
+   <property name="maximum">
+    <number>3000</number>
+   </property>
+   <property name="value">
+    <number>0</number>
+   </property>
+  </widget>
+  <widget class="QLabel" name="label_5">
+   <property name="geometry">
+    <rect>
+     <x>194</x>
+     <y>70</y>
+     <width>64</width>
+     <height>16</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Y Position:</string>
+   </property>
+  </widget>
+  <widget class="QSpinBox" name="spnY">
+   <property name="geometry">
+    <rect>
+     <x>280</x>
+     <y>65</y>
+     <width>91</width>
+     <height>22</height>
+    </rect>
+   </property>
+   <property name="frame">
+    <bool>true</bool>
+   </property>
+   <property name="suffix">
+    <string> px</string>
+   </property>
+   <property name="maximum">
+    <number>3000</number>
+   </property>
+   <property name="value">
+    <number>0</number>
+   </property>
+  </widget>
+  <widget class="QCheckBox" name="chbCorsor">
+   <property name="geometry">
+    <rect>
+     <x>9</x>
+     <y>93</y>
+     <width>97</width>
+     <height>20</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Show Cursor</string>
+   </property>
+  </widget>
+  <widget class="QCheckBox" name="chbFScreen">
+   <property name="geometry">
+    <rect>
+     <x>150</x>
+     <y>93</y>
+     <width>83</width>
+     <height>20</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Fullscreen</string>
+   </property>
+  </widget>
+  <widget class="QCheckBox" name="chbResize">
+   <property name="geometry">
+    <rect>
+     <x>290</x>
+     <y>93</y>
+     <width>80</width>
+     <height>20</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Resizable</string>
+   </property>
+  </widget>
+  <widget class="QComboBox" name="cmbScene">
+   <property name="geometry">
+    <rect>
+     <x>110</x>
+     <y>120</y>
+     <width>261</width>
+     <height>22</height>
+    </rect>
+   </property>
+  </widget>
+  <widget class="QLabel" name="label_6">
+   <property name="geometry">
+    <rect>
+     <x>10</x>
+     <y>123</y>
+     <width>101</width>
+     <height>16</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>StartUp Scene:</string>
+   </property>
+  </widget>
+ </widget>
+ <resources/>
+ <connections>
+  <connection>
+   <sender>buttonBox</sender>
+   <signal>accepted()</signal>
+   <receiver>frmProjSettings</receiver>
+   <slot>accept()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>248</x>
+     <y>254</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>157</x>
+     <y>274</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>buttonBox</sender>
+   <signal>rejected()</signal>
+   <receiver>frmProjSettings</receiver>
+   <slot>reject()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>316</x>
+     <y>260</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>286</x>
+     <y>274</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
+</ui>

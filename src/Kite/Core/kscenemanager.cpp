@@ -29,6 +29,29 @@ namespace Kite {
 		initeDefScene();
 	}
 
+	bool KSceneManager::loadScene(const std::string &Name) {
+		KScene *scene = (KScene *)_krman->get(Name);
+		if (scene != nullptr) {
+			return true;
+		}
+
+		scene = (KScene *)_krman->load("KFIStream", "Scene", Name, false);
+		if (scene == nullptr) {
+			KD_FPRINT("can't load scene. sname: %s", Name.c_str());
+			return false;
+		}
+
+		// load scene resources
+		for (auto it = scene->beginResource(); it != scene->endResource(); ++it) {
+			if (_krman->load("KFIStream", it->second.first, it->first, it->second.second) == nullptr) {
+				KD_FPRINT("can't load scene resources. sname: %s  rname: %s", Name.c_str(), it->first.c_str());
+			}
+		}
+
+		registerCTypes(scene->getEManager());
+		return true;
+	}
+
 	void KSceneManager::unloadScene(const std::string &Name) {
 		KScene *scene = (KScene *)_krman->get(Name);
 		if (scene == nullptr) {

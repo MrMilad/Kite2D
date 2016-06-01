@@ -9,9 +9,28 @@
         <file alias="remove">res/ico/remove.png</file>
         <file alias="resEdit">res/ico/resEdit.png</file>
         <file alias="saveAs">res/ico/saveAs.png</file>
-        <file alias="comp">res/ico/component.png</file>
         <file alias="search">res/ico/search.png</file>
         <file alias="addChild">res/ico/addChild.png</file>
         <file alias="play">res/ico/play.png</file>
+        <file alias="unpin">res/ico/unpin.png</file>
+        <file alias="pin">res/ico/pin.png</file>
+        <file alias="comp16">res/ico/component16.png</file>
+        <file alias="comp32">res/ico/component32.png</file>
+        <file alias="dict">res/ico/dictName.png</file>
+        <file alias="res16">res/ico/resource16.png</file>
+        <file alias="fun16">res/ico/function16.png</file>
+        <file alias="close">res/ico/close.png</file>
+        <file alias="pod16">res/ico/pod16.png</file>
+        <file alias="prop16">res/ico/property16.png</file>
+        <file alias="propro16">res/ico/propertyRead16.png</file>
+        <file alias="script">res/ico/script.png</file>
+        <file alias="scene">res/ico/scene.png</file>
+        <file alias="cls16">res/ico/class16.png</file>
+        <file alias="enm16">res/ico/enum16.png</file>
+        <file alias="benm16">res/ico/benum16.png</file>
+        <file alias="key16">res/ico/keyword16.png</file>
+        <file alias="set">res/ico/settings.png</file>
+        <file alias="pause">res/ico/pause.png</file>
+        <file alias="stop">res/ico/stop.png</file>
     </qresource>
 </RCC>

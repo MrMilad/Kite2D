@@ -20,17 +20,44 @@ USA
 #include "Kite/engine/kengine.h"
 #include "kmeta.khgen.h"
 #include <algorithm>
+#include "src/Kite/window/sdlcall.h"
+#include "Kite/serialization/kbinaryserial.h"
+#include "Kite/serialization/types/kstdstring.h"
+#include "Kite/serialization/types/kstdumap.h"
 #include <luaintf\LuaIntf.h>
 
 namespace Kite {
 	KMETA_KCONFIG_SOURCE();
 
+	bool KEngine::deleted = true;
+	KEngine *KEngine::instance = nullptr;
+
+	KEngine *KEngine::createEngine() {
+		if (deleted) {
+			instance = new KEngine;
+			deleted = false;
+		}
+		return instance;
+	}
+
 	KEngine::KEngine() :
 		 _klstate(nullptr), _kwindow(nullptr),
-		_krman(nullptr), _ksman(nullptr),
-		_kmman(nullptr), _kinite (false) {}
+		_kmman(nullptr), _ksman(nullptr),
+		_krman(nullptr), _keman(nullptr),
+		_kinite (false) 
+	{
+#ifdef KITE_EDITOR
+		exitFlag = false;
+		pauseFlag = false;
+#endif
+	}
 
-	bool KEngine::inite(const KScript &Loader, bool IniteMeta) {
+	KEngine::~KEngine() {
+		deleted = true;
+	}
+
+	bool KEngine::inite(const KConfig *Config, bool IniteMeta) {
+		_kconfig = *Config;
 		// inite lua vm
 		_klstate = luaL_newstate();
 		static const luaL_Reg lualibs[] =
@@ -71,13 +98,6 @@ namespace Kite {
 			(*it)->inite((void *)_klstate);
 		}
 
-		// run loader script
-		luaL_dostring(_klstate, Loader.getCode().c_str());
-		LuaIntf::LuaRef loader(_klstate, "_G.IniteEngine");
-		if (loader.isFunction()) {
-			loader(&_kconfig);
-		}
-
 		// inite gl window
 		_kwindow = new KGLWindow(_kconfig.window);
 
@@ -85,8 +105,36 @@ namespace Kite {
 		KKeyboard::initeKeyboard();
 		KMouse::initeMouse();
 
-		_kinite = true;
+		// load dictionary
+		_kdict.clear();
+		if (!_kconfig.dictionary.empty()) {
+			KFIStream fstream;
+			if (!fstream.open(_kconfig.dictionary, KIOTypes::KRT_BIN)) {
+				KD_FPRINT("can't load dictionary. dname: %s", _kconfig.dictionary.c_str());
+				return false;
+			}
 
+			KBinarySerial bserial;
+			bserial.loadStream(&fstream);
+			bserial >> _kdict;
+
+			fstream.close();
+		}
+
+		// load and set startUp scene
+		if (!_kconfig.startUpScene.empty()) {
+			if (!_ksman->loadScene(_kconfig.startUpScene)) {
+				KD_FPRINT("can't load startrUp scene. sname: %s", _kconfig.startUpScene.c_str());
+				return false;
+			}
+
+			_ksman->setActiveScene(_ksman->getScene(_kconfig.startUpScene));
+		}// else {use default K2D scene}
+
+		// bind all managers into lua
+		bindToLua();
+
+		_kinite = true;
 		return true;
 	}
 
@@ -100,7 +148,13 @@ namespace Kite {
 		_kwindow->open();
 
 		while (_kwindow->update()) {
+
+#ifdef KITE_EDITOR
+			if (exitFlag.load()) { break; }
+			if (pauseFlag.load()) { continue; }
+#endif
 			for (auto it = _ksys.begin(); it != _ksys.end(); ++it) {
+				_keman = _ksman->getActiveScene()->getEManager();
 				(*it)->update(0, _ksman->getActiveScene()->getEManager(), _krman);
 
 
@@ -116,6 +170,7 @@ namespace Kite {
 		if (_kwindow->isOpen()) {
 			_kwindow->close();
 		}
+
 		delete _kwindow;
 		_kwindow = nullptr;
 
@@ -129,5 +184,16 @@ namespace Kite {
 		_krman = nullptr;
 
 		_ksys.clear();
+
+		Internal::destroySDL();
+	}
+
+	void KEngine::bindToLua() {
+		if (_klstate != nullptr){
+			LuaIntf::LuaBinding(_klstate).beginModule("Kite").beginClass<KEngine>("Engine")
+				.addStaticFunction("getInstance", &KEngine::createEngine)
+				.endClass()
+				.endModule();
+		}
 	}
 }

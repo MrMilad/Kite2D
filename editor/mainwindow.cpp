@@ -7,6 +7,7 @@
 #include <string>
 #include <climits>
 #include "frmnewproj.h"
+#include "frmprojsettings.h"
 #include "comproperty.h"
 
 using namespace Kite;
@@ -14,7 +15,8 @@ using namespace Kite;
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent),
 	curProject(nullptr),
-	kinfo(new KiteInfo)
+	kinfo(new KiteInfo),
+	exec(new Executer)
 {
     this->setMinimumSize(1000, 600);
 	setupStatusBar();
@@ -25,6 +27,11 @@ MainWindow::MainWindow(QWidget *parent)
     setupScene();
 	loadDockState();
 	disGUI();
+
+	connect(exec, &Executer::started, this, &MainWindow::engineStarted);
+	connect(exec, &Executer::paused, this, &MainWindow::enginePaused);
+	connect(exec, &Executer::unpaused, this, &MainWindow::engineUnpaused);
+	connect(exec, &Executer::stoped, this, &MainWindow::engineStoped);
 }
 
 MainWindow::~MainWindow()
@@ -155,10 +162,22 @@ void MainWindow::setupActions() {
 	playScene = new QAction(QIcon(":/icons/play"), "Play", this);
 	playScene->setShortcut(QKeySequence(Qt::Key_F5));
 	playScene->setShortcutContext(Qt::ApplicationShortcut);
+	connect(playScene, &QAction::triggered, this, &MainWindow::startEngine);
+
+	pauseScene = new QAction(QIcon(":/icons/pause"), "Pause", this);
+	pauseScene->setShortcut(QKeySequence(Qt::CTRL + Qt::ALT + Qt::Key_Pause));
+	pauseScene->setShortcutContext(Qt::ApplicationShortcut);
+	connect(pauseScene, &QAction::triggered, exec, &Executer::pause);
+
+	stopScene = new QAction(QIcon(":/icons/stop"), "Stop", this);
+	stopScene->setShortcut(QKeySequence(Qt::SHIFT + Qt::Key_F5));
+	stopScene->setShortcutContext(Qt::ApplicationShortcut);
+	connect(stopScene, &QAction::triggered, exec, &Executer::stop);
 
 	projSettings = new QAction(QIcon(":/icons/set"), "Project Settings", this);
 	projSettings->setShortcut(QKeySequence(Qt::ALT + Qt::Key_F7));
 	projSettings->setShortcutContext(Qt::ApplicationShortcut);
+	connect(projSettings, &QAction::triggered, this, &MainWindow::openProjSetting);
 
 	exit = new QAction(QIcon(":/icons/exit"), "Exit", this);
 	exit->setShortcut(QKeySequence(Qt::ALT + Qt::Key_F4));
@@ -186,12 +205,14 @@ void MainWindow::setupMenus(){
 	fileMenu->addSeparator();
 	fileMenu->addAction(exit);
 
+	// test
+	fileMenu = menuBar()->addMenu(tr("&Test"));
+	fileMenu->addAction(playScene);
+	fileMenu->addAction(pauseScene);
+	fileMenu->addAction(stopScene);
+
 	// window
 	winMenu = menuBar()->addMenu(tr("&Window"));
-
-}
-
-void MainWindow::run() {
 
 }
 
@@ -206,6 +227,8 @@ void MainWindow::setupToolbar(){
 	fileTolb->addAction(projSettings);
 	fileTolb->addSeparator();
 	fileTolb->addAction(playScene);
+	fileTolb->addAction(pauseScene);
+	fileTolb->addAction(stopScene);
 }
 
 void MainWindow::setupStatusBar() {
@@ -230,6 +253,8 @@ void MainWindow::saveDockState() {
 
 void MainWindow::disGUI() {
 	playScene->setDisabled(true);
+	pauseScene->setDisabled(true);
+	stopScene->setDisabled(true);
 	saveProj->setDisabled(true);
 	closeProj->setDisabled(true);
 	playScene->setDisabled(true);
@@ -259,6 +284,34 @@ void MainWindow::saveXML(QIODevice *device, const QString &Address){
 	stream.writeAttribute("name", curProject->name);
 	stream.writeAttribute("version", "1.0");
 
+	// config
+	stream.writeStartElement("config");
+	stream.writeStartElement("window");
+	stream.writeAttribute("title", curProject->config.window.title.c_str());
+	stream.writeAttribute("width", QString::number(curProject->config.window.width));
+	stream.writeAttribute("height", QString::number(curProject->config.window.height));
+	stream.writeAttribute("xpos", QString::number(curProject->config.window.xpos));
+	stream.writeAttribute("ypos", QString::number(curProject->config.window.ypos));
+	stream.writeAttribute("startupScene", curProject->config.startUpScene.c_str());
+	if (curProject->config.window.fullscreen) {
+		stream.writeAttribute("fullscreen", "true");
+	} else {
+		stream.writeAttribute("fullscreen", "false");
+	}
+	if (curProject->config.window.showCursor) {
+		stream.writeAttribute("showcursor", "true");
+	} else {
+		stream.writeAttribute("showcursor", "false");
+	}
+	if (curProject->config.window.resizable) {
+		stream.writeAttribute("resizable", "true");
+	} else {
+		stream.writeAttribute("resizable", "false");
+	}
+	stream.writeEndElement(); // config.window
+	stream.writeEndElement(); // config
+
+	// resources
 	stream.writeStartElement("resources");
 	auto resDict = resTree->getDictionary();
 	for (auto it = resDict->cbegin(); it != resDict->cend(); ++it) {
@@ -280,6 +333,7 @@ void MainWindow::saveXML(QIODevice *device, const QString &Address){
 bool MainWindow::loadXML(QIODevice *device, const QString &Address) {
 	QXmlStreamReader xml(device);
 	bool head = false;
+	bool config = false;
 	bool res = false;
 
 	if (xml.readNextStartElement()) {
@@ -294,6 +348,44 @@ bool MainWindow::loadXML(QIODevice *device, const QString &Address) {
 
 		while (!xml.atEnd()) {
 			xml.readNext();
+
+			// config
+			if (xml.isStartElement() && xml.name() == "config") {
+				config = true;
+				while (!xml.isEndElement()) {
+					xml.readNext();
+
+					// window
+					if (xml.isStartElement() && xml.name() == "window") {
+						curProject->config.window.title = xml.attributes().value("title").toString().toStdString();
+						curProject->config.window.width = xml.attributes().value("width").toInt();
+						curProject->config.window.height = xml.attributes().value("height").toInt();
+						curProject->config.window.xpos = xml.attributes().value("xpos").toInt();
+						curProject->config.window.ypos = xml.attributes().value("ypos").toInt();
+						curProject->config.startUpScene = xml.attributes().value("startupScene").toString().toStdString();
+						if (xml.attributes().value("fullscreen").toString() == "true") {
+							curProject->config.window.fullscreen = true;
+						} else {
+							curProject->config.window.fullscreen = false;
+						}
+
+						if (xml.attributes().value("showcursor").toString() == "true") {
+							curProject->config.window.showCursor = true;
+						} else {
+							curProject->config.window.showCursor = false;
+						}
+
+						if (xml.attributes().value("resizable").toString() == "true") {
+							curProject->config.window.resizable = true;
+						} else {
+							curProject->config.window.resizable = false;
+						}
+
+					}
+				}
+			}
+				
+			// resources
 			if (xml.isStartElement() && xml.name() == "resources") {
 				res = true;
 				while (!xml.atEnd()) {
@@ -309,8 +401,6 @@ bool MainWindow::loadXML(QIODevice *device, const QString &Address) {
 		}
 	}
 
-
-
 	if (xml.hasError()) {
 		QMessageBox msg;
 		msg.setWindowTitle("Message");
@@ -319,7 +409,42 @@ bool MainWindow::loadXML(QIODevice *device, const QString &Address) {
 		msg.exec();
 		return false;
 	}
-	return (head && res);
+	return (head && res && config);
+}
+
+void MainWindow::startEngine() {
+	saveProject();
+	exec->run(&curProject->config);
+}
+
+void MainWindow::engineStarted() {
+	playScene->setDisabled(true);
+	pauseScene->setDisabled(false);
+	stopScene->setDisabled(false);
+}
+
+void MainWindow::enginePaused() {
+	playScene->setDisabled(false);
+	pauseScene->setDisabled(true);
+	stopScene->setDisabled(false);
+	disconnect(playScene, &QAction::triggered, 0, 0);
+	connect(playScene, &QAction::triggered, exec, &Executer::unpause);
+}
+
+void MainWindow::engineUnpaused() {
+	playScene->setDisabled(true);
+	pauseScene->setDisabled(false);
+	stopScene->setDisabled(false);
+	disconnect(playScene, &QAction::triggered, 0, 0);
+	connect(playScene, &QAction::triggered, this, &MainWindow::startEngine);
+}
+
+void MainWindow::engineStoped() {
+	playScene->setDisabled(false);
+	pauseScene->setDisabled(true);
+	stopScene->setDisabled(true);
+	disconnect(playScene, &QAction::triggered, 0, 0);
+	connect(playScene, &QAction::triggered, this, &MainWindow::startEngine);
 }
 
 void MainWindow::newProject() {
@@ -336,6 +461,14 @@ void MainWindow::newProject() {
 			curProject->name = frm.getName();
 			curProject->Path = frm.getPath() + "/" + curProject->name;
 			curProject->resPath = curProject->Path  + "/resources";
+			curProject->config.window.title = curProject->name.toStdString();
+			curProject->config.window.width = 800;
+			curProject->config.window.height = 600;
+			curProject->config.window.xpos = 0;
+			curProject->config.window.ypos = 0;
+			curProject->config.window.fullscreen = false;
+			curProject->config.window.showCursor = true;
+			curProject->config.window.resizable = false;
 
 			this->setWindowTitle("Kite2D Editor - " + frm.getName());
 
@@ -366,6 +499,8 @@ void MainWindow::openProject() {
 
 void MainWindow::saveProject() {
 	if (curProject != nullptr) {
+		resTree->manageUsedResource(kinfo->getResourceComponentsTypes());
+		mainTab->saveAll();
 		QFile file(curProject->Path + "/" + curProject->name + ".k2d");
 		if (file.open(QIODevice::WriteOnly)) {
 			saveXML(&file, curProject->Path);
@@ -399,4 +534,11 @@ void MainWindow::closeProject() {
 
 		disGUI();
 	}
+}
+
+void MainWindow::openProjSetting() {
+	QStringList items;
+	resTree->filterByType("KScene", items);
+	frmProjSettings frm(this, &curProject->config, items);
+	frm.exec();
 }

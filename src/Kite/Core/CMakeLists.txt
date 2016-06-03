@@ -3,7 +3,9 @@ set(SRCROOT ${PROJECT_SOURCE_DIR}/src/Kite/core)
 
 # all source files
 set(COR_SRC
+    ${SRCROOT}/kcoredef.cpp
     ${SRCROOT}/kcorestructs.cpp
+    ${SRCROOT}/kcoretypes.cpp
     ${SRCROOT}/kresource.cpp
     ${SRCROOT}/kresourcemanager.cpp
     ${SRCROOT}/kostream.cpp

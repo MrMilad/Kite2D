@@ -30,6 +30,9 @@ set(VERSION_MINOR 2)
 # add an option for choosing the build type (shared or static)
 kite_option(BUILD_SHARED_LIBS TRUE BOOL "TRUE to build Kite2D as shared libraries, FALSE to build it as static libraries")
 
+# add an option for choosing the build type (shared or static)
+kite_option(BUILD_EDITOR_VER TRUE BOOL "TRUE to build Kite2D as editor version, FALSE to build it as normal version")
+
 # add the Kite2D header path
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)
 
@@ -40,6 +43,11 @@ endif()
 
 # define KITE_CPP_VER11 c++11 flag
 add_definitions(-DKITE_CPP_VER11)
+
+# define KITE_EDITOR editor version (install editor hooks in main loop)
+if (BUILD_EDITOR_VER)
+	add_definitions(-DKITE_EDITOR)
+endif()
 
 # set some msvc compiler flags
 if(COMPILER_MSVC)

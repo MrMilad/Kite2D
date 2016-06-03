@@ -19,6 +19,11 @@ KiteInfo::KiteInfo():
 	std::vector<const Kite::KMetaBase *> meta;
 	kmman.dump(meta);
 
+	// kite root namespace
+	auto kroot = new QStandardItem(QIcon(":/icons/dia16"), "Kite");
+	kroot->setToolTip("<font color = \"orange\">Kite2D</font>");
+	model->appendRow(kroot);
+
 	// searching for resource categories
 	for (auto it = meta.begin(); it != meta.end(); ++it) {
 		// Resorces
@@ -26,7 +31,7 @@ KiteInfo::KiteInfo():
 			resources->push_back((*it)->getName().c_str());
 			auto item = new QStandardItem(QIcon(":/icons/res16"), (*it)->getName().c_str());
 			item->setToolTip("<font color = \"orange\">resource</font>");
-			model->appendRow(item);
+			kroot->appendRow(item);
 		}
 
 		// Components
@@ -39,7 +44,7 @@ KiteInfo::KiteInfo():
 					components->push_back(ilit->second.c_str());
 					auto item = new QStandardItem(QIcon(":/icons/comp16"), ilit->second.c_str());
 					item->setToolTip("<font color = \"orange\">component</font><br>" + QString::number(propList->size()) + " properties");
-					model->appendRow(item);
+					kroot->appendRow(item);
 
 					// component properties
 					for (auto piit = propList->begin(); piit != propList->end(); ++piit) {
@@ -79,7 +84,7 @@ KiteInfo::KiteInfo():
 						 QString::number(members->size()) + " members");
 
 			bitem->setToolTip(btip);
-			model->appendRow(bitem);
+			kroot->appendRow(bitem);
 
 			for (auto eit = members->begin(); eit != members->end(); ++eit) {
 				QString tip("<font color = \"orange\">enum member</font><br>"
@@ -96,12 +101,13 @@ KiteInfo::KiteInfo():
 
 		// POD
 		if ((*it)->getMetaType() == Kite::KMetaTypes::KMT_CLASS && ((*it)->getFlag() & POD)) {
-			model->appendRow(new QStandardItem(QIcon(":/icons/pod16"), (*it)->getName().c_str()));
+			kroot->appendRow(new QStandardItem(QIcon(":/icons/pod16"), (*it)->getName().c_str()));
 		}
 
 		// Scriptables
 		if ((*it)->getMetaType() == Kite::KMetaTypes::KMT_CLASS &&
-			((*it)->getFlag() & SCRIPTABLE) && !((*it)->getFlag() & ABSTRACT)) {
+			((*it)->getFlag() & SCRIPTABLE) &&
+			!((*it)->getFlag() & ABSTRACT)) {
 			auto cls = (Kite::KMetaClass *)(*it);
 			QString cname(cls->getName().c_str());
 
@@ -117,7 +123,7 @@ KiteInfo::KiteInfo():
 			bitem->setIcon(QIcon(":/icons/cls16"));
 			bitem->setText(cname);
 			bitem->setToolTip(btip);
-			model->appendRow(bitem);
+			kroot->appendRow(bitem);
 
 			// functions 
 			for (auto fit = funList->begin(); fit != funList->end(); ++fit) {

@@ -72,6 +72,12 @@ namespace Kite {
 			lua_settop(_klstate, 0);
 		}
 
+		// redirect lua print output into editor
+#ifdef KITE_EDITOR
+		LuaIntf::LuaRef lprint(_klstate, "_G");
+		lprint["print"] = luaCustomPrint;
+#endif
+
 		// inite Kite2D ResourceManager, SceneManager, MetaManager
 		if (IniteMeta) {
 			_kmman = new KMetaManager();
@@ -81,7 +87,7 @@ namespace Kite {
 		_ksman = new KSceneManager(*_krman);
 
 		registerKiteMeta(_kmman, _klstate);
-		registerRTypes(_krman); // CTypes will registered for every scene in KSceneManager
+		registerRTypes(_krman); // CTypes will registered in EntityManager constructure
 
 		// create systems
 		createSystems(_ksys);
@@ -109,7 +115,7 @@ namespace Kite {
 		_kdict.clear();
 		if (!_kconfig.dictionary.empty()) {
 			KFIStream fstream;
-			if (!fstream.open(_kconfig.dictionary, KIOTypes::KRT_BIN)) {
+			if (!fstream.open(_kconfig.dictionary, IOMode::BIN)) {
 				KD_FPRINT("can't load dictionary. dname: %s", _kconfig.dictionary.c_str());
 				return false;
 			}
@@ -117,6 +123,7 @@ namespace Kite {
 			KBinarySerial bserial;
 			bserial.loadStream(&fstream);
 			bserial >> _kdict;
+			_krman->setDictionary(&_kdict);
 
 			fstream.close();
 		}
@@ -130,9 +137,6 @@ namespace Kite {
 
 			_ksman->setActiveScene(_ksman->getScene(_kconfig.startUpScene));
 		}// else {use default K2D scene}
-
-		// bind all managers into lua
-		bindToLua();
 
 		_kinite = true;
 		return true;
@@ -188,12 +192,27 @@ namespace Kite {
 		Internal::destroySDL();
 	}
 
-	void KEngine::bindToLua() {
-		if (_klstate != nullptr){
-			LuaIntf::LuaBinding(_klstate).beginModule("Kite").beginClass<KEngine>("Engine")
-				.addStaticFunction("getInstance", &KEngine::createEngine)
-				.endClass()
-				.endModule();
+#ifdef KITE_EDITOR
+	int KEngine::luaCustomPrint(lua_State* L) {
+		int nargs = lua_gettop(L);
+
+		std::string str;
+
+		for (int i = 1; i <= nargs; i++) {
+			const char *luaStr = lua_tostring(L, i);
+			if (luaStr != nullptr) {
+				str.append(luaStr);
+				str.append(" ");
+			} else {
+				str.append("<nil> ");
+			}
 		}
+
+		(pcallback)(str);
+
+		return 0;
 	}
+#endif
+
+	KMETA_KENGINE_SOURCE();
 }

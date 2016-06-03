@@ -27,7 +27,7 @@ public:
 	inline auto const getDictionary() const { return &dictinary; }
 	inline QFrame *getHeaderTools() { return htools; }
 	
-	const std::unordered_map<std::string, std::string> *getKiteDictionary() const;
+	const std::unordered_map<std::string, std::string> *getKiteDictionary(const QString &AddressPrefix) const;
 
 signals:
 	void resourceAdded(Kite::KResource *Res);

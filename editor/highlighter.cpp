@@ -6,19 +6,19 @@ Highlighter::Highlighter(QTextDocument *parent)
     HighlightingRule rule;
 
 	// Identifiers
-	identFormat.setForeground(QColor(0x43C6DB));
+	ident.setForeground(QColor(0x43C6DB));
 	rule.pattern = QRegExp("\\b[a-zA-Z0-9_]+");
-	rule.format = identFormat;
+	rule.format = ident;
 	highlightingRules.append(rule);
 
 	// functions
-	functionFormat.setForeground(QColor(0x728C00));
+	function.setForeground(QColor(0x728C00));
 	rule.pattern = QRegExp("\\b[A-Za-z0-9_]+(?=\\()");
-	rule.format = functionFormat;
+	rule.format = function;
 	highlightingRules.append(rule);
 
 	// keywords
-    keywordFormat.setForeground(QColor(0x1E90FF));
+    keyword.setForeground(QColor(0x1E90FF));
     QStringList keywordPatterns;
 	keywordPatterns << "\\band\\b" << "\\bbreak\\b" << "\\bdo\\b"
 					<< "\\bfalse\\b" << "\\bfor\\b" << "\\bfunction\\b"
@@ -30,32 +30,32 @@ Highlighter::Highlighter(QTextDocument *parent)
 					<< "\\bend\\b";
     foreach (const QString &pattern, keywordPatterns) {
         rule.pattern = QRegExp(pattern);
-        rule.format = keywordFormat;
+        rule.format = keyword;
         highlightingRules.append(rule);
     }
 
 	// numbers
-	numberFormat.setForeground(QColor(0xC11B17));
+	number.setForeground(QColor(0xC11B17));
 	rule.pattern = QRegExp("\\b[-+]?[0-9]*\\.?[0-9]+");
-	rule.format = numberFormat;
+	rule.format = number;
 	highlightingRules.append(rule);
 	
-	// single line comment
-    singleLineCommentFormat.setForeground(Qt::green);
-    rule.pattern = QRegExp("--[^\n]*");
-    rule.format = singleLineCommentFormat;
-    highlightingRules.append(rule);
-	
 	// double quotation
-    dquotationFormat.setForeground(QColor(0xE56717));
-    rule.pattern = QRegExp("\".*\"");
-    rule.format = dquotationFormat;
+    dquotation.setForeground(QColor(0xE56717));
+    rule.pattern = QRegExp("\"(\\.|[^\"])*\"");
+    rule.format = dquotation;
     highlightingRules.append(rule);
 
 	// single quotation
-	squotationFormat.setForeground(QColor(0xE56717));
-	rule.pattern = QRegExp("\'.*\'");
-	rule.format = squotationFormat;
+	squotation.setForeground(QColor(0xE56717));
+	rule.pattern = QRegExp("\'(\\.|[^\'])*\'");
+	rule.format = squotation;
+	highlightingRules.append(rule);
+
+	// single line comment
+	singleLineComment.setForeground(Qt::green);
+	rule.pattern = QRegExp("--[^\n]*");
+	rule.format = singleLineComment;
 	highlightingRules.append(rule);
 }
 

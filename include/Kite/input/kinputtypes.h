@@ -28,7 +28,7 @@ KMETA
 namespace Kite{
 
 	KM_ENUM()
-    enum class KKCode : U32{
+    enum class KeyCode : U32{
 		UNKNOWN = 0,
 		KEY_A = 4,
 		KEY_B = 5,
@@ -374,10 +374,10 @@ namespace Kite{
 		MAX_SIZE = 512 /**< not a key, just marks the number of scancodes
 								for array bounds */
     };
-	KMETA_KKCODE_BODY();
+	KMETA_KEYCODE_BODY();
 
 	KM_ENUM()
-	enum class KKModifier : U32 {
+	enum class KeyModifier : U32 {
 		NONE = 0x0000,
 		LSHIFT = 0x0001,
 		RSHIFT = 0x0002,
@@ -392,7 +392,7 @@ namespace Kite{
 		MODE = 0x4000,
 		RESERVED = 0x8000
 	};
-	KMETA_KKMODIFIER_BODY();
+	KMETA_KEYMODIFIER_BODY();
 
     /*enum class KButtonStateTypes : U8{
         KBS_RELEASE = 0,
@@ -401,23 +401,23 @@ namespace Kite{
     };*/
 
 	KM_ENUM()
-	enum class KMButton {
+	enum class MouseButton {
 		LEFT = 0,
 		RIGHT,
 		MIDDLE,
 		X1,
 		X2
 	};
-	KMETA_KMBUTTON_BODY();
+	KMETA_MOUSEBUTTON_BODY();
 
 	KM_ENUM()
-    enum class KJoystcikIDTypes{
+    enum class JoystcikID{
         KJI_JOYSTICK1 = 0,
         KJI_JOYSTICK2 = 1,
         KJI_JOYSTICK3 = 2,
         KJI_JOYSTICK4 = 3
     };
-	KMETA_KJOYSTCIKIDTYPES_BODY();
+	KMETA_JOYSTCIKID_BODY();
 
     /// mouse callbacks
     typedef void(*KCallMouseButton )(KWindowHandle WinHandle, I32 Button, I32 State, I32 ModifierKeys);

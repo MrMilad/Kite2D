@@ -38,16 +38,16 @@ namespace Kite {
 		removeLuaEnv();
 	}
 
-	KRecieveTypes KLogicCom::onMessage(KMessage &Message, KMessageScopeTypes Scope) {
+	RecieveTypes KLogicCom::onMessage(KMessage *Message, MessageScope Scope) {
 		 std::string ctable = "_G.ENTITIES." + _ktname + "." + getName() + ".onMessage";
 		if (_klstate != nullptr) {
 			LuaIntf::LuaRef lref(_klstate, ctable.c_str());
 			if (lref.isFunction()) {
-				lref(Message);
-				return KRecieveTypes::KMR_RECEIVED;
+				lref(getOwnerHandle(), Message);
+				return RecieveTypes::RECEIVED;
 			}
 		}
-		return KRecieveTypes::KMR_IGNORED;
+		return RecieveTypes::IGNORED;
 	}
 
 	void KLogicCom::setScript(const std::string &ResName) {

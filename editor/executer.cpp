@@ -1,4 +1,5 @@
 #include "executer.h"
+#include <Kite/core/kcoredef.h>
 
 WorkerThread::WorkerThread() :
 	engine(nullptr), config(nullptr)
@@ -18,13 +19,23 @@ void WorkerThread::run() {
 	engine->shutdown();
 }
 
+Executer *Executer::instance = nullptr;
 Executer::Executer() :
 	wthread(nullptr)
-{}
+{
+	instance = this;
+}
+
+void Executer::koutCallback(const std::string &Text) {
+	if (instance != nullptr) {
+		emit(instance->engineOutput(QString(Text.c_str())));
+	}
+}
 
 void Executer::run(const Kite::KConfig *Config){
 	wthread = new WorkerThread;
 	engine = Kite::KEngine::createEngine();
+	Kite::setEditorPrintCallback(&Executer::koutCallback);
 
 	wthread->setEngine(engine);
 	wthread->setConfig(Config);

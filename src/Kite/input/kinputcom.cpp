@@ -34,8 +34,8 @@ namespace Kite {
 
 	void KInputCom::deattached() {}
 
-	KRecieveTypes KInputCom::onMessage(KMessage &Message, KMessageScopeTypes Scope) {
-		return KRecieveTypes::KMR_IGNORED;
+	RecieveTypes KInputCom::onMessage(KMessage *Message, MessageScope Scope) {
+		return RecieveTypes::IGNORED;
 	}
 
 	KMETA_KINPUTCOM_SOURCE();

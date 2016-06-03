@@ -33,7 +33,7 @@ namespace Kite {
 		}
 	}
 
-	bool KFOStream::open(const std::string &Address, KIOTypes Type) {
+	bool KFOStream::open(const std::string &Address, IOMode Type) {
 		if (Address.empty()) {
 			KD_PRINT("address is empty");
 			return false;
@@ -46,7 +46,7 @@ namespace Kite {
 		}
 
 		std::string mode;
-		if (Type == KIOTypes::KRT_BIN) {
+		if (Type == IOMode::BIN) {
 			mode = "wb";
 		} else {
 			mode = "w";

@@ -21,7 +21,7 @@ USA
 #include "Kite/meta/kmetamanager.h"
 
 namespace Kite {
-	KMetaPOD::KMetaPOD(const std::string &Name, U32 Flag, U32 Size, KPrimitiveTypes PODType) :
+	KMetaPOD::KMetaPOD(const std::string &Name, U32 Flag, U32 Size, Primitive PODType) :
 		KMetaBase(Name, Flag, Size, KMT_POD), _ktype(PODType)
 	{}
 
@@ -29,18 +29,18 @@ namespace Kite {
 		void registerMetaPOD(KMetaManager *MMan) {
 			static KMetaPOD instances[] =
 			{
-				KMetaPOD("I8", 0, (U32)sizeof(I8), KPT_I8),
-				KMetaPOD("I16", 0, (U32)sizeof(I16), KPT_I16),
-				KMetaPOD("I32", 0, (U32)sizeof(I32), KPT_I32),
-				KMetaPOD("I64", 0, (U32)sizeof(I64), KPT_I64),
-				KMetaPOD("U8", 0, (U32)sizeof(U8), KPT_U8),
-				KMetaPOD("U16", 0, (U32)sizeof(U16), KPT_U16),
-				KMetaPOD("U32", 0, (U32)sizeof(U32), KPT_U32),
-				KMetaPOD("U64", 0, (U32)sizeof(U64), KPT_U64),
-				KMetaPOD("F32", 0, (U32)sizeof(F32), KPT_F32),
-				KMetaPOD("F64", 0, (U32)sizeof(F64), KPT_F64),
-				KMetaPOD("bool", 0, (U32)sizeof(bool), KPT_BOOL),
-				KMetaPOD("std::string", 0, 0, KPT_STR) // std::string
+				KMetaPOD("I8", 0, (U32)sizeof(I8), Primitive::I8),
+				KMetaPOD("I16", 0, (U32)sizeof(I16), Primitive::I16),
+				KMetaPOD("I32", 0, (U32)sizeof(I32), Primitive::I32),
+				KMetaPOD("I64", 0, (U32)sizeof(I64), Primitive::I64),
+				KMetaPOD("U8", 0, (U32)sizeof(U8), Primitive::U8),
+				KMetaPOD("U16", 0, (U32)sizeof(U16), Primitive::U16),
+				KMetaPOD("U32", 0, (U32)sizeof(U32), Primitive::U32),
+				KMetaPOD("U64", 0, (U32)sizeof(U64), Primitive::U64),
+				KMetaPOD("F32", 0, (U32)sizeof(F32), Primitive::F32),
+				KMetaPOD("F64", 0, (U32)sizeof(F64), Primitive::F64),
+				KMetaPOD("bool", 0, (U32)sizeof(bool), Primitive::BOOL),
+				KMetaPOD("std::string", 0, 0, Primitive::STR) // std::string
 			};
 
 			if (MMan != nullptr) {

@@ -118,7 +118,7 @@ namespace Kite {
 		resource->setResourceAddress(ResName);
 
 		auto stream = sfactory->second();
-		stream->open(ResName, KIOTypes::KRT_BIN);
+		stream->open(ResName, IOMode::BIN);
 
 		if (!resource->loadStream(stream, Flag)) {
 			KD_FPRINT("can't load resource. rname: %s", ResName.c_str());

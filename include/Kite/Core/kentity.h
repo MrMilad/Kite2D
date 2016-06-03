@@ -37,7 +37,7 @@ USA
 KMETA
 namespace Kite {
 	class KEntityManager;
-	KM_CLASS(ENTITY)
+	KM_CLASS(ENTITY, SCRIPTABLE)
 	class KITE_FUNC_EXPORT KEntity: public KMessenger, public KListener{
 		friend class KEntityManager;
 		KMETA_KENTITY_BODY();
@@ -48,7 +48,7 @@ namespace Kite {
 
 		/// redirect recieved message to all sub-components
 		KM_FUN()
-		KRecieveTypes onMessage(KMessage &Message, KMessageScopeTypes Scope);
+		RecieveTypes onMessage(KMessage *Message, MessageScope Scope);
 
 		KM_PRO_GET(KP_NAME = "pHandle", KP_TYPE = KHandle, KP_CM = "parent handle")
 		inline const KHandle &getParentHandle() const { return _kphandle; }

@@ -95,7 +95,7 @@ namespace Kite {
 		// call update function
 		LuaIntf::LuaRef ctable(_klvm, address.c_str());
 		if (ctable.isFunction()) {
-			ctable(&Self, Delta);
+			ctable(Self, Delta);
 		}
 	}
 
@@ -150,17 +150,17 @@ namespace Kite {
 		address.append(".inite");
 		LuaIntf::LuaRef ctable(_klvm, address.c_str());
 		if (ctable.isFunction()) {
-			ctable(&Self);
+			ctable(Self);
 		}
 	}
 
 	void KLogicSys::startComp(KEntity *Self, KLogicCom *Component) {
-		// call inite function of component
+		// call start function of component
 		std::string address("ENTITIES." + Component->getTName() + "." + Component->getName());
 		address.append(".start");
 		LuaIntf::LuaRef ctable(_klvm, address.c_str());
 		if (ctable.isFunction()) {
-			ctable(&Self);
+			ctable(Self);
 		}
 	}
 

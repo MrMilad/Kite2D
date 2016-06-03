@@ -216,10 +216,10 @@ void ResourceTree::manageUsedResource(const QHash<QString, QVector<Kite::KMetaPr
 	}
 }
 
-const std::unordered_map<std::string, std::string> *ResourceTree::getKiteDictionary() const {
+const std::unordered_map<std::string, std::string> *ResourceTree::getKiteDictionary(const QString &AddressPrefix) const {
 	kiteDictionary->clear();
 	for (auto it = dictinary.begin(); it != dictinary.end(); ++it) {
-		kiteDictionary->insert({ it.key().toStdString(), "resources/" + it.key().toStdString() + ".kres" });
+		kiteDictionary->insert({ it.key().toStdString(), AddressPrefix.toStdString() + "resources/" + it.key().toStdString() + ".kres" });
 	}
 
 	return kiteDictionary;
@@ -238,15 +238,9 @@ bool ResourceTree::openResource(const QString &Address, const QString &Type) {
 	// cretae new resource 
 	auto newres = rman.create(Type.toStdString(), "");
 	if (newres != nullptr) {
-		// register ctypes with kcene
-		if (Type == "KScene") {
-			auto scene = (Kite::KScene *)newres;
-			Kite::registerCTypes(scene->getEManager());
-		}
-
 		// load resource
 		Kite::KFIStream istream;
-		if (!istream.open(Address.toStdString(), Kite::KIOTypes::KRT_BIN)) {
+		if (!istream.open(Address.toStdString(), Kite::IOMode::BIN)) {
 			QMessageBox msg;
 			msg.setWindowTitle("Message");
 			msg.setText("cant open file stream with the given address.\nfile address: " + Address);
@@ -435,7 +429,7 @@ void ResourceTree::actSave() {
 	auto res = (*dictinary.find(item->text(0)));
 
 	Kite::KFOStream ostream;
-	if (!ostream.open(res->getResourceName(), Kite::KIOTypes::KRT_BIN)) {
+	if (!ostream.open(res->getResourceName(), Kite::IOMode::BIN)) {
 		QMessageBox msg;
 		msg.setWindowTitle("Message");
 		msg.setText("cant open file stream with the given address.\nfile address: " + QString(res->getResourceName().c_str()));
@@ -455,7 +449,7 @@ void ResourceTree::actSaveAs() {
 
 	if (!fileName.isEmpty()) {
 		Kite::KFOStream ostream;
-		if (!ostream.open(fileName.toStdString(), Kite::KIOTypes::KRT_BIN)) {
+		if (!ostream.open(fileName.toStdString(), Kite::IOMode::BIN)) {
 			QMessageBox msg;
 			msg.setWindowTitle("Message");
 			msg.setText("cant open file stream with the given address.\nfile address: " + fileName);

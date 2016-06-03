@@ -28,6 +28,7 @@ class QAction;
 class QFormLayout;
 class QFrame;
 class QCheckBox;
+class QTextEdit;
 
 struct Project {
 	QString name;
@@ -82,11 +83,13 @@ private:
     QDockWidget *objDock;
     QDockWidget *prpDock;
 	QDockWidget *expDock;
+	QDockWidget *outDock;
 	MainTab *mainTab;
     QGraphicsView *sceneView;
 	ComponentTree *propTree;
     ResourceTree *resTree;
 	ObjectTree *objTree;
+	QTextEdit *koutput;
 
 	QMenu *fileMenu;
 	QMenu *winMenu;

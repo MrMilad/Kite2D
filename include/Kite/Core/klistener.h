@@ -35,7 +35,7 @@ namespace Kite {
 		KListener();
 		virtual ~KListener();
 
-		virtual KRecieveTypes onMessage(KMessage &Message, KMessageScopeTypes Scope) = 0;
+		virtual RecieveTypes onMessage(KMessage *Message, MessageScope Scope) = 0;
 
 		KM_PRO_GET(KP_NAME = "Enable", KP_TYPE = bool, KP_CM = "enable/disable recieving message")
 		inline bool getEnableRecieveMsg() const { return _kenable; }

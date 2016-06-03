@@ -57,14 +57,14 @@ namespace Kite {
 		}
 	}
 
-	U32 KMessenger::postMessage(KMessage &Message, KMessageScopeTypes Scope) {
-		auto range = _khndlMap.equal_range(Message.getHash());
+	U32 KMessenger::postMessage(KMessage *Message, MessageScope Scope) {
+		auto range = _khndlMap.equal_range(Message->getHash());
 		U32 recvCount = 0;
 
 		if (range.first != _khndlMap.end()) {
 			for (auto it = range.first; it != range.second; ++it) {
 				if (it->second->getEnableRecieveMsg()) {
-					if (it->second->onMessage(Message, Scope) == KRecieveTypes::KMR_RECEIVED) {
+					if (it->second->onMessage(Message, Scope) == RecieveTypes::RECEIVED) {
 						++recvCount;
 					}
 				}

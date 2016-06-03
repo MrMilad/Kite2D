@@ -37,7 +37,6 @@ void cpuid(U32 CPUInfo[4],I32 InfoType){
 #endif
     }
 
-
     U32 getCurrentTimeSec(){
         time_t rawtime;
         struct tm * timeinfo;

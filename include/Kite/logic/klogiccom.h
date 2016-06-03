@@ -44,7 +44,7 @@ namespace Kite {
 		void deattached() override;
 
 		KM_FUN()
-		KRecieveTypes onMessage(KMessage &Message, KMessageScopeTypes Scope) override;
+		RecieveTypes onMessage(KMessage *Message, MessageScope Scope) override;
 
 		KM_PRO_SET(KP_NAME = "script")
 		void setScript(const std::string &ResName);

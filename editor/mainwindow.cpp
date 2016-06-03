@@ -9,6 +9,9 @@
 #include "frmnewproj.h"
 #include "frmprojsettings.h"
 #include "comproperty.h"
+#include <Kite/serialization/kbinaryserial.h>
+#include <Kite/serialization/types/kstdstring.h>
+#include <Kite/serialization/types/kstdumap.h>
 
 using namespace Kite;
 
@@ -73,6 +76,18 @@ void MainWindow::setupDocks(){
 	resTree->setupCategories(*kinfo->getResourceTypes());
 	resDock->setWidget(resTree);
 	resDock->setTitleBarWidget(resTree->getHeaderTools());
+
+	// output dock
+	outDock = new QDockWidget(tr("Engine Output"), this);
+	outDock->setObjectName("Resources");
+	outDock->setAllowedAreas(Qt::BottomDockWidgetArea);
+	outDock->setMinimumWidth(120);
+	addDockWidget(Qt::BottomDockWidgetArea, outDock);
+
+	koutput = new QTextEdit(this);
+	koutput->setReadOnly(true);
+	connect(exec, &Executer::engineOutput, koutput, &QTextEdit::append);
+	outDock->setWidget(koutput);
 
     // objects dock
     objDock = new QDockWidget(tr("Hierarchy"), this);
@@ -316,9 +331,16 @@ void MainWindow::saveXML(QIODevice *device, const QString &Address){
 	auto resDict = resTree->getDictionary();
 	for (auto it = resDict->cbegin(); it != resDict->cend(); ++it) {
 		KFOStream fstream;
-		fstream.open(Address.toStdString() + "/resources/" + it.key().toStdString() + ".kres", Kite::KIOTypes::KRT_BIN);
+		fstream.open(Address.toStdString() + "/resources/" + it.key().toStdString() + ".kres", Kite::IOMode::BIN);
 		(*it)->saveStream(&fstream);
 		fstream.close();
+
+		fstream.open(Address.toStdString() + "/dict.kdict", Kite::IOMode::BIN);
+		Kite::KBinarySerial bserial;
+		bserial << *resTree->getKiteDictionary(Address + "/");
+		bserial.saveStream(&fstream);
+		fstream.close();
+
 		stream.writeStartElement("item");
 		stream.writeAttribute("name", it.key());
 		stream.writeAttribute("type", (*it)->getResourceType().c_str());
@@ -343,6 +365,7 @@ bool MainWindow::loadXML(QIODevice *device, const QString &Address) {
 			curProject->name = xml.attributes().value("name").toString();
 			curProject->Path = finfo.path();
 			curProject->resPath = finfo.path() + "/resources";
+			curProject->config.dictionary = finfo.path().toStdString() + "/dict.kdict";
 			head = true;
 		}
 
@@ -414,6 +437,7 @@ bool MainWindow::loadXML(QIODevice *device, const QString &Address) {
 
 void MainWindow::startEngine() {
 	saveProject();
+	koutput->clear();
 	exec->run(&curProject->config);
 }
 
@@ -464,11 +488,12 @@ void MainWindow::newProject() {
 			curProject->config.window.title = curProject->name.toStdString();
 			curProject->config.window.width = 800;
 			curProject->config.window.height = 600;
-			curProject->config.window.xpos = 0;
-			curProject->config.window.ypos = 0;
+			curProject->config.window.xpos = 100;
+			curProject->config.window.ypos = 100;
 			curProject->config.window.fullscreen = false;
 			curProject->config.window.showCursor = true;
 			curProject->config.window.resizable = false;
+			curProject->config.dictionary = curProject->Path.toStdString() + "/dict.kdict";
 
 			this->setWindowTitle("Kite2D Editor - " + frm.getName());
 

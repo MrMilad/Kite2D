@@ -24,27 +24,16 @@ USA
 #include "Kite/meta/kmetaclass.h"
 #include "Kite/serialization/types/kstdstring.h"
 #include "Kite/serialization/types/kstdumap.h"
+#include "kmeta.khgen.h"
 #include <luaintf\LuaIntf.h>
 
 namespace Kite {
 	KEntityManager::KEntityManager():
 		_kcompCount(0)
 	{
-		for (U8 i = 0; i < KCOMP_MAX_SIZE; ++i) {
-			_kcstorage[i] = nullptr;
-		}
-
-		// create root
-		_kroot = _kestorage.add(KEntity("Root"));
-		_kestorage.get(_kroot)->_khandle = _kroot;
-
-		// set storages
-		_kestorage.get(_kroot)->_kcstorage = _kcstorage;
-		_kestorage.get(_kroot)->_kestorage = &_kestorage;
-		_kestorage.get(_kroot)->setActive(false);
-
-		// register it's to map
-		_kentmap.insert({ "Root", _kroot });
+		initeCStorage();
+		initeRoot();
+		registerCTypes(this);
 	}
 
 	KEntityManager::~KEntityManager() {
@@ -55,6 +44,26 @@ namespace Kite {
 				_kcstorage[i] = nullptr;
 			}
 		}
+	}
+
+	void KEntityManager::initeCStorage() {
+		for (U8 i = 0; i < KCOMP_MAX_SIZE; ++i) {
+			_kcstorage[i] = nullptr;
+		}
+	}
+
+	void KEntityManager::initeRoot() {
+		// create root
+		_kroot = _kestorage.add(KEntity("Root"));
+		_kestorage.get(_kroot)->_khandle = _kroot;
+
+		// set storages
+		_kestorage.get(_kroot)->_kcstorage = _kcstorage;
+		_kestorage.get(_kroot)->_kestorage = &_kestorage;
+		_kestorage.get(_kroot)->setActive(false);
+
+		// register it to map
+		_kentmap.insert({ "Root", _kroot });
 	}
 
 	KHandle KEntityManager::createEntity(const std::string &Name) {
@@ -89,7 +98,7 @@ namespace Kite {
 		KMessage msg;
 		msg.setType("ENTITY_CREATED");
 		msg.setData((void *)&hndl, sizeof(U32));
-		postMessage(msg, KMessageScopeTypes::KMS_ALL);
+		postMessage(&msg, MessageScope::ALL);
 	
 		return hndl;
 	}
@@ -155,7 +164,7 @@ namespace Kite {
 		KMessage msg;
 		msg.setType("ENTITY_REMOVED");
 		msg.setData((void *)&Handle, sizeof(U32));
-		postMessage(msg, KMessageScopeTypes::KMS_ALL);
+		postMessage(&msg, MessageScope::ALL);
 	}
 
 	void KEntityManager::removeEntityByName(const std::string &Name) {
@@ -249,20 +258,11 @@ namespace Kite {
 		}
 		Out << _kentmap;
 		Out << _kctypes;
-		Out << _kcompCount;
 	}
 
 	void KEntityManager::deserial(KBaseSerial &In) {
 		In >> _kroot;
 		In >> _kestorage;
-
-		// inite entities
-		for (auto it = _kestorage.begin(); it != _kestorage.end(); ++it) {
-			it->_kcstorage = _kcstorage;
-			it->_kestorage = &_kestorage;
-			it->_kctypes = &_kctypes;
-		}
-
 		for (U32 i = 0; i < KCOMP_MAX_SIZE; ++i) {
 			if (_kcstorage[i] != nullptr) {
 				_kcstorage[i]->deserial(In);
@@ -270,7 +270,13 @@ namespace Kite {
 		}
 		In >> _kentmap;
 		In >> _kctypes;
-		In >> _kcompCount;
+
+		// inite entities
+		for (auto it = _kestorage.begin(); it != _kestorage.end(); ++it) {
+			it->_kcstorage = _kcstorage;
+			it->_kestorage = &_kestorage;
+			it->_kctypes = &_kctypes;
+		}
 	}
 
 	void KEntityManager::recursiveDeleter(KHandle EHandle) {

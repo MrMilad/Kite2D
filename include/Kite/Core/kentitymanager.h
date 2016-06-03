@@ -151,8 +151,9 @@ namespace Kite {
 	private:
 		void serial(KBaseSerial &Out) const;
 		void deserial(KBaseSerial &In);
-
 		void recursiveDeleter(KHandle EHandle);
+		void initeRoot();
+		void initeCStorage();
 
 		KHandle _kroot;
 		KCFStorage<KEntity> _kestorage;

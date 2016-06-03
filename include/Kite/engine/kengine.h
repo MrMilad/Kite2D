@@ -47,9 +47,13 @@ namespace Kite {
 		KM_VAR() std::string dictionary;
 	};
 
+	KM_CLASS(SCRIPTABLE)
 	class KITE_FUNC_EXPORT KEngine : KNonCopyable {
+		KMETA_KENGINE_BODY();
 	public:
 		~KEngine();
+
+		KM_FUN()
 		static KEngine *createEngine();
 
 		bool inite(const KConfig *Config, bool IniteMeta);
@@ -60,11 +64,21 @@ namespace Kite {
 		inline void setExitFlag(bool Value) { exitFlag = Value; }
 		inline void setPauseFlag(bool Value) { pauseFlag = Value; }
 #endif
+		KM_FUN()
 		inline auto getWindow() { return _kwindow; }
+
+		KM_FUN()
 		inline auto getSceneManager() { return _ksman; }
+
+		KM_FUN()
 		inline auto getMetaManager() { return _kmman; }
+
+		KM_FUN()
 		inline auto getEntityManager() { return _keman; }
+
+		KM_FUN()
 		inline auto getResourceManager() { return _krman; }
+
 		inline auto getLuaState() { return _klstate; }
 
 	private:
@@ -72,7 +86,6 @@ namespace Kite {
 		KEngine(KEngine const&);
 		void operator=(KEngine const&);
 
-		void bindToLua();
 		lua_State *_klstate;
 		KGLWindow *_kwindow;
 		KMetaManager *_kmman;
@@ -88,6 +101,8 @@ namespace Kite {
 #ifdef KITE_EDITOR // editor hooks
 		std::atomic<bool> exitFlag;
 		std::atomic<bool> pauseFlag;
+
+		static int luaCustomPrint(lua_State* L);
 #endif
 	};
 }

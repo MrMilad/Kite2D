@@ -28,7 +28,7 @@ USA
 
 KMETA
 namespace Kite{
-	KM_CLASS(ISTREAM)
+	KM_CLASS(ISTREAM, SCRIPTABLE)
 	class KITE_FUNC_EXPORT KFIStream : public KIStream{
 		KMETA_KFISTREAM_BODY();
 	public:
@@ -37,7 +37,7 @@ namespace Kite{
 		~KFIStream();
 
 		KM_FUN()
-		bool open(const std::string &Address, KIOTypes Type) override;
+		bool open(const std::string &Address, IOMode Type) override;
 
 		SIZE read(void *Data, SIZE DataSize) override;
 

@@ -127,30 +127,34 @@ void CodeEditor::insertCompletion(const QString &completion) {
 
 QString CodeEditor::textUnderCursor() const {
 	QTextCursor tc = textCursor();
-	QTextCursor scan = textCursor();
 
-	scan.movePosition(QTextCursor::PreviousWord, QTextCursor::KeepAnchor);
+	auto text = document()->toPlainText();
+	bool needDot = true;
+	unsigned int pos = 0;
+	auto it = text.begin() + tc.position() - 1;
 
-	// Object.
-	if (!scan.atBlockStart() && scan.selectedText() == ".") { 
-		tc.movePosition(QTextCursor::PreviousWord, QTextCursor::KeepAnchor); // .
-		tc.movePosition(QTextCursor::PreviousWord, QTextCursor::KeepAnchor); // Object.
-
-	} else { 
-		scan.clearSelection();
-		scan.movePosition(QTextCursor::PreviousWord, QTextCursor::KeepAnchor);
-
-		// Object.pro
-		if (!scan.atBlockStart() && scan.selectedText() == ".") {
-			tc.movePosition(QTextCursor::PreviousWord, QTextCursor::KeepAnchor); // pro
-			tc.movePosition(QTextCursor::PreviousWord, QTextCursor::KeepAnchor); // .pro
-			tc.movePosition(QTextCursor::PreviousWord, QTextCursor::KeepAnchor); // Object.pro
-
-		// Obj
-		} else { 
-			tc.select(QTextCursor::WordUnderCursor);
-		}
+	if ((*it) == '.') {
+		needDot = false;
+		++pos;
+		--it;
 	}
+
+	for (it; it != text.begin() - 1; --it) {
+		if ((*it) == '.' && needDot) {
+			++pos;
+			needDot = false;
+			continue;
+		} else if (((*it) >= 65 && (*it) <= 90) ||		// A-Z
+				   ((*it) >= 97 && (*it) <= 122) ||		// a-z
+				   ((*it) >= 48 && (*it) <= 57)) {		// 0-9
+			++pos;
+			needDot = true;
+			continue;
+		}
+		break;
+	}
+	
+	tc.movePosition(QTextCursor::Left, QTextCursor::KeepAnchor, pos);
 	return tc.selectedText();
 }
 

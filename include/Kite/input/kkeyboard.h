@@ -43,7 +43,7 @@ namespace Kite{
         /// returns the last state reported for the specified key
 		/// uasge: c++ and lua
 		KM_FUN()
-        static bool isButtonPressed(KKCode Button);
+        static bool isButtonPressed(KeyCode Button);
 
 		/// returns the last state of the keyboard
 		/// usage: c++ only
@@ -53,12 +53,12 @@ namespace Kite{
 		/// get the current key modifier state for the keyboard
 		/// usage: c++ and lua
 		KM_FUN()
-		static bool isModifierPressed(KKModifier Modifier);
+		static bool isModifierPressed(KeyModifier Modifier);
 
 		/// get the current key modifier state for the keyboard
 		/// usage: c++ and lua
 		KM_FUN()
-		static KKModifier getModifierState();
+		static KeyModifier getModifierState();
 
 	private:
 		/// SDL dos not support mouse wheel in mouse input sections

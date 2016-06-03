@@ -39,30 +39,30 @@ namespace Kite{
 		return false;
 	}
 
-	bool KMouse::isButtonPressed(KMButton Button) {
+	bool KMouse::isButtonPressed(MouseButton Button) {
 		auto button = DSDL_CALL(SDL_GetMouseState(NULL, NULL));
 		switch (Button) {
-		case KMButton::LEFT:
+		case MouseButton::LEFT:
 			if (button & SDL_BUTTON(SDL_BUTTON_LEFT)) {
 				return true;
 			}
 			break;
-		case KMButton::RIGHT:
+		case MouseButton::RIGHT:
 			if (button & SDL_BUTTON(SDL_BUTTON_RIGHT)) {
 				return true;
 			}
 			break;
-		case KMButton::MIDDLE:
+		case MouseButton::MIDDLE:
 			if (button & SDL_BUTTON(SDL_BUTTON_MIDDLE)) {
 				return true;
 			}
 			break;
-		case KMButton::X1:
+		case MouseButton::X1:
 			if (button & SDL_BUTTON(SDL_BUTTON_X1)) {
 				return true;
 			}
 			break;
-		case KMButton::X2:
+		case MouseButton::X2:
 			if (button & SDL_BUTTON(SDL_BUTTON_X2)) {
 				return true;
 			}

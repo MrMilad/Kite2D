@@ -46,8 +46,8 @@ namespace Kite{
 		setNeedUpdate(true);
     }
 
-	KRecieveTypes KTransformCom::onMessage(KMessage &Message, KMessageScopeTypes Scope) {
-		return KRecieveTypes::KMR_IGNORED;
+	RecieveTypes KTransformCom::onMessage(KMessage *Message, MessageScope Scope) {
+		return RecieveTypes::IGNORED;
 	}
 
     void KTransformCom::setRotation(F32 Angle){

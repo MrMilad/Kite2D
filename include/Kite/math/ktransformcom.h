@@ -42,7 +42,7 @@ namespace Kite{
 
 		void deattached() override;
 
-		KRecieveTypes onMessage(KMessage &Message, KMessageScopeTypes Scope) override;
+		RecieveTypes onMessage(KMessage *Message, MessageScope Scope) override;
 
         /// set position
         /// completely restore the previous position

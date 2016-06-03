@@ -41,7 +41,7 @@ namespace Kite{
         /// get the current state of a mouse button
 		/// usage: c++ and lua
 		KM_FUN()
-        static bool isButtonPressed(KMButton Button);
+        static bool isButtonPressed(MouseButton Button);
 
         /// retrieves the last reported cursor position,
         /// relative to the client area of the window

@@ -264,7 +264,7 @@ void MainTab::pinDock() {
 	auto dockHead = (QFrame *)dock->titleBarWidget();
 	auto editor = (CodeEditor *)dock->widget();
 
-	auto tid = createTab(editor, found.key());
+	createTab(editor, found.key());
 	
 	delete dockHead;
 	delete dock;

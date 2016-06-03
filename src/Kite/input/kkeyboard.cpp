@@ -39,7 +39,7 @@ namespace Kite{
 		return false;
 	}
 
-    bool KKeyboard::isButtonPressed(KKCode Button){
+    bool KKeyboard::isButtonPressed(KeyCode Button){
 		const Uint8 *state = DSDL_CALL(SDL_GetKeyboardState(NULL));
 		if (state[(U32)Button]) {
 			return true;
@@ -52,7 +52,7 @@ namespace Kite{
 		return state;
 	}
 
-	bool KKeyboard::isModifierPressed(KKModifier Modifier) {
+	bool KKeyboard::isModifierPressed(KeyModifier Modifier) {
 		auto mod = DSDL_CALL(SDL_GetModState());
 		if (mod & (U32)Modifier) {
 			return true;
@@ -60,9 +60,9 @@ namespace Kite{
 		return false;
 	}
 
-	KKModifier KKeyboard::getModifierState() {
+	KeyModifier KKeyboard::getModifierState() {
 		auto mod = DSDL_CALL(SDL_GetModState());
-		return (KKModifier) mod;
+		return (KeyModifier) mod;
 	}
 
 	int KKeyboard::_eventWatcher(void *Data, SDL_Event *Event) {

@@ -26,13 +26,13 @@ private:
     };
     QVector<HighlightingRule> highlightingRules;
 
-    QTextCharFormat keywordFormat;
-    QTextCharFormat singleLineCommentFormat;
-    QTextCharFormat squotationFormat;
-	QTextCharFormat dquotationFormat;
-    QTextCharFormat functionFormat;
-	QTextCharFormat numberFormat;
-	QTextCharFormat identFormat;
+    QTextCharFormat keyword;
+    QTextCharFormat singleLineComment;
+    QTextCharFormat squotation;
+	QTextCharFormat dquotation;
+    QTextCharFormat function;
+	QTextCharFormat number;
+	QTextCharFormat ident;
 };
 
 #endif // HIGHLIGHTER_H

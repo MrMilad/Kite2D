@@ -35,7 +35,7 @@ namespace Kite {
 		virtual ~KOStream() {}
 
 		KM_FUN()
-		virtual bool open(const std::string &Address, KIOTypes Type) = 0;
+		virtual bool open(const std::string &Address, IOMode Type) = 0;
 
 		virtual SIZE write(void *Data, SIZE DataSize) = 0;
 

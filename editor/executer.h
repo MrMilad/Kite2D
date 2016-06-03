@@ -2,6 +2,8 @@
 #define EXECUTER_H
 
 #include "Kite/engine/kengine.h"
+#include <qstring.h>
+#include <string>
 #include <qthread.h>
 
 class WorkerThread : public QThread {
@@ -34,11 +36,14 @@ signals:
 	void paused();
 	void unpaused();
 	void stoped();
+	void engineOutput(const QString &Text);
 
 private slots:
 	void cleanUp();
 
 private:
+	static void koutCallback(const std::string &Text);
+	static Executer *instance;
 	WorkerThread *wthread;
 	Kite::KEngine *engine;
 };

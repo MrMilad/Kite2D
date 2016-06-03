@@ -30,12 +30,12 @@ namespace Kite {
 	class KMetaManager;
 	class KITE_FUNC_EXPORT KMetaPOD : public KMetaBase {
 	public:
-		KMetaPOD(const std::string &Name, U32 Flag, U32 Size, KPrimitiveTypes PODType);
+		KMetaPOD(const std::string &Name, U32 Flag, U32 Size, Primitive PODType);
 
-		inline KPrimitiveTypes getType() const { return _ktype; }
+		inline Primitive getType() const { return _ktype; }
 
 	private:
-		KPrimitiveTypes _ktype;
+		Primitive _ktype;
 	};
 
 	namespace Internal {

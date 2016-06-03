@@ -150,11 +150,33 @@
 
 /// debug macros
 #if defined(KITE_DEV_DEBUG)
-    #include <assert.h>
-	#define KD_BREAK() fprintf(stderr, "BREAK: %s:%d:%s()\n", __FILE__, __LINE__, __func__); assert(0)
-	#define KD_FPRINT(fmt, ...) fprintf(stderr, "DEBUG: %s:%d:%s(): " fmt "\n", __FILE__, __LINE__, __func__, __VA_ARGS__)
-	#define KD_PRINT(exp) fprintf(stderr, "DEBUG: %s:%d:%s(): %s\n", __FILE__, __LINE__, __func__, exp)
-    #define KD_ASSERT(expr) assert(expr)
+	#if defined (KITE_EDITOR)
+namespace Kite {
+	typedef void(*printCallback)(const std::string &);
+	extern printCallback pcallback;
+	extern char *buffer;
+	extern KITE_FUNC_EXPORT void defaultPrint(const std::string &Text);
+	extern KITE_FUNC_EXPORT void setEditorPrintCallback(printCallback Callback);
+}
+
+#define KD_BREAK() sprintf(buffer, "BREAK: %s:%d:%s()\n", __FILE__, __LINE__, __func__); (Kite::pcallback)(std::string(Kite::buffer))
+
+#define KD_FPRINT(fmt, ...) sprintf(buffer, "DEBUG: %s:%d:%s(): " fmt "\n", __FILE__, __LINE__, __func__, __VA_ARGS__);\
+(Kite::pcallback)(std::string(Kite::buffer))
+
+#define KD_PRINT(exp) sprintf(buffer, "DEBUG: %s:%d:%s(): %s\n", __FILE__, __LINE__, __func__, exp);\
+(Kite::pcallback)(std::string(Kite::buffer))
+
+#define KD_ASSERT(expr) if (!(expr)) {sprintf(buffer, "ASSERT: %s:%d:%s()\n", __FILE__, __LINE__, __func__);\
+(Kite::pcallback)(std::string(Kite::buffer));}
+
+	#else
+		#include <assert.h>
+		#define KD_BREAK() fprintf(stderr, "BREAK: %s:%d:%s()\n", __FILE__, __LINE__, __func__); assert(0)
+		#define KD_FPRINT(fmt, ...) fprintf(stderr, "DEBUG: %s:%d:%s(): " fmt "\n", __FILE__, __LINE__, __func__, __VA_ARGS__)
+		#define KD_PRINT(exp) fprintf(stderr, "DEBUG: %s:%d:%s(): %s\n", __FILE__, __LINE__, __func__, exp)
+		#define KD_ASSERT(expr) assert(expr)
+	#endif
 
 #else /// release state. (without debug output and break)
     #define KD_BREAK()

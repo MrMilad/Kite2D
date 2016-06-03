@@ -38,7 +38,7 @@ namespace Kite {
 
 		void deattached() override;
 
-		KRecieveTypes onMessage(KMessage &Message, KMessageScopeTypes Scope) override ;
+		RecieveTypes onMessage(KMessage *Message, MessageScope Scope) override ;
 
 		KM_PRO_SET(KP_NAME = "Keyboard")
 		inline void setEnableKeyboard(bool Enable) { _kkeyboard = Enable; }

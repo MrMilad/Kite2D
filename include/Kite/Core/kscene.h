@@ -31,7 +31,7 @@ USA
 
 KMETA
 namespace Kite {
-	KM_CLASS(RESOURCE)
+	KM_CLASS(RESOURCE, SCRIPTABLE)
 	class KITE_FUNC_EXPORT KScene : public KResource {
 		friend class KSceneManager;
 

@@ -61,7 +61,7 @@ namespace Kite {
 		/// post message by its type (immediately)
 		/// return number of objects that recieved message
 		KM_FUN()
-		U32 postMessage(KMessage &Message, KMessageScopeTypes Scope);
+		U32 postMessage(KMessage *Message, MessageScope Scope);
 
 	private:
 		std::unordered_multimap<U32, KListener *> _khndlMap;

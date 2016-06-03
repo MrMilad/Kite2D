@@ -21,14 +21,17 @@
 #define KCORETYPES_H
 
 #include "Kite/core/kcoredef.h"
+#include "Kite/meta/kmetadef.h"
+#include "kcoretypes.khgen.h"
 
+KMETA
 namespace Kite{
 
 	/* Power Sourece State */
-	enum KPowerStateTypes{
-		KPS_ACON,
-		KPS_ACOFF,
-		KPS_UNKNOWN
+	enum class PowerState : U8{
+		ACON = 0,
+		ACOFF,
+		UNKNOWN
 	};
 
 	/* Battery State */
@@ -39,49 +42,52 @@ namespace Kite{
 		KBS_UNKNOWN
 	};*/
 
-	enum class KIOTypes : U8{
-		KRT_BIN,
-		KRT_TEXT
+	KM_ENUM()
+	enum class IOMode : U8{
+		BIN = 0,
+		TEXT
+	};
+	KMETA_IOMODE_BODY();
+
+	KM_ENUM()
+	enum class Primitive : U8 {
+		I8 = 0,
+		U8,
+		I16,
+		U16,
+		I32,
+		U32,
+		I64,
+		U64,
+		F32,
+		F64,
+		BOOL,
+		STR,
+		VPTR,
+		UNKNOWN
+	};
+	KMETA_PRIMITIVE_BODY();
+
+	enum class VectorComponent : U8{
+		X = 0,
+		Y = 1,
+		Z = 2,
+		W = 3
 	};
 
-	enum KPrimitiveTypes : U8 {
-		KPT_I8 = 0,
-		KPT_U8,
-		KPT_I16,
-		KPT_U16,
-		KPT_I32,
-		KPT_U32,
-		KPT_I64,
-		KPT_U64,
-		KPT_F32,
-		KPT_F64,
-		KPT_BOOL,
-		KPT_STR,
-		KPT_VOID,
-		KPT_VPTR,
-		KPT_UNKNOWN
-	};
-
-	enum KVectorComponentTypes{
-		KVC_X = 0,
-		KVC_Y = 1,
-		KVC_Z = 2,
-		KVC_W = 3
-	};
-
-	enum KCoreInstanceTypes : U8{
-		KCI_IMAGE = 0,
-		KCI_TEXTURE,
-		KCI_AUDIOBUFFER,
-		KCI_AUDIOSOURCE,
-		KCI_VAO,
-		KCI_VBO,
-		KCI_IBO,
-		KCI_PBO,
-		KCI_FBO,
-		KCI_SHADER,
-		KCI_SHPROGRAM,
-		KCI_WINDOW
+	enum class CoreInstance : U8{
+		IMAGE = 0,
+		TEXTURE,
+		AUDIOBUFFER,
+		AUDIOSOURCE,
+		VAO,
+		VBO,
+		IBO,
+		PBO,
+		FBO,
+		SHADER,
+		SHPROGRAM,
+		WINDOW
 	};
 
 	/*enum class KResTypes : U8 {
@@ -97,15 +103,17 @@ namespace Kite{
 		SCENE
 	};*/
 
-	enum KGridMapTriggerTypes {
-		KST_ENTER,
-		KST_LEAVE
+	enum class GridMapTrigger : U8 {
+		ENTER,
+		LEAVE
 	};
 
-	enum class KRecieveTypes : U8 {
-		KMR_RECEIVED = 0,
-		KMR_IGNORED
+	KM_ENUM()
+	enum class RecieveTypes : U8 {
+		RECEIVED = 0,
+		IGNORED
 	};
+	KMETA_RECIEVETYPES_BODY();
 
 	/*enum class KComTypes : U8 {
 		KCT_GRAPHIC = 0,
@@ -116,13 +124,15 @@ namespace Kite{
 		KCT_MAX_COMP_SIZE,
 	};*/
 
-	enum class KMessageScopeTypes : U8 {
-		KMS_SELF,
-		KMS_CHILDREN,
-		KMS_ALL
+	KM_ENUM()
+	enum class MessageScope : U8 {
+		SELF = 0,
+		CHILDREN,
+		ALL
 	};
+	KMETA_MESSAGESCOPE_BODY();
 
-	typedef void(*KCallGridMapTrigger)(void *Data, KGridMapTriggerTypes State);
+	typedef void(*KCallGridMapTrigger)(void *Data, GridMapTrigger State);
 
 	/*typedef U64(*KCallInputStreamRead)(void *Data, U64 DataSize);
 	typedef I32(*KCallInputStreamSeek)(I64 Offset, I32 Origin);

@@ -34,10 +34,10 @@ namespace Kite {
 
 	KEntity::~KEntity() {}
 
-	KRecieveTypes KEntity::onMessage(KMessage &Message, KMessageScopeTypes Scope) {
+	RecieveTypes KEntity::onMessage(KMessage *Message, MessageScope Scope) {
 		// redirect message
 		// to self
-		if (Scope == KMessageScopeTypes::KMS_SELF) {
+		if (Scope == MessageScope::SELF) {
 			if (_kctypes != nullptr) {
 				auto found = _kctypes->find("Logic");
 				if (found != _kctypes->end()) {
@@ -51,16 +51,16 @@ namespace Kite {
 			}
 
 		// to childs
-		} else if (Scope == KMessageScopeTypes::KMS_CHILDREN) {
+		} else if (Scope == MessageScope::CHILDREN) {
 			for (auto it = _kchilds.begin(); it != _kchilds.end(); ++it) {
 				auto ent = _kestorage->get((*it));
 				if (ent != nullptr) {
-					ent->onMessage(Message, KMessageScopeTypes::KMS_SELF);
+					ent->onMessage(Message, MessageScope::SELF);
 				}
 			}
 
 		// all
-		} else if (Scope == KMessageScopeTypes::KMS_ALL) {
+		} else if (Scope == MessageScope::ALL) {
 			if (_kctypes != nullptr) {
 				auto found = _kctypes->find("Logic");
 				if (found != _kctypes->end()) {
@@ -81,7 +81,7 @@ namespace Kite {
 			}
 		}
 
-		return KRecieveTypes::KMR_RECEIVED;
+		return RecieveTypes::RECEIVED;
 	}
 
 	void KEntity::setComponent(const std::string &CType, const std::string &Name, const KHandle &Handle) {

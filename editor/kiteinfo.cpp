@@ -39,6 +39,7 @@ KiteInfo::KiteInfo():
 			auto comp = (Kite::KMetaClass *)(*it);
 			auto infoList = (*it)->getInfo();
 			auto propList = comp->getProperties();
+			auto funList = comp->getFunctions();
 			for (auto ilit = infoList->begin(); ilit != infoList->end(); ++ilit) {
 				if (ilit->first == "KI_CTYPE") {
 					components->push_back(ilit->second.c_str());
@@ -67,6 +68,15 @@ KiteInfo::KiteInfo():
 						if (!piit->resType.empty()) {
 							resComponents[ilit->second.c_str()].push_back(*piit);
 						}
+					}
+
+					// component functions
+					for (auto fit = funList->begin(); fit != funList->end(); ++fit) {
+						auto fitem = new QStandardItem();
+						fitem->setText(fit->name.c_str());
+						fitem->setToolTip("<font color = \"orange\">function</font>");
+						fitem->setIcon(QIcon(":/icons/fun16"));
+						item->appendRow(fitem);
 					}
 
 					break;

@@ -26,7 +26,7 @@ USA
 
 namespace Kite {
 
-	void KTransformSys::update(F32 Delta, KEntityManager *EManager, KResourceManager *RManager) {
+	bool KTransformSys::update(F32 Delta, KEntityManager *EManager, KResourceManager *RManager) {
 		if (EManager->isRegisteredComponent("Transform")) {
 			for (auto it = EManager->beginComponent<KTransformCom>("Transform");
 			it != EManager->endComponent<KTransformCom>("Transform"); ++it) {
@@ -39,6 +39,7 @@ namespace Kite {
 				}
 			}
 		}
+		return true;
 	}
 
 	bool KTransformSys::inite(void *Opaque) { 

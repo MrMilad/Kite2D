@@ -25,7 +25,7 @@ USA
 
 namespace Kite {
 	KInputCom::KInputCom(const std::string &Name):
-		KComponent("Input"),
+		KComponent("Input", Name),
 		_kkeyboard(true), _kmouse(true), _kjoystick(false)
 	{}
 

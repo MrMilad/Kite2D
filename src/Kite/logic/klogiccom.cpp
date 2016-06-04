@@ -23,10 +23,13 @@ USA
 #include "Kite/meta/kmetatypes.h"
 #include "Kite/serialization/types/kstdstring.h"
 #include <luaintf/LuaIntf.h>
+#ifdef KITE_DEV_DEBUG
+#include <exception>
+#endif
 
 namespace Kite {
 	KLogicCom::KLogicCom(const std::string &Name) :
-		KComponent(Name),
+		KComponent("Logic", Name),
 		_kinite(false), _kstart(false), _klstate(nullptr)
 		{}
 
@@ -43,7 +46,16 @@ namespace Kite {
 		if (_klstate != nullptr) {
 			LuaIntf::LuaRef lref(_klstate, ctable.c_str());
 			if (lref.isFunction()) {
+#ifdef KITE_DEV_DEBUG
+				try {
+					lref(getOwnerHandle(), Message);
+				} catch (std::exception& e) {
+					KD_FPRINT("onMessage function failed. %s", e.what());
+					return RecieveTypes::IGNORED;
+				}
+#else
 				lref(getOwnerHandle(), Message);
+#endif
 				return RecieveTypes::RECEIVED;
 			}
 		}

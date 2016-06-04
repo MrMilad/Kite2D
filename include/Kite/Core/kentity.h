@@ -109,6 +109,7 @@ namespace Kite {
 		inline auto endChild() { return _kchilds.cend(); }
 
 	private:
+
 		// internal use 
 		void setComponent(const std::string &CType, const std::string &Name, const KHandle &Index);
 		void remChildIndex(U32 ID);

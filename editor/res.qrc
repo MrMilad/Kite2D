@@ -32,5 +32,8 @@
         <file alias="set">res/ico/settings.png</file>
         <file alias="pause">res/ico/pause.png</file>
         <file alias="stop">res/ico/stop.png</file>
+        <file alias="dia16">res/ico/daimond16.png</file>
+        <file alias="clr">res/ico/eraser.png</file>
+        <file alias="word">res/ico/word.png</file>
     </qresource>
 </RCC>

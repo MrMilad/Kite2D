@@ -26,9 +26,9 @@ Executer::Executer() :
 	instance = this;
 }
 
-void Executer::koutCallback(const std::string &Text) {
+void Executer::koutCallback(const std::string &Text, Kite::msgType MType) {
 	if (instance != nullptr) {
-		emit(instance->engineOutput(QString(Text.c_str())));
+		emit(instance->engineOutput(QString(Text.c_str()), (int) MType));
 	}
 }
 

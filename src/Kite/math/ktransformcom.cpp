@@ -27,7 +27,7 @@
 
 namespace Kite{
 	KTransformCom::KTransformCom(const std::string &Name) :
-		KComponent("Transform")
+		KComponent("Transform", Name)
 	{
 		_kposition = KVector2F32(0.0f, 0.0f);
 		_krotation = 0.0f;

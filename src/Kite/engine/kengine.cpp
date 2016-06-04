@@ -159,7 +159,11 @@ namespace Kite {
 #endif
 			for (auto it = _ksys.begin(); it != _ksys.end(); ++it) {
 				_keman = _ksman->getActiveScene()->getEManager();
-				(*it)->update(0, _ksman->getActiveScene()->getEManager(), _krman);
+				
+				if (!((*it)->update(0, _ksman->getActiveScene()->getEManager(), _krman))) {
+					KD_FPRINT("updating systems failed. sname: %s", (*it)->getClassName().c_str());
+					return;
+				}
 
 
 				// clear trash list
@@ -208,7 +212,7 @@ namespace Kite {
 			}
 		}
 
-		(pcallback)(str);
+		(pcallback)(str, msgType::MSG_LUA);
 
 		return 0;
 	}

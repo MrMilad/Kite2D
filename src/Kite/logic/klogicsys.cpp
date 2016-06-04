@@ -23,9 +23,12 @@ USA
 #include "Kite/meta/kmetaclass.h"
 #include "Kite/meta/kmetatypes.h"
 #include <luaintf/LuaIntf.h>
+#ifdef KITE_DEV_DEBUG
+#include <exception>
+#endif
 
 namespace Kite {
-	void KLogicSys::update(F32 Delta, KEntityManager *EManager, KResourceManager *RManager) {
+	bool KLogicSys::update(F32 Delta, KEntityManager *EManager, KResourceManager *RManager) {
 		// check component registration
 		if (EManager->isRegisteredComponent("Logic")) {
 
@@ -48,29 +51,30 @@ namespace Kite {
 
 						// inite component and bind it to lua vm (only one time when current script changed with a new script)
 						if (lcomp->getNeedUpdate()) {
-							catchAndRegist((KLogicCom *)(*comp), RManager);
+							if (!catchAndRegist((KLogicCom *)(*comp), RManager)) return false;
 						}
 
 						// inite component (calling inite, only 1 time befor start)
 						if (!lcomp->_kinite){
-							initeComp(entity, lcomp);
+							if (!initeComp(entity, lcomp)) return false;
 							lcomp->_kinite = true;
 							continue;
 						}
 
 						// start component (calling start, only 1 time befor update)
 						if (!lcomp->_kstart){
-							startComp(entity, lcomp);
+							if (!startComp(entity, lcomp)) return false;
 							lcomp->_kstart = true;
 							continue;
 						}
 
 						// update component (calling update, per frame)
-						updateComp(Delta, entity, lcomp);
+						if (!updateComp(Delta, entity, lcomp)) return false;
 					}
 				}
 			}
 		}
+		return true;
 	}
 
 	bool KLogicSys::inite(void *Data) {
@@ -89,17 +93,28 @@ namespace Kite {
 		return isInite();
 	}
 
-	void KLogicSys::updateComp(F32 Delta, KEntity *Self, KLogicCom *Component) {
+	bool KLogicSys::updateComp(F32 Delta, KEntity *Self, KLogicCom *Component) {
 		std::string address("ENTITIES." + Component->getTName() + "." + Component->getName() + ".update");
 
 		// call update function
 		LuaIntf::LuaRef ctable(_klvm, address.c_str());
 		if (ctable.isFunction()) {
+#ifdef KITE_DEV_DEBUG
+			try {
+				ctable(Self, Delta);
+			} catch (std::exception& e) {
+				KD_FPRINT("update function failed. cname: %s. %s", Component->getTName().c_str(), e.what());
+				return false;
+			}
+#else
 			ctable(Self, Delta);
+#endif
 		}
+
+		return true;
 	}
 
-	void KLogicSys::catchAndRegist(KLogicCom *Component, KResourceManager *RManager) {
+	bool KLogicSys::catchAndRegist(KLogicCom *Component, KResourceManager *RManager) {
 		// retrive script rsource from resource manager
 		KScript *script = (KScript *)RManager->get(Component->getScript());
 		Component->_kscript = script;
@@ -138,30 +153,57 @@ namespace Kite {
 			code.insert(0, address + ".Entities = _G.ENTITIES \n");
 			code.insert(0, address + ".print = print \n");
 
-			luaL_dostring(_klvm, code.c_str());
+			int ret = luaL_dostring(_klvm, code.c_str());
+			if (ret != 0) {
+				const char *out = lua_tostring(_klvm, -1);
+				lua_pop(_klvm, 1);
+				KD_FPRINT("lua load string error. cname: %s. %s", Component->getTName().c_str(), out);
+				return false;
+			}
 
 			Component->setNeedUpdate(false);
 		}
+		return true;
 	}
 
-	void KLogicSys::initeComp(KEntity *Self, KLogicCom *Component) {
+	bool KLogicSys::initeComp(KEntity *Self, KLogicCom *Component) {
 		// call inite function of component
 		std::string address("ENTITIES." + Component->getTName() + "." + Component->getName());
 		address.append(".inite");
 		LuaIntf::LuaRef ctable(_klvm, address.c_str());
 		if (ctable.isFunction()) {
+#ifdef KITE_DEV_DEBUG
+		try{
 			ctable(Self);
+		} catch (std::exception& e) {
+			KD_FPRINT("inite function failed. cname: %s. %s", Component->getTName().c_str(), e.what());
+			return false;
 		}
+#else
+			ctable(Self);
+#endif
+		}
+		return true;
 	}
 
-	void KLogicSys::startComp(KEntity *Self, KLogicCom *Component) {
+	bool KLogicSys::startComp(KEntity *Self, KLogicCom *Component) {
 		// call start function of component
 		std::string address("ENTITIES." + Component->getTName() + "." + Component->getName());
 		address.append(".start");
 		LuaIntf::LuaRef ctable(_klvm, address.c_str());
 		if (ctable.isFunction()) {
+#ifdef KITE_DEV_DEBUG
+			try {
+				ctable(Self);
+			} catch (std::exception& e) {
+				KD_FPRINT("start function failed. cname: %s. %s", Component->getTName().c_str(), e.what());
+				return false;
+			}
+#else
 			ctable(Self);
+#endif
 		}
+		return true;
 	}
 
 	KMETA_KLOGICSYS_SOURCE();

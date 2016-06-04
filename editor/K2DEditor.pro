@@ -28,16 +28,17 @@ SOURCES += main.cpp\
     expander.cpp \
     frmnewproj.cpp\
     comproperty.cpp\
-    resourcetree.cpp\
-    objecttree.cpp\
+    resourcedock.cpp\
+    objectdock.cpp\
     codeeditor.cpp\
-    componenttree.cpp\
+    componentdock.cpp\
     maintab.cpp\
     completer.cpp\
     kiteinfo.cpp\
     highlighter.cpp \
     frmprojsettings.cpp \
-    executer.cpp
+    executer.cpp\
+    outputdock.cpp
 
 HEADERS  += mainwindow.h \
     shared.h \
@@ -45,16 +46,17 @@ HEADERS  += mainwindow.h \
     expander.h \
     frmnewproj.h\
     comproperty.h\
-    resourcetree.h\
-    objecttree.h\
+    resourcedock.h\
+    objectdock.h\
     codeeditor.h\
-    componenttree.h\
+    componentdock.h\
     maintab.h\
     completer.h\
     kiteinfo.h\
     highlighter.h \
     frmprojsettings.h \
-    executer.h
+    executer.h\
+    outputdock.h
 
 RESOURCES += \
     res.qrc

@@ -37,7 +37,7 @@ namespace Kite {
 		friend class KEntityManager;
 		friend class KEntity;
 	public:
-		KComponent(const std::string &Name = "");
+		KComponent(const std::string &Type, const std::string &Name = "");
 
 		virtual ~KComponent();
 
@@ -53,6 +53,13 @@ namespace Kite {
 		/// will be implemented by KHParser
 		virtual KAny getProperty(const std::string &Name) const = 0;
 
+		/// will be implemented by KHParser
+		/// usage: access base members in lua
+		virtual KComponent *getBase() = 0;
+
+		KM_PRO_GET(KP_NAME = "type", KP_TYPE = std::string, KP_CM = "type of the component")
+		inline const std::string &getType() const { return _ktype; }
+
 		KM_PRO_GET(KP_NAME = "name", KP_TYPE = std::string, KP_CM = "name of the component")
 		inline const std::string &getName() const { return _kname; }
 
@@ -63,14 +70,10 @@ namespace Kite {
 		inline const KHandle &getHandle() const { return _khandle; }
 
 		KM_PRO_GET(KP_NAME = "ownerHandle", KP_TYPE = KHandle, KP_CM = "owner (entity) handle")
-			inline const KHandle &getOwnerHandle() const { return _kohandle; }
+		inline const KHandle &getOwnerHandle() const { return _kohandle; }
 
 		KM_PRO_GET(KP_NAME = "lsitener", KP_TYPE = KListener, KP_CM = "cmponent message listener")
-			inline KListener &getListener() { return *(KListener *)this; }
-
-		/// for simulate polymorphism in script
-		KM_FUN()
-		inline KComponent *getBase() { return this; }
+		inline KListener &getListener() { return *(KListener *)this; }
 
 		KMETA_KCOMPONENT_BODY();
 
@@ -79,6 +82,7 @@ namespace Kite {
 		inline void setOwnerHandle(const KHandle &Handle) { _kohandle = Handle; }
 
 	private:
+		KM_VAR() std::string _ktype;
 		KM_VAR() std::string _kname;
 		KM_VAR() KHandle _khandle;
 		KM_VAR() KHandle _kohandle;

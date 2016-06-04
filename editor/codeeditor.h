@@ -14,7 +14,6 @@ class QPaintEvent;
 class QResizeEvent;
 class QSize;
 class QWidget;
-class QCompleter;
 QT_END_NAMESPACE
 
 class LineNumberArea;

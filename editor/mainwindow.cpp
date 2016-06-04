@@ -22,11 +22,11 @@ MainWindow::MainWindow(QWidget *parent)
 	exec(new Executer)
 {
     this->setMinimumSize(1000, 600);
-	setupStatusBar();
+	setupDocks();
 	setupActions();
+	setupStatusBar();
     setupToolbar();
 	setupMenus();
-    setupDocks();
     setupScene();
 	loadDockState();
 	disGUI();
@@ -39,6 +39,14 @@ MainWindow::MainWindow(QWidget *parent)
 
 MainWindow::~MainWindow()
 {}
+
+void MainWindow::showSwitchOutput() {
+	if (outDock->isHidden()) {
+		outDock->show();
+	} else {
+		outDock->hide();
+	}
+}
 
 void MainWindow::closeEvent(QCloseEvent *event) {
 	//! Ignore the event by default.. otherwise the window will be closed always.
@@ -63,61 +71,30 @@ void MainWindow::exitApp() {
 
 
 void MainWindow::setupDocks(){
-	QMainWindow::statusBar()->showMessage("Initializing GUI (Docks) ...");
-
     // resource dock
-    resDock = new QDockWidget(tr("Resource Explorer"), this);
+	resDock = new ResourceDock(this);
 	resDock->setObjectName("Resources");
-    resDock->setAllowedAreas(Qt::LeftDockWidgetArea | Qt::RightDockWidgetArea);
-    resDock->setMinimumWidth(120);
+	resDock->setupCategories(*kinfo->getResourceTypes());
     addDockWidget(Qt::LeftDockWidgetArea, resDock);
-
-	resTree = new ResourceTree(this);
-	resTree->setupCategories(*kinfo->getResourceTypes());
-	resDock->setWidget(resTree);
-	resDock->setTitleBarWidget(resTree->getHeaderTools());
-
+	
 	// output dock
-	outDock = new QDockWidget(tr("Engine Output"), this);
-	outDock->setObjectName("Resources");
-	outDock->setAllowedAreas(Qt::BottomDockWidgetArea);
-	outDock->setMinimumWidth(120);
+	outDock = new OutputDock(this);
 	addDockWidget(Qt::BottomDockWidgetArea, outDock);
-
-	koutput = new QTextEdit(this);
-	koutput->setReadOnly(true);
-	connect(exec, &Executer::engineOutput, koutput, &QTextEdit::append);
-	outDock->setWidget(koutput);
+	outDock->hide();
 
     // objects dock
-    objDock = new QDockWidget(tr("Hierarchy"), this);
-	objDock->setObjectName("Hierarchy");
-    objDock->setAllowedAreas(Qt::LeftDockWidgetArea | Qt::RightDockWidgetArea);
-    objDock->setMinimumWidth(120);
-    addDockWidget(Qt::LeftDockWidgetArea, objDock);
-
-	objTree = new ObjectTree(this);
-	objDock->setWidget(objTree);
-	objDock->setTitleBarWidget(objTree->getHeaderTools());
-
-	connect(resTree, &ResourceTree::resourceSelected, objTree, &ObjectTree::sceneEdit);
-	connect(resTree, &ResourceTree::resourceDelete, objTree, &ObjectTree::sceneDelete);
+    objDock = new ObjectDock(this);
+    addDockWidget(Qt::LeftDockWidgetArea, objDock);	
+	connect(resDock, &ResourceDock::resourceSelected, objDock, &ObjectDock::sceneEdit);
+	connect(resDock, &ResourceDock::resourceDelete, objDock, &ObjectDock::sceneDelete);
 
     // component/properties dock
-    prpDock = new QDockWidget(tr("Components Editor"), this);
-	prpDock->setObjectName("Components Editor");
-    prpDock->setAllowedAreas(Qt::LeftDockWidgetArea | Qt::RightDockWidgetArea);
-    prpDock->setMinimumWidth(120);
+    prpDock = new ComponentDock(this);
+	prpDock->setupTypes(*kinfo->getComponentTypes());
+	prpDock->setResDictionary(resDock->getDictionary());
     addDockWidget(Qt::RightDockWidgetArea, prpDock);
-
-	propTree = new ComponentTree;
-	propTree->setupTypes(*kinfo->getComponentTypes());
-	propTree->setResDictionary(resTree->getDictionary());
-	prpDock->setWidget(propTree);
-	prpDock->setTitleBarWidget(propTree->getHeaderTools());
-
-	connect(objTree, &ObjectTree::objectSelected, propTree, &ComponentTree::entityEdit);
-	connect(objTree, &ObjectTree::objectDelete, propTree, &ComponentTree::entityDelete);
+	connect(objDock, &ObjectDock::objectSelected, prpDock, &ComponentDock::entityEdit);
+	connect(objDock, &ObjectDock::objectDelete, prpDock, &ComponentDock::entityDelete);
 
 	// kite object browser
 	expDock = new QDockWidget(tr("Object Browser"), this);
@@ -129,16 +106,14 @@ void MainWindow::setupDocks(){
 	tview->setModel(kinfo->getModel());
 	tview->setHeaderHidden(true);
 	expDock->setWidget(tview);
-
-	QMainWindow::statusBar()->showMessage("Ready");
 }
 
 void MainWindow::setupScene(){
 	mainTab = new MainTab(this);
 	mainTab->setCompleterModel(kinfo->getModel());
-	connect(resTree, &ResourceTree::resourceSelected, mainTab, &MainTab::selectResource);
-	connect(resTree, &ResourceTree::resourceEdit, mainTab, &MainTab::openTabs);
-	connect(resTree, &ResourceTree::resourceDelete, mainTab, &MainTab::closeResource);
+	connect(resDock, &ResourceDock::resourceSelected, mainTab, &MainTab::selectResource);
+	connect(resDock, &ResourceDock::resourceEdit, mainTab, &MainTab::openTabs);
+	connect(resDock, &ResourceDock::resourceDelete, mainTab, &MainTab::closeResource);
 
     sceneView = new QGraphicsView();
 	mainTab->addTab(sceneView, "Scene");
@@ -154,8 +129,6 @@ void MainWindow::setupScene(){
 }
 
 void MainWindow::setupActions() {
-	QMainWindow::statusBar()->showMessage("setup actions ...");
-
 	newProj = new QAction(QIcon(":/icons/new"), "New Project", this);
 	newProj->setShortcut(QKeySequence(Qt::CTRL + Qt::SHIFT + Qt::Key_N));
 	newProj->setShortcutContext(Qt::ApplicationShortcut);
@@ -194,12 +167,15 @@ void MainWindow::setupActions() {
 	projSettings->setShortcutContext(Qt::ApplicationShortcut);
 	connect(projSettings, &QAction::triggered, this, &MainWindow::openProjSetting);
 
+	showOutputPan = new QAction("Output", this);
+	showOutputPan->setShortcut(QKeySequence(Qt::ALT + Qt::Key_2));
+	showOutputPan->setShortcutContext(Qt::ApplicationShortcut);
+	connect(showOutputPan, &QAction::triggered, this, &MainWindow::showSwitchOutput);
+
 	exit = new QAction(QIcon(":/icons/exit"), "Exit", this);
 	exit->setShortcut(QKeySequence(Qt::ALT + Qt::Key_F4));
 	exit->setShortcutContext(Qt::ApplicationShortcut);
 	connect(exit, &QAction::triggered, this, &MainWindow::exitApp);
-
-	QMainWindow::statusBar()->showMessage("Ready");
 }
 
 void MainWindow::setupMenus(){
@@ -251,7 +227,11 @@ void MainWindow::setupStatusBar() {
 	klabel->setText("Kite2D Editor ver 0.1");
 	klabel->setStyleSheet("color: orange;");
 	QMainWindow::statusBar()->addPermanentWidget(klabel);
-	QMainWindow::statusBar()->showMessage("Ready");
+
+	auto btnShowOutputPan = new QToolButton(this);
+	btnShowOutputPan->setDefaultAction(showOutputPan);
+	btnShowOutputPan->setToolButtonStyle(Qt::ToolButtonTextOnly);
+	QMainWindow::statusBar()->addWidget(btnShowOutputPan);
 }
 
 void MainWindow::loadDockState() {
@@ -328,7 +308,7 @@ void MainWindow::saveXML(QIODevice *device, const QString &Address){
 
 	// resources
 	stream.writeStartElement("resources");
-	auto resDict = resTree->getDictionary();
+	auto resDict = resDock->getDictionary();
 	for (auto it = resDict->cbegin(); it != resDict->cend(); ++it) {
 		KFOStream fstream;
 		fstream.open(Address.toStdString() + "/resources/" + it.key().toStdString() + ".kres", Kite::IOMode::BIN);
@@ -337,7 +317,7 @@ void MainWindow::saveXML(QIODevice *device, const QString &Address){
 
 		fstream.open(Address.toStdString() + "/dict.kdict", Kite::IOMode::BIN);
 		Kite::KBinarySerial bserial;
-		bserial << *resTree->getKiteDictionary(Address + "/");
+		bserial << *resDock->getKiteDictionary(Address + "/");
 		bserial.saveStream(&fstream);
 		fstream.close();
 
@@ -414,7 +394,7 @@ bool MainWindow::loadXML(QIODevice *device, const QString &Address) {
 				while (!xml.atEnd()) {
 					xml.readNext();
 					if (xml.isStartElement() && xml.name() == "item") {
-						if (!resTree->openResource(curProject->resPath + "/" + xml.attributes().value("name").toString() + ".kres",
+						if (!resDock->openResource(curProject->resPath + "/" + xml.attributes().value("name").toString() + ".kres",
 												  xml.attributes().value("type").toString())) {
 							return false;
 						}
@@ -437,17 +417,41 @@ bool MainWindow::loadXML(QIODevice *device, const QString &Address) {
 
 void MainWindow::startEngine() {
 	saveProject();
-	koutput->clear();
+	outDock->getEditor()->clear();
+	outDock->autoShow();
+	connect(exec, &Executer::engineOutput, this, &MainWindow::getEngineOutput);
 	exec->run(&curProject->config);
 }
 
+void MainWindow::getEngineOutput(const QString &Text, int MType) {
+	switch ((Kite::msgType)MType) {
+	case Kite::msgType::MSG_DEBUG:
+		outDock->getEditor()->appendHtml("<font color=\"red\"><b>DEBUG: </b></font>" + Text);
+		break;
+	case Kite::msgType::MSG_BREAK:
+		outDock->getEditor()->appendHtml("<font color=\"red\"><b>BREAK: </b></font>" + Text);
+		break;
+	case Kite::msgType::MSG_ASSERT:
+		outDock->getEditor()->appendHtml("<font color=\"red\"><b>ASSERT: </b></font>" + Text);
+		break;
+	case Kite::msgType::MSG_LUA:
+		outDock->getEditor()->appendPlainText("Output: " + Text);
+		break;
+	default:
+		outDock->getEditor()->appendHtml("<font color=\"yellow\"><b>Other: </b></font>" + Text);
+		break;
+	}
+}
+
 void MainWindow::engineStarted() {
+	outDock->getEditor()->appendHtml("<font color = \"Aqua\">---- Engine Started ----</font>");
 	playScene->setDisabled(true);
 	pauseScene->setDisabled(false);
 	stopScene->setDisabled(false);
 }
 
 void MainWindow::enginePaused() {
+	outDock->getEditor()->appendHtml("<font color = \"Aqua\">---- Engine Paused ----</font>");
 	playScene->setDisabled(false);
 	pauseScene->setDisabled(true);
 	stopScene->setDisabled(false);
@@ -456,6 +460,7 @@ void MainWindow::enginePaused() {
 }
 
 void MainWindow::engineUnpaused() {
+	outDock->getEditor()->appendHtml("<font color = \"Aqua\">---- Engine Unpaused ----</font>");
 	playScene->setDisabled(true);
 	pauseScene->setDisabled(false);
 	stopScene->setDisabled(false);
@@ -464,6 +469,9 @@ void MainWindow::engineUnpaused() {
 }
 
 void MainWindow::engineStoped() {
+	outDock->getEditor()->appendHtml("<font color = \"Aqua\">---- Engine Stoped ----</font>");
+	disconnect(exec, &Executer::engineOutput, this, &MainWindow::getEngineOutput);
+	outDock->autoHide();
 	playScene->setDisabled(false);
 	pauseScene->setDisabled(true);
 	stopScene->setDisabled(true);
@@ -524,7 +532,7 @@ void MainWindow::openProject() {
 
 void MainWindow::saveProject() {
 	if (curProject != nullptr) {
-		resTree->manageUsedResource(kinfo->getResourceComponentsTypes());
+		resDock->manageUsedResource(kinfo->getResourceComponentsTypes());
 		mainTab->saveAll();
 		QFile file(curProject->Path + "/" + curProject->name + ".k2d");
 		if (file.open(QIODevice::WriteOnly)) {
@@ -551,8 +559,8 @@ void MainWindow::closeProject() {
 		this->setWindowTitle("Kite2D Editor");
 
 		// clear resource tree
-		resTree->clearResources();
-		resTree->setupCategories(*kinfo->getResourceTypes());
+		resDock->clearResources();
+		resDock->setupCategories(*kinfo->getResourceTypes());
 
 		delete curProject;
 		curProject = nullptr;
@@ -563,7 +571,7 @@ void MainWindow::closeProject() {
 
 void MainWindow::openProjSetting() {
 	QStringList items;
-	resTree->filterByType("KScene", items);
+	resDock->filterByType("KScene", items);
 	frmProjSettings frm(this, &curProject->config, items);
 	frm.exec();
 }

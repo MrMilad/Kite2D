@@ -5,6 +5,7 @@ Completer *CodeEditor::completer = new Completer();
 CodeEditor::CodeEditor(QWidget *parent) :
 	QPlainTextEdit(parent), currScript(nullptr)
 {
+	setLineWrapMode(QPlainTextEdit::LineWrapMode::NoWrap);
     lineNumberArea = new LineNumberArea(this);
 	QFont font;
 	font.setFamily("Consolas");
@@ -235,7 +236,7 @@ void CodeEditor::lineNumberAreaPaintEvent(QPaintEvent *event){
     painter.fillRect(event->rect(), Qt::black);
 
     QTextBlock block = firstVisibleBlock();
-    int blockNumber = block.blockNumber();
+    int blockNumber = block.blockNumber() + 6;
     int top = (int) blockBoundingGeometry(block).translated(contentOffset()).top();
     int bottom = top + (int) blockBoundingRect(block).height();
 

@@ -31,15 +31,15 @@ namespace Kite {
 	class KITE_FUNC_EXPORT KLogicSys : public KSystem {
 		KMETA_KLOGICSYS_BODY();
 	public:
-		void update(F32 Delta, KEntityManager *EManager, KResourceManager *RManager);
+		bool update(F32 Delta, KEntityManager *EManager, KResourceManager *RManager);
 
 		bool inite(void *Data);
 
 	private:
-		void catchAndRegist(KLogicCom *Component, KResourceManager *RManager);
-		void initeComp(KEntity *Self, KLogicCom *Component);
-		void startComp(KEntity *Self, KLogicCom *Component);
-		void updateComp(F32 Delta,KEntity *Self, KLogicCom *Component);
+		bool catchAndRegist(KLogicCom *Component, KResourceManager *RManager);
+		bool initeComp(KEntity *Self, KLogicCom *Component);
+		bool startComp(KEntity *Self, KLogicCom *Component);
+		bool updateComp(F32 Delta,KEntity *Self, KLogicCom *Component);
 		lua_State *_klvm;
 	};
 }

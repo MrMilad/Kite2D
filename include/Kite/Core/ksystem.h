@@ -36,7 +36,7 @@ namespace Kite {
 
 		virtual ~KSystem();
 
-		virtual void update(F32 Delta, KEntityManager *EManager, KResourceManager *RManager) = 0;
+		virtual bool update(F32 Delta, KEntityManager *EManager, KResourceManager *RManager) = 0;
 
 		virtual bool inite(void *Data) = 0;
 

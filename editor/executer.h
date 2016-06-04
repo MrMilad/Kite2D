@@ -36,13 +36,13 @@ signals:
 	void paused();
 	void unpaused();
 	void stoped();
-	void engineOutput(const QString &Text);
+	void engineOutput(const QString &Text, int MType);
 
 private slots:
 	void cleanUp();
 
 private:
-	static void koutCallback(const std::string &Text);
+	static void koutCallback(const std::string &Text, Kite::msgType MType);
 	static Executer *instance;
 	WorkerThread *wthread;
 	Kite::KEngine *engine;

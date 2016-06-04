@@ -26,7 +26,7 @@ USA
 #include <luaintf/LuaIntf.h>
 
 namespace Kite {
-	void KInputSys::update(F32 Delta, KEntityManager *EManager, KResourceManager *RManager) {
+	bool KInputSys::update(F32 Delta, KEntityManager *EManager, KResourceManager *RManager) {
 		if (EManager->isRegisteredComponent("Input")) {
 			for (auto it = EManager->beginComponent<KInputCom>("Input");
 			it != EManager->endComponent<KInputCom>("Input"); ++it) {
@@ -46,6 +46,7 @@ namespace Kite {
 				}
 			}
 		}
+		return true;
 	}
 
 	bool KInputSys::inite(void *Opaque) {

@@ -211,7 +211,7 @@ namespace Kite {
 			return found->second.first;
 		}
 
-		KD_FPRINT("this reaource not loaded yet. rname: %s", ResName.c_str());
+		KD_FPRINT("there is no resource with the given name. rname: %s", Name.c_str());
 		return nullptr;
 	}
 

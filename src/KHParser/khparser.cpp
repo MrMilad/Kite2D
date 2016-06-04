@@ -94,6 +94,7 @@ struct MInfo {
 
 struct MFunction {
 	std::string name;
+	std::string customName;
 	std::string tokparam;
 	bool ista;
 	bool inl;
@@ -663,7 +664,7 @@ void splitParam(const std::string &Content, std::vector<std::pair<std::string, s
 
 bool procFunc(const std::string &Content, MFunction &Func, unsigned int Pos) {
 	std::string output;
-	std::vector<std::string> params;
+	std::vector<std::pair<std::string, std::string>> params;
 	if (checkNext(Content, Pos) != PS_BODY_START) {
 		printf("error: missing ().\n");
 		return false;
@@ -673,6 +674,18 @@ bool procFunc(const std::string &Content, MFunction &Func, unsigned int Pos) {
 	// and there is no warning for empty parameter list
 	Pos = getNextBody(Content, Pos, output);
 	Func.tokparam = output;
+
+	// check KP_NAME for custom function names (its optional)
+	splitParam(output, params);
+	for (auto it = params.begin(); it != params.end(); ++it) {
+		if (it->first == "KP_NAME") {
+			if (it->second.empty()) {
+				printf("error: tag without any value detected ==> function name: %s  TAG: KP_NAME\n", Func.name.c_str());
+				return false;
+			}
+			Func.customName = strmap[it->second];
+		}
+	}
 
 	// check function attributes 
 	if (checkNextRaw(Content, Pos, false) != PS_WORD) {
@@ -1911,6 +1924,15 @@ void createMacros(const std::vector<MClass> &Cls, const std::vector<MEnum> &Enms
 			continue;
 		}
 
+		// ctype
+		std::string comName = Cls[i].name;
+		for (auto it = Cls[i].infos.begin(); it != Cls[i].infos.end(); ++it) {
+			if (it->key == "KI_CTYPE") {
+				comName = it->info;
+				break;
+			}
+		}
+
 		// linkage state
 		std::string exstate;
 		if (Cls[i].exstate == ES_NONE) {
@@ -1935,7 +1957,7 @@ void createMacros(const std::vector<MClass> &Cls, const std::vector<MEnum> &Enms
 			}
 		}
 
-		// property setter/getter (only components have properties)
+		// property setter/getter, getBase, lua cast (only components have properties)
 		if (isComponent && !isAbstract) {
 			Output.append(exstate + "bool setProperty(const std::string &Name, KAny &Value) override;\\\n" +
 						  exstate + "KAny getProperty(const std::string &Name) const override;\\\n");
@@ -1953,7 +1975,26 @@ void createMacros(const std::vector<MClass> &Cls, const std::vector<MEnum> &Enms
 			Output.append(exstate + "void deserial(KBaseSerial &Serializer);\\\n");
 		}
 
-		Output.append(exstate + "static void registerMeta(KMetaManager *MMan = nullptr, lua_State *Lua = nullptr);\\\n"
+		// component lua cast and base access
+		if (isComponent && !isAbstract) {
+			std::string cname = Cls[i].name;
+			for (auto it = Cls[i].infos.begin(); it != Cls[i].infos.end(); ++it) {
+				if (it->key == "KI_CTYPE") {
+					cname = it->info;
+				}
+			}
+
+			Output.append("private:\\\n" +
+						  exstate + "static " + Cls[i].name + " *to" + cname + "(KComponent *Base) {\\\n" +
+						  "if (Base != nullptr){\\\n"
+						  "if (Base->getType() == \"" + cname + "\") {\\\n"
+						  "return (" + Cls[i].name + " *)Base; }};\\\n" +
+						  "return nullptr; }\\\n" +
+						  exstate + "inline KComponent *getBase() override { return this; }\\\n");
+		}
+
+		Output.append("public:\\\n" +
+					  exstate + "static void registerMeta(KMetaManager *MMan = nullptr, lua_State *Lua = nullptr);\\\n"
 					  "virtual const std::string &getClassName() const { static std::string name(\"" + Cls[i].name + "\");\\\n"
 					  "return name;}\n");
 
@@ -2026,6 +2067,12 @@ void createMacros(const std::vector<MClass> &Cls, const std::vector<MEnum> &Enms
 						  + "\"" + Cls[i].props[count].resType + "\"));\\\n");
 		}
 
+		
+		// predefined functions
+		if (isComponent && !isAbstract) {
+			Output.append("instance.addFunction(KMetaFunction(\"to" + comName + "\", true));\\\n");
+		}
+
 		// functions
 		for (size_t count = 0; count < Cls[i].funcs.size(); count++) {
 			std::string ista = "false";
@@ -2033,16 +2080,22 @@ void createMacros(const std::vector<MClass> &Cls, const std::vector<MEnum> &Enms
 				ista = "true";
 			} 
 
-			Output.append("instance.addFunction(KMetaFunction(\"" + Cls[i].funcs[count].name + "\", " + ista + " ));\\\n");
+			std::string fname = Cls[i].funcs[count].name;
+			if (!Cls[i].funcs[count].customName.empty()) {
+				fname = Cls[i].funcs[count].customName;
+			}
+
+			Output.append("instance.addFunction(KMetaFunction(\"" + fname + "\", " + ista + " ));\\\n");
 		}
 		Output.append("initeMeta = true;}\\\n");
 
 		// lua binding 
 		if (isComponent || isScriptable || isEntity || isPOD ||
 			isSystem || isIStream || isOStream || isResource) {
+
 			Output.append("if (Lua != nullptr) { \\\n"
 						  "LuaIntf::LuaBinding(Lua).beginModule(\"Kite\").beginClass<"
-						  + Cls[i].name + ">(\"" + Cls[i].name + "\")\\\n");
+						  + Cls[i].name + ">(\"" + comName + "\")\\\n");
 
 			// constructure
 			std::string param;
@@ -2058,6 +2111,12 @@ void createMacros(const std::vector<MClass> &Cls, const std::vector<MEnum> &Enms
 					}
 				}
 				Output.append(".addConstructor(LUA_ARGS(" + param + "))\\\n");
+			}
+
+			// predefined (base, lua cast)
+			if (isComponent && !isAbstract) {
+				Output.append(".addProperty(\"base\", &" + Cls[i].name + "::getBase)\\\n");
+				Output.append(".addStaticFunction(\"to" + comName + "\", &" + Cls[i].name + "::to" + comName + ")\\\n");
 			}
 
 			// properties
@@ -2079,7 +2138,11 @@ void createMacros(const std::vector<MClass> &Cls, const std::vector<MEnum> &Enms
 				} else {
 					fista = "addFunction";
 				}
-				Output.append("." + fista + "(\"" + Cls[i].funcs[count].name + "\", &" + Cls[i].name + "::" + Cls[i].funcs[count].name + ")\\\n");
+				std::string fname = Cls[i].funcs[count].name;
+				if (!Cls[i].funcs[count].customName.empty()) {
+					fname = Cls[i].funcs[count].customName;
+				}
+				Output.append("." + fista + "(\"" + fname + "\", &" + Cls[i].name + "::" + Cls[i].funcs[count].name + ")\\\n");
 			}
 
 			// operators

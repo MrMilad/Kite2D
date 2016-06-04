@@ -6,29 +6,20 @@
 #include <qhash>
 #include <qstringlist.h>
 #include <kiteinfo.h>
-#include <resourcetree.h>
-#include <objecttree.h>
-#include <componenttree.h>
+#include <resourcedock.h>
+#include <objectdock.h>
+#include <componentdock.h>
+#include <outputdock.h>
 #include <maintab.h>
 #include "executer.h"
 #include <Kite/engine/kengine.h>
 
 class QGraphicsView;
 class QMenu;
-class QDockWidget;
-class QTreeWidget;
-class QTreeWidgetItem;
 class QTabWidget;
-class QTableWidget;
 class QToolBox;
 class QStatusBar;
-class QListWidget;
-class QLineEdit;
 class QAction;
-class QFormLayout;
-class QFrame;
-class QCheckBox;
-class QTextEdit;
 
 struct Project {
 	QString name;
@@ -46,9 +37,11 @@ public:
     ~MainWindow();
 
 private slots:
+void showSwitchOutput();
 void closeEvent(QCloseEvent *event) override;
 
 void startEngine();
+void getEngineOutput(const QString &Text, int MType);
 
 void engineStarted();
 void enginePaused();
@@ -79,17 +72,14 @@ private:
 	void saveXML(QIODevice *device, const QString &Address);
 	bool loadXML(QIODevice *device, const QString &Address);
 
-    QDockWidget *resDock;
-    QDockWidget *objDock;
-    QDockWidget *prpDock;
+    ResourceDock *resDock;
+    ObjectDock *objDock;
+    ComponentDock *prpDock;
 	QDockWidget *expDock;
-	QDockWidget *outDock;
+	OutputDock *outDock;
+
 	MainTab *mainTab;
     QGraphicsView *sceneView;
-	ComponentTree *propTree;
-    ResourceTree *resTree;
-	ObjectTree *objTree;
-	QTextEdit *koutput;
 
 	QMenu *fileMenu;
 	QMenu *winMenu;
@@ -104,6 +94,7 @@ private:
 	QAction *pauseScene;
 	QAction *stopScene;
 	QAction *projSettings;
+	QAction *showOutputPan;
 	QAction *exit;
 
 	QHash<QString, QWidget *> resTabs;

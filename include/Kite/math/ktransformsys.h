@@ -33,7 +33,7 @@ namespace Kite {
 	class KITE_FUNC_EXPORT KTransformSys: public KSystem {
 		KMETA_KTRANSFORMSYS_BODY();
 	public:
-		void update(F32 Delta, KEntityManager *EManager, KResourceManager *RManager);
+		bool update(F32 Delta, KEntityManager *EManager, KResourceManager *RManager);
 
 		bool inite(void *Data);
 

@@ -1,53 +1,116 @@
 #include "comproperty.h"
+#include "expander.h"
 #include <qobject.h>
 
-QCheckBox *checkEdit(QFormLayout *Layout, QString Label, bool defval, bool ReadOnly) {
-	auto check = new QCheckBox();
-	check->setChecked(defval);
-	if (defval) {
-		check->setText("On");
-	} else {
-		check->setText("Off");
+ComponentView::ComponentView(Kite::KComponent *Component, QWidget *Parent, const QHash<QString, Kite::KResource *> *Dictionary) :
+	QFrame(Parent), resDict(Dictionary) {
+	compHandle = Component->getHandle();
+	auto meta = (Kite::KMetaClass *)getKMeta()->getMeta(Component->getClassName());
+	auto propList = meta->getProperties();
+
+	auto flayout = new QFormLayout(this);
+	flayout->setContentsMargins(10, 0, 10, 0);
+	flayout->setHorizontalSpacing(5);
+	flayout->setVerticalSpacing(3);
+
+	for (auto it = propList->cbegin(); it != propList->cend(); ++it) {
+		auto propTypeMeta = getKMeta()->getMeta(it->typeName);
+		if (propTypeMeta == nullptr) {
+			QString val("Unregistered Property! Name: ");
+			auto invalidType = new QLabel(val + it->name.c_str() + " Type: " + it->typeName.c_str());
+			invalidType->setStyleSheet("QLabel { color : red; }");
+			flayout->addRow(invalidType);
+			continue;
+
+		} else if ((propTypeMeta->getMetaType() != Kite::KMetaTypes::KMT_POD) &&
+				   !(propTypeMeta->getFlag() & POD)) {
+			QString val("Unsupported Property Type! Name: ");
+			auto invalidType = new QLabel(val + it->name.c_str() + " Type: " + it->typeName.c_str());
+			invalidType->setStyleSheet("QLabel { color : red; }");
+			flayout->addRow(invalidType);
+			continue;
+
+		} else {
+			createGUI(Component, &(*it), flayout);
+		}
 	}
 
-	if (ReadOnly) {
-		check->setCheckable(false);
-	}
-	check->setStyleSheet("color: DarkViolet;");
-	Layout->addRow(Label, check);
-	return check;
+	this->setLayout(flayout);
 }
 
-ComProperty::ComProperty(QObject *Parrent, QString CName, QString CType,
-						 QString PName, QString PType, Kite::KHandle EHandle) :
-	QObject(Parrent), cname(CName), ctype(CType),
-	pname(PName), ptype(PType), entity(EHandle){}
-
-QComboBox *comboEdit(QFormLayout *Layout, QString Label, const QStringList &Items, bool ReadOnly) {
-	auto combo = new QComboBox();
-	combo->addItems(Items);
-
-	if (ReadOnly) {
-		combo->setEditable(false);
-	}
-
-	Layout->addRow(Label, combo);
-	return combo;
+void ComponentView::reset(Kite::KComponent *Comp) {
+	compHandle = Comp->getHandle();
+	emit(resetSig(Comp));
 }
 
-QLineEdit *lineEdit(QFormLayout *Layout, QString Label, QString Text, bool ReadOnly) {
-	auto line = new QLineEdit();
-	line->setText(Text);
-	line->setStyleSheet("color: DarkViolet;");
-	line->setToolTip(line->text());
-
-	if (ReadOnly) {
-		line->setDisabled(true);
-		line->setStyleSheet("border: none; color: DarkViolet;");
-	}
-	QObject::connect(line, &QLineEdit::textChanged, line, &QLineEdit::setToolTip);
-	Layout->addRow(Label, line);
-	return line;
+void ComponentView::propChanged(const QString &CType, const QString &Pname, QVariant &Value) {
+	emit(componentEdited(compHandle, CType, Pname, Value));
 }
+
+void ComponentView::createGUI(Kite::KComponent *Comp, const Kite::KMetaProperty *Meta, QFormLayout *Layout) {
+	// F32
+	if (Meta->typeName == "F32") {
+		// create an appropriate widgte and bind property to it
+		bool ronly = false;
+		if (Meta->type == Kite::KMetaPropertyTypes::KMP_GETTER) ronly = true;
+		auto pgui = new priv::KF32(Comp, Meta->name.c_str(), " ", this, ronly, Meta->min, Meta->max);
+		connect(pgui, &priv::KF32::propertyEdited, this, &ComponentView::propChanged);
+		connect(this, &ComponentView::resetSig, pgui, &priv::KF32::reset);
+		Layout->addRow(Meta->name.c_str(), pgui);
+
+	} else if (Meta->typeName == "bool") {
+		// create an appropriate widgte and bind property to it
+		bool ronly = false;
+		if (Meta->type == Kite::KMetaPropertyTypes::KMP_GETTER) ronly = true;
+		auto pgui = new priv::KBOOL(Comp, Meta->name.c_str(), this, ronly);
+		connect(pgui, &priv::KBOOL::propertyEdited, this, &ComponentView::propChanged);
+		connect(this, &ComponentView::resetSig, pgui, &priv::KBOOL::reset);
+		Layout->addRow(Meta->name.c_str(), pgui);
+
+	// U32, I32
+	} else if (Meta->typeName == "I32" || Meta->typeName == "U32") {
+		// create an appropriate widgte and bind property to it
+		bool ronly = false;
+		if (Meta->type == Kite::KMetaPropertyTypes::KMP_GETTER) ronly = true;
+		priv::KI32 *pgui = 0;
+		if (Meta->typeName == "I32") {
+			pgui = new priv::KI32(Comp, Meta->name.c_str(), " ", this, ronly, Meta->min, Meta->max);
+		} else {
+			pgui = new priv::KI32(Comp, Meta->name.c_str(), " ", this, ronly, Meta->min, INT32_MAX);
+		}
+		connect(pgui, &priv::KI32::propertyEdited, this, &ComponentView::propChanged);
+		connect(this, &ComponentView::resetSig, pgui, &priv::KI32::reset);
+		Layout->addRow(Meta->name.c_str(), pgui);
+
+	// string
+	} else if (Meta->typeName == "std::string") {
+		// create an appropriate widgte and bind property to it
+		bool ronly = false;
+		if (Meta->type == Kite::KMetaPropertyTypes::KMP_GETTER) ronly = true;
+		priv::KSTR *pgui = 0;
+		if (Meta->resType.empty()) {
+			pgui = new priv::KSTR(Comp, Meta->name.c_str(), this, ronly);
+
+		// resource field
+		} else {
+			pgui = new priv::KSTR(Comp, Meta->name.c_str(), this, ronly, Meta->resType.c_str(), true, resDict);
+		}
+		connect(pgui, &priv::KSTR::propertyEdited, this, &ComponentView::propChanged);
+		connect(this, &ComponentView::resetSig, pgui, &priv::KSTR::reset);
+		Layout->addRow(Meta->name.c_str(), pgui);
+
+	// KVector2F32
+	} else if (Meta->typeName == "KVector2F32") {
+		// create an appropriate widgte and bind property to it
+		bool ronly = false;
+		if (Meta->type == Kite::KMetaPropertyTypes::KMP_GETTER) ronly = true;
+		auto pgui = new priv::KV2F32(Comp, Meta->name.c_str(), this, ronly, Meta->min, Meta->max);
+		connect(pgui, &priv::KV2F32::propertyEdited, this, &ComponentView::propChanged);
+		connect(this, &ComponentView::resetSig, pgui, &priv::KV2F32::reset);
+		Layout->addRow(Meta->name.c_str(), pgui);
+	}
+
+}
+
 
 

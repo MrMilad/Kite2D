@@ -54,7 +54,6 @@ void CodeEditor::setCompleterModel(QStandardItemModel *Model) {
 	completer->setModel(Model);
 	
 	if (!inite) {
-		completer->setSeparator(QLatin1String("."));
 		completer->popup()->setStyleSheet("QToolTip { border: 1px solid #2c2c2c; background-color: #242424; color: white;}");
 		completer->setMaxVisibleItems(9);
 		completer->setCaseSensitivity(Qt::CaseInsensitive);
@@ -117,11 +116,13 @@ void CodeEditor::insertCompletion(const QString &completion) {
 	if (completer->widget() != this)
 		return;
 	QTextCursor tc = textCursor();
-	tc.select(QTextCursor::WordUnderCursor);
-	if (tc.selectedText() == ".") {
-		tc.clearSelection();
+	tc.movePosition(QTextCursor::MoveOperation::PreviousCharacter, QTextCursor::MoveMode::KeepAnchor);
+	if (tc.selectedText() != "." && tc.selectedText() != ":") {
+		tc.select(QTextCursor::SelectionType::WordUnderCursor);
+		tc.removeSelectedText();
+	} else {
+		tc.movePosition(QTextCursor::MoveOperation::NextCharacter);
 	}
-	tc.removeSelectedText();
 	tc.insertText(completion.split(".").back());
 	setTextCursor(tc);
 }
@@ -134,14 +135,14 @@ QString CodeEditor::textUnderCursor() const {
 	unsigned int pos = 0;
 	auto it = text.begin() + tc.position() - 1;
 
-	if ((*it) == '.') {
+	if ((*it) == '.' || (*it) == ':') {
 		needDot = false;
 		++pos;
 		--it;
 	}
 
 	for (it; it != text.begin() - 1; --it) {
-		if ((*it) == '.' && needDot) {
+		if (((*it) == '.' || (*it) == ':') && needDot) {
 			++pos;
 			needDot = false;
 			continue;
@@ -215,7 +216,7 @@ void CodeEditor::keyPressEvent(QKeyEvent *e) {
 
 void CodeEditor::highlightCurrentLine(){
     QList<QTextEdit::ExtraSelection> extraSelections;
-
+	// line highlighter
     if (!isReadOnly()) {
         QTextEdit::ExtraSelection selection;
 
@@ -223,7 +224,7 @@ void CodeEditor::highlightCurrentLine(){
 
         selection.format.setBackground(lineColor);
         selection.format.setProperty(QTextFormat::FullWidthSelection, true);
-        selection.cursor = textCursor();
+		selection.cursor = textCursor();
         selection.cursor.clearSelection();
         extraSelections.append(selection);
     }

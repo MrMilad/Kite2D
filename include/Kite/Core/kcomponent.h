@@ -57,6 +57,7 @@ namespace Kite {
 		/// usage: access base members in lua
 		virtual KComponent *getBase() = 0;
 
+
 		KM_PRO_GET(KP_NAME = "type", KP_TYPE = std::string, KP_CM = "type of the component")
 		inline const std::string &getType() const { return _ktype; }
 

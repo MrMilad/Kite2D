@@ -1,4 +1,4 @@
-#include "resourcetree.h"
+#include "resourcedock.h"
 #include <QtWidgets>
 #include <qinputdialog.h>
 #include <qfiledialog.h>
@@ -9,74 +9,89 @@
 #include <Kite/logic/klogic.h>
 #include <kmeta.khgen.h>
 
-ResourceTree::ResourceTree(QWidget *Parrent) :
-	QTreeWidget(Parrent), kiteDictionary(new std::unordered_map<std::string, std::string>)
+ResourceDock::ResourceDock(QWidget *Parrent) :
+	QDockWidget("Resource Explorer", Parrent),
+	kiteDictionary(new std::unordered_map<std::string, std::string>)
 {
-	setColumnCount(1);
-	setHeaderHidden(true);
-	setSelectionMode(QAbstractItemView::SingleSelection);
-	setContextMenuPolicy(Qt::CustomContextMenu);
-	connect(this, &QTreeWidget::itemDoubleClicked, this, &ResourceTree::actDoubleClicked);
-	connect(this, &QTreeWidget::itemSelectionChanged, this, &ResourceTree::actClicked);
-	connect(this, &QTreeWidget::customContextMenuRequested, this, &ResourceTree::actRClicked);
+	setObjectName("Resources");
+	setAllowedAreas(Qt::LeftDockWidgetArea | Qt::RightDockWidgetArea);
+	setMinimumWidth(120);
 
+	setupTree();
 	setupActions();
 	actionsControl(AS_ON_INITE);
 	setupHTools();
-
 	registerRTypes(&rman);
 }
 
-ResourceTree::~ResourceTree() {}
+ResourceDock::~ResourceDock() {
+	delete kiteDictionary;
+}
 
-void ResourceTree::setupCategories(const QStringList &CatList) {
-	clear();
+void ResourceDock::setupTree() {
+	resTree = new QTreeWidget(this);
+	resTree->setDragEnabled(false);
+	resTree->setAcceptDrops(false);
+	resTree->setDragDropMode(QAbstractItemView::NoDragDrop);
+	resTree->setColumnCount(1);
+	resTree->setHeaderHidden(true);
+	resTree->setSelectionMode(QAbstractItemView::SingleSelection);
+	resTree->setContextMenuPolicy(Qt::CustomContextMenu);
+	setWidget(resTree);
+
+	connect(resTree, &QTreeWidget::itemDoubleClicked, this, &ResourceDock::actDoubleClicked);
+	connect(resTree, &QTreeWidget::itemSelectionChanged, this, &ResourceDock::actClicked);
+	connect(resTree, &QTreeWidget::customContextMenuRequested, this, &ResourceDock::actRClicked);
+}
+
+void ResourceDock::setupCategories(const QStringList &CatList) {
+	resTree->clear();
 	for (auto it = CatList.begin(); it != CatList.end(); ++it) {
-		auto cat = new QTreeWidgetItem(this);
+		auto cat = new QTreeWidgetItem(resTree);
 		cat->setText(0, (*it));
 		cat->setIcon(0, QIcon(":/icons/open"));
 	}
 }
 
-void ResourceTree::setupActions() {
+void ResourceDock::setupActions() {
 	addRes = new QAction(QIcon(":/icons/add"), "Add New Resource", this);
 	addRes->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_N));
 	addRes->setShortcutContext(Qt::WidgetWithChildrenShortcut);
-	connect(addRes, &QAction::triggered, this, &ResourceTree::actAdd);
+	connect(addRes, &QAction::triggered, this, &ResourceDock::actAdd);
 	this->addAction(addRes);
 
 	openRes = new QAction(QIcon(":/icons/open"), "Add Existing Resource", this);
 	openRes->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_O));
 	openRes->setShortcutContext(Qt::WidgetWithChildrenShortcut);
-	connect(openRes, &QAction::triggered, this, &ResourceTree::actOpen);
+	connect(openRes, &QAction::triggered, this, &ResourceDock::actOpen);
 	this->addAction(openRes);
 
 	saveRes = new QAction(QIcon(":/icons/save"), "Save Resource", this);
 	saveRes->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_S));
 	saveRes->setShortcutContext(Qt::WidgetWithChildrenShortcut);
-	connect(saveRes, &QAction::triggered, this, &ResourceTree::actSave);
+	connect(saveRes, &QAction::triggered, this, &ResourceDock::actSave);
 	this->addAction(saveRes);
 
 	saveAsRes = new QAction(QIcon(":/icons/saveAs"), "Save Resource As", this);
 	saveAsRes->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_A));
 	saveAsRes->setShortcutContext(Qt::WidgetWithChildrenShortcut);
-	connect(saveAsRes, &QAction::triggered, this, &ResourceTree::actSaveAs);
+	connect(saveAsRes, &QAction::triggered, this, &ResourceDock::actSaveAs);
 	this->addAction(saveAsRes);
 
 	editRes = new QAction(QIcon(":/icons/resEdit"), "Edit", this);
 	editRes->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_E));
 	editRes->setShortcutContext(Qt::WidgetWithChildrenShortcut);
-	connect(editRes, &QAction::triggered, this, &ResourceTree::actEdit);
+	connect(editRes, &QAction::triggered, this, &ResourceDock::actEdit);
 	this->addAction(editRes);
 
 	remRes = new QAction(QIcon(":/icons/remove"), "Remove", this);
 	remRes->setShortcut(QKeySequence(Qt::Key_Delete));
 	remRes->setShortcutContext(Qt::WidgetWithChildrenShortcut);
-	connect(remRes, &QAction::triggered, this, &ResourceTree::actRemove);
+	connect(remRes, &QAction::triggered, this, &ResourceDock::actRemove);
 	this->addAction(remRes);
 }
 
-void ResourceTree::setupHTools() {
+void ResourceDock::setupHTools() {
 	htools = new QFrame(this);
 	auto vlayout = new QVBoxLayout(htools);
 	vlayout->setMargin(2);
@@ -119,16 +134,18 @@ void ResourceTree::setupHTools() {
 	ledit->setPlaceholderText("Search");
 	ledit->addAction(QIcon(":/icons/search"), QLineEdit::ActionPosition::TrailingPosition);
 	ledit->setStyleSheet("background-color: gray;");
-	connect(ledit, &QLineEdit::textChanged, this, &ResourceTree::actSearch);
+	connect(ledit, &QLineEdit::textChanged, this, &ResourceDock::actSearch);
 	
 	hlayout->addWidget(ledit);
 
 	vlayout->addLayout(hlayout);
 
 	htools->setLayout(vlayout);
+
+	setTitleBarWidget(htools);
 }
 
-void ResourceTree::actionsControl(ActionsState State) {
+void ResourceDock::actionsControl(ActionsState State) {
 	if (State == AS_ON_CAT) {
 		addRes->setDisabled(false);
 		openRes->setDisabled(false);
@@ -153,15 +170,15 @@ void ResourceTree::actionsControl(ActionsState State) {
 	}
 }
 
-void ResourceTree::clearResources() {
+void ResourceDock::clearResources() {
 	for (auto it = dictinary.begin(); it != dictinary.end(); ++it) {
 		emit(resourceDelete((*it)));
 	}
 	dictinary.clear();
-	clear();
+	resTree->clear();
 }
 
-void ResourceTree::filterByType(const QString &Type, QStringList &List) {
+void ResourceDock::filterByType(const QString &Type, QStringList &List) {
 	List.clear();
 	for (auto it = dictinary.begin(); it != dictinary.end(); ++it) {
 		if (it.value()->getResourceType() == Type.toStdString()) {
@@ -171,7 +188,7 @@ void ResourceTree::filterByType(const QString &Type, QStringList &List) {
 
 }
 
-void ResourceTree::manageUsedResource(const QHash<QString, QVector<Kite::KMetaProperty>> *ResComponents) {
+void ResourceDock::manageUsedResource(const QHash<QString, QVector<Kite::KMetaProperty>> *ResComponents) {
 	if (ResComponents->empty()) {
 		return;
 	}
@@ -216,7 +233,7 @@ void ResourceTree::manageUsedResource(const QHash<QString, QVector<Kite::KMetaPr
 	}
 }
 
-const std::unordered_map<std::string, std::string> *ResourceTree::getKiteDictionary(const QString &AddressPrefix) const {
+const std::unordered_map<std::string, std::string> *ResourceDock::getKiteDictionary(const QString &AddressPrefix) const {
 	kiteDictionary->clear();
 	for (auto it = dictinary.begin(); it != dictinary.end(); ++it) {
 		kiteDictionary->insert({ it.key().toStdString(), AddressPrefix.toStdString() + "resources/" + it.key().toStdString() + ".kres" });
@@ -225,8 +242,8 @@ const std::unordered_map<std::string, std::string> *ResourceTree::getKiteDiction
 	return kiteDictionary;
 }
 
-bool ResourceTree::openResource(const QString &Address, const QString &Type) {
-	auto pitem = this->findItems(Type, Qt::MatchFlag::MatchExactly);
+bool ResourceDock::openResource(const QString &Address, const QString &Type) {
+	auto pitem = resTree->findItems(Type, Qt::MatchFlag::MatchExactly);
 	if (pitem.isEmpty()) {
 		QMessageBox msg;
 		msg.setWindowTitle("Message");
@@ -282,12 +299,12 @@ bool ResourceTree::openResource(const QString &Address, const QString &Type) {
 	return false;
 }
 
-void ResourceTree::actDoubleClicked(QTreeWidgetItem * item, int column) {
+void ResourceDock::actDoubleClicked(QTreeWidgetItem * item, int column) {
 	actEdit();
 }
 
-void ResourceTree::actClicked() {
-	auto item = currentItem();
+void ResourceDock::actClicked() {
+	auto item = resTree->currentItem();
 
 	if (item != nullptr) {
 		if (item->parent() == nullptr) {
@@ -303,12 +320,12 @@ void ResourceTree::actClicked() {
 	}
 }
 
-void ResourceTree::actRClicked(const QPoint & pos) {
-	QTreeWidgetItem *item = itemAt(pos);
+void ResourceDock::actRClicked(const QPoint & pos) {
+	QTreeWidgetItem *item = resTree->itemAt(pos);
 	QMenu cmenu(this);
 	
 	if (item != nullptr) {
-		// checking user rclicked on category or items??
+		// checking user rclicked on category or items?
 		if (item->parent() == nullptr) {
 			QPoint pt(pos);
 			addRes->setText("Add New " + item->text(0));
@@ -333,8 +350,8 @@ void ResourceTree::actRClicked(const QPoint & pos) {
 	}
 }
 
-void ResourceTree::actAdd() {
-	auto pitem = currentItem();
+void ResourceDock::actAdd() {
+	auto pitem = resTree->currentItem();
 	auto restype = pitem->text(0);
 
 	if (pitem->parent() != nullptr) {
@@ -409,8 +426,8 @@ void ResourceTree::actAdd() {
 	}
 }
 
-void ResourceTree::actOpen() {
-	auto pitem = currentItem();
+void ResourceDock::actOpen() {
+	auto pitem = resTree->currentItem();
 	auto restype = pitem->text(0);
 
 	if (pitem->parent() != nullptr) {
@@ -424,8 +441,8 @@ void ResourceTree::actOpen() {
 	}
 }
 
-void ResourceTree::actSave() {
-	auto item = currentItem();
+void ResourceDock::actSave() {
+	auto item = resTree->currentItem();
 	auto res = (*dictinary.find(item->text(0)));
 
 	Kite::KFOStream ostream;
@@ -440,8 +457,8 @@ void ResourceTree::actSave() {
 	res->saveStream(&ostream);
 }
 
-void ResourceTree::actSaveAs() {
-	auto item = currentItem();
+void ResourceDock::actSaveAs() {
+	auto item = resTree->currentItem();
 	auto res = (*dictinary.find(item->text(0)));
 
 	QString fileName = QFileDialog::getSaveFileName(this, "Save " + item->text(0),
@@ -461,8 +478,8 @@ void ResourceTree::actSaveAs() {
 	}
 }
 
-void ResourceTree::actEdit() {
-	auto item = currentItem();
+void ResourceDock::actEdit() {
+	auto item = resTree->currentItem();
 	if (item->parent() != nullptr) {
 		auto res = (*dictinary.find(item->text(0)));
 
@@ -471,8 +488,8 @@ void ResourceTree::actEdit() {
 	}
 }
 
-void ResourceTree::actRemove() {
-	if (currentItem()->parent() == nullptr) {
+void ResourceDock::actRemove() {
+	if (resTree->currentItem()->parent() == nullptr) {
 		return;
 	}
 
@@ -483,7 +500,7 @@ void ResourceTree::actRemove() {
 		return;
 	}
 
-	auto item = currentItem();
+	auto item = resTree->currentItem();
 	auto res = (*dictinary.find(item->text(0)));
 
 	// first we emit the corresponding signal
@@ -495,8 +512,8 @@ void ResourceTree::actRemove() {
 	delete res;
 }
 
-void ResourceTree::actSearch(const QString &Pharase) {
-	auto allItems = QTreeWidgetItemIterator(this);
+void ResourceDock::actSearch(const QString &Pharase) {
+	auto allItems = QTreeWidgetItemIterator(resTree);
 	while (*allItems) {
 		if ((*allItems)->parent() != nullptr) {
 			if (!Pharase.isEmpty()) {

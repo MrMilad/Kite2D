@@ -32,18 +32,13 @@ namespace Kite {
 		// check component registration
 		if (EManager->isRegisteredComponent("Logic")) {
 
-			// iterate over components
-			for (auto it = EManager->beginComponent<KLogicCom>("Logic");
-			it != EManager->endComponent<KLogicCom>("Logic"); ++it) {
-				auto ehandle = it->getOwnerHandle();
-
-				// get associated entity for each component
-				auto entity = EManager->getEntity(ehandle);
-				if (entity->getActive()) {
+			// iterate over objects
+			for (auto it = EManager->beginEntity(); it != EManager->endEntity(); ++it) {
+				if (it->getActive()) {
 
 					// retrive all script components from entity
 					static std::vector<KComponent *> components;
-					entity->getScriptComponents(components);
+					it->getScriptComponents(components);
 
 					// iterate over all logic components and inite/update them
 					for (auto comp = components.begin(); comp != components.end(); ++comp) {
@@ -55,21 +50,21 @@ namespace Kite {
 						}
 
 						// inite component (calling inite, only 1 time befor start)
-						if (!lcomp->_kinite){
-							if (!initeComp(entity, lcomp)) return false;
+						if (!lcomp->_kinite) {
+							if (!initeComp(&(*it), lcomp)) return false;
 							lcomp->_kinite = true;
 							continue;
 						}
 
 						// start component (calling start, only 1 time befor update)
-						if (!lcomp->_kstart){
-							if (!startComp(entity, lcomp)) return false;
+						if (!lcomp->_kstart) {
+							if (!startComp(&(*it), lcomp)) return false;
 							lcomp->_kstart = true;
 							continue;
 						}
 
 						// update component (calling update, per frame)
-						if (!updateComp(Delta, entity, lcomp)) return false;
+						if (!updateComp(Delta, &(*it), lcomp)) return false;
 					}
 				}
 			}
@@ -117,6 +112,10 @@ namespace Kite {
 	bool KLogicSys::catchAndRegist(KLogicCom *Component, KResourceManager *RManager) {
 		// retrive script rsource from resource manager
 		KScript *script = (KScript *)RManager->get(Component->getScript());
+		if (script == nullptr) {
+			KD_FPRINT("can't load script resource. cname: %s", Component->getName().c_str());
+			return false;
+		}
 		Component->_kscript = script;
 
 		Component->setLuaState(_klvm);

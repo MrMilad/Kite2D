@@ -1,41 +1,94 @@
 #include "expander.h"
-#include <QTreeWidget>
-#include <QTreeWidgetItem>
-#include <qtoolbutton.h>
-#include <QIcon>
-#include <QHBoxLayout>
+#include <QtWidgets>
+#include <comproperty.h>
 
-Expander::Expander(const QString& Text, const QIcon &Icon, QTreeWidgetItem* TreeItem, QWidget* Parent):
-	QFrame(Parent), item(TreeItem)
+Expander::Expander(Kite::KComponent *Comp, const QHash<QString, Kite::KResource *> *Dictionary, QTreeWidget *Parent):
+	QObject(Parent), expandable(true)
 {
-	auto hlayout = new QHBoxLayout(this);
+	chandle = Comp->getHandle();
+	ctype = Comp->getType().c_str();
+	QString name = Comp->getType().c_str();
+	if (name == "Logic") {
+		name.append(" ");
+		name.append(Comp->getName().c_str());
+	}
+
+	head = new QTreeWidgetItem(Parent);
+	head->setFlags(head->flags() ^ Qt::ItemIsDropEnabled);
+	head->setChildIndicatorPolicy(QTreeWidgetItem::ShowIndicator);
+	head->setText(0, name);
+	head->setHidden(true);
+
+	mainFrame = new QFrame(Parent);
+
+	btnExpand = new QToolButton(mainFrame);
+	btnExpand->setIcon(QIcon(":/icons/comp32"));
+	btnExpand->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
+	btnExpand->setText(name);
+	btnExpand->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
+
+	auto hlayout = new QHBoxLayout(btnExpand);
 	hlayout->setMargin(0);
 	hlayout->setSpacing(0);
+	hlayout->addStretch(1);
 
-	auto btnExpand = new QToolButton(this);
-	btnExpand->setIcon(Icon);
-	btnExpand->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
-	btnExpand->setText(Text);
-	btnExpand->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
-	hlayout->addWidget(btnExpand);
-
-	auto btnClose = new QToolButton(this);
-	btnClose->setMaximumWidth(16);
+	auto btnClose = new QToolButton(mainFrame);
+	btnClose->setContentsMargins(0, 0, 0, 0); 
 	btnClose->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Preferred);
 	btnClose->setIcon(QIcon(":/icons/close"));
 	btnClose->setToolButtonStyle(Qt::ToolButtonIconOnly);
+	btnClose->setAutoRaise(true);
 	hlayout->addWidget(btnClose);
 
-	this->setLayout(hlayout);
+	auto mainLayout = new QHBoxLayout(mainFrame);
+	mainLayout->setMargin(0);
+	mainLayout->setSpacing(0);
+	mainLayout->addWidget(btnExpand);
 
-	connect(btnExpand, &QToolButton::pressed, this, &Expander::expandPressed);
-	connect(btnClose, &QToolButton::clicked, this, &Expander::closePressed);
+	mainFrame->setLayout(mainLayout);
+
+	Parent->setItemWidget(head, 0, mainFrame);
+
+	content = new ComponentView(Comp, Parent, Dictionary);
+	
+	auto child = new QTreeWidgetItem(head);
+	child->setDisabled(true);
+	Parent->setItemWidget(child, 0, content);
+
+
+	connect(content, &ComponentView::componentEdited, this, &Expander::componentEdited);
+	connect(btnExpand, &QToolButton::pressed, this, &Expander::expClicked);
+	connect(btnClose, &QToolButton::clicked, this, &Expander::clsClicked);
 }
 
-void Expander::expandPressed() {
-	item->setExpanded(!item->isExpanded());
+void Expander::reset(Kite::KComponent *Comp) {
+	chandle = Comp->getHandle();
+	QString name = Comp->getType().c_str();
+	if (name == "Logic") {
+		name.append(" ");
+		name.append(Comp->getName().c_str());
+	}
+	head->setText(0, name);
+	btnExpand->setText(name);
+	highlight(false);
+	content->reset(Comp);
 }
 
-void Expander::closePressed() {
-	emit(closeClicked(cname, ctype, item));
+void Expander::highlight(bool Selected) {
+	if (Selected) {
+		btnExpand->setStyleSheet("background-color: green;");
+	} else {
+		btnExpand->setStyleSheet("");
+	}
+}
+
+void Expander::expClicked() {
+	if (expandable) {
+		head->setExpanded(!head->isExpanded());
+		emit(expandClicked(chandle, ctype));
+	}
+}
+
+void Expander::clsClicked() {
+	emit(closeClicked(chandle, ctype));
 }

@@ -10,6 +10,7 @@ greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
 TARGET = K2DEditor
 TEMPLATE = app
+CONFIG += console
 
 DEFINES += KITE_DEV_DEBUG
 DEFINES += KITE_EDITOR

@@ -1,6 +1,7 @@
-#ifndef RESOURCETREE_H
-#define RESOURCETREE_H
+#ifndef RESOURCEDOCK_H
+#define RESOURCEDOCK_H
 
+#include <qdockwidget.h>
 #include <qtreewidget.h>
 #include <qstringlist.h>
 #include <qaction.h>
@@ -11,12 +12,12 @@
 #include <Kite/meta/kmetaclass.h>
 #include "shared.h"
 
-class ResourceTree : public QTreeWidget {
+class ResourceDock : public QDockWidget {
 	Q_OBJECT
 
 public:
-	explicit ResourceTree(QWidget *parent = 0);
-	~ResourceTree();
+	explicit ResourceDock(QWidget *parent = 0);
+	~ResourceDock();
 
 	void setupCategories(const QStringList &CatList);
 	bool openResource(const QString &Address, const QString &Type);
@@ -25,7 +26,6 @@ public:
 	void manageUsedResource(const QHash<QString, QVector<Kite::KMetaProperty>> *ResComponents);
 
 	inline auto const getDictionary() const { return &dictinary; }
-	inline QFrame *getHeaderTools() { return htools; }
 	
 	const std::unordered_map<std::string, std::string> *getKiteDictionary(const QString &AddressPrefix) const;
 
@@ -49,10 +49,12 @@ private slots:
 	void actSearch(const QString &Pharase);
 
 private:
+	void setupTree();
 	void setupActions();
 	void setupHTools();
 	void actionsControl(ActionsState State);
 
+	QTreeWidget *resTree;
 	QAction *addRes;
 	QAction *openRes;
 	QAction *saveRes;
@@ -66,4 +68,4 @@ private:
 	Kite::KResourceManager rman;
 };
 
-#endif // RESOURCETREE_H
+#endif // RESOURCEDOCK_H

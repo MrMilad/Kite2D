@@ -1,52 +1,61 @@
-#include "objecttree.h"
+#include "objectdock.h"
 #include <QtWidgets>
 #include <qinputdialog.h>
 #include <kmeta.khgen.h>
 
-ObjectTree::ObjectTree(QWidget *parent):
-	QTreeWidget(parent), currScene(nullptr)
+ObjectDock::ObjectDock(QWidget *parent):
+	QDockWidget("Hierarchy", parent), currScene(nullptr)
 {
-	setColumnCount(1);
-	setHeaderHidden(true);
-	setSelectionMode(QAbstractItemView::SingleSelection);
-	setContextMenuPolicy(Qt::CustomContextMenu);
-	connect(this, &QTreeWidget::itemSelectionChanged, this, &ObjectTree::actClicked);
-	connect(this, &QTreeWidget::customContextMenuRequested, this, &ObjectTree::actRClicked);
+	setObjectName("Hierarchy");
+	setAllowedAreas(Qt::LeftDockWidgetArea | Qt::RightDockWidgetArea);
+	setMinimumWidth(120);
 
+	setupTree();
 	setupActions();
 	actionsControl(AS_ON_INITE);
 	setupHTools();
 }
 
-ObjectTree::~ObjectTree() {}
+ObjectDock::~ObjectDock() {}
 
-void ObjectTree::setupActions() {
+void ObjectDock::setupTree() {
+	objTree = new QTreeWidget(this);
+	objTree->setColumnCount(1);
+	objTree->setHeaderHidden(true);
+	objTree->setSelectionMode(QAbstractItemView::SingleSelection);
+	objTree->setContextMenuPolicy(Qt::CustomContextMenu);
+	connect(objTree, &QTreeWidget::itemSelectionChanged, this, &ObjectDock::actClicked);
+	connect(objTree, &QTreeWidget::customContextMenuRequested, this, &ObjectDock::actRClicked);
+	setWidget(objTree);
+}
+
+void ObjectDock::setupActions() {
 	addRootObj = new QAction(QIcon(":/icons/add"), "Add New Object", this);
 	addRootObj->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_N));
 	addRootObj->setShortcutContext(Qt::WidgetWithChildrenShortcut);
-	connect(addRootObj, &QAction::triggered, this, &ObjectTree::actAddRoot);
+	connect(addRootObj, &QAction::triggered, this, &ObjectDock::actAddRoot);
 	this->addAction(addRootObj);
 
 	addChildObj = new QAction(QIcon(":/icons/addChild"), "Add New Child", this);
 	addChildObj->setShortcut(QKeySequence(Qt::CTRL + Qt::ALT + Qt::Key_N));
 	addChildObj->setShortcutContext(Qt::WidgetWithChildrenShortcut);
-	connect(addChildObj, &QAction::triggered, this, &ObjectTree::actAddChild);
+	connect(addChildObj, &QAction::triggered, this, &ObjectDock::actAddChild);
 	this->addAction(addChildObj);
 
 	renameObj = new QAction(QIcon(":/icons/edit"), "Rename Object", this);
 	renameObj->setShortcut(QKeySequence(Qt::Key_F2));
 	renameObj->setShortcutContext(Qt::WidgetWithChildrenShortcut);
-	connect(renameObj, &QAction::triggered, this, &ObjectTree::actRename);
+	connect(renameObj, &QAction::triggered, this, &ObjectDock::actRename);
 	this->addAction(renameObj);
 
 	remObj = new QAction(QIcon(":/icons/remove"), "Remove Object", this);
 	remObj->setShortcut(QKeySequence(Qt::Key_Delete));
 	remObj->setShortcutContext(Qt::WidgetWithChildrenShortcut);
-	connect(remObj, &QAction::triggered, this, &ObjectTree::actRemove);
+	connect(remObj, &QAction::triggered, this, &ObjectDock::actRemove);
 	this->addAction(remObj);
 }
 
-void ObjectTree::setupHTools() {
+void ObjectDock::setupHTools() {
 	htools = new QFrame(this);
 	auto vlayout = new QVBoxLayout(htools);
 	vlayout->setMargin(2);
@@ -88,16 +97,17 @@ void ObjectTree::setupHTools() {
 	ledit->setPlaceholderText("Search");
 	ledit->addAction(QIcon(":/icons/search"), QLineEdit::ActionPosition::TrailingPosition);
 	ledit->setStyleSheet("background-color: gray;");
-	connect(ledit, &QLineEdit::textChanged, this, &ObjectTree::actSearch);
+	connect(ledit, &QLineEdit::textChanged, this, &ObjectDock::actSearch);
 
 	hlayout->addWidget(ledit);
 
 	vlayout->addLayout(hlayout);
 
 	htools->setLayout(vlayout);
+	setTitleBarWidget(htools);
 }
 
-void ObjectTree::actionsControl(ActionsState State) {
+void ObjectDock::actionsControl(ActionsState State) {
 	if (State == AS_ON_INITE) {
 		addRootObj->setDisabled(true);
 		addChildObj->setDisabled(true);
@@ -116,7 +126,7 @@ void ObjectTree::actionsControl(ActionsState State) {
 	}
 }
 
-void ObjectTree::loadChilds(Kite::KEntityManager *Eman, const Kite::KHandle &Entity, QTreeWidgetItem *Parrent) {
+void ObjectDock::loadChilds(Kite::KEntityManager *Eman, const Kite::KHandle &Entity, QTreeWidgetItem *Parrent) {
 	auto ent = Eman->getEntity(Entity);
 
 	for (auto it = ent->beginChild(); it != ent->endChild(); ++it) {
@@ -137,23 +147,23 @@ void ObjectTree::loadChilds(Kite::KEntityManager *Eman, const Kite::KHandle &Ent
 	}
 }
 
-void ObjectTree::sceneEdit(Kite::KResource *Scene) {
+void ObjectDock::sceneEdit(Kite::KResource *Scene) {
 	if (Scene->getResourceType() != "KScene" || Scene == currScene) {
 		return;
 	}
 
-	clear();
+	objTree->clear();
 
 	auto scene = (Kite::KScene *)Scene;
 	auto eman = scene->getEManager();
 	auto root = eman->getEntity(eman->getRoot());
 
 	// loading tree recursively
-	disconnect(this, &QTreeWidget::itemChanged, this, &ObjectTree::entityChecked);
+	disconnect(objTree, &QTreeWidget::itemChanged, this, &ObjectDock::entityChecked);
 
 	for (auto it = root->beginChild(); it != root->endChild(); ++it) {
 		auto child = eman->getEntity((*it));
-		auto node = new QTreeWidgetItem(this);
+		auto node = new QTreeWidgetItem(objTree);
 		node->setText(0, child->getName().c_str());
 		node->setFlags(node->flags() | Qt::ItemIsUserCheckable);
 		if (child->getActive()) {
@@ -170,27 +180,27 @@ void ObjectTree::sceneEdit(Kite::KResource *Scene) {
 	QString name(Scene->getResourceName().c_str());
 	hlabel->setText("Hierarchy (" + name + ")");
 
-	connect(this, &QTreeWidget::itemChanged, this, &ObjectTree::entityChecked);
+	connect(objTree, &QTreeWidget::itemChanged, this, &ObjectDock::entityChecked);
 
 	if (root->hasChild()) {
-		this->setCurrentItem(this->topLevelItem(0));
+		objTree->setCurrentItem(objTree->topLevelItem(0));
 	} else {
-		emit(objectDelete(nullptr));
+		emit(objectDelete(nullptr, nullptr));
 		actionsControl(AS_ON_LOAD);
 	}
 }
 
-void ObjectTree::sceneDelete(Kite::KResource *Scene){
+void ObjectDock::sceneDelete(Kite::KResource *Scene){
 	if (Scene == currScene) {
-		clear();
+		objTree->clear();
 		currScene = nullptr;
 		actionsControl(AS_ON_INITE);
 		hlabel->setText("Hierarchy");
-		emit(objectDelete(nullptr));
+		emit(objectDelete(nullptr, nullptr));
 	}
 }
 
-void ObjectTree::entityChecked(QTreeWidgetItem *Item, int Col) {
+void ObjectDock::entityChecked(QTreeWidgetItem *Item, int Col) {
 	if (currScene != nullptr) {
 		auto eman = currScene->getEManager();
 		auto entity = eman->getEntityByName(Item->text(0).toStdString());
@@ -202,20 +212,20 @@ void ObjectTree::entityChecked(QTreeWidgetItem *Item, int Col) {
 	}
 }
 
-void ObjectTree::actClicked() {
-	auto item = currentItem();
+void ObjectDock::actClicked() {
+	auto item = objTree->currentItem();
 	if (item != nullptr) {
 		auto eman = currScene->getEManager();
 		auto entity = eman->getEntityByName(item->text(0).toStdString());
 		actionsControl(AS_ON_ITEM);
-		emit(objectSelected(entity));
+		emit(objectSelected(currScene->getEManager(), entity));
 	} else {
 		actionsControl(AS_ON_LOAD);
 	}
 }
 
-void ObjectTree::actRClicked(const QPoint & pos) {
-	auto item = itemAt(pos);
+void ObjectDock::actRClicked(const QPoint & pos) {
+	auto item = objTree->itemAt(pos);
 	QMenu cmenu(this);
 
 	// checking user rclicked on tree itself or entity??
@@ -235,7 +245,7 @@ void ObjectTree::actRClicked(const QPoint & pos) {
 	}
 }
 
-QString ObjectTree::getAvailName() {
+QString ObjectDock::getAvailName() {
 	auto eman = currScene->getEManager();
 	bool ok = false;
 	QString text;
@@ -278,7 +288,7 @@ QString ObjectTree::getAvailName() {
 	return text;
 }
 
-void ObjectTree::actAddChild() {
+void ObjectDock::actAddChild() {
 	if (currScene == nullptr) {
 		return;
 	}
@@ -287,28 +297,28 @@ void ObjectTree::actAddChild() {
 		return;
 	}
 
-	auto item = currentItem();
+	auto item = objTree->currentItem();
 	if (item != nullptr) {
 		auto eman = currScene->getEManager();
 		auto pitem = eman->getEntityByName(item->text(0).toStdString())->getHandle();
 		auto ent = eman->createEntity(text.toStdString());
-		eman->getEntity(pitem)->addChild(ent);
+		eman->getEntity(pitem)->addChild(ent->getHandle());
 
-		disconnect(this, &QTreeWidget::itemChanged, this, &ObjectTree::entityChecked);
+		disconnect(objTree, &QTreeWidget::itemChanged, this, &ObjectDock::entityChecked);
 		auto node = new QTreeWidgetItem(item);
 		node->setText(0, text);
 		node->setFlags(node->flags() | Qt::ItemIsUserCheckable);
 		node->setCheckState(0, Qt::Checked);
 		node->setChildIndicatorPolicy(QTreeWidgetItem::DontShowIndicatorWhenChildless);
 		item->setExpanded(true);
-		connect(this, &QTreeWidget::itemChanged, this, &ObjectTree::entityChecked);
+		connect(objTree, &QTreeWidget::itemChanged, this, &ObjectDock::entityChecked);
 
-		emit(objectAdded(eman->getEntity(ent)));
-		setCurrentItem(node);
+		emit(objectAdded(eman, ent));
+		objTree->setCurrentItem(node);
 	}
 }
 
-void ObjectTree::actAddRoot() {
+void ObjectDock::actAddRoot() {
 	if (currScene == nullptr) {
 		return;
 	}
@@ -320,27 +330,27 @@ void ObjectTree::actAddRoot() {
 	auto eman = currScene->getEManager();
 	eman->createEntity(text.toStdString());
 
-	disconnect(this, &QTreeWidget::itemChanged, this, &ObjectTree::entityChecked);
-	auto node = new QTreeWidgetItem(this);
+	disconnect(objTree, &QTreeWidget::itemChanged, this, &ObjectDock::entityChecked);
+	auto node = new QTreeWidgetItem(objTree);
 	node->setText(0, text);
 	node->setFlags(node->flags() | Qt::ItemIsUserCheckable);
 	node->setCheckState(0, Qt::Checked);
 	node->setChildIndicatorPolicy(QTreeWidgetItem::DontShowIndicatorWhenChildless);
-	setCurrentItem(node);
-	connect(this, &QTreeWidget::itemChanged, this, &ObjectTree::entityChecked);
+	objTree->setCurrentItem(node);
+	connect(objTree, &QTreeWidget::itemChanged, this, &ObjectDock::entityChecked);
 }
 
-void ObjectTree::actRemove(){
+void ObjectDock::actRemove(){
 	if (currScene == nullptr) {
 		return;
 	}
-	auto item = currentItem();
+	auto item = objTree->currentItem();
 
 	if (item != nullptr) {
 		auto eman = currScene->getEManager();
 		auto entity = eman->getEntityByName(item->text(0).toStdString());
 
-		emit(objectDelete(entity));
+		emit(objectDelete(eman, entity));
 
 		eman->removeEntity(entity->getHandle());
 		eman->postWork();
@@ -348,7 +358,7 @@ void ObjectTree::actRemove(){
 	}
 }
 
-void ObjectTree::actRename() {
+void ObjectDock::actRename() {
 	if (currScene == nullptr) {
 		return;
 	}
@@ -357,23 +367,23 @@ void ObjectTree::actRename() {
 		return;
 	}
 
-	auto item = currentItem();
+	auto item = objTree->currentItem();
 	if (item != nullptr) {
 		auto eman = currScene->getEManager();
 		auto ent = eman->getEntityByName(item->text(0).toStdString());
 		eman->renameEntity(ent->getHandle(), text.toStdString());
 
-		disconnect(this, &QTreeWidget::itemChanged, this, &ObjectTree::entityChecked);
+		disconnect(objTree, &QTreeWidget::itemChanged, this, &ObjectDock::entityChecked);
 		item->setText(0, text);
-		connect(this, &QTreeWidget::itemChanged, this, &ObjectTree::entityChecked);
+		connect(objTree, &QTreeWidget::itemChanged, this, &ObjectDock::entityChecked);
 
-		emit(objectRenamed(ent));
+		emit(objectRenamed(eman, ent));
 	}
 }
 
-void ObjectTree::actSearch(const QString &Pharase) {
-	disconnect(this, &QTreeWidget::itemChanged, this, &ObjectTree::entityChecked);
-	auto allItems = QTreeWidgetItemIterator(this);
+void ObjectDock::actSearch(const QString &Pharase) {
+	disconnect(objTree, &QTreeWidget::itemChanged, this, &ObjectDock::entityChecked);
+	auto allItems = QTreeWidgetItemIterator(objTree);
 	while (*allItems) {
 		if ((*allItems)->text(0).contains(Pharase) && !Pharase.isEmpty()) {
 			(*allItems)->setBackgroundColor(0, QColor(Qt::gray));
@@ -382,7 +392,7 @@ void ObjectTree::actSearch(const QString &Pharase) {
 		} 
 		++allItems;
 	}
-	connect(this, &QTreeWidget::itemChanged, this, &ObjectTree::entityChecked);
+	connect(objTree, &QTreeWidget::itemChanged, this, &ObjectDock::entityChecked);
 }
 
 

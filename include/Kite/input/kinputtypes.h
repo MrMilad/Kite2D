@@ -149,7 +149,7 @@ namespace Kite{
 								  does send code 73, not 117) */
 		HOME = 74,
 		PAGEUP = 75,
-		DELETE = 76,
+		DEL = 76,
 		END = 77,
 		PAGEDOWN = 78,
 		RIGHT = 79,
@@ -251,7 +251,7 @@ namespace Kite{
 		PRIOR = 157,
 		RETURN2 = 158,
 		SEPARATOR = 159,
-		OUT = 160,
+		OUTE = 160,
 		OPER = 161,
 		CLEARAGAIN = 162,
 		CRSEL = 163,

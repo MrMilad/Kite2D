@@ -72,7 +72,7 @@ namespace Kite {
 		inline void setActive(bool Active) { _kactive = Active; }
 
 		KM_FUN()
-		KHandle addComponent(const std::string &CType, const std::string &CName = "");
+		KComponent *addComponent(const std::string &CType, const std::string &CName = "");
 
 		KM_FUN()
 		KComponent *getComponent(const std::string &CType, const KHandle &CHandle);
@@ -82,6 +82,12 @@ namespace Kite {
 
 		KM_FUN()
 		void getScriptComponents(std::vector<KComponent *> &Output);
+
+		KM_FUN()
+		void reorderScriptComponent(const KHandle &CHandle, U32 NewOrder);
+
+		KM_FUN()
+		void reorderScriptComponentByName(const std::string &CName, U32 NewOrder);
 
 		KM_FUN()
 		bool hasComponent(const std::string &CType, const std::string &Name);
@@ -111,7 +117,7 @@ namespace Kite {
 	private:
 
 		// internal use 
-		void setComponent(const std::string &CType, const std::string &Name, const KHandle &Index);
+		void setComponent(const std::string &CType, const std::string &Name, KComponent *Comp);
 		void remChildIndex(U32 ID);
 		
 		KM_VAR() bool _kactive;											// entity actitvity state
@@ -120,7 +126,8 @@ namespace Kite {
 		KM_VAR() U32 _kplistid;											// entity self id in the parent list
 		KM_VAR() std::string _kname;									// entity unique name
 		KM_VAR() std::unordered_map<std::string, KHandle> _kfixedComp;	// fixed components slots (built-in components)
-		KM_VAR() std::unordered_map<std::string, KHandle> _kscriptComp;	// dynamic components slots (logic components)
+		KM_VAR() std::unordered_map<std::string, KHandle> _klogicComp;		// dynamic components (logic components)
+		KM_VAR() std::vector<KHandle> _klogicOrder;						// logic components queue by order
 		KM_VAR() std::vector<KHandle> _kchilds;							// children list
 
 		// runtime variables (

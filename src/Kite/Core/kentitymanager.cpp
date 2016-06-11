@@ -66,15 +66,15 @@ namespace Kite {
 		_kentmap.insert({ "Root", _kroot });
 	}
 
-	KHandle KEntityManager::createEntity(const std::string &Name) {
+	KEntity *KEntityManager::createEntity(const std::string &Name) {
 		// check entity name if there is a name
 		if (!Name.empty()) {
 			auto found = _kentmap.find(Name);
 
-			// entiti is already registered, so we return it
+			// entiti is exist, so we return it
 			if (found != _kentmap.end()) {
-				KD_FPRINT("this name has already been registered. ename: %s", Name.c_str());
-				return found->second;
+				KD_FPRINT("this name is exist. ename: %s", Name.c_str());
+				return getEntity(found->second);
 			}
 		}
 
@@ -100,7 +100,7 @@ namespace Kite {
 		msg.setData((void *)&hndl, sizeof(U32));
 		postMessage(&msg, MessageScope::ALL);
 	
-		return hndl;
+		return ent;
 	}
 
 	bool KEntityManager::renameEntity(const KHandle &EHandle, const std::string &NewName) {

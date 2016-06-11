@@ -2,7 +2,6 @@
 #include <QApplication>
 #include <QStyleFactory>
 
-
 int main(int argc, char *argv[])
 {
     QApplication::setStyle(QStyleFactory::create("Fusion"));
@@ -32,5 +31,5 @@ int main(int argc, char *argv[])
 	w.setStyleSheet("QToolTip { border: 1px solid darkGray; color: #313131;}");
     w.show();
 
-    return a.exec();
+	return a.exec();
 }

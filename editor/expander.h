@@ -1,28 +1,43 @@
+#ifndef EXPANDER_H
+#define EXPANDER_H
+
+#include <Kite/core/kcomponent.h>
 #include <qframe.h>
 #include <qstring.h>
+#include <qtreewidget.h>
+#include <qvariant.h>
+#include <Kite/core/kresource.h>
 
-class QTreeWidget;
-class QTreeWidgetItem;
-class QIcon;
+class QToolButton;
+class ComponentView;
 
-class Expander : public QFrame {
+class Expander : public QObject {
 	Q_OBJECT
 public:
-	Expander(const QString& Text, const QIcon &Icon, QTreeWidgetItem *TreeItem, QWidget* Parent);
+	Expander(Kite::KComponent *Comp, const QHash<QString, Kite::KResource *> *Dictionary, QTreeWidget* Parent);
 
-	inline void setName(const QString &Name) { cname = Name; }
-
-	inline void setType(const QString &Type) { ctype = Type; }
-
+	inline const QString &getCType() const { return ctype; }
+	inline auto getTreeItem() const { return head; }
+	void reset(Kite::KComponent *Comp);
+	void highlight(bool Selected);
+	
 signals:
-	void closeClicked(const QString &CName, const QString &CType, QTreeWidgetItem *Item);
+	void expandClicked(Kite::KHandle CHandle, const QString &CType);
+	void closeClicked(Kite::KHandle CHandle, const QString &CType);
+	void componentEdited(Kite::KHandle Chandle, const QString &CType, const QString &Pname, QVariant &Value);
 
 private slots:
-	void expandPressed();
-	void closePressed();
+	void expClicked();
+	void clsClicked();
 
 private:
-	QString cname;
+	bool expandable;
+	QTreeWidgetItem *head;
+	ComponentView *content;
+	QToolButton *btnExpand;
+	QFrame *mainFrame;
+	Kite::KHandle chandle;
 	QString ctype;
-	QTreeWidgetItem	*item;
 };
+
+#endif // EXPANDER_H

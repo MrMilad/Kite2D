@@ -97,10 +97,10 @@ namespace Kite {
 		/// after creating one entity, all previous pointers may be invalid.
 		/// so always use handle whene need an older entity.
 		KM_FUN()
-		KHandle createEntity(const std::string &Name = "");
+		KEntity *createEntity(const std::string &Name = "");
 
 		KM_FUN()
-			bool renameEntity(const KHandle &EHandle, const std::string &NewName);
+		bool renameEntity(const KHandle &EHandle, const std::string &NewName);
 
 		/// entity will not be deleted immediately
 		/// but marked as deactive and stored in trash list

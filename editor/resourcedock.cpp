@@ -107,11 +107,13 @@ void ResourceDock::setupHTools() {
 	//hlayout->setSizeConstraint(QLayout::SetFixedSize);
 
 	auto btnAdd = new QToolButton(htools);
+	btnAdd->setAutoRaise(true);
 	btnAdd->setDefaultAction(addRes);
 	btnAdd->setToolButtonStyle(Qt::ToolButtonIconOnly);
 	hlayout->addWidget(btnAdd);
 
 	auto btnOpen = new QToolButton(htools);
+	btnOpen->setAutoRaise(true);
 	btnOpen->setDefaultAction(openRes);
 	btnOpen->setToolButtonStyle(Qt::ToolButtonIconOnly);
 	hlayout->addWidget(btnOpen);
@@ -119,11 +121,13 @@ void ResourceDock::setupHTools() {
 	hlayout->addSpacing(10);
 
 	auto btnEdit = new QToolButton(htools);
+	btnEdit->setAutoRaise(true);
 	btnEdit->setDefaultAction(editRes);
 	btnEdit->setToolButtonStyle(Qt::ToolButtonIconOnly);
 	hlayout->addWidget(btnEdit);
 
 	auto btnRemove = new QToolButton(htools);
+	btnRemove->setAutoRaise(true);
 	btnRemove->setDefaultAction(remRes);
 	btnRemove->setToolButtonStyle(Qt::ToolButtonIconOnly);
 	hlayout->addWidget(btnRemove);

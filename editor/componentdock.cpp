@@ -2,6 +2,7 @@
 #include <QtWidgets>
 #include <qinputdialog.h>
 #include "expander.h"
+#include "frmexeorder.h"
 #include "kmeta.khgen.h"
 
 ComponentDock::ComponentDock(QWidget *Par) :
@@ -46,6 +47,12 @@ void ComponentDock::setupActions() {
 	collAll = new QAction(QIcon(":/icons/col"), "Collapse All", this);
 	connect(collAll, &QAction::triggered, this, &ComponentDock::actCollAll);
 	this->addAction(collAll);
+
+	exeOrder = new QAction(QIcon(":/icons/order"), "Execution Order", this);
+	//exeOrder->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_N));
+	//exeOrder->setShortcutContext(Qt::WidgetWithChildrenShortcut);
+	connect(exeOrder, &QAction::triggered, this, &ComponentDock::actExeOrder);
+	this->addAction(exeOrder);
 }
 
 void ComponentDock::setupHTools() {
@@ -64,32 +71,30 @@ void ComponentDock::setupHTools() {
 
 	auto btnAddComps = new QToolButton(htools);
 	btnAddComps->setMenu(mtypes);
+	btnAddComps->setAutoRaise(true);
 	btnAddComps->setDefaultAction(addDefComp);
 	btnAddComps->setIcon(QIcon(":/icons/add"));
 	btnAddComps->setPopupMode(QToolButton::MenuButtonPopup);
 	btnAddComps->setToolButtonStyle(Qt::ToolButtonIconOnly);
 	hlayout->addWidget(btnAddComps);
 
+	hlayout->addSpacing(10);
+
+	auto btnExeOrder = new QToolButton(htools);
+	btnExeOrder->setDefaultAction(exeOrder);
+	btnExeOrder->setAutoRaise(true);
+	btnExeOrder->setIcon(QIcon(":/icons/order"));
+	btnExeOrder->setToolButtonStyle(Qt::ToolButtonStyle::ToolButtonTextBesideIcon);
+	hlayout->addWidget(btnExeOrder);
+
 	hlayout->addStretch(1);
-
-	auto lblView = new QLabel(htools);
-	lblView->setText("Filter: ");
-	hlayout->addWidget(lblView);
-
-	auto comboView = new QComboBox(htools);
-	comboView->addItem("All");
-	comboView->addItems(types);
-	comboView->setEditable(false);
-	comboView->setCurrentText("Normal");
-	connect(comboView, static_cast<void(QComboBox::*)(const QString &)>(&QComboBox::currentIndexChanged),
-			this, &ComponentDock::actViewModeChange);
-	hlayout->addWidget(comboView);
 	vlayout->addLayout(hlayout);
 
 	auto hlayout2 = new QHBoxLayout(htools);
 	hlayout2->setMargin(3);
 
 	auto btnCollpaseAll = new QToolButton(htools);
+	btnCollpaseAll->setAutoRaise(true);
 	btnCollpaseAll->setDefaultAction(collAll);
 	btnCollpaseAll->setIcon(QIcon(":/icons/col"));
 	btnCollpaseAll->setToolButtonStyle(Qt::ToolButtonIconOnly);
@@ -115,14 +120,16 @@ void ComponentDock::actionsControl(ActionsState State) {
 		addDefComp->setDisabled(true);
 		mtypes->setDisabled(true);
 		collAll->setDisabled(true);
+		exeOrder->setDisabled(true);
 	} else if (State == AS_ON_LOAD) {
 		addDefComp->setDisabled(false);
 		mtypes->setDisabled(false);
 		collAll->setDisabled(false);
+		exeOrder->setDisabled(false);
 	}
 }
 
-void ComponentDock::setupTypes(const QStringList &TypeList) {
+void ComponentDock::inite(const QStringList &TypeList, const QHash<QString, Kite::KResource *> *Dictionary) {
 	types = TypeList;
 	
 	mtypes->clear();
@@ -131,6 +138,7 @@ void ComponentDock::setupTypes(const QStringList &TypeList) {
 		mtypes->addAction(comtype);
 	}
 
+	resDict = Dictionary;
 	initePool(TypeList);
 }
 
@@ -285,8 +293,10 @@ void ComponentDock::entityDelete(Kite::KEntityManager *Eman, Kite::KEntity *Enti
 	}
 }
 
-void ComponentDock::actViewModeChange(const QString &Mode) {
-
+void ComponentDock::actExeOrder() {
+	auto ent = eman->getEntity(currEntity);
+	frmexeorder frm(ent, this);
+	frm.exec();
 }
 
 void ComponentDock::actCollAll() {
@@ -335,6 +345,7 @@ void ComponentDock::actAddDef() {
 	}
 
 	auto comp = ent->addComponent("Logic", text.toStdString());
+	fetchFromPool(comp);
 	//createComponent(ent, ent->getComponent("Logic", chandle));
 	emit(componentAdded(ent, comp));
 }

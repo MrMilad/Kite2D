@@ -322,10 +322,13 @@ namespace Kite {
 			NewOrder = _klogicComp.size() - 1;
 		}
 
+		SIZE dst = 0;
 		for (auto it = _klogicOrder.begin(); it != _klogicOrder.end(); ++it) {
 			if ((*it) == CHandle) {
 				_klogicOrder.erase(it);
+				break; 
 			}
+			++dst;
 		}
 
 		_klogicOrder.insert(_klogicOrder.begin() + NewOrder, CHandle);

@@ -39,7 +39,8 @@ SOURCES += main.cpp\
     highlighter.cpp \
     frmprojsettings.cpp \
     executer.cpp\
-    outputdock.cpp
+    outputdock.cpp \
+    frmexeorder.cpp
 
 HEADERS  += mainwindow.h \
     shared.h \
@@ -57,11 +58,13 @@ HEADERS  += mainwindow.h \
     highlighter.h \
     frmprojsettings.h \
     executer.h\
-    outputdock.h
+    outputdock.h \
+    frmexeorder.h
 
 RESOURCES += \
     res.qrc
 
 FORMS += \
     frmnewproj.ui \
-    frmprojsettings.ui
+    frmprojsettings.ui \
+    frmexeorder.ui

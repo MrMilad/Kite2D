@@ -134,9 +134,7 @@ signals:
 				combo = new QComboBox(Parent);
 				combo->setCurrentText(initeVal.as<std::string>().c_str());
 				combo->setObjectName(ResType);
-				if (Dictionary != nullptr) {
-					combo->installEventFilter(this);
-				}
+				combo->installEventFilter(this);
 				connect(combo, static_cast<void(QComboBox::*)(const QString &)>(&QComboBox::currentIndexChanged),
 						this, &KSTR::valueChanged);
 
@@ -166,21 +164,23 @@ signals:
 
 	protected:
 		bool eventFilter(QObject *Obj, QEvent *Event) {
-			if (Event->type() == QEvent::MouseButtonPress) {
-				auto text = combo->currentText();
-				combo->clear();
-				auto type = combo->objectName();
+			if (resDict != nullptr) {
+				if (Event->type() == QEvent::MouseButtonPress) {
+					auto text = combo->currentText();
+					combo->clear();
+					auto type = combo->objectName();
 
-				if (resDict != nullptr) {
-					QStringList items;
-					for (auto it = resDict->cbegin(); it != resDict->cend(); ++it) {
-						if ((*it)->getResourceType().c_str() == type) {
-							items.push_back(it.key());
+					if (resDict != nullptr) {
+						QStringList items;
+						for (auto it = resDict->cbegin(); it != resDict->cend(); ++it) {
+							if ((*it)->getResourceType().c_str() == type) {
+								items.push_back(it.key());
+							}
 						}
-					}
 
-					combo->addItems(items);
-					combo->setCurrentText(text);
+						combo->addItems(items);
+						combo->setCurrentText(text);
+					}
 				}
 			}
 			return false;

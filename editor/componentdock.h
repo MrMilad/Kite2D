@@ -32,8 +32,7 @@ public:
 	explicit ComponentDock(QWidget *parent = 0);
 	~ComponentDock();
 
-	void setupTypes(const QStringList &TypeList);
-	inline void setResDictionary(const QHash<QString, Kite::KResource *> *Dictionary) { resDict = Dictionary; }
+	void inite(const QStringList &TypeList, const QHash<QString, Kite::KResource *> *Dictionary);
 
 public slots:
 	void entityEdit(Kite::KEntityManager *Eman, Kite::KEntity *Entity);
@@ -45,7 +44,7 @@ signals:
 	void componentEdited(Kite::KEntity *Entity, Kite::KComponent *Component, const QString &PName);
 
 private slots:
-	void actViewModeChange(const QString &Mode);
+	void actExeOrder();
 	void actCollAll();
 	void actAdd(QAction *Action);
 	void actAddDef();
@@ -69,6 +68,7 @@ private:
 	QTreeWidget *comTree;
 	QAction *addDefComp;
 	QAction *collAll;
+	QAction *exeOrder;
 	QFrame *htools;
 	QLineEdit *ledit;
 	QLabel *hlabel;

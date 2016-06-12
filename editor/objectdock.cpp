@@ -70,6 +70,7 @@ void ObjectDock::setupHTools() {
 	hlayout->setMargin(3);
 
 	auto btnAddRoot = new QToolButton(htools);
+	btnAddRoot->setAutoRaise(true);
 	btnAddRoot->setDefaultAction(addRootObj);
 	btnAddRoot->setToolButtonStyle(Qt::ToolButtonIconOnly);
 	hlayout->addWidget(btnAddRoot);
@@ -77,16 +78,19 @@ void ObjectDock::setupHTools() {
 	hlayout->addSpacing(10);
 
 	auto btnAddChild = new QToolButton(htools);
+	btnAddChild->setAutoRaise(true);
 	btnAddChild->setDefaultAction(addChildObj);
 	btnAddChild->setToolButtonStyle(Qt::ToolButtonIconOnly);
 	hlayout->addWidget(btnAddChild);
 
 	auto btnRemove = new QToolButton(htools);
+	btnRemove->setAutoRaise(true);
 	btnRemove->setDefaultAction(remObj);
 	btnRemove->setToolButtonStyle(Qt::ToolButtonIconOnly);
 	hlayout->addWidget(btnRemove);
 
 	auto btnRename = new QToolButton(htools);
+	btnRename->setAutoRaise(true);
 	btnRename->setDefaultAction(renameObj);
 	btnRename->setToolButtonStyle(Qt::ToolButtonIconOnly);
 	hlayout->addWidget(btnRename);

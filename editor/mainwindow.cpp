@@ -90,8 +90,7 @@ void MainWindow::setupDocks(){
 
     // component/properties dock
     prpDock = new ComponentDock(this);
-	prpDock->setupTypes(*kinfo->getComponentTypes());
-	prpDock->setResDictionary(resDock->getDictionary());
+	prpDock->inite(*kinfo->getComponentTypes(), resDock->getDictionary());
     addDockWidget(Qt::RightDockWidgetArea, prpDock);
 	connect(objDock, &ObjectDock::objectSelected, prpDock, &ComponentDock::entityEdit);
 	connect(objDock, &ObjectDock::objectDelete, prpDock, &ComponentDock::entityDelete);

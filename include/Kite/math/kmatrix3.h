@@ -31,11 +31,15 @@ namespace Kite{
     class KITE_FUNC_EXPORT KMatrix3{
 		KMETA_KMATRIX3_BODY();
     public:
+		KM_CON(F32, F32, F32, F32, F32, F32, F32, F32, F32)
 		KMatrix3(F32 E00 = 1.0f, F32 E01 = 0.0f, F32 E02 = 0.0f,
 				 F32 E10 = 0.0f, F32 E11 = 1.0f, F32 E12 = 0.0f,
 				 F32 E20 = 0.0f, F32 E21 = 0.0f, F32 E22 = 1.0f);
 
         inline const F32 *getArray() const {return _kmatrix;}
+
+		KM_FUN()
+			inline const F32 at(U8 Index) { if (Index < 9) return _kmatrix[Index]; return 0; }
 
 		inline float KMatrix3::operator[](int index) const { return _kmatrix[index]; }
 

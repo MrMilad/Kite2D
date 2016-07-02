@@ -6,6 +6,7 @@ set(SER_SRC
     #${SRCROOT}/kbaseserial.cpp
     ${SRCROOT}/tp/blowfish.cpp
     ${SRCROOT}/tp/blowfish.h
+    ${SRCROOT}/kbaseserial.cpp
     ${SRCROOT}/kbinaryserial.cpp
     ${SRCROOT}/kbinaryserial.cpp
     PARENT_SCOPE

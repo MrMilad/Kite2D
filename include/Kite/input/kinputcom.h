@@ -34,9 +34,9 @@ namespace Kite {
 	public:
 		KInputCom(const std::string &Name = "");
 
-		void attached() override;
+		void attached(KEntity *Entity) override;
 
-		void deattached() override;
+		void deattached(KEntity *Entity) override;
 
 		RecieveTypes onMessage(KMessage *Message, MessageScope Scope) override ;
 

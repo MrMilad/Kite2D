@@ -34,6 +34,8 @@ namespace Kite {
 	}
 
 	bool KFOStream::open(const std::string &Address, IOMode Type) {
+		_kfullpath = Address;
+		_kio = Type;
 		if (Address.empty()) {
 			KD_PRINT("address is empty");
 			return false;
@@ -58,10 +60,21 @@ namespace Kite {
 			return false;
 		}
 
+		// extract address info
+		SIZE pos = _kfullpath.find_last_of("/\\");
+		if (pos != std::string::npos) {
+			_kpath = _kfullpath.substr(0, pos);
+			_kfname = _kfullpath.substr(pos + 1);
+
+		} else { // if we not found '/' or '\\'
+			_kpath.clear();
+			_kfname = _kfullpath;
+		}
+
 		return true;
 	}
 
-	SIZE KFOStream::write(void *Data, SIZE DataSize) {
+	SIZE KFOStream::write(const void *Data, SIZE DataSize) {
 		if (_kfile != nullptr) {
 			return fwrite(Data, 1, (size_t)DataSize, _kfile);
 		}

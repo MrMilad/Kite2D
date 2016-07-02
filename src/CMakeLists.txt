@@ -110,7 +110,7 @@ set_property(TARGET Kite2D PROPERTY OUTPUT_NAME_DEBUG Kite2Dd)
 file(MAKE_DIRECTORY ${PROJECT_SOURCE_DIR}/include/KiteMeta)
 
 # bulid and run KHParser before building Kite
-add_executable(KHParser ${PROJECT_SOURCE_DIR}/src/KHParser/khparser.cpp)
+add_executable(KHParser ${PROJECT_SOURCE_DIR}/src/KHParser/khparser.cpp ${PROJECT_SOURCE_DIR}/src/KHParser/mmhash3.cpp)
 
 # run KHParser
 add_custom_target(KHParserRun

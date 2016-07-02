@@ -35,6 +35,7 @@ USA
 #define ISTREAM		128
 #define OSTREAM		256
 #define SCRIPTABLE	512
+#define SERIALIZER	1024
 
 // supported operators
 #define KO_ADD
@@ -67,7 +68,7 @@ USA
 
 #define KREM_QUAL(KP_TYPE) std::remove_pointer<std::remove_all_extents<std::remove_reference<std::remove_cv<KP_TYPE>::type>::type>::type>::type
 
-// takes a pointer and returns a pointer offset in bytes
+// takes a pointer and returns a pointer offset in bytes 
 #define KPTR_GET_ADDR( PTR, OFFSET ) \
 	((void *)(((char *)(PTR)) + (OFFSET)))
 
@@ -80,7 +81,7 @@ USA
 	class KMetaManager;}
 	
 
-#define KM_IGNORED
+#define KM_IGNORED			/// ignored files
 #define KM_ENUM(...)		/// (name)
 #define KM_CLASS(...)		/// (FLAG)
 #define KM_CON(...)			///	(ptype1, ptype2, ...);

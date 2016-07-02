@@ -113,14 +113,17 @@ namespace Kite {
 			return found->second.first;
 		}
 
+		// create stream
+		auto stream = sfactory->second();
+		if (stream == nullptr) {
+			KD_FPRINT("can't create stream. stream type: %s", SType.c_str());
+			return nullptr;
+		}
+
 		// create new resource and assocated input stream
 		KResource *resource = rfactory->second.first("");
-		resource->setResourceAddress(ResName);
 
-		auto stream = sfactory->second();
-		stream->open(ResName, IOMode::BIN);
-
-		if (!resource->loadStream(stream, Flag)) {
+		if (!resource->loadStream(stream, ResName, Flag)) {
 			KD_FPRINT("can't load resource. rname: %s", ResName.c_str());
 			delete resource;
 			delete stream;
@@ -140,7 +143,7 @@ namespace Kite {
 		// increment refrence count
 		resource->incRef();
 
-		// storing resource
+		// insert resource to name/map
 		_kmap.insert({ tempKey, pair });
 		return resource;
 	}

@@ -22,6 +22,7 @@ USA
 
 #include "Kite/core/kcoredef.h"
 #include "Kite/core/ksystem.h"
+#include "Kite/meta/kmetadef.h"
 #include "Kite/logic/klogiccom.h"
 #include "klogicsys.khgen.h"
 

@@ -26,6 +26,8 @@ USA
 #include "Kite/core/kcomponent.h"
 #include "Kite/core/klistener.h"
 #include "Kite/core/kmessenger.h"
+#include "Kite/core/kistream.h"
+#include "Kite/core/kostream.h"
 #include "Kite/meta/kmetadef.h"
 #include "Kite/serialization/kserialization.h"
 #include "Kite/core/kcfstorage.h"
@@ -50,7 +52,7 @@ namespace Kite {
 		KM_FUN()
 		RecieveTypes onMessage(KMessage *Message, MessageScope Scope);
 
-		KM_PRO_GET(KP_NAME = "pHandle", KP_TYPE = KHandle, KP_CM = "parent handle")
+		KM_PRO_GET(KP_NAME = "phandle", KP_TYPE = KHandle, KP_CM = "parent handle")
 		inline const KHandle &getParentHandle() const { return _kphandle; }
 
 		KM_PRO_GET(KP_NAME = "handle", KP_TYPE = KHandle, KP_CM = "entity handle")
@@ -69,7 +71,10 @@ namespace Kite {
 		inline bool getActive() const { return _kactive; }
 
 		KM_PRO_SET(KP_NAME = "active")
-		inline void setActive(bool Active) { _kactive = Active; }
+		void setActive(bool Active);
+
+		KM_PRO_GET(KP_NAME = "envTableName", KP_TYPE = std::string, KP_CM = "entity env table name in lua")
+		inline const std::string &getLuaTName() const { return _kluatable; }
 
 		KM_FUN()
 		KComponent *addComponent(const std::string &CType, const std::string &CName = "");
@@ -79,6 +84,9 @@ namespace Kite {
 
 		KM_FUN()
 		KComponent *getComponentByName(const std::string &CType, const std::string &CName);
+
+		KM_FUN()
+		void getFixedComponents(std::vector<KComponent *> &Output);
 
 		KM_FUN()
 		void getScriptComponents(std::vector<KComponent *> &Output);
@@ -119,21 +127,22 @@ namespace Kite {
 		// internal use 
 		void setComponent(const std::string &CType, const std::string &Name, KComponent *Comp);
 		void remChildIndex(U32 ID);
+		void setHandle(const KHandle Handle);
 		
 		KM_VAR() bool _kactive;											// entity actitvity state
 		KM_VAR() KHandle _khandle;										// entity handle in the entity manager
 		KM_VAR() KHandle _kphandle;										// entity parent handle
 		KM_VAR() U32 _kplistid;											// entity self id in the parent list
 		KM_VAR() std::string _kname;									// entity unique name
+		KM_VAR() std::string _kluatable;								// entity env table name in lua
 		KM_VAR() std::unordered_map<std::string, KHandle> _kfixedComp;	// fixed components slots (built-in components)
-		KM_VAR() std::unordered_map<std::string, KHandle> _klogicComp;		// dynamic components (logic components)
+		KM_VAR() std::unordered_map<std::string, KHandle> _klogicComp;	// dynamic components (logic components)
 		KM_VAR() std::vector<KHandle> _klogicOrder;						// logic components queue by order
 		KM_VAR() std::vector<KHandle> _kchilds;							// children list
 
 		// runtime variables (
-		Internal::BaseCHolder<KComponent>  **_kcstorage;
+		std::unordered_map<std::string, Internal::BaseCHolder<KComponent> *> *_kcstorage;
 		KCFStorage<KEntity> *_kestorage;
-		std::unordered_map<std::string, U16> *_kctypes;
 	};
 }
 

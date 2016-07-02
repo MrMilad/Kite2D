@@ -29,15 +29,15 @@ USA
 
 namespace Kite {
 	KLogicCom::KLogicCom(const std::string &Name) :
-		KComponent("Logic", Name),
+		KComponent(Name),
 		_kinite(false), _kstart(false), _klstate(nullptr)
 		{}
 
-	void KLogicCom::attached() {
-		_ktname = "ENT" + std::to_string(getOwnerHandle().index);
+	void KLogicCom::attached(KEntity *Entity) {
+		_ktname = Entity->getLuaTName();
 	}
 
-	void KLogicCom::deattached() {
+	void KLogicCom::deattached(KEntity *Entity) {
 		removeLuaEnv();
 	}
 
@@ -63,9 +63,9 @@ namespace Kite {
 	}
 
 	void KLogicCom::setScript(const std::string &ResName) {
-		if (ResName != _kresName) {
+		if (ResName != _kscriptName) {
 			removeLuaEnv();
-			_kresName = ResName;
+			_kscriptName = ResName;
 			setNeedUpdate(true);
 		}
 	}

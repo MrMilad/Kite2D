@@ -35,11 +35,11 @@ namespace Kite {
 				if (entity->getActive()) {
 					if (it->getNeedUpdate()) {
 						if (it->getEnableKeyboard() && KKeyboard::isAnyKeyDown()) {
-							KMessage msg("INPUT_KEY_DOWN");
+							KMessage msg("KEY_DOWN");
 							entity->onMessage(&msg, MessageScope::ALL);
 						}
 						if (it->getEnableMouse() && KMouse::isAnyKeyDown()) {
-							KMessage msg("INPUT_MOUSE_DOWN");
+							KMessage msg("MOUSE_DOWN");
 							entity->onMessage(&msg, MessageScope::ALL);
 						}
 					}

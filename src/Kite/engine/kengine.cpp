@@ -63,6 +63,7 @@ namespace Kite {
 		static const luaL_Reg lualibs[] =
 		{
 			{ "base", luaopen_base },
+			{ "string", luaopen_string },
 			{ NULL, NULL }
 		};
 
@@ -115,13 +116,11 @@ namespace Kite {
 		_kdict.clear();
 		if (!_kconfig.dictionary.empty()) {
 			KFIStream fstream;
-			if (!fstream.open(_kconfig.dictionary, IOMode::BIN)) {
+			KBinarySerial bserial;
+			if (!bserial.loadStream(&fstream, _kconfig.dictionary)) {
 				KD_FPRINT("can't load dictionary. dname: %s", _kconfig.dictionary.c_str());
 				return false;
 			}
-
-			KBinarySerial bserial;
-			bserial.loadStream(&fstream);
 			bserial >> _kdict;
 			_krman->setDictionary(&_kdict);
 

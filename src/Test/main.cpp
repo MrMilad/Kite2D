@@ -1,7 +1,3 @@
-#define _CRTDBG_MAP_ALLOC
-#include <stdlib.h>
-#include <crtdbg.h>
-
 #include <Kite\engine\kengine.h>
 #include <time.h>
 
@@ -12,29 +8,43 @@ void koutput(const std::string &Text) {
 }
 
 int main() {
+	KFOStream stream;
+	KFIStream istream;
+
 	auto sc = new KConfig();
-	std::vector<KComponent *> list;
 	auto engine = KEngine::createEngine();
 
 	engine->inite(sc, false);
 
-	auto ent = engine->getSceneManager()->getActiveScene()->getEManager()->createEntity("test");
-	auto c0 = ent->addComponent("Logic", "0")->getHandle();
-	auto c1 = ent->addComponent("Logic", "1")->getHandle();
-	auto c2 = ent->addComponent("Logic", "2")->getHandle();
-	auto c3 = ent->addComponent("Logic", "3")->getHandle();
-	auto c4 = ent->addComponent("Logic", "4")->getHandle();
+	//engine->getSceneManager()->getActiveScene()->loadStream(&istream, "e:\\sc.txt");
 
-	ent->getScriptComponents(list);
-	ent->reorderScriptComponent(c1, 3);
-	ent->getScriptComponents(list);
+	auto ent1 = engine->getSceneManager()->getActiveScene()->getEManager()->createEntity("test1")->getHandle();
+	auto pent2 = engine->getSceneManager()->getActiveScene()->getEManager()->createEntity("test2");
+	pent2->addChild(ent1);
+	auto ent2 = pent2->getHandle();
+
+	auto ent3 = engine->getSceneManager()->getActiveScene()->getEManager()->createEntity("test3")->getHandle();
+	auto ent4 = engine->getSceneManager()->getActiveScene()->getEManager()->createEntity("test4")->getHandle();
+	auto pent5 = engine->getSceneManager()->getActiveScene()->getEManager()->createEntity("test5");
+	pent5->addChild(ent4);
+	auto ent5 = pent5->getHandle();
+
+	auto ent6 = engine->getSceneManager()->getActiveScene()->getEManager()->createEntity("test6");
+	ent6->addChild(ent3);
+	ent6->addChild(ent2);
+	ent6->addChild(ent5);
+
+	auto c0 = ent6->addComponent("Logic", "0")->getHandle();
+	auto c1 = ent6->addComponent("Logic", "1")->getHandle();
+	
+	engine->getSceneManager()->getActiveScene()->getEManager()->savePrefab(ent6->getHandle(), &stream, "e:\\prefab.txt");
+	//engine->getSceneManager()->getActiveScene()->saveStream(&stream, "e:\\sc.txt");
 
 	engine->start();
 
 	engine->shutdown();
 	delete engine;
 	delete sc;
-	_CrtDumpMemoryLeaks();
 
 	return 0;
 }

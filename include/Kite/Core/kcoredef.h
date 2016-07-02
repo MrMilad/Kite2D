@@ -199,16 +199,10 @@ namespace Kite {
     #endif
 #endif
 
-/// using DirectInput (only for joystick(s))
-#if defined(KITE_USE_DIRECTINPUT)
-    #define KDINPUT_ALLOW
-#endif
-
-#ifndef DWORD
-/// 64 bits integer types
-typedef unsigned short WORD;
-typedef unsigned long DWORD;
-#endif
+/// Kite2D version
+#define K2D_VER_MAJ 1
+#define K2D_VER_MIN 1
+#define K2D_VER_BUILD 0
 
 /// max audio buffer (ogg vorbis)
 #define KOGG_BUFF_SIZE 4096
@@ -216,8 +210,11 @@ typedef unsigned long DWORD;
 /// Kite2D hash seed
 #define KHASH_SEED 13711010
 
-/// Kite2d max size of supported components
-#define KCOMP_MAX_SIZE 128
+#ifndef DWORD
+/// 64 bits integer types
+typedef unsigned short WORD;
+typedef unsigned long DWORD;
+#endif
 
 namespace Kite{
 	/*

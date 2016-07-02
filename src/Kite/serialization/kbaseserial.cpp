@@ -19,8 +19,16 @@ USA
 */
 
 #include "Kite/serialization/kbaseserial.h"
+#include "Kite/meta/kmetamanager.h"
+#include "Kite/meta/kmetaclass.h"
+#include "Kite/meta/kmetatypes.h"
+#include <luaintf\LuaIntf.h>
 
 namespace Kite {
-	KBaseSerial::KBaseSerial(KBaseStorage &Allocator):
-		_kallocator(&Allocator) {}
+	KBaseSerial::KBaseSerial() :
+		_kversion(0) {}
+
+	KBaseSerial::~KBaseSerial() {}
+
+	KMETA_KBASESERIAL_SOURCE();
 }

@@ -140,7 +140,6 @@ namespace Kite{
 		}
 
 	};
-
 }
 
 #endif // KCORESTRUCTS_H

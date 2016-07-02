@@ -25,6 +25,9 @@ USA
 #include "Kite/core/kcorestructs.h"
 #include "Kite/core/kcfstorage.h"
 #include "Kite/core/kentity.h"
+#include "Kite/core/kistream.h"
+#include "Kite/core/kostream.h"
+#include "Kite/core/kprefab.h"
 #include "Kite/meta/kmetadef.h"
 #include "Kite/serialization/kserialization.h"
 #include <string>
@@ -58,33 +61,14 @@ namespace Kite {
 			static_assert(std::is_base_of<KComponent, T>::value, "T must be derived from KComponents");
 
 			// check type
-			auto found = _kctypes.find(CType);
-			if (found != _kctypes.end()) {
-				KD_FPRINT("this type has already been registered. ctype: %s", CType.c_str());
-				return false;
-			}
-
-			// check index
-			U16 index;
-			if (_kcompCount >= KCOMP_MAX_SIZE) {
-				KD_FPRINT("maximum number of supported components was reached. ctype: %s   msize: %i", CType.c_str(), KCOMP_MAX_SIZE);
-				return false;
-			}
-			index = _kcompCount++;
-
-			if (_kcstorage[index] != nullptr) {
-				if (_kcstorage[index]->type != typeid(T).hash_code()) {
-					KD_FPRINT("diffrent component class with same type detected. ctype: %s", CType.c_str());
-					return false;
-				}
+			if (_kcstorage.find(CType) != _kcstorage.end()) {
 				KD_FPRINT("this type has already been registered. ctype: %s", CType.c_str());
 				return false;
 			}
 
 			// register type
-			_kcstorage[index] = new Internal::CHolder<T, KComponent>;
-			_kcstorage[index]->type = typeid(T).hash_code();
-			_kctypes[CType] = index;
+			_kcstorage[CType] = new Internal::CHolder<T, KComponent>;
+			_kcstorage[CType]->type = typeid(T).hash_code();
 			return true;
 		}
 
@@ -94,7 +78,7 @@ namespace Kite {
 		bool isRegisteredComponent(const std::string &CType);
 
 		/// create entity in the root branch. (parent = 0)
-		/// after creating one entity, all previous pointers may be invalid.
+		/// after creating an entity, all previous pointers may be invalid.
 		/// so always use handle whene need an older entity.
 		KM_FUN()
 		KEntity *createEntity(const std::string &Name = "");
@@ -126,25 +110,29 @@ namespace Kite {
 
 		void postWork();
 
+		KM_FUN()
+		bool createPrefab(const KHandle &EHandle, KPrefab *Prefab);
+
+		KM_FUN()
+		bool loadPrefab(const KPrefab *Prefab, const std::string &Name);
+
 		inline auto beginEntity() { return _kestorage.begin(); }
 
 		inline auto endEntity() { return _kestorage.end(); }
 
 		template<typename T>
 		auto beginComponent(const std::string &CType){
-			auto found = _kctypes.find(CType);
-			KD_ASSERT(found != _kctypes.end());
-			KD_ASSERT(_kcstorage[found->second] != nullptr);
-			Internal::CHolder<T, KComponent> *drived = static_cast<Internal::CHolder<T, KComponent> *>(_kcstorage[found->second]);
+			auto found = _kcstorage.find(CType);
+			KD_ASSERT(found != _kcstorage.end());
+			Internal::CHolder<T, KComponent> *drived = static_cast<Internal::CHolder<T, KComponent> *>(found->second);
 			return drived->getStorage()->begin();
 		}
 
 		template<typename T>
 		auto endComponent(const std::string &CType) {
-			auto found = _kctypes.find(CType);
-			KD_ASSERT(found != _kctypes.end());
-			KD_ASSERT(_kcstorage[found->second] != nullptr);
-			Internal::CHolder<T, KComponent> *drived = static_cast<Internal::CHolder<T, KComponent> *>(_kcstorage[found->second]);
+			auto found = _kcstorage.find(CType);
+			KD_ASSERT(found != _kcstorage.end());
+			Internal::CHolder<T, KComponent> *drived = static_cast<Internal::CHolder<T, KComponent> *>(found->second);
 			return drived->getStorage()->end();
 		}
 
@@ -153,15 +141,13 @@ namespace Kite {
 		void deserial(KBaseSerial &In);
 		void recursiveDeleter(KHandle EHandle);
 		void initeRoot();
-		void initeCStorage();
+		void recursiveSaveChilds(KEntity *Entity, KPrefab *Prefab);
 
 		KHandle _kroot;
 		KCFStorage<KEntity> _kestorage;
-		Internal::BaseCHolder<KComponent> *_kcstorage[KCOMP_MAX_SIZE];
+		std::unordered_map<std::string, Internal::BaseCHolder<KComponent> *> _kcstorage;
 		std::unordered_map<std::string, KHandle> _kentmap;
-		std::unordered_map<std::string, U16> _kctypes;
 		std::vector<KHandle> _ktrash;
-		U16 _kcompCount;
 	};
 }
 

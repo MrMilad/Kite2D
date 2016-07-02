@@ -47,6 +47,7 @@ namespace Kite{
 
 		I32 eof() override;
 
+		// return binary size (if file opened  with BIN mode)
 		KM_FUN()
 		U64 getSize() override;
 
@@ -56,7 +57,23 @@ namespace Kite{
 		KM_FUN()
 		I32 close() override;
 
+		KM_FUN()
+		inline const std::string &getFileName() override { return _kfname; }
+
+		KM_FUN()
+		inline const std::string &getPath() override { return _kpath; }
+
+		KM_FUN()
+		inline const std::string &getFullPath() override { return _kfullpath; }
+
+		KM_FUN()
+		inline IOMode getIOMode() override { return _kio; }
+
 	private:
+		std::string _kfname;
+		std::string _kpath;
+		std::string _kfullpath;
+		IOMode _kio;
 		FILE *_kfile;
 	};
 }

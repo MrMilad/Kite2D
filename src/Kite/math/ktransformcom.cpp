@@ -27,7 +27,7 @@
 
 namespace Kite{
 	KTransformCom::KTransformCom(const std::string &Name) :
-		KComponent("Transform", Name)
+		KComponent(Name)
 	{
 		_kposition = KVector2F32(0.0f, 0.0f);
 		_krotation = 0.0f;
@@ -37,9 +37,9 @@ namespace Kite{
 		setNeedUpdate(true);
 	}
 
-	void KTransformCom::attached() {}
+	void KTransformCom::attached(KEntity *Entity) {}
 
-	void KTransformCom::deattached() {}
+	void KTransformCom::deattached(KEntity *Entity) {}
 
     void KTransformCom::setPosition(const KVector2F32& Position){
         _kposition = Position;

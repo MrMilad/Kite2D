@@ -53,6 +53,28 @@ namespace Kite{
 
 		KM_FUN()
 		virtual I32 close() = 0;
+
+		KM_FUN()
+		virtual const std::string &getFileName() = 0;
+
+		KM_FUN()
+		virtual const std::string &getPath() = 0;
+
+		KM_FUN()
+		virtual const std::string &getFullPath() = 0;
+
+		KM_FUN()
+		virtual IOMode getIOMode() = 0;
+
+		/// will be implemented by KHParser
+		/// usage: access base class in lua
+		virtual KIStream *getBase() = 0;
+
+		/// will be implemented by KHParser
+		virtual inline std::string getType() const = 0;
+
+		/// will be implemented by KHParser
+		virtual inline U32 getHashType() const = 0;
 	};
 }
 

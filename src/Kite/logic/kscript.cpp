@@ -20,8 +20,6 @@ USA
 #include "Kite/logic/kscript.h"
 #include "Kite/meta/kmetamanager.h"
 #include "Kite/meta/kmetaclass.h"
-#include "Kite/serialization/kbinaryserial.h"
-#include "Kite/serialization/types/kstdstring.h"
 #include <luaintf/LuaIntf.h>
 
 namespace Kite {
@@ -31,35 +29,52 @@ namespace Kite {
 		setResourceName(Name);
 	}
 
-	bool KScript::loadStream(KIStream *Stream, U32 Flag, const std::string &Key) {
+	bool KScript::loadStream(KIStream *Stream, const std::string &Address, U32 Flag) {
 		_kcode.clear();
 
-		KBinarySerial ser;
-		if (!ser.loadStream(Stream, Key)) {
-			return false;
+		if (!Stream->isOpen()) {
+			Stream->close();
 		}
-		std::string  format;
-		ser >> format;
-		if (format != "KScript") {
-			KD_PRINT("incorrect file format.");
+
+		if (!Stream->open(Address, IOMode::TEXT)) {
+			KD_FPRINT("can't open stream. address: %s", Address.c_str());
 			return false;
 		}
 
-		std::string name;
-		ser >> name;
-		setResourceName(name);
-		ser >> _kcode;
+		SIZE pos;
+		char *buffer = (char*)malloc(sizeof(char)*4096);
+
+		while (!Stream->eof()) {
+			pos = Stream->read(buffer, sizeof(char) * 4096);
+			buffer[pos] = 0;
+		}
+
+		setCode(buffer);
+		setResourceName(Stream->getFileName());
+		setResourceAddress(Stream->getPath());
+
+		free(buffer);
+		Stream->close();
 		return true;
 	}
 
-	bool KScript::saveStream(KOStream *Stream, U32 Flag, const std::string &Key) {
-		KBinarySerial ser;
-		ser << std::string("KScript");
-		ser << getResourceName();
-		ser << _kcode;
-		if (!ser.saveStream(Stream,Key)) {
+	bool KScript::saveStream(KOStream *Stream, const std::string &Address, U32 Flag) {
+		if (!Stream->isOpen()) {
+			Stream->close();
+		}
+
+		if (!Stream->open(Address, IOMode::TEXT)) {
+			KD_FPRINT("can't open stream. address: %s", Address.c_str());
 			return false;
 		}
+
+		if (Stream->write(_kcode.data(), _kcode.size()) != _kcode.size()) {
+			KD_FPRINT("can't write data to stream. fpath: %s", Stream->getFullPath().c_str());
+			Stream->close();
+			return false;
+		}
+
+		Stream->close();
 		return true;
 	}
 

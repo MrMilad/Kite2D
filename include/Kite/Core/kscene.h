@@ -42,10 +42,10 @@ namespace Kite {
 		~KScene();
 
 		/// load from an open stream
-		bool loadStream(KIStream *Stream, U32 Flag = 0, const std::string &Key = std::string()) override;
+		bool loadStream(KIStream *Stream, const std::string &Address, U32 Flag = 0) override;
 
 		/// save to an open stream
-		bool saveStream(KOStream *Stream, U32 Flag = 0, const std::string &Key = std::string()) override;
+		bool saveStream(KOStream *Stream, const std::string &Address, U32 Flag = 0) override;
 
 		KM_PRO_GET(KP_NAME = "isLoaded", KP_TYPE = bool, KP_CM = "is scene loaded")
 		inline bool isLoaded() const { return _kloaded; }

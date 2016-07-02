@@ -28,6 +28,7 @@ USA
 #include <utility>
 #include <cctype>
 #include <tinydir/tinydir.h>
+#include <hash\mmhash3.h>
 
 std::unordered_map<std::string, std::string> strmap;
 
@@ -127,11 +128,13 @@ struct MOperator {
 
 struct MVariable {
 	std::string name;
+	std::string type;
 	std::string tokparam;
 	bool isStatic;
+	bool isConst;
 
 	MVariable() :
-		isStatic(false) {}
+		isStatic(false), isConst(false) {}
 };
 
 struct MTemplate {
@@ -177,6 +180,12 @@ struct MEnum {
 	std::string type;
 	std::vector<MEnumMember> members; 
 };
+
+unsigned int getHash32(const void *Data, unsigned int Lenght) {
+	unsigned int out = 0;
+	MurmurHash3_x86_32(Data, Lenght, 13711010, (void *)&out);
+	return out;
+}
 
 bool isNumber(const std::string& s) {
 	std::string::const_iterator it = s.begin();
@@ -1031,7 +1040,11 @@ bool procVar(const std::string &Content, MVariable &Var, unsigned int Pos) {
 			if (output == "static") {
 				Var.isStatic = true;
 				continue;
+			} else if (output == "const") {
+				Var.isConst = true;
+				continue;
 			}
+
 			vList.push_back(output);
 		} else {
 			break;
@@ -1045,6 +1058,10 @@ bool procVar(const std::string &Content, MVariable &Var, unsigned int Pos) {
 
 	// name
 	Var.name = vList.back();
+	vList.pop_back();
+	
+	// type
+	Var.type = vList.back();
 
 	return true;
 }
@@ -1786,6 +1803,24 @@ void createTemplMacro(const MClass &Cls, std::string &Output) {
 	Output.append("}\n");
 }
 
+void luaPrefabPOD(std::string &Output, const std::string &Name, const std::string &Type) {
+	std::string type;
+	if (Type == "string") {
+		type = "\\\"\" + " + Name + " + \"\\\"";
+	} else if (Type == "F32" || Type == "F64" ||
+			   Type == "I32" || Type == "U32" ||
+			   Type == "I16" || Type == "U16" ||
+			   Type == "I8" || Type == "U8") {
+		type = "\" + std::to_string(" + Name + ") + \"";
+	} else if (Type == "bool") {
+		Output.append("if (" + Name + "){\\\n");
+		Output.append("code.append(Name + \"." + Name + " = true\\n\");\\\n");
+		Output.append("}else{\\\n");
+		Output.append("code.append(Name + \"." + Name + " = false\\n\");}\\\n");
+	}
+	Output.append("code.append(Name + \"." + Name + " = " + type + "\\n\");\\\n");
+}
+
 void createMacros(const std::vector<MClass> &Cls, const std::vector<MEnum> &Enms, std::string &Output) {
 	Output.clear();
 
@@ -1865,6 +1900,7 @@ void createMacros(const std::vector<MClass> &Cls, const std::vector<MEnum> &Enms
 		bool isOStream = false;
 		bool isScriptable = false;
 		bool isAbstract = false;
+		bool isSerializer = false;
 		for (auto it = ctags.begin(); it != ctags.end(); ++it) {
 			if (it->first == "POD") {
 				isPOD = true;
@@ -1914,12 +1950,18 @@ void createMacros(const std::vector<MClass> &Cls, const std::vector<MEnum> &Enms
 			if (it->first == "SCRIPTABLE") {
 				isScriptable = true;
 			}
+
+			// is serializer
+			if (it->first == "SERIALIZER") {
+				isSerializer = true;
+			}
 		}
 
 		// class without any flag will ignored
 		if (!isPOD && !isEntity && !isResource &&
 			!isComponent && !isSystem && !isScriptable &&
-			!isContiner && !isIStream && !isOStream) {
+			!isContiner && !isIStream && !isOStream &&
+			!isSerializer) {
 			printf("message: class without any supported flags. %s ignored. \n", Cls[i].name.c_str());
 			continue;
 		}
@@ -1963,7 +2005,7 @@ void createMacros(const std::vector<MClass> &Cls, const std::vector<MEnum> &Enms
 						  exstate + "KAny getProperty(const std::string &Name) const override;\\\n");
 		}
 
-		// serializable
+		// serializable and prefab
 		if (isPOD || isComponent || isEntity) {
 			if (!isAbstract) {
 				Output.append("friend KBaseSerial &operator<<(KBaseSerial &Out, const " + Cls[i].name + " &Value) {\\\n"
@@ -1971,8 +2013,9 @@ void createMacros(const std::vector<MClass> &Cls, const std::vector<MEnum> &Enms
 							  "friend KBaseSerial &operator>>(KBaseSerial &In, " + Cls[i].name + " &Value) {\\\n"
 							  "Value.deserial(In); return In;}\\\n");
 			}
-			Output.append(exstate + "void serial(KBaseSerial &Serializer) const;\\\n");
-			Output.append(exstate + "void deserial(KBaseSerial &Serializer);\\\n");
+
+			Output.append(exstate + "void serial(KBaseSerial &Serializer, bool Base = true) const;\\\n");
+			Output.append(exstate + "void deserial(KBaseSerial &Serializer, bool Base = true);\\\n");
 		}
 
 		// component lua cast and base access
@@ -1981,16 +2024,40 @@ void createMacros(const std::vector<MClass> &Cls, const std::vector<MEnum> &Enms
 			for (auto it = Cls[i].infos.begin(); it != Cls[i].infos.end(); ++it) {
 				if (it->key == "KI_CTYPE") {
 					cname = it->info;
+					break;
 				}
 			}
+			std::string compHash = std::to_string(getHash32(cname.c_str(), cname.length()));
 
-			Output.append("private:\\\n" +
+			Output.append("public:\\\n" +
+						  exstate + "inline std::string getType() const override { return \"" + cname + "\"; }\\\n" +
+						  exstate + "inline U32 getHashType() const override { return " + compHash + "; }\\\n" +
+						  "private:\\\n" +
 						  exstate + "static " + Cls[i].name + " *to" + cname + "(KComponent *Base) {\\\n" +
 						  "if (Base != nullptr){\\\n"
-						  "if (Base->getType() == \"" + cname + "\") {\\\n"
+						  "if (Base->getHashType() == " + compHash + ") {\\\n"
 						  "return (" + Cls[i].name + " *)Base; }};\\\n" +
 						  "return nullptr; }\\\n" +
 						  exstate + "inline KComponent *getBase() override { return this; }\\\n");
+		}
+
+		// (base, lua cast, type)
+		if ((isIStream || isOStream || isSerializer) && !isAbstract) {
+			std::string hashCode = std::to_string(getHash32(Cls[i].name.c_str(), Cls[i].name.length()));
+			std::string baseName;
+			if (isIStream) baseName = "KIStream";
+			if (isOStream) baseName = "KOStream";
+			if (isSerializer) baseName = "KBaseSerial";
+
+			Output.append("private:\\\n" +
+						  exstate + "inline std::string getType() const override { return \"" + Cls[i].name + "\"; }\\\n" +
+						  exstate + "inline U32 getHashType() const override { return " + hashCode + "; }\\\n" +
+						  exstate + "static " + Cls[i].name + " *to" + Cls[i].name + "(" + baseName + " *Base) {\\\n" +
+						  "if (Base != nullptr){\\\n"
+						  "if (Base->getHashType() == " + hashCode + ") {\\\n"
+						  "return (" + Cls[i].name + " *)Base; }};\\\n" +
+						  "return nullptr; }\\\n" +
+						  exstate + "inline " + baseName + " *getBase() override { return this; }\\\n");
 		}
 
 		Output.append("public:\\\n" +
@@ -2091,7 +2158,7 @@ void createMacros(const std::vector<MClass> &Cls, const std::vector<MEnum> &Enms
 
 		// lua binding 
 		if (isComponent || isScriptable || isEntity || isPOD ||
-			isSystem || isIStream || isOStream || isResource) {
+			isSystem || isIStream || isOStream || isResource || isSerializer) {
 
 			Output.append("if (Lua != nullptr) { \\\n"
 						  "LuaIntf::LuaBinding(Lua).beginModule(\"Kite\").beginClass<"
@@ -2113,10 +2180,26 @@ void createMacros(const std::vector<MClass> &Cls, const std::vector<MEnum> &Enms
 				Output.append(".addConstructor(LUA_ARGS(" + param + "))\\\n");
 			}
 
-			// predefined (base, lua cast)
+			// predefined component functions (base, lua cast)
 			if (isComponent && !isAbstract) {
+				Output.append(".addProperty(\"hashType\", &" + Cls[i].name + "::getHashType)\\\n");
+				Output.append(".addProperty(\"type\", &" + Cls[i].name + "::getType)\\\n");
 				Output.append(".addProperty(\"base\", &" + Cls[i].name + "::getBase)\\\n");
 				Output.append(".addStaticFunction(\"to" + comName + "\", &" + Cls[i].name + "::to" + comName + ")\\\n");
+			}
+
+			// predefined serializer functions (base, lua cast)
+			if ((isIStream || isOStream || isSerializer) && !isAbstract) {
+				Output.append(".addProperty(\"hashType\", &" + Cls[i].name + "::getHashType)\\\n");
+				Output.append(".addProperty(\"type\", &" + Cls[i].name + "::getType)\\\n");
+				Output.append(".addProperty(\"base\", &" + Cls[i].name + "::getBase)\\\n");
+				Output.append(".addStaticFunction(\"to" + Cls[i].name + "\", &" + Cls[i].name + "::to" + Cls[i].name + ")\\\n");
+			}
+
+			// serializer functions
+			if (isPOD || isComponent || isEntity) {
+				Output.append(".addFunction(\"serial\", &" + Cls[i].name + "::serial)\\\n");
+				Output.append(".addFunction(\"deserial\", &" + Cls[i].name + "::deserial)\\\n");
 			}
 
 			// properties
@@ -2200,14 +2283,15 @@ void createMacros(const std::vector<MClass> &Cls, const std::vector<MEnum> &Enms
 			Output.append("}\n");
 		}
 
-		// serial definition
+		// serial and prefab definition
 		if (isPOD || isComponent || isEntity) {
 			// serialize
-			Output.append("void " + Cls[i].name + "::serial(KBaseSerial &Serializer) const {\\\n");
+			Output.append("void " + Cls[i].name + "::serial(KBaseSerial &Serializer, bool Base) const {\\\n");
 
 			// KComponent (base)
 			if (isComponent && !isAbstract) {
-				Output.append("KComponent *kc = (KComponent *)(this); kc->serial(Serializer);\\\n");
+				Output.append("if (Base){\\\n");
+				Output.append("KComponent *kc = (KComponent *)(this); kc->serial(Serializer);}\\\n");
 			}
 
 			for (size_t vcont = 0; vcont < Cls[i].vars.size(); ++vcont) {
@@ -2216,11 +2300,12 @@ void createMacros(const std::vector<MClass> &Cls, const std::vector<MEnum> &Enms
 			Output.append("}\\\n");
 
 			// deserialize
-			Output.append("void " + Cls[i].name + "::deserial(KBaseSerial &Serializer) {\\\n");
+			Output.append("void " + Cls[i].name + "::deserial(KBaseSerial &Serializer, bool Base) {\\\n");
 
 			// KComponent (base)
 			if (isComponent && !isAbstract) {
-				Output.append("KComponent *kc = (KComponent *)(this); kc->deserial(Serializer);\\\n");
+				Output.append("if (Base){\\\n");
+				Output.append("KComponent *kc = (KComponent *)(this); kc->deserial(Serializer);}\\\n");
 			}
 
 			for (size_t vcont = 0; vcont < Cls[i].vars.size(); ++vcont) {

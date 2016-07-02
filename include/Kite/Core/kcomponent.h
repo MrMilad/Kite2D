@@ -37,15 +37,15 @@ namespace Kite {
 		friend class KEntityManager;
 		friend class KEntity;
 	public:
-		KComponent(const std::string &Type, const std::string &Name = "");
+		KComponent(const std::string &Name = "");
 
 		virtual ~KComponent();
 
 		/// called when atached to a entity
-		virtual void attached() = 0;
+		virtual void attached(KEntity *Owner) = 0;
 
 		/// called when deattached from an entity
-		virtual void deattached() = 0;
+		virtual void deattached(KEntity *Owner) = 0;
 
 		/// will be implemented by KHParser
 		virtual bool setProperty(const std::string &Name, KAny &Value) = 0;
@@ -57,9 +57,13 @@ namespace Kite {
 		/// usage: access base members in lua
 		virtual KComponent *getBase() = 0;
 
-
+		/// will be implemented by KHParser
 		KM_PRO_GET(KP_NAME = "type", KP_TYPE = std::string, KP_CM = "type of the component")
-		inline const std::string &getType() const { return _ktype; }
+		virtual inline std::string getType() const = 0;
+
+		/// will be implemented by KHParser
+		KM_PRO_GET(KP_NAME = "hashType", KP_TYPE = std::string, KP_CM = "hash code of the component type's")
+		virtual inline U32 getHashType() const = 0;
 
 		KM_PRO_GET(KP_NAME = "name", KP_TYPE = std::string, KP_CM = "name of the component")
 		inline const std::string &getName() const { return _kname; }
@@ -83,7 +87,6 @@ namespace Kite {
 		inline void setOwnerHandle(const KHandle &Handle) { _kohandle = Handle; }
 
 	private:
-		KM_VAR() std::string _ktype;
 		KM_VAR() std::string _kname;
 		KM_VAR() KHandle _khandle;
 		KM_VAR() KHandle _kohandle;

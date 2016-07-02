@@ -19,6 +19,7 @@ USA
 */
 #include "Kite/core/kentity.h"
 #include "Kite/core/kcoreutil.h"
+#include "Kite/core/kprefab.h"
 #include "Kite/meta/kmetamanager.h"
 #include "Kite/meta/kmetaclass.h"
 #include "Kite/serialization/types/kstdstring.h"
@@ -28,8 +29,9 @@ USA
 
 namespace Kite {
 	KEntity::KEntity(const std::string &Name):
-		_kplistid(0), _kname(Name), _kcstorage(nullptr),
-		_kestorage(nullptr), _kctypes(nullptr)
+		_kplistid(0), _kname(Name),
+		_kcstorage(nullptr),
+		_kestorage(nullptr)
 	{}
 
 	KEntity::~KEntity() {}
@@ -38,11 +40,11 @@ namespace Kite {
 		// redirect message
 		// to self
 		if (Scope == MessageScope::SELF) {
-			if (_kctypes != nullptr) {
-				auto found = _kctypes->find("Logic");
-				if (found != _kctypes->end()) {
+			if (_kcstorage != nullptr) {
+				auto found = _kcstorage->find("Logic");
+				if (found != _kcstorage->end()) {
 					for (auto it = _klogicOrder.begin(); it != _klogicOrder.end(); ++it) {
-						auto comp = _kcstorage[found->second]->get((*it));
+						auto comp = found->second->get((*it));
 						if (comp != nullptr) {
 							comp->onMessage(Message, Scope);
 						}
@@ -61,11 +63,11 @@ namespace Kite {
 
 		// all
 		} else if (Scope == MessageScope::ALL) {
-			if (_kctypes != nullptr) {
-				auto found = _kctypes->find("Logic");
-				if (found != _kctypes->end()) {
+			if (_kcstorage != nullptr) {
+				auto found = _kcstorage->find("Logic");
+				if (found != _kcstorage->end()) {
 					for (auto it = _klogicOrder.begin(); it != _klogicOrder.end(); ++it) {
-						auto comp = _kcstorage[found->second]->get((*it));
+						auto comp = found->second->get((*it));
 						if (comp != nullptr) {
 							comp->onMessage(Message, Scope);
 						}
@@ -84,6 +86,16 @@ namespace Kite {
 		return RecieveTypes::RECEIVED;
 	}
 
+	void KEntity::setActive(bool Active) {
+		_kactive = Active;
+
+		if (_kestorage != nullptr) {
+			for (auto it = _kchilds.begin(); it != _kchilds.end(); ++it) {
+				_kestorage->get((*it))->setActive(Active);
+			}
+		}
+	}
+
 	void KEntity::setComponent(const std::string &CType, const std::string &Name, KComponent *Comp) {
 		if (CType == "Logic") {
 			_klogicOrder.push_back(Comp->getHandle());
@@ -100,6 +112,11 @@ namespace Kite {
 		}
 
 		_kchilds.pop_back();
+	}
+
+	void KEntity::setHandle(const KHandle Handle) {
+		_kluatable = "ENT" + std::to_string(Handle.index);
+		_khandle = Handle;
 	}
 
 	void KEntity::addChild(const KHandle &EHandle) {
@@ -151,7 +168,10 @@ namespace Kite {
 			return nullptr;
 
 		// check component type
-		} else if (_kctypes->find(CType) == _kctypes->end()) {
+		}
+		
+		auto found = _kcstorage->find(CType);
+		if (_kcstorage->find(CType) == _kcstorage->end()) {
 			KD_FPRINT("unregistered component types. ctype: %s   cname: %s", CType.c_str(), CName.c_str());
 			return nullptr;
 
@@ -162,11 +182,10 @@ namespace Kite {
 		}
 
 		// create component
-		auto found = _kctypes->find(CType);
-		auto handle = _kcstorage[found->second]->add(CName);
+		auto handle = found->second->add(CName);
 
 		// set its handle
-		auto com = _kcstorage[found->second]->get(handle);
+		auto com = found->second->get(handle);
 		com->_khandle = handle;
 
 		// attach the created component to the entity
@@ -174,7 +193,7 @@ namespace Kite {
 		com->setOwnerHandle(getHandle());
 
 		// call attach functon
-		com->attached();
+		com->attached(this);
 
 		return com;
 	}
@@ -185,7 +204,10 @@ namespace Kite {
 			KD_PRINT("set component storage at first");
 			return nullptr;
 
-		} else if (_kctypes->find(CType) == _kctypes->end()) {
+		}
+		
+		auto found = _kcstorage->find(CType);
+		if (found == _kcstorage->end()) {
 			KD_FPRINT("unregistered component types. ctype: %s", CType.c_str());
 			return nullptr;
 
@@ -194,11 +216,26 @@ namespace Kite {
 			return nullptr;
 		}
 
-		return _kcstorage[_kctypes->find(CType)->second]->get(Handle);
+		return found->second->get(Handle);
 	}
 
 	KComponent *KEntity::getComponentByName(const std::string &CType, const std::string &CName) {
 		return getComponent(CType, getComponentHandle(CType, CName));
+	}
+
+	void KEntity::getFixedComponents(std::vector<KComponent *> &Output) {
+		Output.clear();
+		// cehck storage
+		if (_kcstorage == nullptr) {
+			KD_PRINT("set component storage at first");
+			return;
+		}
+
+		Output.reserve(_kfixedComp.size());
+		for (auto it = _kfixedComp.begin(); it != _kfixedComp.end(); ++it) {
+			auto ptr = _kcstorage->find(it->first)->second->get(it->second);
+			Output.push_back(ptr);
+		}
 	}
 
 	void KEntity::getScriptComponents(std::vector<KComponent *> &Output) {
@@ -207,15 +244,17 @@ namespace Kite {
 		if (_kcstorage == nullptr) {
 			KD_PRINT("set component storage at first");
 			return;
-		} else if (_kctypes->find("Logic") == _kctypes->end()) {
+		}
+		
+		auto found = _kcstorage->find("Logic");
+		if (found == _kcstorage->end()) {
 			KD_PRINT("unregistered component types. ctype: Logic");
 			return;
 		}
 
 		Output.reserve(_klogicComp.size());
-		auto found = _kctypes->find("Logic");
 		for (auto it = _klogicOrder.begin(); it != _klogicOrder.end(); ++it) {
-			auto ptr = _kcstorage[found->second]->get((*it));
+			auto ptr = found->second->get((*it));
 			Output.push_back(ptr);
 		}
 	}
@@ -225,9 +264,11 @@ namespace Kite {
 		if (_kcstorage == nullptr) {
 			KD_PRINT("set component storage at first");
 			return;
-
+		}
+		
 		// check component type
-		} else if (_kctypes->find(CType) == _kctypes->end()) {
+		auto found = _kcstorage->find(CType);
+		if (found == _kcstorage->end()) {
 			KD_FPRINT("unregistered component types. ctype: %s   cname: %s", CType.c_str(), Name.c_str());
 			return;
 
@@ -236,11 +277,10 @@ namespace Kite {
 		}
 
 		// deattach component from entity and call deattach function
-		auto found = _kctypes->find(CType);
 		auto hndl = getComponentHandle(CType, Name);
-		auto comPtr = _kcstorage[found->second]->get(hndl);
+		auto comPtr = found->second->get(hndl);
 		comPtr->setOwnerHandle(getHandle());
-		comPtr->deattached();
+		comPtr->deattached(this);
 		
 		// remove components id from entity
 		if (CType == "Logic") {
@@ -257,34 +297,36 @@ namespace Kite {
 		}
 
 		// and remove component itself from storage
-		_kcstorage[found->second]->remove(hndl);
+		found->second->remove(hndl);
 	}
 
 	void KEntity::clearComponents() {
 		// cehck storage
 		if (_kcstorage != nullptr) {
 			// first remove all script components
-			auto found = _kctypes->find("Logic");
-			if (found != _kctypes->end()) {
+			auto found = _kcstorage->find("Logic");
+			if (found != _kcstorage->end()) {
 				for (auto it = _klogicOrder.begin(); it != _klogicOrder.end(); ++it) {
 
 					// call deattach on all components
-					auto comPtr = _kcstorage[found->second]->get((*it));
-					comPtr->deattached();
+					auto comPtr = found->second->get((*it));
+					comPtr->deattached(this);
 
-					_kcstorage[found->second]->remove((*it));
+					found->second->remove((*it));
 				}
 			}
 			_klogicComp.clear();
 			_klogicOrder.clear();
 
 			for (auto it = _kfixedComp.begin(); it != _kfixedComp.end(); ++it) {
+				auto storage = _kcstorage->find(it->first);
 
 				// call deattach on all components
-				auto comPtr = _kcstorage[_kctypes->find(it->first)->second]->get(it->second);
-				comPtr->deattached();
+				auto comPtr = storage->second->get(it->second);
+				comPtr->deattached(this);
 
-				_kcstorage[_kctypes->find(it->first)->second]->remove(it->second);
+				// remove from storage
+				storage->second->remove(it->second);
 			}
 			_kfixedComp.clear();
 		}

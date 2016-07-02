@@ -18,6 +18,7 @@ set(COR_SRC
     ${SRCROOT}/kentity.cpp
     ${SRCROOT}/kentitymanager.cpp
     ${SRCROOT}/kscene.cpp
+    ${SRCROOT}/kprefab.cpp
     ${SRCROOT}/kscenemanager.cpp
     ${SRCROOT}/kmessage.cpp
     ${SRCROOT}/kmessenger.cpp
@@ -37,6 +38,7 @@ set(COR_INC
     ${INCROOT}/kdelegate.h
     ${INCROOT}/kany.h
     ${INCROOT}/kvariant.h
+    ${INCROOT}/kprefab.h
     ${INCROOT}/ksystem.h
     ${INCROOT}/kcomponent.h
     ${INCROOT}/kentity.h

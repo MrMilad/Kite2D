@@ -25,14 +25,14 @@ USA
 
 namespace Kite {
 	KInputCom::KInputCom(const std::string &Name):
-		KComponent("Input", Name),
+		KComponent(Name),
 		_kkeyboard(true), _kmouse(true), _kjoystick(false)
 	{}
 
 
-	void KInputCom::attached() {}
+	void KInputCom::attached(KEntity *Entity) {}
 
-	void KInputCom::deattached() {}
+	void KInputCom::deattached(KEntity *Entity) {}
 
 	RecieveTypes KInputCom::onMessage(KMessage *Message, MessageScope Scope) {
 		return RecieveTypes::IGNORED;

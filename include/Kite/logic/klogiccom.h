@@ -24,6 +24,7 @@ USA
 #include "Kite/core/kcomponent.h"
 #include "Kite/meta/kmetadef.h"
 #include "Kite/logic/kscript.h"
+#include "Kite/core/kentity.h"
 #include <string>
 #include "klogiccom.khgen.h"
 
@@ -38,10 +39,10 @@ namespace Kite {
 	public:
 		KLogicCom(const std::string &Name = "");
 
-		void attached() override;
+		void attached(KEntity *Entity) override;
 
 		/// remove this script from entity
-		void deattached() override;
+		void deattached(KEntity *Entity) override;
 
 		KM_FUN()
 		RecieveTypes onMessage(KMessage *Message, MessageScope Scope) override;
@@ -49,20 +50,18 @@ namespace Kite {
 		KM_PRO_SET(KP_NAME = "script")
 		void setScript(const std::string &ResName);
 		
-		KM_PRO_GET(KP_NAME = "script", KP_TYPE = std::string, KP_CM = "Lua script", KP_RES = "KScript")
-		inline const std::string &getScript() const { return _kresName; }
-
-		KM_PRO_GET(KP_NAME = "ownerTable", KP_TYPE = std::string, KP_CM = "Owner table in lua")
-		inline const std::string &getTName() const { return _ktname; }
+		KM_PRO_GET(KP_NAME = "script", KP_TYPE = std::string, KP_CM = "name of the lua script resource", KP_RES = "KScript")
+		inline const std::string &getScript() const { return _kscriptName; }
 
 	private:
+		inline const std::string &getTName() { return _ktname; }
 		void removeLuaEnv();
 		void setLuaState(lua_State *L);
 
-		KM_VAR() std::string _kresName;
+		KM_VAR() std::string _kscriptName;
 		KM_VAR() std::string _ktname;
 
-		bool _kinite;;
+		bool _kinite;
 		bool _kstart;
 
 		KScript *_kscript;

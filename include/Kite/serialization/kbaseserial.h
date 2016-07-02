@@ -22,12 +22,45 @@ USA
 
 #include "Kite/core/kcoredef.h"
 #include "Kite/core/kcoretypes.h"
+#include "Kite/core/kistream.h"
+#include "Kite/core/kostream.h"
+#include "Kite/meta/kmetadef.h"
+#include "kbaseserial.khgen.h"
 
+KMETA
 namespace Kite {
+	KM_CLASS(ABSTRACT, SERIALIZER)
 	class KITE_FUNC_EXPORT KBaseSerial {
+		KMETA_KBASESERIAL_BODY();
 	public:
+		KBaseSerial();
+		virtual ~KBaseSerial();
+
+		KM_FUN()
+		virtual bool loadStream(KIStream *Stream, const std::string &Address) = 0;
+
+		KM_FUN()
+		virtual bool saveStream(KOStream *Stream, const std::string &Address, U32 Version) = 0;
+
 		virtual void writePOD(const void *Value, SIZE Size, bool Str) = 0;
 		virtual void readPOD(void *Value, SIZE Size, bool Str) = 0;
+
+		KM_FUN()
+		inline U32 getVersion() const { return _kversion; }
+
+		/// will be implemented by KHParser
+		/// usage: access base class in lua
+		virtual KBaseSerial *getBase() = 0;
+
+		/// will be implemented by KHParser
+		virtual inline std::string getType() const = 0;
+
+		/// will be implemented by KHParser
+		virtual inline U32 getHashType() const = 0;
+
+	protected:
+		inline void setVersion(U32 Version) { _kversion = Version; }
+		U32 _kversion;
 	};
 }
 

@@ -28,37 +28,26 @@ USA
 #include <luaintf\LuaIntf.h>
 
 namespace Kite {
-	KEntityManager::KEntityManager():
-		_kcompCount(0)
-	{
-		initeCStorage();
-		initeRoot();
+	KEntityManager::KEntityManager(){
 		registerCTypes(this);
+		initeRoot();
 	}
 
 	KEntityManager::~KEntityManager() {
-		for (U8 i = 0; i < KCOMP_MAX_SIZE; ++i) {
-			if (_kcstorage[i] != nullptr) {
-				_kcstorage[i]->clear();
-				delete _kcstorage[i];
-				_kcstorage[i] = nullptr;
-			}
+		for (auto it = _kcstorage.begin(); it != _kcstorage.end(); ++it) {
+			it->second->clear();
+			delete it->second;
 		}
-	}
-
-	void KEntityManager::initeCStorage() {
-		for (U8 i = 0; i < KCOMP_MAX_SIZE; ++i) {
-			_kcstorage[i] = nullptr;
-		}
+		_kcstorage.clear();
 	}
 
 	void KEntityManager::initeRoot() {
 		// create root
 		_kroot = _kestorage.add(KEntity("Root"));
-		_kestorage.get(_kroot)->_khandle = _kroot;
+		_kestorage.get(_kroot)->setHandle(_kroot);
 
 		// set storages
-		_kestorage.get(_kroot)->_kcstorage = _kcstorage;
+		_kestorage.get(_kroot)->_kcstorage = &_kcstorage;
 		_kestorage.get(_kroot)->_kestorage = &_kestorage;
 		_kestorage.get(_kroot)->setActive(false);
 
@@ -81,12 +70,11 @@ namespace Kite {
 		// create new entity and set its id
 		auto hndl = _kestorage.add(KEntity(Name));
 		auto ent = _kestorage.get(hndl);
-		ent->_khandle = hndl;
+		ent->setHandle(hndl);
 
 		// set storages
-		ent->_kcstorage = _kcstorage;
+		ent->_kcstorage = &_kcstorage;
 		ent->_kestorage = &_kestorage;
-		ent->_kctypes = &_kctypes;
 
 		// added it to root by default
 		getEntity(getRoot())->addChild(hndl);
@@ -177,9 +165,8 @@ namespace Kite {
 	KEntity *KEntityManager::getEntity(const KHandle &Handle) {
 		auto ent = _kestorage.get(Handle);
 		if (ent != nullptr) {
-			ent->_kcstorage = _kcstorage;
+			ent->_kcstorage = &_kcstorage;
 			ent->_kestorage = &_kestorage;
-			ent->_kctypes = &_kctypes;
 		}
 		return ent;
 	}
@@ -194,14 +181,11 @@ namespace Kite {
 	}
 
 	void KEntityManager::unregisterComponent(const std::string &CType) {
-		auto found = _kctypes.find(CType);
-		if (found != _kctypes.end()) {
-			if (_kcstorage[found->second] != nullptr) {
-				_kcstorage[found->second]->clear();
-				delete _kcstorage[found->second];
-				_kcstorage[found->second] = nullptr;
-				_kctypes.erase(CType);
-			}
+		auto found = _kcstorage.find(CType);
+		if (found != _kcstorage.end()) {
+			found->second->clear();
+			delete found->second;
+			_kcstorage.erase(found);
 		}
 	}
 
@@ -210,11 +194,9 @@ namespace Kite {
 			return true;
 		}
 
-		for (SIZE i = 0; i < KCOMP_MAX_SIZE; ++i) {
-			if (_kcstorage[i] != nullptr) {
-				if (_kcstorage[i]->getModified()) {
-					return true;
-				}
+		for (auto it = _kcstorage.begin(); it != _kcstorage.end(); ++it) {
+			if (it->second->getModified()) {
+				return true;
 			}
 		}
 
@@ -222,11 +204,8 @@ namespace Kite {
 	}
 
 	bool KEntityManager::isRegisteredComponent(const std::string &CType) {
-		auto found = _kctypes.find(CType);
-		if (found != _kctypes.end()){
-			if (_kcstorage[found->second] != nullptr) {
-				return true;
-			}
+		if (_kcstorage.find(CType) != _kcstorage.end()){
+			return true;
 		}
 
 		return false;
@@ -247,35 +226,82 @@ namespace Kite {
 		_ktrash.clear();
 	}
 
+	void KEntityManager::recursiveSaveChilds(KEntity *Entity, KPrefab *Prefab) {
+		/*for (auto it = Entity->beginChild(); it != Entity->endChild(); ++it) {
+			auto ent = _kestorage.get(*it);
+			// save entity and its components after that
+			std::vector<KComponent *> comps;
+			Prefab->_kentities.push_back(*ent);
+			Prefab->_kcomponents.push_back(std::vector<Internal::PrefabComp>());
+			auto cvec = &Prefab->_kcomponents.back();
+
+			// fixed components
+			ent->getFixedComponents(comps);
+			for (auto it = comps.begin(); it != comps.end(); ++it) {
+				cvec->push_back(Internal::PrefabComp());
+				cvec->back().type = (*it)->getType();
+				cvec->back().name = (*it)->getName();
+				cvec->back().data = (*it);
+			}
+
+			// logic components
+			ent->getScriptComponents(comps);
+			cvec->reserve(cvec->size() + comps.size());
+			for (auto it = comps.begin(); it != comps.end(); ++it) {
+				cvec->push_back(Internal::PrefabComp());
+				cvec->back().type = (*it)->getType();
+				cvec->back().name = (*it)->getName();
+				cvec->back().data = (*it);
+			}
+			if (ent->hasChild()) {
+				recursiveSaveChilds(ent, Prefab);
+			}
+		}*/
+	}
+
+	bool KEntityManager::createPrefab(const KHandle &EHandle, KPrefab *Prefab){
+		Prefab->clear();
+		auto ent = _kestorage.get(EHandle);
+		if (ent == nullptr) {
+			KD_PRINT("an entity with the given handle does not exist.");
+			return false;
+		}
+
+		// entity information
+		Prefab->_kdata.append("local parrent = param.createEntity(""" + ent->getName() + """)\n");
+
+		// components
+		Prefab->_kdata.append("local.addCompponents");
+
+		return true;
+	}
+
+	bool KEntityManager::loadPrefab(const KPrefab *Prefab, const std::string &Name) {
+		return false;
+	}
+
 	void KEntityManager::serial(KBaseSerial &Out) const {
 		Out << _kroot;
 		Out << _kestorage;
 
-		for (U32 i = 0; i < KCOMP_MAX_SIZE; ++i) {
-			if (_kcstorage[i] != nullptr) {
-				_kcstorage[i]->serial(Out);
-			}
+		for (auto it = _kcstorage.begin(); it != _kcstorage.end(); ++it) {
+			it->second->serial(Out);
 		}
 		Out << _kentmap;
-		Out << _kctypes;
 	}
 
 	void KEntityManager::deserial(KBaseSerial &In) {
 		In >> _kroot;
 		In >> _kestorage;
-		for (U32 i = 0; i < KCOMP_MAX_SIZE; ++i) {
-			if (_kcstorage[i] != nullptr) {
-				_kcstorage[i]->deserial(In);
-			}
+		for (auto it = _kcstorage.begin(); it != _kcstorage.end(); ++it) {
+			it->second->deserial(In);
 		}
 		In >> _kentmap;
-		In >> _kctypes;
 
 		// inite entities
 		for (auto it = _kestorage.begin(); it != _kestorage.end(); ++it) {
-			it->_kcstorage = _kcstorage;
+			it->_kcstorage = &_kcstorage;
 			it->_kestorage = &_kestorage;
-			it->_kctypes = &_kctypes;
 		}
 	}
 

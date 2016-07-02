@@ -25,8 +25,8 @@ USA
 #include <luaintf\LuaIntf.h>
 
 namespace Kite {
-	KComponent::KComponent(const std::string &Type, const std::string &Name) :
-		_ktype(Type), _kname(Name),
+	KComponent::KComponent(const std::string &Name) :
+		_kname(Name),
 		_kneedup(true)
 	{}
 

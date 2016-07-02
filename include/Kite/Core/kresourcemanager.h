@@ -51,7 +51,6 @@ namespace Kite{
 		KM_FUN()
 		KResource *create(const std::string &RType, const std::string &Name);
 
-		/// use catch stream for stream resource eg: KStreamSource
 		/// R: resource type
 		/// S: stream type
 		KM_FUN()

@@ -85,8 +85,13 @@ void MainWindow::setupDocks(){
     // objects dock
     objDock = new ObjectDock(this);
     addDockWidget(Qt::LeftDockWidgetArea, objDock);	
-	connect(resDock, &ResourceDock::resourceSelected, objDock, &ObjectDock::sceneEdit);
-	connect(resDock, &ResourceDock::resourceDelete, objDock, &ObjectDock::sceneDelete);
+	connect(resDock, &ResourceDock::resourceSelected, objDock, &ObjectDock::resEdit);
+	connect(resDock, &ResourceDock::resourceDelete, objDock, &ObjectDock::resDelete);
+	connect(resDock, &ResourceDock::resourceOpen, objDock, &ObjectDock::installEntityCallback);
+	connect(resDock, &ResourceDock::resourceAdded, objDock, &ObjectDock::installEntityCallback);
+	connect(objDock, &ObjectDock::requestCreateResource, resDock, &ResourceDock::addResource);
+	connect(objDock, &ObjectDock::requestGetResource, resDock, &ResourceDock::getResource);
+	connect(objDock, &ObjectDock::requestResName, resDock, &ResourceDock::filterByType);
 
     // component/properties dock
     prpDock = new ComponentDock(this);
@@ -94,6 +99,9 @@ void MainWindow::setupDocks(){
     addDockWidget(Qt::RightDockWidgetArea, prpDock);
 	connect(objDock, &ObjectDock::objectSelected, prpDock, &ComponentDock::entityEdit);
 	connect(objDock, &ObjectDock::objectDelete, prpDock, &ComponentDock::entityDelete);
+	connect(prpDock, &ComponentDock::resSelected, resDock, &ResourceDock::selectResource);
+	connect(prpDock, &ComponentDock::revertPrefab, objDock, &ObjectDock::revertPrefab);
+	connect(prpDock, &ComponentDock::applyPrefab, objDock, &ObjectDock::applyPrefab);
 
 	// kite object browser
 	expDock = new QDockWidget(tr("Object Browser"), this);
@@ -223,7 +231,9 @@ void MainWindow::setupToolbar(){
 
 void MainWindow::setupStatusBar() {
 	auto klabel = new QLabel(this);
-	klabel->setText("Kite2D Editor ver 0.1");
+	klabel->setText("Kite2D ver " + QString::number(K2D_VER_MAJ) +
+					"." + QString::number(K2D_VER_MIN) +
+					"." + QString::number(K2D_VER_BUILD));
 	klabel->setStyleSheet("color: orange;");
 	QMainWindow::statusBar()->addPermanentWidget(klabel);
 
@@ -310,23 +320,21 @@ void MainWindow::saveXML(QIODevice *device, const QString &Address){
 	auto resDict = resDock->getDictionary();
 	for (auto it = resDict->cbegin(); it != resDict->cend(); ++it) {
 		KFOStream fstream;
-		fstream.open(Address.toStdString() + "/resources/" + it.key().toStdString() + ".kres", Kite::IOMode::BIN);
-		(*it)->saveStream(&fstream);
+		(*it)->saveStream(&fstream, Address.toStdString() + "/resources/" + it.key().toStdString());
 		fstream.close();
 
-		fstream.open(Address.toStdString() + "/dict.kdict", Kite::IOMode::BIN);
 		Kite::KBinarySerial bserial;
 		bserial << *resDock->getKiteDictionary(Address + "/");
-		bserial.saveStream(&fstream);
-		fstream.close();
+		bserial.saveStream(&fstream, Address.toStdString() + "/dict.kdict", 0);
 
 		stream.writeStartElement("item");
 		stream.writeAttribute("name", it.key());
-		stream.writeAttribute("type", (*it)->getResourceType().c_str());
+		stream.writeAttribute("type", (*it)->getType().c_str());
 		stream.writeEndElement();
 	}
 
 	stream.writeEndElement(); // resources
+
 	stream.writeEndElement(); // k2dproject
 	stream.writeEndDocument();
 }
@@ -340,7 +348,6 @@ bool MainWindow::loadXML(QIODevice *device, const QString &Address) {
 	if (xml.readNextStartElement()) {
 		if (xml.name() == "k2dproject" && xml.attributes().value("version") == "1.0") {
 			QFileInfo finfo(Address);
-			curProject = new Project;
 			curProject->name = xml.attributes().value("name").toString();
 			curProject->Path = finfo.path();
 			curProject->resPath = finfo.path() + "/resources";
@@ -393,7 +400,7 @@ bool MainWindow::loadXML(QIODevice *device, const QString &Address) {
 				while (!xml.atEnd()) {
 					xml.readNext();
 					if (xml.isStartElement() && xml.name() == "item") {
-						if (!resDock->openResource(curProject->resPath + "/" + xml.attributes().value("name").toString() + ".kres",
+						if (!resDock->openResource(curProject->resPath + "/" + xml.attributes().value("name").toString(),
 												  xml.attributes().value("type").toString())) {
 							return false;
 						}
@@ -503,6 +510,7 @@ void MainWindow::newProject() {
 			curProject->config.dictionary = curProject->Path.toStdString() + "/dict.kdict";
 
 			this->setWindowTitle("Kite2D Editor - " + frm.getName());
+			resDock->setCurrentDirectory(curProject->resPath);
 
 			enGUI();
 		}
@@ -520,8 +528,13 @@ void MainWindow::openProject() {
 		if (!fileName.isEmpty()) {
 			QFile file(fileName);
 			if (file.open(QIODevice::ReadOnly)) {
+				curProject = new Project;
 				if (loadXML(&file, fileName)) {
+					resDock->setCurrentDirectory(curProject->resPath);
 					enGUI();
+				} else {
+					delete curProject;
+					curProject = nullptr;
 				}
 				file.close();
 			}
@@ -569,8 +582,9 @@ void MainWindow::closeProject() {
 }
 
 void MainWindow::openProjSetting() {
-	QStringList items;
-	resDock->filterByType("KScene", items);
-	frmProjSettings frm(this, &curProject->config, items);
+	QStringList list;
+	resDock->filterByType("KScene", list);
+	list.push_front("<default>"); // default scene
+	frmProjSettings frm(this, &curProject->config, list);
 	frm.exec();
 }

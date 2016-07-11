@@ -79,7 +79,7 @@ void CodeEditor::setCompleterModel(QStandardItemModel *Model) {
 }
 
 void CodeEditor::scriptEdit(Kite::KResource *Res) {
-	if (Res->getResourceType() != "KScript") {
+	if (Res->getType() != "KScript") {
 		return;
 	}
 
@@ -237,7 +237,7 @@ void CodeEditor::lineNumberAreaPaintEvent(QPaintEvent *event){
     painter.fillRect(event->rect(), Qt::black);
 
     QTextBlock block = firstVisibleBlock();
-    int blockNumber = block.blockNumber() + 6;
+    int blockNumber = block.blockNumber() + 5;
     int top = (int) blockBoundingGeometry(block).translated(contentOffset()).top();
     int bottom = top + (int) blockBoundingRect(block).height();
 

@@ -32,7 +32,7 @@ namespace Kite {
 			it != EManager->endComponent<KInputCom>("Input"); ++it) {
 				auto EHandle = it->getOwnerHandle();
 				auto entity = EManager->getEntity(EHandle);
-				if (entity->getActive()) {
+				if (entity->isActive()) {
 					if (it->getNeedUpdate()) {
 						if (it->getEnableKeyboard() && KKeyboard::isAnyKeyDown()) {
 							KMessage msg("KEY_DOWN");

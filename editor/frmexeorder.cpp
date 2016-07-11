@@ -16,11 +16,12 @@ frmexeorder::frmexeorder(Kite::KEntity *Entity, QWidget *parent) :
 	ui->lstScripts->setDragDropMode(QAbstractItemView::DragDropMode::InternalMove);
 	ui->lstScripts->setSelectionMode(QAbstractItemView::SelectionMode::ContiguousSelection);
 
-	std::vector<Kite::KComponent *> list;
+	std::vector<Kite::KHandle> list;
 	Entity->getScriptComponents(list);
 
 	for (auto it = list.begin(); it != list.end(); ++it) {
-		ui->lstScripts->addItem((*it)->getName().c_str());
+		auto comp = Entity->getComponent("Logic", (*it));
+		ui->lstScripts->addItem(comp->getName().c_str());
 	}
 
 	connect(ui->btnClose->button(QDialogButtonBox::Close), &QPushButton::clicked, this, &frmexeorder::close);

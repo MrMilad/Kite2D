@@ -46,6 +46,7 @@ namespace Kite{
 		KM_VAR() bool fullscreen;
 		KM_VAR() bool resizable;
 
+		KM_CON()
 		KWindowState(const std::string &Title = "Kite2D Window!",
 					 I32 Width = 200, I32 Height = 200,
 					 I32 XPosition = 50, I32 YPosition = 50,
@@ -72,6 +73,7 @@ namespace Kite{
 		KM_VAR() I32 refreshRate;
 		KM_VAR() I32 colorDepth;
 
+		KM_CON()
         KEnumDisplay(I32 Width = 0, I32 Height = 0,
                      I32 RefreshRate = 0, I32 ColorDepth = 0):
             width(Width), height(Height),

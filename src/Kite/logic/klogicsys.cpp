@@ -31,40 +31,42 @@ namespace Kite {
 	bool KLogicSys::update(F32 Delta, KEntityManager *EManager, KResourceManager *RManager) {
 		// check component registration
 		if (EManager->isRegisteredComponent("Logic")) {
-
 			// iterate over objects
-			for (auto it = EManager->beginEntity(); it != EManager->endEntity(); ++it) {
-				if (it->getActive()) {
+			auto econtiner = EManager->getEntityContiner();
+			for (auto i = 0; i < econtiner->size(); ++i) {
+				auto ent = &econtiner->at(i);
+				if (ent->isActive()) {
 
 					// retrive all script components from entity
-					static std::vector<KComponent *> components;
-					it->getScriptComponents(components);
+					static std::vector<KHandle> components;
+					ent->getScriptComponents(components);
 
 					// iterate over all logic components and inite/update them
 					for (auto comp = components.begin(); comp != components.end(); ++comp) {
-						auto lcomp = static_cast<KLogicCom *>((*comp));
+						ent = &econtiner->at(i);
+						auto lcomp = static_cast<KLogicCom *>(ent->getComponent("Logic", (*comp)));
 
 						// inite component and bind it to lua vm (only one time when current script changed with a new script)
 						if (lcomp->getNeedUpdate()) {
-							if (!catchAndRegist((KLogicCom *)(*comp), RManager)) return false;
+							if (!catchAndRegist(lcomp, RManager)) return false;
 						}
 
 						// inite component (calling inite, only 1 time befor start)
 						if (!lcomp->_kinite) {
-							if (!initeComp(&(*it), lcomp)) return false;
+							if (!initeComp(ent, lcomp)) return false;
 							lcomp->_kinite = true;
 							continue;
 						}
 
 						// start component (calling start, only 1 time befor update)
 						if (!lcomp->_kstart) {
-							if (!startComp(&(*it), lcomp)) return false;
+							if (!startComp(ent, lcomp)) return false;
 							lcomp->_kstart = true;
 							continue;
 						}
 
 						// update component (calling update, per frame)
-						if (!updateComp(Delta, &(*it), lcomp)) return false;
+						if (!updateComp(Delta, ent, lcomp)) return false;
 					}
 				}
 			}
@@ -88,17 +90,23 @@ namespace Kite {
 		return isInite();
 	}
 
-	bool KLogicSys::updateComp(F32 Delta, KEntity *Self, KLogicCom *Component) {
-		std::string address("ENTITIES." + Component->getTName() + "." + Component->getName() + ".update");
+	bool KLogicSys::updateComp(F32 Delta, KEntity *Self, KLogicCom *Comp) {
+		std::string address("ENTITIES." + Comp->getTName() + "." + Comp->getName() + ".update");
+
+#ifdef KITE_DEV_DEBUG
+		std::string tname(Comp->getTName());	// copy tname because we need it for showing message in the catch section
+									// and we can't use a string refrence in that section
+		std::string ename(Self->getName());
+#endif
 
 		// call update function
 		LuaIntf::LuaRef ctable(_klvm, address.c_str());
 		if (ctable.isFunction()) {
 #ifdef KITE_DEV_DEBUG
 			try {
-				ctable(Self, Delta);
+				ctable(Self->getHandle(), Delta);
 			} catch (std::exception& e) {
-				KD_FPRINT("update function failed. cname: %s. %s", Component->getTName().c_str(), e.what());
+				KD_FPRINT("update function failed. ename: %s. cname: %s. %s", ename.c_str(), tname.c_str(), e.what());
 				return false;
 			}
 #else
@@ -165,17 +173,25 @@ namespace Kite {
 		return true;
 	}
 
-	bool KLogicSys::initeComp(KEntity *Self, KLogicCom *Component) {
+	bool KLogicSys::initeComp(KEntity *Self, KLogicCom *Comp) {
 		// call inite function of component
-		std::string address("ENTITIES." + Component->getTName() + "." + Component->getName());
+		std::string address("ENTITIES." + Comp->getTName() + "." + Comp->getName());
 		address.append(".inite");
+
+#ifdef KITE_DEV_DEBUG
+		std::string tname(Comp->getTName());	// copy tname because we need it for showing message in the catch section
+												// and we can't use a string refrence in that section
+		std::string ename(Self->getName());
+#endif
+
+		
 		LuaIntf::LuaRef ctable(_klvm, address.c_str());
 		if (ctable.isFunction()) {
 #ifdef KITE_DEV_DEBUG
 		try{
-			ctable(Self);
+			ctable(Self->getHandle());
 		} catch (std::exception& e) {
-			KD_FPRINT("inite function failed. cname: %s. %s", Component->getTName().c_str(), e.what());
+			KD_FPRINT("inite function failed. ename: %s. cname: %s. %s", ename.c_str(), tname.c_str(), e.what());
 			return false;
 		}
 #else
@@ -185,17 +201,24 @@ namespace Kite {
 		return true;
 	}
 
-	bool KLogicSys::startComp(KEntity *Self, KLogicCom *Component) {
+	bool KLogicSys::startComp(KEntity *Self, KLogicCom *Comp) {
 		// call start function of component
-		std::string address("ENTITIES." + Component->getTName() + "." + Component->getName());
+		std::string address("ENTITIES." + Comp->getTName() + "." + Comp->getName());
 		address.append(".start");
+
+#ifdef KITE_DEV_DEBUG
+		std::string tname(Comp->getTName());	// copy tname because we need it for showing message in the catch section
+												// and we can't use a string refrence in that section
+		std::string ename(Self->getName());
+#endif
+
 		LuaIntf::LuaRef ctable(_klvm, address.c_str());
 		if (ctable.isFunction()) {
 #ifdef KITE_DEV_DEBUG
 			try {
-				ctable(Self);
+				ctable(Self->getHandle());
 			} catch (std::exception& e) {
-				KD_FPRINT("start function failed. cname: %s. %s", Component->getTName().c_str(), e.what());
+				KD_FPRINT("start function failed. ename: %s. cname: %s. %s", ename.c_str(), tname.c_str(), e.what());
 				return false;
 			}
 #else

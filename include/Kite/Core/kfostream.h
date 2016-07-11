@@ -31,7 +31,9 @@ namespace Kite {
 	class KITE_FUNC_EXPORT KFOStream : public KOStream {
 		KMETA_KFOSTREAM_BODY();
 	public:
+		KM_CON()
 		KFOStream();
+
 		~KFOStream();
 
 		KM_FUN()

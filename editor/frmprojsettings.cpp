@@ -22,7 +22,12 @@ frmProjSettings::frmProjSettings(QWidget *parent, Kite::KConfig *Config, const Q
 	ui->chbCorsor->setChecked(Config->window.showCursor);
 	ui->chbResize->setChecked(Config->window.resizable);
 	ui->cmbScene->addItems(Scenes);
-	ui->cmbScene->setCurrentText(Config->startUpScene.c_str());
+	if (Config->startUpScene.empty()) {
+		ui->cmbScene->setCurrentText("<default>");
+	} else {
+		ui->cmbScene->setCurrentText(Config->startUpScene.c_str());
+	}
+	
 }
 
 frmProjSettings::~frmProjSettings(){
@@ -38,7 +43,12 @@ void frmProjSettings::okClicked() {
 	config->window.fullscreen = ui->chbFScreen->isChecked();
 	config->window.showCursor = ui->chbCorsor->isChecked();
 	config->window.resizable = ui->chbResize->isChecked();
-	config->startUpScene = ui->cmbScene->currentText().toStdString();
+	if (ui->cmbScene->currentText() == "<default>") {
+		config->startUpScene = "";
+	} else {
+		config->startUpScene = ui->cmbScene->currentText().toStdString();
+	}
+	
 }
 
 void frmProjSettings::cancelClicked() {

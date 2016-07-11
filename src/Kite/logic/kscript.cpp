@@ -24,10 +24,7 @@ USA
 
 namespace Kite {
 	KScript::KScript(const std::string &Name) :
-		KResource("KScript") 
-	{
-		setResourceName(Name);
-	}
+		KResource(Name) {}
 
 	bool KScript::loadStream(KIStream *Stream, const std::string &Address, U32 Flag) {
 		_kcode.clear();
@@ -50,8 +47,8 @@ namespace Kite {
 		}
 
 		setCode(buffer);
-		setResourceName(Stream->getFileName());
-		setResourceAddress(Stream->getPath());
+		setName(Stream->getFileName());
+		setAddress(Stream->getPath());
 
 		free(buffer);
 		Stream->close();

@@ -53,10 +53,10 @@ namespace Kite {
 		RecieveTypes onMessage(KMessage *Message, MessageScope Scope);
 
 		KM_PRO_GET(KP_NAME = "phandle", KP_TYPE = KHandle, KP_CM = "parent handle")
-		inline const KHandle &getParentHandle() const { return _kphandle; }
+		inline KHandle getParentHandle() const { return _kphandle; }
 
 		KM_PRO_GET(KP_NAME = "handle", KP_TYPE = KHandle, KP_CM = "entity handle")
-		inline const KHandle &getHandle() const { return _khandle; }
+		inline KHandle getHandle() const { return _khandle; }
 
 		KM_PRO_GET(KP_NAME = "name", KP_TYPE = std::string, KP_CM = "entity unique name")
 		inline const std::string &getName() const { return _kname; }
@@ -67,14 +67,20 @@ namespace Kite {
 		KM_PRO_GET(KP_NAME = "messenger", KP_TYPE = KMessenger, KP_CM = "entity messenger")
 		inline KMessenger &getMessenger() { return *(KMessenger *)this; }
 
-		KM_PRO_GET(KP_NAME = "active", KP_TYPE = bool, KP_CM = "is active")
-		inline bool getActive() const { return _kactive; }
+		KM_PRO_GET(KP_NAME = "isActive", KP_TYPE = bool, KP_CM = "is active")
+		inline bool isActive() const { return _kactive; }
 
-		KM_PRO_SET(KP_NAME = "active")
+		KM_PRO_SET(KP_NAME = "isActive")
 		void setActive(bool Active);
+
+		KM_PRO_GET(KP_NAME = "isPrefab", KP_TYPE = bool, KP_CM = "is prefab")
+			inline bool isPrefab() const {return _kisPrefab; }
 
 		KM_PRO_GET(KP_NAME = "envTableName", KP_TYPE = std::string, KP_CM = "entity env table name in lua")
 		inline const std::string &getLuaTName() const { return _kluatable; }
+
+		KM_PRO_GET(KP_NAME = "prefab", KP_TYPE = std::string, KP_CM = "entity prefab name")
+			inline const std::string &getPrefab() const { return _kprefabName; }
 
 		KM_FUN()
 		KComponent *addComponent(const std::string &CType, const std::string &CName = "");
@@ -88,8 +94,9 @@ namespace Kite {
 		KM_FUN()
 		void getFixedComponents(std::vector<KComponent *> &Output);
 
+		/// return vector of KHandle to avoiding pointer dangling during update
 		KM_FUN()
-		void getScriptComponents(std::vector<KComponent *> &Output);
+		void getScriptComponents(std::vector<KHandle> &Output);
 
 		KM_FUN()
 		void reorderScriptComponent(const KHandle &CHandle, U32 NewOrder);
@@ -118,9 +125,7 @@ namespace Kite {
 		KM_FUN()
 		bool hasChild() const;
 
-		inline auto beginChild() { return _kchilds.cbegin(); }
-
-		inline auto endChild() { return _kchilds.cend(); }
+		inline const auto childList() const { return &_kchilds; }
 
 	private:
 
@@ -130,9 +135,11 @@ namespace Kite {
 		void setHandle(const KHandle Handle);
 		
 		KM_VAR() bool _kactive;											// entity actitvity state
+		KM_VAR() bool _kisPrefab;
 		KM_VAR() KHandle _khandle;										// entity handle in the entity manager
 		KM_VAR() KHandle _kphandle;										// entity parent handle
 		KM_VAR() U32 _kplistid;											// entity self id in the parent list
+		KM_VAR() std::string _kprefabName;								// entity prefab name
 		KM_VAR() std::string _kname;									// entity unique name
 		KM_VAR() std::string _kluatable;								// entity env table name in lua
 		KM_VAR() std::unordered_map<std::string, KHandle> _kfixedComp;	// fixed components slots (built-in components)

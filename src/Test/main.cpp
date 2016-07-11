@@ -16,8 +16,6 @@ int main() {
 
 	engine->inite(sc, false);
 
-	//engine->getSceneManager()->getActiveScene()->loadStream(&istream, "e:\\sc.txt");
-
 	auto ent1 = engine->getSceneManager()->getActiveScene()->getEManager()->createEntity("test1")->getHandle();
 	auto pent2 = engine->getSceneManager()->getActiveScene()->getEManager()->createEntity("test2");
 	pent2->addChild(ent1);
@@ -34,11 +32,20 @@ int main() {
 	ent6->addChild(ent2);
 	ent6->addChild(ent5);
 
-	auto c0 = ent6->addComponent("Logic", "0")->getHandle();
+
+	auto c0 = (KLogicCom *) ent6->addComponent("Logic", "0");
+	c0->setScript("myScript");
 	auto c1 = ent6->addComponent("Logic", "1")->getHandle();
+	auto c2 = (KInputCom *)ent6->addComponent("Input", "incom");
+	c2->setEnableMouse(false);
+	c2->setEnableKeyboard(false);
 	
-	engine->getSceneManager()->getActiveScene()->getEManager()->savePrefab(ent6->getHandle(), &stream, "e:\\prefab.txt");
-	//engine->getSceneManager()->getActiveScene()->saveStream(&stream, "e:\\sc.txt");
+	KPrefab pre("mypre");
+	//pre.loadStream(&istream, "E:\\prefab.pre");
+	//auto hndl = engine->getSceneManager()->getActiveScene()->getEManager()->loadPrefab(&pre);
+
+	engine->getSceneManager()->getActiveScene()->getEManager()->createPrefab(ent6->getHandle(), &pre, true);
+	pre.saveStream(&stream, "E:\\prefab.pre");
 
 	engine->start();
 

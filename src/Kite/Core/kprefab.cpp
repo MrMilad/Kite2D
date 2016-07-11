@@ -20,28 +20,51 @@ USA
 #include "Kite/core/kprefab.h"
 #include "Kite/meta/kmetamanager.h"
 #include "Kite/meta/kmetaclass.h"
+#include "Kite/serialization/types/kstdstring.h"
 #include <luaintf\LuaIntf.h>
 
 namespace Kite {
 	KPrefab::KPrefab(const std::string &Name) :
-		KResource("KPrefab") 
+		KResource(Name),
+		_kisempty(true),
+		_kreadPos(0)
 	{
-		setResourceName(Name);
+		// prefab has an entity by default
+		_kcode.append("function execute(eman, ser)\n");
+		_kcode.append("local ent = eman:createEntity(\"\")\n");
+		_kcode.append("return ent.handle\nend");
 	}
-
 
 	KPrefab::~KPrefab() {}
 
 	bool KPrefab::loadStream(KIStream *Stream, const std::string &Address, U32 Flag) {
-		return true;
+		clear();
+		auto ret = _kdata.loadStream(Stream, Address);
+		_kdata >> _kcode;
+		_kreadPos = _kdata.getReadPos();
+		_kisempty = false;
+		return ret;
 	}
 
 	bool KPrefab::saveStream(KOStream *Stream, const std::string &Address, U32 Flag) {
-		return true;
+		KBinarySerial bserial;
+		if (_kreadPos == 0) {
+			bserial << _kcode;
+			bserial.append(&_kdata);
+			return bserial.saveStream(Stream, Address, 0);
+		}
+		return _kdata.saveStream(Stream, Address, 0);
 	}
 
 	void KPrefab::clear() {
-		_kdata = "function execute(param)\n";
+		_kdata.clearCatch();
+		_kcode.clear();
+		_kreadPos = 0;
+		_kisempty = true;
+	}
+
+	void KPrefab::initeLoad() {
+		_kdata.setReadPos(_kreadPos);
 	}
 
 	KMETA_KPREFAB_SOURCE();

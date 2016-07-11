@@ -31,7 +31,8 @@ namespace Kite {
 	KEntity::KEntity(const std::string &Name):
 		_kplistid(0), _kname(Name),
 		_kcstorage(nullptr),
-		_kestorage(nullptr)
+		_kestorage(nullptr),
+		_kisPrefab(false)
 	{}
 
 	KEntity::~KEntity() {}
@@ -238,7 +239,7 @@ namespace Kite {
 		}
 	}
 
-	void KEntity::getScriptComponents(std::vector<KComponent *> &Output) {
+	void KEntity::getScriptComponents(std::vector<KHandle> &Output) {
 		Output.clear();
 		// cehck storage
 		if (_kcstorage == nullptr) {
@@ -254,8 +255,7 @@ namespace Kite {
 
 		Output.reserve(_klogicComp.size());
 		for (auto it = _klogicOrder.begin(); it != _klogicOrder.end(); ++it) {
-			auto ptr = found->second->get((*it));
-			Output.push_back(ptr);
+			Output.push_back((*it));
 		}
 	}
 

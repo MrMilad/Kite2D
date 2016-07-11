@@ -13,7 +13,7 @@ int main(int argc, char *argv[])
 	QPalette palette;
 	palette.setColor(QPalette::Window, QColor(37, 37, 37));
 	palette.setColor(QPalette::WindowText, Qt::white);
-	palette.setColor(QPalette::Base, QColor(30, 30, 30));
+	palette.setColor(QPalette::Base, QColor(50, 50, 50));
 	palette.setColor(QPalette::AlternateBase, QColor(63, 63, 63));
 	palette.setColor(QPalette::ToolTipBase, Qt::white);
 	palette.setColor(QPalette::ToolTipText, Qt::white);

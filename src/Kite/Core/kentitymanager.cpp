@@ -24,11 +24,41 @@ USA
 #include "Kite/meta/kmetaclass.h"
 #include "Kite/serialization/types/kstdstring.h"
 #include "Kite/serialization/types/kstdumap.h"
+#include "Kite/core/kcoreutil.h"
 #include "kmeta.khgen.h"
 #include <luaintf\LuaIntf.h>
+#ifdef KITE_DEV_DEBUG
+	#include <exception>
+#endif
 
 namespace Kite {
-	KEntityManager::KEntityManager(){
+	lua_State *KEntityManager::_klstate = nullptr;
+	bool KEntityManager::initeLua() {
+		static bool isInite = false;
+		if (!isInite) {
+			_klstate = luaL_newstate();
+			static const luaL_Reg lualibs[] =
+			{
+				{ "base", luaopen_base },
+				{ "string", luaopen_string },
+				{ NULL, NULL }
+			};
+
+			const luaL_Reg *lib = lualibs;
+			for (; lib->func != NULL; lib++) {
+				lib->func(_klstate);
+				lua_settop(_klstate, 0);
+			}
+			registerKiteMeta(nullptr, _klstate);
+			isInite = true;
+		}
+		return isInite;
+	}
+
+	KEntityManager::KEntityManager():
+		_knum(0)
+	{
+		KD_ASSERT(initeLua());
 		registerCTypes(this);
 		initeRoot();
 	}
@@ -56,11 +86,20 @@ namespace Kite {
 	}
 
 	KEntity *KEntityManager::createEntity(const std::string &Name) {
-		// check entity name if there is a name
-		if (!Name.empty()) {
-			auto found = _kentmap.find(Name);
+		// we generate a name for nameless entites
+		std::string ename = Name;
+		if (Name.empty()) {
+			while (true) {
+				ename = "ent" + std::to_string(_knum++);
+				if (_kentmap.find(ename) == _kentmap.end()) {
+					break;
+				}
+			}
 
-			// entiti is exist, so we return it
+		// or check name for an existing entity
+		} else {
+			// entity is exist, so we return it
+			auto found = _kentmap.find(Name);
 			if (found != _kentmap.end()) {
 				KD_FPRINT("this name is exist. ename: %s", Name.c_str());
 				return getEntity(found->second);
@@ -68,7 +107,7 @@ namespace Kite {
 		}
 
 		// create new entity and set its id
-		auto hndl = _kestorage.add(KEntity(Name));
+		auto hndl = _kestorage.add(KEntity(ename));
 		auto ent = _kestorage.get(hndl);
 		ent->setHandle(hndl);
 
@@ -80,7 +119,7 @@ namespace Kite {
 		getEntity(getRoot())->addChild(hndl);
 
 		// register it's to map
-		_kentmap.insert({ Name, hndl });
+		_kentmap.insert({ ename, hndl });
 		
 		// post a message about new entity
 		KMessage msg;
@@ -140,19 +179,11 @@ namespace Kite {
 			return;
 		}
 
-		// mark removed entity as deactive and store it in trash list
-		ent->setActive(false);
+		// deattach entity from its parent
 		auto parent = _kestorage.get(ent->getParentHandle());
 		parent->remChildIndex(ent->_kplistid);
-		_kentmap.erase(ent->getName());
-		_ktrash.push_back(Handle);
-		recursiveDeleter(Handle);
 
-		// post a message about this action
-		KMessage msg;
-		msg.setType("ENTITY_REMOVED");
-		msg.setData((void *)&Handle, sizeof(U32));
-		postMessage(&msg, MessageScope::ALL);
+		recursiveDeleter(Handle);
 	}
 
 	void KEntityManager::removeEntityByName(const std::string &Name) {
@@ -226,40 +257,52 @@ namespace Kite {
 		_ktrash.clear();
 	}
 
-	void KEntityManager::recursiveSaveChilds(KEntity *Entity, KPrefab *Prefab) {
-		/*for (auto it = Entity->beginChild(); it != Entity->endChild(); ++it) {
-			auto ent = _kestorage.get(*it);
-			// save entity and its components after that
-			std::vector<KComponent *> comps;
-			Prefab->_kentities.push_back(*ent);
-			Prefab->_kcomponents.push_back(std::vector<Internal::PrefabComp>());
-			auto cvec = &Prefab->_kcomponents.back();
+	U32 KEntityManager::recursiveSaveChilds(KEntity *Entity, KPrefab *Prefab, U32 Level, bool Name) {
+		auto id = Level;
+		// entity information
+		if (Name) {
+			Prefab->_kcode.append("local ent = eman:createEntity(\"" + Entity->getName() + "\")\n");
+		} else {
+			Prefab->_kcode.append("local ent = eman:createEntity(\"\")\n");
+		}
+		Prefab->_kcode.append("local hndl" + std::to_string(id) + " = ent.handle\n");
 
-			// fixed components
-			ent->getFixedComponents(comps);
-			for (auto it = comps.begin(); it != comps.end(); ++it) {
-				cvec->push_back(Internal::PrefabComp());
-				cvec->back().type = (*it)->getType();
-				cvec->back().name = (*it)->getName();
-				cvec->back().data = (*it);
-			}
+		// logic components
+		std::vector<KHandle> lclist;
+		Entity->getScriptComponents(lclist);
+		for (auto it = lclist.begin(); it != lclist.end(); ++it) {
+			auto lcomp = Entity->getComponent("Logic", (*it));
+			// components
+			Prefab->_kcode.append("local comp = Kite.Logic.toLogic(ent:addComponent(\"Logic\", \"" + lcomp->getName() + "\"))\n");
+			Prefab->_kcode.append("comp:deserial(ser, false)\n");
+			lcomp->serial(Prefab->_kdata, false);
+		}
 
-			// logic components
-			ent->getScriptComponents(comps);
-			cvec->reserve(cvec->size() + comps.size());
-			for (auto it = comps.begin(); it != comps.end(); ++it) {
-				cvec->push_back(Internal::PrefabComp());
-				cvec->back().type = (*it)->getType();
-				cvec->back().name = (*it)->getName();
-				cvec->back().data = (*it);
-			}
-			if (ent->hasChild()) {
-				recursiveSaveChilds(ent, Prefab);
-			}
-		}*/
+		// other components
+		std::vector<KComponent *> clist;
+		Entity->getFixedComponents(clist);
+		for (auto it = clist.begin(); it != clist.end(); ++it) {
+			// components
+			Prefab->_kcode.append("comp = Kite." + (*it)->getType() + ".to" + (*it)->getType() +
+								  "(ent:addComponent(\"" + (*it)->getType() + "\", \"" + (*it)->getName() + "\"))\n");
+
+			// transform data not saved with prefab
+			if ((*it)->getType() == "Transform") continue;
+
+			Prefab->_kcode.append("comp:deserial(ser, false)\n");
+			(*it)->serial(Prefab->_kdata, false);
+		}
+
+		for (auto it = Entity->childList()->cbegin(); it != Entity->childList()->cend(); ++it) {
+			auto cid = recursiveSaveChilds(getEntity((*it)), Prefab, Level + 1, Name);
+			Prefab->_kcode.append("local par = eman:getEntity(hndl" + std::to_string(id) + ")\n");
+			Prefab->_kcode.append("par:addChild(hndl" + std::to_string(cid) + ")\n");
+		}
+
+		return id;
 	}
 
-	bool KEntityManager::createPrefab(const KHandle &EHandle, KPrefab *Prefab){
+	bool KEntityManager::createPrefab(const KHandle &EHandle, KPrefab *Prefab, bool SaveName){
 		Prefab->clear();
 		auto ent = _kestorage.get(EHandle);
 		if (ent == nullptr) {
@@ -267,20 +310,60 @@ namespace Kite {
 			return false;
 		}
 
-		// entity information
-		Prefab->_kdata.append("local parrent = param.createEntity(""" + ent->getName() + """)\n");
+		// lua function 
+		Prefab->_kcode.append("function execute(eman, ser)\n");
 
-		// components
-		Prefab->_kdata.append("local.addCompponents");
+		// recursive save
+		auto root = recursiveSaveChilds(ent, Prefab, 0, SaveName);
 
+		// end function
+		Prefab->_kcode.append("return hndl" + std::to_string(root) + "\nend\n");
+		Prefab->_kisempty = false;
 		return true;
 	}
 
-	bool KEntityManager::loadPrefab(const KPrefab *Prefab, const std::string &Name) {
-		return false;
+	KHandle KEntityManager::loadPrefab(KPrefab *Prefab, bool isPaste) {
+		// check prefab
+		if (Prefab->_kcode.empty()) {
+			KD_PRINT("prefab is empty or not loaded yet.");
+			return KHandle();
+		}
+
+		// inite read position for reading data
+		Prefab->initeLoad();
+
+		// setup script with entity name
+		luaL_dostring(_klstate, Prefab->_kcode.c_str());
+		LuaIntf::LuaRef lref(_klstate, "_G.execute");
+		KHandle handle;
+		if (lref.isFunction()) {
+#ifdef KITE_DEV_DEBUG
+			try{
+				handle = lref.call<KHandle>(this, (KBaseSerial *)&Prefab->_kdata);
+			} catch (std::exception& e) {
+				KD_FPRINT("prefab execute function failed. %s", e.what());
+				return KHandle();
+			}
+#elif
+			handle = lref.call<KHandle>(this, (KBaseSerial *)&Prefab->_kdata);
+#endif
+		} else {
+			KD_PRINT("invalid execte function in prefab script.");
+			return KHandle();
+		}
+
+		// set as prefab instance
+		if (!isPaste) {
+			auto ent = getEntity(handle);
+			ent->_kisPrefab = true;
+			ent->_kprefabName = Prefab->getName();
+		}
+
+		return handle;
 	}
 
 	void KEntityManager::serial(KBaseSerial &Out) const {
+		Out << _knum;
 		Out << _kroot;
 		Out << _kestorage;
 
@@ -291,6 +374,7 @@ namespace Kite {
 	}
 
 	void KEntityManager::deserial(KBaseSerial &In) {
+		In >> _knum;
 		In >> _kroot;
 		In >> _kestorage;
 		for (auto it = _kcstorage.begin(); it != _kcstorage.end(); ++it) {
@@ -299,7 +383,7 @@ namespace Kite {
 		In >> _kentmap;
 
 		// inite entities
-		for (auto it = _kestorage.begin(); it != _kestorage.end(); ++it) {
+		for (auto it = _kestorage.getContiner()->begin(); it != _kestorage.getContiner()->end(); ++it) {
 			it->_kcstorage = &_kcstorage;
 			it->_kestorage = &_kestorage;
 		}
@@ -308,15 +392,19 @@ namespace Kite {
 	void KEntityManager::recursiveDeleter(KHandle EHandle) {
 		auto ent = _kestorage.get(EHandle);
 
-		for (auto it = ent->beginChild(); it != ent->endChild(); ++it) {
-			auto child = _kestorage.get((*it));
-			if (child->hasChild()) {
-				recursiveDeleter((*it));
-			}
+		// mark removed entity as deactive and store it in trash list
+		ent->setActive(false);
+		_kentmap.erase(ent->getName());
+		_ktrash.push_back(EHandle);
 
-			_kentmap.erase(child->getName());
-			child->setActive(false);
-			_ktrash.push_back((*it));
+		// post a message about this action
+		KMessage msg;
+		msg.setType("ENTITY_REMOVED");
+		msg.setData((void *)&EHandle, sizeof(U32));
+		postMessage(&msg, MessageScope::ALL);
+
+		for (auto it = ent->childList()->cbegin(); it != ent->childList()->cend(); ++it) {
+			recursiveDeleter((*it));
 		}
 	}
 

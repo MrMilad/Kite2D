@@ -47,9 +47,27 @@ void ResourceDock::setupTree() {
 void ResourceDock::setupCategories(const QStringList &CatList) {
 	resTree->clear();
 	for (auto it = CatList.begin(); it != CatList.end(); ++it) {
+		// 
 		auto cat = new QTreeWidgetItem(resTree);
 		cat->setText(0, (*it));
 		cat->setIcon(0, QIcon(":/icons/open"));
+
+		// formats
+		QPair<QString, QString> fpair;
+		if ((*it) == "KScene") {
+			fpair.first = ".sce";
+			fpair.second = ":/icons/sce";
+		} else if ((*it) == "KScript") {
+			fpair.first = ".lua";
+			fpair.second = ":/icons/scr";
+		} else if ((*it) == "KPrefab") {
+			fpair.first = ".pre";
+			fpair.second = ":/icons/new";
+		} else {
+			fpair.first = "";
+			fpair.second = ":/icons/new";
+		}
+		formats.insert((*it), fpair);
 	}
 }
 
@@ -107,13 +125,11 @@ void ResourceDock::setupHTools() {
 	//hlayout->setSizeConstraint(QLayout::SetFixedSize);
 
 	auto btnAdd = new QToolButton(htools);
-	btnAdd->setAutoRaise(true);
 	btnAdd->setDefaultAction(addRes);
 	btnAdd->setToolButtonStyle(Qt::ToolButtonIconOnly);
 	hlayout->addWidget(btnAdd);
 
 	auto btnOpen = new QToolButton(htools);
-	btnOpen->setAutoRaise(true);
 	btnOpen->setDefaultAction(openRes);
 	btnOpen->setToolButtonStyle(Qt::ToolButtonIconOnly);
 	hlayout->addWidget(btnOpen);
@@ -121,18 +137,17 @@ void ResourceDock::setupHTools() {
 	hlayout->addSpacing(10);
 
 	auto btnEdit = new QToolButton(htools);
-	btnEdit->setAutoRaise(true);
 	btnEdit->setDefaultAction(editRes);
 	btnEdit->setToolButtonStyle(Qt::ToolButtonIconOnly);
 	hlayout->addWidget(btnEdit);
 
 	auto btnRemove = new QToolButton(htools);
-	btnRemove->setAutoRaise(true);
 	btnRemove->setDefaultAction(remRes);
 	btnRemove->setToolButtonStyle(Qt::ToolButtonIconOnly);
 	hlayout->addWidget(btnRemove);
 
-	hlayout->addSpacing(10);
+	hlayout->addStretch(1);
+	vlayout->addLayout(hlayout);
 
 	ledit = new QLineEdit(htools);
 	ledit->setPlaceholderText("Search");
@@ -140,9 +155,7 @@ void ResourceDock::setupHTools() {
 	ledit->setStyleSheet("background-color: gray;");
 	connect(ledit, &QLineEdit::textChanged, this, &ResourceDock::actSearch);
 	
-	hlayout->addWidget(ledit);
-
-	vlayout->addLayout(hlayout);
+	vlayout->addWidget(ledit);
 
 	htools->setLayout(vlayout);
 
@@ -185,11 +198,17 @@ void ResourceDock::clearResources() {
 void ResourceDock::filterByType(const QString &Type, QStringList &List) {
 	List.clear();
 	for (auto it = dictinary.begin(); it != dictinary.end(); ++it) {
-		if (it.value()->getResourceType() == Type.toStdString()) {
+		if (it.value()->getType() == Type.toStdString()) {
 			List.append(it.key());
 		}
 	}
+}
 
+void ResourceDock::selectResource(const QString &Name) {
+	auto found = resTree->findItems(Name, Qt::MatchFlag::MatchRecursive);
+	if (!found.isEmpty()) {
+		resTree->setCurrentItem(found.first());
+	}
 }
 
 void ResourceDock::manageUsedResource(const QHash<QString, QVector<Kite::KMetaProperty>> *ResComponents) {
@@ -197,7 +216,7 @@ void ResourceDock::manageUsedResource(const QHash<QString, QVector<Kite::KMetaPr
 		return;
 	}
 	for (auto it = dictinary.begin(); it != dictinary.end(); ++it) {
-		if (it.value()->getResourceType() == "KScene") {
+		if (it.value()->getType() == "KScene") {
 			auto scene = (Kite::KScene *)it.value();
 			auto eman = scene->getEManager();
 
@@ -206,10 +225,10 @@ void ResourceDock::manageUsedResource(const QHash<QString, QVector<Kite::KMetaPr
 			for (auto eit = eman->beginEntity(); eit != eman->endEntity(); ++eit) {
 
 				// first we collect scripts from logic components
-				std::vector<Kite::KComponent *> lcomps;
+				std::vector<Kite::KHandle> lcomps;
 				eit->getScriptComponents(lcomps);
 				for (auto sit = lcomps.begin(); sit != lcomps.end(); ++sit) {
-					auto script = (Kite::KLogicCom *)(*sit);
+					auto script = (Kite::KLogicCom *)eit->getComponent("Logic", (*sit));
 					if (!script->getScript().empty()) {
 						scene->addResource(script->getScript(), "KScript");
 					}
@@ -240,15 +259,33 @@ void ResourceDock::manageUsedResource(const QHash<QString, QVector<Kite::KMetaPr
 const std::unordered_map<std::string, std::string> *ResourceDock::getKiteDictionary(const QString &AddressPrefix) const {
 	kiteDictionary->clear();
 	for (auto it = dictinary.begin(); it != dictinary.end(); ++it) {
-		kiteDictionary->insert({ it.key().toStdString(), AddressPrefix.toStdString() + "resources/" + it.key().toStdString() + ".kres" });
+		kiteDictionary->insert({ it.key().toStdString(), AddressPrefix.toStdString() + "resources/" + it.key().toStdString()});
 	}
 
 	return kiteDictionary;
 }
 
 bool ResourceDock::openResource(const QString &Address, const QString &Type) {
-	auto pitem = resTree->findItems(Type, Qt::MatchFlag::MatchExactly);
-	if (pitem.isEmpty()) {
+	// check name
+	QFileInfo file(Address);
+	if (dictinary.find(file.fileName()) != dictinary.end()) {
+		QMessageBox msg;
+		msg.setWindowTitle("Message");
+		msg.setText("This file is already exist.\nType: " + Type + "\nAddress: " + Address);
+		msg.exec();
+		return false;
+	}
+
+	// check type
+	auto count = resTree->topLevelItemCount() - 1;
+	bool registered = false;
+	for (count; count >= 0; --count) {
+		if (resTree->topLevelItem(count)->text(0) == Type) {
+			registered = true;
+			break;
+		}
+	}
+	if (!registered) {
 		QMessageBox msg;
 		msg.setWindowTitle("Message");
 		msg.setText("Unregistered resource type.\nType: " + Type + "\nAddress: " + Address);
@@ -257,40 +294,26 @@ bool ResourceDock::openResource(const QString &Address, const QString &Type) {
 	}
 
 	// cretae new resource 
-	auto newres = rman.create(Type.toStdString(), "");
+	auto newres = rman.create(Type.toStdString(), file.fileName().toStdString());
 	if (newres != nullptr) {
 		// load resource
 		Kite::KFIStream istream;
-		if (!istream.open(Address.toStdString(), Kite::IOMode::BIN)) {
-			QMessageBox msg;
-			msg.setWindowTitle("Message");
-			msg.setText("cant open file stream with the given address.\nfile address: " + Address);
-			msg.exec();
-			return false;
-		}
-
-		if (!newres->loadStream(&istream)) {
+		if (!newres->loadStream(&istream, Address.toStdString())) {
 			QMessageBox msg;
 			msg.setWindowTitle("Message");
 			msg.setText("cant load resource data from file.\nfile address: " + Address);
 			msg.exec();
-
 			delete newres;
 			return false;
 		}
 
-		newres->setResourceAddress(Address.toStdString());
-		dictinary.insert(newres->getResourceName().c_str(), newres);
-
-		auto item = new QTreeWidgetItem(pitem.first());
-		item->setText(0, newres->getResourceName().c_str());
-		if (Type == "KScript") {
-			item->setIcon(0, QIcon(":/icons/script"));
-		} else if (Type == "KScene") {
-			item->setIcon(0, QIcon(":/icons/scene"));
-		}
-		pitem.first()->setExpanded(true);
-
+		dictinary.insert(newres->getName().c_str(), newres);
+		auto found = formats.find(Type);
+		auto pitem = resTree->topLevelItem(count);
+		auto item = new QTreeWidgetItem(pitem);
+		item->setText(0, newres->getName().c_str());
+		item->setIcon(0, QIcon(found->second));
+		pitem->setExpanded(true);
 		emit(resourceOpen(newres));
 
 		return true;
@@ -301,6 +324,110 @@ bool ResourceDock::openResource(const QString &Address, const QString &Type) {
 		msg.exec();
 	}
 	return false;
+}
+
+Kite::KResource *ResourceDock::getResource(const QString &Name) {
+	return dictinary[Name];
+}
+
+Kite::KResource *ResourceDock::addResource(const QString &Type) {
+	auto frmt = formats.find(Type);
+
+	// find category
+	QTreeWidgetItem * pitem = nullptr;
+	for (auto i = 0; i < resTree->topLevelItemCount(); ++i) {
+		if (resTree->topLevelItem(i)->text(0) == Type) {
+			pitem = resTree->topLevelItem(i);
+			break;
+		}
+	}
+	if (pitem == nullptr) {
+		QMessageBox msg;
+		msg.setWindowTitle("Message");
+		msg.setText("this type is not registered!\nresource type: " + Type);
+		msg.exec();
+		return nullptr;
+	}
+	
+	// create new resource and add it to res tree
+	bool ok = false;
+	QString text;
+	do {
+		text = QInputDialog::getText(this, "New " + Type,
+									 Type + " name:", QLineEdit::Normal,
+									 "", &ok);
+
+		// cancel pressed
+		if (!ok) {
+			return nullptr;
+		}
+
+		// empty name
+		if (text.isEmpty()) {
+			QMessageBox msg;
+			msg.setWindowTitle("Message");
+			msg.setText("resource name is empty!");
+			msg.exec();
+			continue;
+		}
+
+		// available name
+		if (dictinary.find(text + frmt->first) != dictinary.end()) {
+			QMessageBox msg;
+			msg.setWindowTitle("Message");
+			msg.setText("this name is already exist!");
+			msg.exec();
+			continue;
+		}
+
+		// file validation
+		QFile file(currDirectory + "\\" + text + frmt->first);
+		if (file.exists()) {
+			QMessageBox msg;
+			msg.setWindowTitle("Message");
+			msg.setText("this name is exists in the current resource directory.");
+			msg.exec();
+			file.close();
+			continue;
+		}
+
+		if (!file.open(QIODevice::ReadWrite)) {
+			QMessageBox msg;
+			msg.setWindowTitle("Message");
+			msg.setText("cant create file in the resource directory.");
+			msg.exec();
+			file.close();
+			continue;
+		}
+		file.close();
+
+		// ok pressed
+		if (ok) {
+			text = QFileInfo(file.fileName()).fileName();
+			break;
+		}
+	} while (true);
+
+	auto newres = rman.create(Type.toStdString(), text.toStdString());
+	if (newres != nullptr) {
+		// add to resource dictionary map
+		dictinary.insert(text, newres);
+
+		// tree item
+		auto item = new QTreeWidgetItem(pitem);
+		item->setText(0, text);
+		item->setIcon(0, QIcon(frmt->second));
+		pitem->setExpanded(true);
+		emit(resourceAdded(newres));
+		return newres;
+
+	} else {
+		QMessageBox msg;
+		msg.setWindowTitle("Message");
+		msg.setText("resource add module return nullptr!\nresource type: " + Type);
+		msg.exec();
+	}
+	return nullptr;
 }
 
 void ResourceDock::actDoubleClicked(QTreeWidgetItem * item, int column) {
@@ -327,18 +454,18 @@ void ResourceDock::actClicked() {
 void ResourceDock::actRClicked(const QPoint & pos) {
 	QTreeWidgetItem *item = resTree->itemAt(pos);
 	QMenu cmenu(this);
+	QPoint pt(pos);
+	pt.setY(pt.y() + 50);
 	
 	if (item != nullptr) {
 		// checking user rclicked on category or items?
 		if (item->parent() == nullptr) {
-			QPoint pt(pos);
 			addRes->setText("Add New " + item->text(0));
 			openRes->setText("Add Existing " + item->text(0));
 			cmenu.addAction(addRes);
 			cmenu.addAction(openRes);
-			cmenu.exec(mapToGlobal(pos));
+			cmenu.exec(mapToGlobal(pt));
 		} else {
-			QPoint pt(pos);
 			editRes->setText("Edit " + item->text(0));
 			remRes->setText("Remove " + item->text(0));
 			saveRes->setText("Save " + item->text(0));
@@ -349,7 +476,7 @@ void ResourceDock::actRClicked(const QPoint & pos) {
 			cmenu.addSeparator();
 			cmenu.addAction(saveRes);
 			cmenu.addAction(saveAsRes);
-			cmenu.exec(mapToGlobal(pos));
+			cmenu.exec(mapToGlobal(pt));
 		}
 	}
 }
@@ -357,88 +484,24 @@ void ResourceDock::actRClicked(const QPoint & pos) {
 void ResourceDock::actAdd() {
 	auto pitem = resTree->currentItem();
 	auto restype = pitem->text(0);
-
+	
 	if (pitem->parent() != nullptr) {
 		return;
 	}
 
-	// create new resource and add it to res tree
-	bool ok = false;
-	QString text;
-	do {
-		text = QInputDialog::getText(this, "New " + restype,
-									 restype + " name:", QLineEdit::Normal,
-									 "", &ok);
-
-		// cancel pressed
-		if (!ok) {
-			return;
-		}
-
-		// empty name
-		if (text.isEmpty()) {
-			QMessageBox msg;
-			msg.setWindowTitle("Message");
-			msg.setText("resource name is empty!");
-			msg.exec();
-			continue;
-		}
-
-		// available name
-		auto avail = dictinary.find(text);
-		if (avail != dictinary.end()) {
-			QMessageBox msg;
-			msg.setWindowTitle("Message");
-			msg.setText("this name is already exist!");
-			msg.exec();
-			continue;
-		}
-
-		// ok pressed
-		if (ok) {
-			break;
-		}
-	} while (true);
-
-	auto newres = rman.create(restype.toStdString(), text.toStdString());
-	if (newres != nullptr) {
-		// add to resource dictionary map
-		dictinary.insert(text, newres);
-
-		// register ctypes
-		if (restype == "KScene") {
-			auto scene = (Kite::KScene *)newres;
-			Kite::registerCTypes(scene->getEManager());
-		}
-
-		auto item = new QTreeWidgetItem(pitem);
-		item->setText(0, text);
-		if (restype == "KScript") {
-			item->setIcon(0, QIcon(":/icons/script"));
-		} else if (restype == "KScene") {
-			item->setIcon(0, QIcon(":/icons/scene"));
-		}
-		pitem->setExpanded(true);
-
-		emit(resourceAdded(newres));
-
-	} else {
-		QMessageBox msg;
-		msg.setWindowTitle("Message");
-		msg.setText("resource add module return nullptr!\nresource type: " + restype);
-		msg.exec();
-	}
+	addResource(restype);
 }
 
 void ResourceDock::actOpen() {
 	auto pitem = resTree->currentItem();
 	auto restype = pitem->text(0);
+	auto frm = formats.find(restype);
 
 	if (pitem->parent() != nullptr) {
 		return;
 	}
 
-	QString fileName = QFileDialog::getOpenFileName(this, "Open " + restype, "", "Kite2D Resource File (*.kres)");
+	QString fileName = QFileDialog::getOpenFileName(this, "Open " + restype, "", "Kite2D Resource File (*" + frm->first + ")");
 
 	if (!fileName.isEmpty()) {
 		openResource(fileName, restype);
@@ -449,36 +512,37 @@ void ResourceDock::actSave() {
 	auto item = resTree->currentItem();
 	auto res = (*dictinary.find(item->text(0)));
 
-	Kite::KFOStream ostream;
-	if (!ostream.open(res->getResourceName(), Kite::IOMode::BIN)) {
-		QMessageBox msg;
-		msg.setWindowTitle("Message");
-		msg.setText("cant open file stream with the given address.\nfile address: " + QString(res->getResourceName().c_str()));
-		msg.exec();
-		return;
+	if (res->getAddress().empty()) {
+		return actSaveAs();
 	}
 
-	res->saveStream(&ostream);
+	Kite::KFOStream ostream;
+	if (!res->saveStream(&ostream, res->getAddress() + "\\" + res->getName())) {
+		QMessageBox msg;
+		msg.setWindowTitle("Message");
+		msg.setText("cant save resource.\nfile address: " + QString(res->getName().c_str()));
+		msg.exec();
+	}
 }
 
 void ResourceDock::actSaveAs() {
 	auto item = resTree->currentItem();
 	auto res = (*dictinary.find(item->text(0)));
+	auto type = item->parent()->text(0);
+	auto frm = formats.find(type);
 
 	QString fileName = QFileDialog::getSaveFileName(this, "Save " + item->text(0),
-													"", "Kite2D Resource File (*.kres)");
+													"", "Kite2D Resource File (*" + frm->first +" )");
 
 	if (!fileName.isEmpty()) {
 		Kite::KFOStream ostream;
-		if (!ostream.open(fileName.toStdString(), Kite::IOMode::BIN)) {
+		if (!res->saveStream(&ostream, fileName.toStdString())) {
 			QMessageBox msg;
 			msg.setWindowTitle("Message");
 			msg.setText("cant open file stream with the given address.\nfile address: " + fileName);
 			msg.exec();
 			return;
 		}
-
-		res->saveStream(&ostream);
 	}
 }
 

@@ -11,10 +11,9 @@ ComponentDock::ComponentDock(QWidget *Par) :
 {
 	setObjectName("Components Editor");
 	setAllowedAreas(Qt::LeftDockWidgetArea | Qt::RightDockWidgetArea);
-	setMinimumWidth(120);
 
-	setupTree();
 	setupActions();
+	setupTree();
 	actionsControl(AS_ON_INITE);
 	setupHTools();
 
@@ -24,8 +23,14 @@ ComponentDock::ComponentDock(QWidget *Par) :
 ComponentDock::~ComponentDock() {}
 
 void ComponentDock::setupTree() {
+	auto mainFrame = new QFrame(this);
+	auto vlayout = new QVBoxLayout(mainFrame);
+	vlayout->setMargin(0);
+	vlayout->setSpacing(0);
+
+	// tree
 	comTree = new QTreeWidget(this);
-	comTree->setMinimumWidth(330);
+	comTree->setMinimumWidth(280);
 	comTree->setHeaderLabel("Components Editor");
 	comTree->setHeaderHidden(true);
 	comTree->setSelectionMode(QAbstractItemView::SingleSelection);
@@ -33,8 +38,41 @@ void ComponentDock::setupTree() {
 	comTree->setExpandsOnDoubleClick(false);
 	comTree->setIndentation(0);
 	comTree->setAnimated(true);
+	vlayout->addWidget(comTree);
+
+	// prefab frame
+	prefabFrame = new QFrame(this);
+	auto hLayout = new QHBoxLayout(prefabFrame);
+	hLayout->setMargin(0);
+	hLayout->setSpacing(0);
+
+	auto btnApply = new QToolButton(prefabFrame);
+	preApply->setData(qVariantFromValue((void *)btnApply));
+	btnApply->setSizePolicy(QSizePolicy::Policy::Preferred, QSizePolicy::Policy::Fixed);
+	btnApply->setDefaultAction(preApply);
+	btnApply->setToolButtonStyle(Qt::ToolButtonTextOnly);
+	hLayout->addWidget(btnApply);
+
+	auto btnSelect = new QToolButton(prefabFrame);
+	preSelect->setData(qVariantFromValue((void *)btnSelect));
+	btnSelect->setSizePolicy(QSizePolicy::Policy::Preferred, QSizePolicy::Policy::Fixed);
+	btnSelect->setDefaultAction(preSelect);
+	btnSelect->setToolButtonStyle(Qt::ToolButtonTextOnly);
+	hLayout->addWidget(btnSelect);
+
+	auto btnRevert = new QToolButton(prefabFrame);
+	preRevert->setData(qVariantFromValue((void *)btnRevert));
+	btnRevert->setSizePolicy(QSizePolicy::Policy::Preferred, QSizePolicy::Policy::Fixed);
+	btnRevert->setDefaultAction(preRevert);
+	btnRevert->setToolButtonStyle(Qt::ToolButtonTextOnly);
+	hLayout->addWidget(btnRevert);
+
+	vlayout->addWidget(prefabFrame);
+
+	prefabFrame->hide();
+	
 	connect(mtypes, &QMenu::triggered, this, &ComponentDock::actAdd);
-	setWidget(comTree);
+	this->setWidget(mainFrame);
 }
 
 void ComponentDock::setupActions() {
@@ -53,6 +91,18 @@ void ComponentDock::setupActions() {
 	//exeOrder->setShortcutContext(Qt::WidgetWithChildrenShortcut);
 	connect(exeOrder, &QAction::triggered, this, &ComponentDock::actExeOrder);
 	this->addAction(exeOrder);
+
+	preSelect = new QAction("Select", this);
+	connect(preSelect, &QAction::triggered, this, &ComponentDock::actSelectPrefab);
+	this->addAction(preSelect);
+
+	preRevert = new QAction("Revert", this);
+	connect(preRevert, &QAction::triggered, this, &ComponentDock::actRevertPrefab);
+	this->addAction(preRevert);
+
+	preApply = new QAction("Apply", this);
+	connect(preApply, &QAction::triggered, this, &ComponentDock::actApllyPrefab);
+	this->addAction(preApply);
 }
 
 void ComponentDock::setupHTools() {
@@ -71,7 +121,6 @@ void ComponentDock::setupHTools() {
 
 	auto btnAddComps = new QToolButton(htools);
 	btnAddComps->setMenu(mtypes);
-	btnAddComps->setAutoRaise(true);
 	btnAddComps->setDefaultAction(addDefComp);
 	btnAddComps->setIcon(QIcon(":/icons/add"));
 	btnAddComps->setPopupMode(QToolButton::MenuButtonPopup);
@@ -82,19 +131,23 @@ void ComponentDock::setupHTools() {
 
 	auto btnExeOrder = new QToolButton(htools);
 	btnExeOrder->setDefaultAction(exeOrder);
-	btnExeOrder->setAutoRaise(true);
 	btnExeOrder->setIcon(QIcon(":/icons/order"));
 	btnExeOrder->setToolButtonStyle(Qt::ToolButtonStyle::ToolButtonTextBesideIcon);
 	hlayout->addWidget(btnExeOrder);
 
 	hlayout->addStretch(1);
+
+	// lua table name
+	llabel = new QLabel(htools);
+	llabel->setStyleSheet("color: orange;");
+	hlayout->addWidget(llabel);
+
 	vlayout->addLayout(hlayout);
 
 	auto hlayout2 = new QHBoxLayout(htools);
 	hlayout2->setMargin(3);
 
 	auto btnCollpaseAll = new QToolButton(htools);
-	btnCollpaseAll->setAutoRaise(true);
 	btnCollpaseAll->setDefaultAction(collAll);
 	btnCollpaseAll->setIcon(QIcon(":/icons/col"));
 	btnCollpaseAll->setToolButtonStyle(Qt::ToolButtonIconOnly);
@@ -250,14 +303,57 @@ void ComponentDock::putIntoPool(Expander *Exp) {
 	}
 }
 
-void ComponentDock::entityEdit(Kite::KEntityManager *Eman, Kite::KEntity *Entity) {
-	if (Entity->getHandle() == currEntity) {
+void ComponentDock::showFrame(Kite::KEntity *Entity, bool isPrefab) {
+	// prefab frame
+	if (isPrefab) {
+		llabel->hide();
+		auto btn = (QToolButton *)preSelect->data().value<void *>();
+		btn->hide();
+		preSelect->setDisabled(true);
+
+		btn = (QToolButton *)preRevert->data().value<void *>();
+		btn->hide();
+		preRevert->setDisabled(true);
+
+		btn = (QToolButton *)preApply->data().value<void *>();
+		btn->show();
+		preApply->setDisabled(false);
+	} else {
+		llabel->show();
+		auto btn = (QToolButton *)preSelect->data().value<void *>();
+		btn->show();
+		preSelect->setDisabled(false);
+
+		btn = (QToolButton *)preRevert->data().value<void *>();
+		btn->show();
+		preRevert->setDisabled(false);
+
+		btn = (QToolButton *)preApply->data().value<void *>();
+		btn->hide();
+		preApply->setDisabled(true);
+	}
+
+	if (Entity->isPrefab() || isPrefab) {
+		prefabFrame->show();
+	} else {
+		prefabFrame->hide();
+	}
+}
+
+void ComponentDock::entityEdit(Kite::KEntityManager *Eman, Kite::KEntity *Entity, bool isPrefab) {
+	if (Entity->getHandle() == currEntity && Eman == eman) {
 		return;
 	}
 	eman = Eman;
 	actClear();
 
+	// entity info
 	currEntity = Entity->getHandle();
+
+	// prefab frame
+	showFrame(Entity, isPrefab);
+
+	// components
 	for (auto it = types.begin(); it != types.end(); ++it) {
 		if ((*it) == "Logic") {
 			// load logic components at the end
@@ -271,15 +367,17 @@ void ComponentDock::entityEdit(Kite::KEntityManager *Eman, Kite::KEntity *Entity
 		}
 	}
 
-	std::vector<Kite::KComponent *> compList;
+	std::vector<Kite::KHandle> compList;
 	Entity->getScriptComponents(compList);
 	for (auto it = compList.begin(); it != compList.end(); ++it) {
-		fetchFromPool((*it));
+		auto comp = Entity->getComponent("Logic", (*it));
+		fetchFromPool(comp);
 	}
 
 	actionsControl(AS_ON_LOAD);
 	QString name(Entity->getName().c_str());
 	hlabel->setText("Components Editor (" + name + ")");
+	llabel->setText(QString("Lua Table: ") + Entity->getLuaTName().c_str());
 	actSearch(ledit->text());
 }
 
@@ -290,6 +388,7 @@ void ComponentDock::entityDelete(Kite::KEntityManager *Eman, Kite::KEntity *Enti
 		currEntity = Kite::KHandle();
 		eman = nullptr;
 		hlabel->setText("Components Editor");
+		llabel->clear();
 	}
 }
 
@@ -379,3 +478,17 @@ void ComponentDock::actSearch(const QString &Pharase) {
 	}
 }
 
+void ComponentDock::actSelectPrefab() {
+	auto ent = eman->getEntity(currEntity);
+	emit(resSelected(ent->getPrefab().c_str()));
+}
+
+void ComponentDock::actRevertPrefab() {
+	auto ent = eman->getEntity(currEntity);
+	emit(revertPrefab(ent));
+}
+
+void ComponentDock::actApllyPrefab() {
+	auto ent = eman->getEntity(currEntity);
+	emit(applyPrefab(ent));
+}

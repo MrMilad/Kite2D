@@ -40,7 +40,8 @@ SOURCES += main.cpp\
     frmprojsettings.cpp \
     executer.cpp\
     outputdock.cpp \
-    frmexeorder.cpp
+    frmexeorder.cpp \
+    frmaddobj.cpp
 
 HEADERS  += mainwindow.h \
     shared.h \
@@ -59,7 +60,8 @@ HEADERS  += mainwindow.h \
     frmprojsettings.h \
     executer.h\
     outputdock.h \
-    frmexeorder.h
+    frmexeorder.h \
+    frmaddobj.h
 
 RESOURCES += \
     res.qrc
@@ -67,4 +69,5 @@ RESOURCES += \
 FORMS += \
     frmnewproj.ui \
     frmprojsettings.ui \
-    frmexeorder.ui
+    frmexeorder.ui \
+    frmaddobj.ui

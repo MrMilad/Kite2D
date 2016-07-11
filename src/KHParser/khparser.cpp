@@ -2005,17 +2005,28 @@ void createMacros(const std::vector<MClass> &Cls, const std::vector<MEnum> &Enms
 						  exstate + "KAny getProperty(const std::string &Name) const override;\\\n");
 		}
 
-		// serializable and prefab
+		// serializable
 		if (isPOD || isComponent || isEntity) {
 			if (!isAbstract) {
 				Output.append("friend KBaseSerial &operator<<(KBaseSerial &Out, const " + Cls[i].name + " &Value) {\\\n"
 							  "Value.serial(Out); return Out;}\\\n"
 							  "friend KBaseSerial &operator>>(KBaseSerial &In, " + Cls[i].name + " &Value) {\\\n"
 							  "Value.deserial(In); return In;}\\\n");
+
+			}
+			// base component (polymorphism serial)
+			if(isAbstract && isComponent) {
+				Output.append(exstate + "virtual void serial(KBaseSerial &Serializer, bool Base = true) const = 0;\\\n");
+				Output.append(exstate + "virtual void deserial(KBaseSerial &Serializer, bool Base = true) = 0;\\\n");
+				Output.append(exstate + "void baseSerial(KBaseSerial &Serializer, bool Base = true) const;\\\n");
+				Output.append(exstate + "void baseDeserial(KBaseSerial &Serializer, bool Base = true);\\\n");
+
+			// others
+			} else {
+				Output.append(exstate + "void serial(KBaseSerial &Serializer, bool Base = true) const;\\\n");
+				Output.append(exstate + "void deserial(KBaseSerial &Serializer, bool Base = true);\\\n");
 			}
 
-			Output.append(exstate + "void serial(KBaseSerial &Serializer, bool Base = true) const;\\\n");
-			Output.append(exstate + "void deserial(KBaseSerial &Serializer, bool Base = true);\\\n");
 		}
 
 		// component lua cast and base access
@@ -2042,12 +2053,13 @@ void createMacros(const std::vector<MClass> &Cls, const std::vector<MEnum> &Enms
 		}
 
 		// (base, lua cast, type)
-		if ((isIStream || isOStream || isSerializer) && !isAbstract) {
+		if ((isIStream || isOStream || isSerializer || isResource) && !isAbstract) {
 			std::string hashCode = std::to_string(getHash32(Cls[i].name.c_str(), Cls[i].name.length()));
 			std::string baseName;
 			if (isIStream) baseName = "KIStream";
 			if (isOStream) baseName = "KOStream";
 			if (isSerializer) baseName = "KBaseSerial";
+			if (isResource) baseName = "KResource";
 
 			Output.append("private:\\\n" +
 						  exstate + "inline std::string getType() const override { return \"" + Cls[i].name + "\"; }\\\n" +
@@ -2189,7 +2201,7 @@ void createMacros(const std::vector<MClass> &Cls, const std::vector<MEnum> &Enms
 			}
 
 			// predefined serializer functions (base, lua cast)
-			if ((isIStream || isOStream || isSerializer) && !isAbstract) {
+			if ((isIStream || isOStream || isSerializer || isResource) && !isAbstract) {
 				Output.append(".addProperty(\"hashType\", &" + Cls[i].name + "::getHashType)\\\n");
 				Output.append(".addProperty(\"type\", &" + Cls[i].name + "::getType)\\\n");
 				Output.append(".addProperty(\"base\", &" + Cls[i].name + "::getBase)\\\n");
@@ -2286,12 +2298,16 @@ void createMacros(const std::vector<MClass> &Cls, const std::vector<MEnum> &Enms
 		// serial and prefab definition
 		if (isPOD || isComponent || isEntity) {
 			// serialize
-			Output.append("void " + Cls[i].name + "::serial(KBaseSerial &Serializer, bool Base) const {\\\n");
+			if (isComponent && isAbstract) {
+				Output.append("void " + Cls[i].name + "::baseSerial(KBaseSerial &Serializer, bool Base) const {\\\n");
+			} else {
+				Output.append("void " + Cls[i].name + "::serial(KBaseSerial &Serializer, bool Base) const {\\\n");
+			}
 
 			// KComponent (base)
 			if (isComponent && !isAbstract) {
 				Output.append("if (Base){\\\n");
-				Output.append("KComponent *kc = (KComponent *)(this); kc->serial(Serializer);}\\\n");
+				Output.append("KComponent *kc = (KComponent *)(this); kc->baseSerial(Serializer);}\\\n");
 			}
 
 			for (size_t vcont = 0; vcont < Cls[i].vars.size(); ++vcont) {
@@ -2300,12 +2316,16 @@ void createMacros(const std::vector<MClass> &Cls, const std::vector<MEnum> &Enms
 			Output.append("}\\\n");
 
 			// deserialize
-			Output.append("void " + Cls[i].name + "::deserial(KBaseSerial &Serializer, bool Base) {\\\n");
+			if (isComponent && isAbstract) {
+				Output.append("void " + Cls[i].name + "::baseDeserial(KBaseSerial &Serializer, bool Base) {\\\n");
+			} else {
+				Output.append("void " + Cls[i].name + "::deserial(KBaseSerial &Serializer, bool Base) {\\\n");
+			}
 
 			// KComponent (base)
 			if (isComponent && !isAbstract) {
 				Output.append("if (Base){\\\n");
-				Output.append("KComponent *kc = (KComponent *)(this); kc->deserial(Serializer);}\\\n");
+				Output.append("KComponent *kc = (KComponent *)(this); kc->baseDeserial(Serializer);}\\\n");
 			}
 
 			for (size_t vcont = 0; vcont < Cls[i].vars.size(); ++vcont) {

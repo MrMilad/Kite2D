@@ -34,6 +34,7 @@ namespace Kite{
 	public:
 		KM_CON()
 		KFIStream();
+
 		~KFIStream();
 
 		KM_FUN()

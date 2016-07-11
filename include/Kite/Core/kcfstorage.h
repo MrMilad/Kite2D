@@ -103,7 +103,7 @@ namespace Kite {
 			U32 ind = _khandle[Handle.index].index;
 
 			// Beware of move assignment to self
-			if (ind != _kcontiner.size() - 1){
+			if (ind != _kcontiner.size() - 1) {
 
 				// replace removed object with last object
 				_khandle[_kexhandle.back().index].index = ind;
@@ -142,9 +142,7 @@ namespace Kite {
 			return &_kcontiner[_khandle[Handle.index].index];
 		}
 
-		auto begin() { return _kcontiner.begin(); }
-
-		auto end() { return _kcontiner.end(); }
+		inline auto getContiner() { return &_kcontiner; }
 
 		SIZE getSize() const { return _kcontiner.size(); }
 

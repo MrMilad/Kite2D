@@ -17,7 +17,7 @@ namespace priv {
 	T * singleSpin(int Min = 0, int Max = 0, bool unsig = false) {
 		auto spin1 = new T();
 
-		spin1->setFixedWidth(100);
+		spin1->setFixedWidth(80);
 		spin1->setStyleSheet("color: DarkViolet;");
 
 		// is unsigned
@@ -146,7 +146,11 @@ signals:
 		void reset(Kite::KComponent *Comp) override {
 			auto val = Comp->getProperty(pname.toStdString());
 			if (isRes) {
-
+				if (val.as<std::string>().empty()) {
+					combo->setCurrentText("");
+				} else {
+					combo->setCurrentText(val.as<std::string>().c_str());
+				}
 			} else {
 				ledit->setText(val.as<std::string>().c_str());
 			}
@@ -172,8 +176,9 @@ signals:
 
 					if (resDict != nullptr) {
 						QStringList items;
+						items.push_back("");
 						for (auto it = resDict->cbegin(); it != resDict->cend(); ++it) {
-							if ((*it)->getResourceType().c_str() == type) {
+							if ((*it)->getType().c_str() == type) {
 								items.push_back(it.key());
 							}
 						}
@@ -255,7 +260,7 @@ signals:
 	public:
 		KF32(Kite::KComponent *Comp, const QString &PName, const QString &Label, QWidget *Parent,
 			 bool ROnly = false, int Min = 0, int Max = 0):
-			KProp(Parent),pname(PName)
+			KProp(Parent),pname(PName), slider(nullptr)
 		{
 			ptype = Comp->getType().c_str();
 			auto hlayout = new QHBoxLayout(this);
@@ -274,19 +279,37 @@ signals:
 			}
 
 			auto initeVal = Comp->getProperty(PName.toStdString());
+
+			// spin
 			spin = singleSpin<QDoubleSpinBox>(Min, Max);
 			spin->setValue(initeVal.as<float>());
 			spin->setReadOnly(ROnly);
 			spin->setDecimals(2);
+			spin->setSingleStep(0.1);
 			connect(spin, static_cast<void(QDoubleSpinBox::*)(double)>(&QDoubleSpinBox::valueChanged), this, &KF32::valueChanged);
 			hlayout->addWidget(spin);
 
-			hlayout->addStretch(1);
+			// slider
+			if (Min != Max) {
+				hlayout->addSpacing(10);
+				slider = new QSlider();
+				slider->setRange(Min * 100, Max * 100);
+				slider->setOrientation(Qt::Orientation::Horizontal);
+				slider->setValue((initeVal.as<float>() * 100));
+				connect(slider, &QSlider::valueChanged, this, &KF32::floatSlider);
+				hlayout->addWidget(slider);
+			} else {
+				hlayout->addStretch(1);
+			}
+			
 		}
 
 		void reset(Kite::KComponent *Comp) override {
 			auto val = Comp->getProperty(pname.toStdString());
 			spin->setValue(val.as<float>());
+			if (slider != nullptr) {
+				slider->setValue(val.as<float>() * 100);
+			}
 		}
 
 	signals:
@@ -294,12 +317,24 @@ signals:
 
 	private slots :
 		void valueChanged(double Val) {
-			Kite::KAny pval(Val);
+			if (slider != nullptr) {
+				slider->setValue(Val * 100);
+			}
+			Kite::KAny pval((float)Val);
+			QVariant v = qVariantFromValue((void *)&pval);
+			emit(propertyEdited(ptype, pname, v));
+		}
+
+		void floatSlider(int Val) {
+			float tf = Val / 100.0f;
+			spin->setValue(tf);
+			Kite::KAny pval(tf);
 			QVariant v = qVariantFromValue((void *)&pval);
 			emit(propertyEdited(ptype, pname, v));
 		}
 
 	private:
+		QSlider *slider;
 		QDoubleSpinBox *spin;
 		QString pname;
 		QString ptype;
@@ -333,6 +368,7 @@ signals:
 			xspin->setValue(initeVal.as<Kite::KVector2F32>().x);
 			xspin->setReadOnly(ROnly);
 			xspin->setDecimals(2);
+			xspin->setSingleStep(0.1);
 			connect(xspin, static_cast<void(QDoubleSpinBox::*)(double)>(&QDoubleSpinBox::valueChanged), this, &KV2F32::valueXChanged);
 			hlayout->addWidget(xspin);
 
@@ -352,6 +388,7 @@ signals:
 			yspin->setValue(initeVal.as<Kite::KVector2F32>().y);
 			yspin->setReadOnly(ROnly);
 			yspin->setDecimals(2);
+			yspin->setSingleStep(0.1);
 			connect(yspin, static_cast<void(QDoubleSpinBox::*)(double)>(&QDoubleSpinBox::valueChanged), this, &KV2F32::valueYChanged);
 			hlayout->addWidget(yspin);
 

@@ -37,7 +37,7 @@ namespace Kite{
 
 	KMETA_KRESOURCE_BODY();
 	public:
-		KResource(const std::string &Type);
+		KResource(const std::string &Name);
 
 		virtual ~KResource();
 
@@ -53,27 +53,35 @@ namespace Kite{
 
 		inline U32 getReferencesCount() const { return _kref; }
 
+		/// will be implemented by KHParser
+		KM_PRO_GET(KP_NAME = "type", KP_TYPE = std::string)
+			virtual inline std::string getType() const = 0;
+
+		/// will be implemented by KHParser
+		KM_PRO_GET(KP_NAME = "hashType", KP_TYPE = std::string)
+			virtual inline U32 getHashType() const = 0;
+
+		/// will be implemented by KHParser
+		/// usage: access base members in lua
+		virtual KResource *getBase() = 0;
+
 		KM_PRO_GET(KP_NAME = "name", KP_TYPE = std::string)
-		inline const std::string &getResourceName() const { return _kname; }
+		inline const std::string &getName() const { return _kname; }
 
 		KM_PRO_SET(KP_NAME = "name")
-		inline void setResourceName(const std::string &Name) { _kname = Name; }
-
-		KM_PRO_GET(KP_NAME = "type", KP_TYPE = std::string)
-		inline const std::string &getResourceType() const { return _ktype; }
+		inline void setName(const std::string &Name) { _kname = Name; }
 
 		KM_PRO_GET(KP_NAME = "address", KP_TYPE = std::string)
-		inline const std::string &getResourceAddress() const { return _kaddress; }
+		inline const std::string &getAddress() const { return _kaddress; }
 
 		KM_PRO_SET(KP_NAME = "address")
-		inline void setResourceAddress(const std::string &Address) { _kaddress = Address; }
+		inline void setAddress(const std::string &Address) { _kaddress = Address; }
 
 	private:
 		inline void incRef() { ++_kref; }
 		inline void decRef() { _kref > 0 ? --_kref : _kref; }
 
 		U32 _kref;
-		std::string _ktype;
 		std::string _kname;
 		std::string _kaddress;
 	};

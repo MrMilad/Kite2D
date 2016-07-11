@@ -32,7 +32,7 @@ namespace Kite {
 			it != EManager->endComponent<KTransformCom>("Transform"); ++it) {
 				auto ehandle = it->getOwnerHandle();
 				auto entity = EManager->getEntity(ehandle);
-				if (entity->getActive()) {
+				if (entity->isActive()) {
 					if (it->getNeedUpdate()) {
 						this->computeMatrix(*it);
 					}

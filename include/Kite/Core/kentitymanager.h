@@ -38,8 +38,8 @@ USA
 KMETA
 namespace Kite {
 	KM_CLASS(SCRIPTABLE)
-	class KITE_FUNC_EXPORT KEntityManager: public KMessenger {
-		friend KBaseSerial &operator<<(KBaseSerial &Out, const KEntityManager &Value){
+	class KITE_FUNC_EXPORT KEntityManager : public KMessenger {
+		friend KBaseSerial &operator<<(KBaseSerial &Out, const KEntityManager &Value) {
 			Value.serial(Out); return Out;
 		}
 
@@ -53,7 +53,7 @@ namespace Kite {
 		~KEntityManager();
 
 		KM_FUN()
-		bool isModified() const;
+			bool isModified() const;
 
 		template <typename T>
 		bool registerComponent(const std::string &CType) {
@@ -75,57 +75,64 @@ namespace Kite {
 		void unregisterComponent(const std::string &CType);
 
 		KM_FUN()
-		bool isRegisteredComponent(const std::string &CType);
+			bool isRegisteredComponent(const std::string &CType);
 
 		/// create entity in the root branch. (parent = 0)
 		/// after creating an entity, all previous pointers may be invalid.
 		/// so always use handle whene need an older entity.
+		/// if an empty string pass as name parameter, 
+		/// a new name (ent + N) will generated for entity.
 		KM_FUN()
-		KEntity *createEntity(const std::string &Name = "");
+			KEntity *createEntity(const std::string &Name = "");
 
 		KM_FUN()
-		bool renameEntity(const KHandle &EHandle, const std::string &NewName);
+			bool renameEntity(const KHandle &EHandle, const std::string &NewName);
 
 		/// entity will not be deleted immediately
 		/// but marked as deactive and stored in trash list
 		/// it will removed after calling postWork function.
 		/// we use this methode to prevent dangling pointer during updates.
 		KM_FUN()
-		void removeEntity(KHandle Handle);
+			void removeEntity(KHandle Handle);
 
 		KM_FUN()
-		void removeEntityByName(const std::string &Name);
+			void removeEntityByName(const std::string &Name);
 
 		KM_FUN()
-		SIZE inline getEntityCount() { return _kestorage.getSize(); }
+			SIZE inline getEntityCount() { return _kestorage.getSize(); }
 
 		KM_FUN()
-		KEntity *getEntity(const KHandle &Handle);
+			KEntity *getEntity(const KHandle &Handle);
 
 		KM_FUN()
-		KEntity *getEntityByName(const std::string &Name);
+			KEntity *getEntityByName(const std::string &Name);
 
 		KM_PRO_GET(KP_NAME = "root", KP_TYPE = KHandle, KP_CM = "root entity")
-		inline const KHandle &getRoot() const { return _kroot; }
+			inline const KHandle &getRoot() const { return _kroot; }
 
 		void postWork();
 
+		/// SaveName used for editor cut/copy purpose
 		KM_FUN()
-		bool createPrefab(const KHandle &EHandle, KPrefab *Prefab);
+		bool createPrefab(const KHandle &EHandle, KPrefab *Prefab, bool SaveName = false);
 
+		/// ispaste used for editor cut/copy purpose
 		KM_FUN()
-		bool loadPrefab(const KPrefab *Prefab, const std::string &Name);
+		KHandle loadPrefab(KPrefab *Prefab, bool isPaste = false);
 
-		inline auto beginEntity() { return _kestorage.begin(); }
+		// create new entity will invalidate iterators (use index instead)
+		inline auto beginEntity() { return _kestorage.getContiner()->begin(); }
 
-		inline auto endEntity() { return _kestorage.end(); }
+		inline auto endEntity() { return _kestorage.getContiner()->end(); }
+
+		inline const auto getEntityContiner() { return _kestorage.getContiner(); }
 
 		template<typename T>
 		auto beginComponent(const std::string &CType){
 			auto found = _kcstorage.find(CType);
 			KD_ASSERT(found != _kcstorage.end());
 			Internal::CHolder<T, KComponent> *drived = static_cast<Internal::CHolder<T, KComponent> *>(found->second);
-			return drived->getStorage()->begin();
+			return drived->getStorage()->getContiner()->begin();
 		}
 
 		template<typename T>
@@ -133,7 +140,7 @@ namespace Kite {
 			auto found = _kcstorage.find(CType);
 			KD_ASSERT(found != _kcstorage.end());
 			Internal::CHolder<T, KComponent> *drived = static_cast<Internal::CHolder<T, KComponent> *>(found->second);
-			return drived->getStorage()->end();
+			return drived->getStorage()->getContiner()->end();
 		}
 
 	private:
@@ -141,13 +148,16 @@ namespace Kite {
 		void deserial(KBaseSerial &In);
 		void recursiveDeleter(KHandle EHandle);
 		void initeRoot();
-		void recursiveSaveChilds(KEntity *Entity, KPrefab *Prefab);
+		U32 recursiveSaveChilds(KEntity *Entity, KPrefab *Prefab, U32 Level = 0, bool Name = false);
+		static bool initeLua();
 
 		KHandle _kroot;
 		KCFStorage<KEntity> _kestorage;
 		std::unordered_map<std::string, Internal::BaseCHolder<KComponent> *> _kcstorage;
 		std::unordered_map<std::string, KHandle> _kentmap;
 		std::vector<KHandle> _ktrash;
+		static lua_State *_klstate;
+		U32 _knum;
 	};
 }
 

@@ -52,6 +52,15 @@ namespace Kite {
 		KM_FUN()
 		void clearCatch();
 
+		KM_FUN()
+		void append(KBinarySerial *Data);
+
+		KM_FUN()
+		void setReadPos(U32 Pos);
+
+		KM_FUN()
+		U32 getReadPos() const { return _kpos; }
+
 	private:
 		std::vector<U8> _kdata;
 		U32 _kpos;

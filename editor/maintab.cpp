@@ -39,14 +39,12 @@ int MainTab::createTab(QWidget *Widget, Kite::KResource *ResPtr) {
 
 	auto btnUnpin = new QToolButton();
 	btnUnpin->setFixedSize(15, 15);
-	btnUnpin->setAutoRaise(true);
 	btnUnpin->setDefaultAction(unpinTab);
 	unpinTab->setParent(btnUnpin);
 	flayout->addWidget(btnUnpin);
 
 	auto btnClose = new QToolButton();
 	btnClose->setFixedSize(15, 15);
-	btnClose->setAutoRaise(true);
 	btnClose->setDefaultAction(closeTab);
 	closeTab->setParent(btnClose);
 	flayout->addWidget(btnClose);
@@ -56,7 +54,7 @@ int MainTab::createTab(QWidget *Widget, Kite::KResource *ResPtr) {
 	closeTab->setData(qVariantFromValue((void *) ResPtr));
 	unpinTab->setData(qVariantFromValue((void *)ResPtr));
 
-	auto tid = addTab(Widget, ResPtr->getResourceName().c_str());
+	auto tid = addTab(Widget, ResPtr->getName().c_str());
 	tabBar()->setTabButton(tid, QTabBar::ButtonPosition::RightSide, frame);
 
 	return tid;
@@ -87,13 +85,13 @@ void MainTab::selectResource(Kite::KResource *Res) {
 	auto found = resMap.find(Res);
 
 	if (found == resMap.end()) {
-		if (Res->getResourceType() == "KScene") {
-			setTabText(0, Res->getResourceName().c_str());
+		if (Res->getType() == "KScene") {
+			setTabText(0, Res->getName().c_str());
 			setCurrentIndex(0);
 		}
 
 	} else {
-		if (Res->getResourceType() == "KScript") {
+		if (Res->getType() == "KScript") {
 			// pined (tab)
 			if ((*found).second == nullptr) {
 				auto ind = indexOf((*found).first);
@@ -116,7 +114,7 @@ void MainTab::selectResource(Kite::KResource *Res) {
 void MainTab::saveAll() {
 	for (auto it = resMap.begin(); it != resMap.end(); ++it) {
 		// KScript
-		if (it.key()->getResourceType() == "KScript") {
+		if (it.key()->getType() == "KScript") {
 			auto sc = (Kite::KScript *)it.key();
 			auto ceditor = (CodeEditor *)it->first->findChild<CodeEditor *>("editor");
 			sc->setCode(ceditor->document()->toPlainText().toStdString());
@@ -128,7 +126,7 @@ void MainTab::openTabs(Kite::KResource *Res) {
 	auto found = resMap.find(Res);
 
 	if (found == resMap.end()) {
-		if (Res->getResourceType() == "KScript") {
+		if (Res->getType() == "KScript") {
 			auto frame = new QFrame(this);
 			auto vlayout = new QVBoxLayout(frame);
 			vlayout->setMargin(2);
@@ -140,7 +138,18 @@ void MainTab::openTabs(Kite::KResource *Res) {
 			auto script = (Kite::KScript *)Res;
 			auto ceditor = new CodeEditor(this);
 			ceditor->setObjectName("editor");
-			ceditor->setPlainText(script->getCode().c_str());
+			if (script->getCode().empty()) {
+				ceditor->setPlainText("function inite(self)\n"
+									  "\t\nend\n"
+									  "\nfunction start(self)\n"
+									  "\t\nend\n"
+									  "\nfunction update(self, delta)\n"
+									  "\t\nend\n"
+									  "\nfunction onMessage(selfHandle, msg)\n"
+									  "\t\nend\n");
+			} else {
+				ceditor->setPlainText(script->getCode().c_str());
+			}
 			static bool ini = false;
 			if (!ini && cmodel != nullptr) {
 				CodeEditor::setCompleterModel(cmodel);
@@ -153,15 +162,15 @@ void MainTab::openTabs(Kite::KResource *Res) {
 			resMap.insert(Res, { frame, nullptr });
 		}
 
-		if (Res->getResourceType() == "KScene") {
-			setTabText(0, Res->getResourceName().c_str());
+		if (Res->getType() == "KScene") {
+			setTabText(0, Res->getName().c_str());
 			setCurrentIndex(0);
 		}
 
 	} else {
 		// pined (tab)
 		if ((*found).second == nullptr) {
-			if (Res->getResourceType() == "KScript") {
+			if (Res->getType() == "KScript") {
 				setCurrentIndex(indexOf((*found).first));
 			}
 
@@ -184,7 +193,7 @@ void MainTab::closeResource(Kite::KResource *Res) {
 	if (found != resMap.end()) {
 		// pined (tab)
 		if ((*found).second == nullptr) {
-			if (Res->getResourceType() == "KScript") {
+			if (Res->getType() == "KScript") {
 				deleteTab((*found).first);
 			}
 
@@ -204,7 +213,7 @@ void MainTab::closeTab() {
 
 	if (found != resMap.end()) {
 		// save code to KScript object
-		if (resPtr->getResourceType() == "KScript") {
+		if (resPtr->getType() == "KScript") {
 			auto sc = (Kite::KScript *)resPtr;
 			auto ceditor = found->first->findChild<CodeEditor *>("editor");
 			sc->setCode(ceditor->document()->toPlainText().toStdString());
@@ -240,7 +249,7 @@ void MainTab::unpinTab() {
 		auto flayout = new QHBoxLayout(dframe);
 		flayout->setMargin(3);
 
-		flayout->addWidget(new QLabel(found.key()->getResourceName().c_str()));
+		flayout->addWidget(new QLabel(found.key()->getName().c_str()));
 
 		// pin button
 		auto pinAction = new QAction(QIcon(":/icons/pin"), "Pin to Tabbar", dock);
@@ -248,7 +257,6 @@ void MainTab::unpinTab() {
 		connect(pinAction, &QAction::triggered, this, &MainTab::pinDock);
 		auto btnPin = new QToolButton();
 		btnPin->setFixedSize(15, 15);
-		btnPin->setAutoRaise(true);
 		btnPin->setDefaultAction(pinAction);
 		flayout->addWidget(btnPin);
 
@@ -258,7 +266,6 @@ void MainTab::unpinTab() {
 		connect(closeAction, &QAction::triggered, this, &MainTab::closeDock);
 		auto btnClose = new QToolButton();
 		btnClose->setFixedSize(15, 15);
-		btnClose->setAutoRaise(true);
 		btnClose->setDefaultAction(closeAction);
 		flayout->addWidget(btnClose);
 
@@ -287,7 +294,7 @@ void MainTab::closeDock() {
 	auto found = resMap.find(resPtr);
 	if (found != resMap.end()) {
 		// save code to KScript object
-		if (resPtr->getResourceType() == "KScript") {
+		if (resPtr->getType() == "KScript") {
 			auto sc = (Kite::KScript *)resPtr;
 			auto ceditor = (CodeEditor *)found->first->findChild<CodeEditor *>("editor");
 			sc->setCode(ceditor->document()->toPlainText().toStdString());

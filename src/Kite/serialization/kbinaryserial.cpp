@@ -188,5 +188,20 @@ namespace Kite {
 		_kpos = 0;
 	}
 
+	void KBinarySerial::append(KBinarySerial *Data) {
+		_kdata.reserve(_kdata.size() + Data->_kdata.size());
+		_kdata.insert(_kdata.end(), Data->_kdata.begin(), Data->_kdata.end());
+	}
+
+	void KBinarySerial::setReadPos(U32 Pos){
+		if (Pos < _kdata.size()) {
+			_kpos = Pos;
+		} else {
+			_kpos = _kdata.size();
+			_kendfile = true;
+			KD_PRINT("new pos is out of range and reached end of file.");
+		}
+	}
+
 	KMETA_KBINARYSERIAL_SOURCE();
 }

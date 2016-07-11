@@ -21,10 +21,14 @@ public:
 
 	void setupCategories(const QStringList &CatList);
 	bool openResource(const QString &Address, const QString &Type);
-	void clearResources();
+	Kite::KResource *getResource(const QString &Name);
+	Kite::KResource *addResource(const QString &Type);
 	void filterByType(const QString &Type, QStringList &List);
+	void selectResource(const QString &Name);
 	void manageUsedResource(const QHash<QString, QVector<Kite::KMetaProperty>> *ResComponents);
+	void clearResources();
 
+	inline void setCurrentDirectory(const QString &Directory) { currDirectory = Directory; }
 	inline auto const getDictionary() const { return &dictinary; }
 	
 	const std::unordered_map<std::string, std::string> *getKiteDictionary(const QString &AddressPrefix) const;
@@ -63,7 +67,9 @@ private:
 	QAction *remRes;
 	QFrame *htools;
 	QLineEdit *ledit;
+	QString currDirectory;
 	QHash<QString, Kite::KResource *> dictinary;
+	QHash<QString, QPair<QString, QString>> formats; // <resource name, <format, icon>>
 	std::unordered_map<std::string, std::string> *kiteDictionary;
 	Kite::KResourceManager rman;
 };

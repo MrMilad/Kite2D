@@ -116,7 +116,10 @@ KiteInfo::KiteInfo():
 
 		// Scriptables
 		if ((*it)->getMetaType() == Kite::KMetaTypes::KMT_CLASS &&
-			((*it)->getFlag() & SCRIPTABLE) &&
+			(((*it)->getFlag() & SCRIPTABLE) ||
+			 ((*it)->getFlag() & SERIALIZER) ||
+			 ((*it)->getFlag() & ISTREAM) ||
+			 ((*it)->getFlag() & OSTREAM)) &&
 			!((*it)->getFlag() & ABSTRACT)) {
 			auto cls = (Kite::KMetaClass *)(*it);
 			QString cname(cls->getName().c_str());
@@ -125,7 +128,7 @@ KiteInfo::KiteInfo():
 			auto funList = cls->getFunctions();
 			auto propList = cls->getProperties();
 
-			auto bitem = new QStandardItem(QIcon(":/icons/enum"), cname);
+			auto bitem = new QStandardItem(QIcon(":/icons/cls16"), cname);
 			QString btip("<font color = \"orange\">class</font><br>" +
 						 QString::number(funList->size()) + " functions<br>" +
 						 QString::number(propList->size()) + " properties");

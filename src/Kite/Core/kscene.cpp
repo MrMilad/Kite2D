@@ -30,11 +30,9 @@ USA
 
 namespace Kite {
 	KScene::KScene(const std::string &Name) :
-		KResource("KScene"),
+		KResource(Name),
 		_kloaded(false) 
-	{
-		setResourceName(Name);
-	}
+	{}
 
 	KScene::~KScene() {}
 
@@ -68,8 +66,8 @@ namespace Kite {
 		bserial >> _kres;
 		bserial >> _keman;
 
-		setResourceName(Stream->getFileName());
-		setResourceAddress(Stream->getPath());
+		setName(Stream->getFileName());
+		setAddress(Stream->getPath());
 
 		_kloaded = true;
 		Stream->close();

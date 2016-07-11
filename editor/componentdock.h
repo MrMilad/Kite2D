@@ -35,13 +35,16 @@ public:
 	void inite(const QStringList &TypeList, const QHash<QString, Kite::KResource *> *Dictionary);
 
 public slots:
-	void entityEdit(Kite::KEntityManager *Eman, Kite::KEntity *Entity);
+	void entityEdit(Kite::KEntityManager *Eman, Kite::KEntity *Entity, bool isPrefab);
 	void entityDelete(Kite::KEntityManager *Eman, Kite::KEntity *Entity);
 
 signals:
 	void componentAdded(Kite::KEntity *Entity, Kite::KComponent *Component);
 	void componentDelete(Kite::KEntity *Entity, Kite::KComponent *Component);
 	void componentEdited(Kite::KEntity *Entity, Kite::KComponent *Component, const QString &PName);
+	void resSelected(const QString &Name);
+	void revertPrefab(Kite::KEntity *Entity);
+	void applyPrefab(Kite::KEntity *Entity);
 
 private slots:
 	void actExeOrder();
@@ -52,6 +55,9 @@ private slots:
 	void actEdit(Kite::KHandle Chandle, const QString &CType, const QString &Pname, QVariant &Value);
 	void actClear();
 	void actSearch(const QString &Pharase);
+	void actSelectPrefab();
+	void actRevertPrefab();
+	void actApllyPrefab();
 
 private:
 	void setupTree();
@@ -64,14 +70,20 @@ private:
 	void initePool(const QStringList &TypeList, unsigned int LogicCount = 15);
 	void fetchFromPool(Kite::KComponent *Comp);
 	void putIntoPool(Expander *Exp);
+	void showFrame(Kite::KEntity *Entity, bool isPrefab);
 
+	QFrame *prefabFrame;
 	QTreeWidget *comTree;
 	QAction *addDefComp;
 	QAction *collAll;
 	QAction *exeOrder;
+	QAction *preSelect;
+	QAction *preRevert;
+	QAction *preApply;
 	QFrame *htools;
 	QLineEdit *ledit;
 	QLabel *hlabel;
+	QLabel *llabel;
 	QMenu *mtypes;
 	Kite::KHandle currEntity;
 	QStringList types;

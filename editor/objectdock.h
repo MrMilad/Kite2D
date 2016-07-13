@@ -12,6 +12,15 @@
 #include <Kite/core/kentitymanager.h>
 #include "shared.h"
 
+struct Clipboard {
+	bool isCopy;
+	Kite::KPrefab data;
+
+	Clipboard() :
+		isCopy(false),
+		data("clipboard") {}
+};
+
 class ObjectDock : public QDockWidget, public Kite::KListener {
 	Q_OBJECT
 
@@ -69,7 +78,7 @@ private:
 	QAction *copy;
 	QAction *cut;
 	QAction *paste;
-	Kite::KPrefab clipboard;
+	Clipboard clipb;
 	QFrame *htools;
 	QLineEdit *ledit;
 	QLabel *hlabel;

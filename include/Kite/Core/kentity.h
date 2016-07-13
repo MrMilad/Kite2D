@@ -133,6 +133,10 @@ namespace Kite {
 		void setComponent(const std::string &CType, const std::string &Name, KComponent *Comp);
 		void remChildIndex(U32 ID);
 		void setHandle(const KHandle Handle);
+
+		// internal script function (copy,cut,paste)
+		KM_FUN()
+			inline void setPrefabName(const std::string &Name) { _kprefabName = Name; _kisPrefab = true; }
 		
 		KM_VAR() bool _kactive;											// entity actitvity state
 		KM_VAR() bool _kisPrefab;

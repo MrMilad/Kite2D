@@ -8,8 +8,7 @@ ObjectDock::ObjectDock(QWidget *parent) :
 	QDockWidget("Hierarchy", parent),
 	currRes(nullptr),
 	currEman(nullptr),
-	preEman(nullptr),
-	clipboard("clipboard")
+	preEman(nullptr)
 {
 	setObjectName("Hierarchy");
 	setAllowedAreas(Qt::LeftDockWidgetArea | Qt::RightDockWidgetArea);
@@ -626,7 +625,8 @@ void ObjectDock::actCut() {
 
 	if (item != nullptr) {
 		auto entity = currEman->getEntityByName(item->text(0).toStdString());
-		currEman->createPrefab(entity->getHandle(), &clipboard, true);
+		clipb.isCopy = false;
+		currEman->copyPrefab(entity->getHandle(), &clipb.data, true);
 		actRemove();
 		paste->setDisabled(false);
 	}
@@ -637,16 +637,17 @@ void ObjectDock::actCopy() {
 
 	if (item != nullptr) {
 		auto entity = currEman->getEntityByName(item->text(0).toStdString());
-		currEman->createPrefab(entity->getHandle(), &clipboard, false);
+		clipb.isCopy = true;
+		currEman->copyPrefab(entity->getHandle(), &clipb.data, false);
 		paste->setDisabled(false);
 	}
 }
 
 void ObjectDock::actPaste() {
-	if (!clipboard.isEmpty()) {
+	if (!clipb.data.isEmpty()) {
 		auto action = (QAction *)sender();
 		auto root = action->data().toBool();
-		auto entity = currEman->loadPrefab(&clipboard, true);
+		auto entity = currEman->pastePrefab(&clipb.data);
 
 		// pasted to root
 		if (root) {
@@ -667,8 +668,11 @@ void ObjectDock::actPaste() {
 			connect(objTree, &QTreeWidget::itemChanged, this, &ObjectDock::entityChecked);
 		}
 	}
-	paste->setDisabled(true);
-	clipboard.clear();
+	// copy
+	if (!clipb.isCopy) {
+		paste->setDisabled(true);
+		clipb.data.clear();
+	}
 }
 
 

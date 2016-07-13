@@ -44,7 +44,7 @@ int main() {
 	//pre.loadStream(&istream, "E:\\prefab.pre");
 	//auto hndl = engine->getSceneManager()->getActiveScene()->getEManager()->loadPrefab(&pre);
 
-	engine->getSceneManager()->getActiveScene()->getEManager()->createPrefab(ent6->getHandle(), &pre, true);
+	engine->getSceneManager()->getActiveScene()->getEManager()->copyPrefab(ent6->getHandle(), &pre, true);
 	pre.saveStream(&stream, "E:\\prefab.pre");
 
 	engine->start();

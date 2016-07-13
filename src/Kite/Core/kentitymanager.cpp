@@ -257,7 +257,7 @@ namespace Kite {
 		_ktrash.clear();
 	}
 
-	U32 KEntityManager::recursiveSaveChilds(KEntity *Entity, KPrefab *Prefab, U32 Level, bool Name) {
+	U32 KEntityManager::recursiveSaveChilds(KEntity *Entity, KPrefab *Prefab, U32 Level, bool Name, bool CopyPrefab) {
 		auto id = Level;
 		// entity information
 		if (Name) {
@@ -265,6 +265,11 @@ namespace Kite {
 		} else {
 			Prefab->_kcode.append("local ent = eman:createEntity(\"\")\n");
 		}
+
+		if (CopyPrefab && Entity->isPrefab()) {
+			Prefab->_kcode.append("ent:setPrefabName(\"" + Entity->getPrefab() + "\")\n");
+		}
+
 		Prefab->_kcode.append("local hndl" + std::to_string(id) + " = ent.handle\n");
 
 		// logic components
@@ -294,7 +299,7 @@ namespace Kite {
 		}
 
 		for (auto it = Entity->childList()->cbegin(); it != Entity->childList()->cend(); ++it) {
-			auto cid = recursiveSaveChilds(getEntity((*it)), Prefab, Level + 1, Name);
+			auto cid = recursiveSaveChilds(getEntity((*it)), Prefab, Level + 1, Name, CopyPrefab);
 			Prefab->_kcode.append("local par = eman:getEntity(hndl" + std::to_string(id) + ")\n");
 			Prefab->_kcode.append("par:addChild(hndl" + std::to_string(cid) + ")\n");
 		}
@@ -314,7 +319,7 @@ namespace Kite {
 		Prefab->_kcode.append("function execute(eman, ser)\n");
 
 		// recursive save
-		auto root = recursiveSaveChilds(ent, Prefab, 0, SaveName);
+		auto root = recursiveSaveChilds(ent, Prefab, 0, SaveName, false);
 
 		// end function
 		Prefab->_kcode.append("return hndl" + std::to_string(root) + "\nend\n");
@@ -322,7 +327,7 @@ namespace Kite {
 		return true;
 	}
 
-	KHandle KEntityManager::loadPrefab(KPrefab *Prefab, bool isPaste) {
+	KHandle KEntityManager::loadPrefabRaw(KPrefab *Prefab, bool isPaste) {
 		// check prefab
 		if (Prefab->_kcode.empty()) {
 			KD_PRINT("prefab is empty or not loaded yet.");
@@ -338,7 +343,7 @@ namespace Kite {
 		KHandle handle;
 		if (lref.isFunction()) {
 #ifdef KITE_DEV_DEBUG
-			try{
+			try {
 				handle = lref.call<KHandle>(this, (KBaseSerial *)&Prefab->_kdata);
 			} catch (std::exception& e) {
 				KD_FPRINT("prefab execute function failed. %s", e.what());
@@ -355,12 +360,41 @@ namespace Kite {
 		// set as prefab instance
 		if (!isPaste) {
 			auto ent = getEntity(handle);
-			ent->_kisPrefab = true;
-			ent->_kprefabName = Prefab->getName();
+			ent->setPrefabName(Prefab->getName());
 		}
 
 		return handle;
 	}
+
+	KHandle KEntityManager::loadPrefab(KPrefab *Prefab) {
+		return loadPrefabRaw(Prefab, false);
+	}
+
+#ifdef KITE_EDITOR
+	bool KEntityManager::copyPrefab(const KHandle &EHandle, KPrefab *Prefab, bool Name) {
+		Prefab->clear();
+		auto ent = _kestorage.get(EHandle);
+		if (ent == nullptr) {
+			KD_PRINT("an entity with the given handle does not exist.");
+			return false;
+		}
+
+		// lua function 
+		Prefab->_kcode.append("function execute(eman, ser)\n");
+
+		// recursive save
+		auto root = recursiveSaveChilds(ent, Prefab, 0, Name, true);
+
+		// end function
+		Prefab->_kcode.append("return hndl" + std::to_string(root) + "\nend\n");
+		Prefab->_kisempty = false;
+		return true;
+	}
+
+	KHandle KEntityManager::pastePrefab(KPrefab *Prefab) {
+		return loadPrefabRaw(Prefab, true);
+	}
+#endif
 
 	void KEntityManager::serial(KBaseSerial &Out) const {
 		Out << _knum;

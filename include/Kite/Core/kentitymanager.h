@@ -114,11 +114,11 @@ namespace Kite {
 
 		/// SaveName used for editor cut/copy purpose
 		KM_FUN()
-		bool createPrefab(const KHandle &EHandle, KPrefab *Prefab, bool SaveName = false);
+		bool createPrefab(const KHandle &EHandle, KPrefab *Prefab, bool SaveNames = false);
 
 		/// ispaste used for editor cut/copy purpose
 		KM_FUN()
-		KHandle loadPrefab(KPrefab *Prefab, bool isPaste = false);
+		KHandle loadPrefab(KPrefab *Prefab);
 
 		// create new entity will invalidate iterators (use index instead)
 		inline auto beginEntity() { return _kestorage.getContiner()->begin(); }
@@ -143,12 +143,18 @@ namespace Kite {
 			return drived->getStorage()->getContiner()->end();
 		}
 
+#ifdef KITE_EDITOR
+		bool copyPrefab(const KHandle &EHandle, KPrefab *Prefab, bool Name);
+		KHandle pastePrefab(KPrefab *Prefab);
+#endif
+
 	private:
+		KHandle loadPrefabRaw(KPrefab *Prefab, bool isPaste);
 		void serial(KBaseSerial &Out) const;
 		void deserial(KBaseSerial &In);
 		void recursiveDeleter(KHandle EHandle);
 		void initeRoot();
-		U32 recursiveSaveChilds(KEntity *Entity, KPrefab *Prefab, U32 Level = 0, bool Name = false);
+		U32 recursiveSaveChilds(KEntity *Entity, KPrefab *Prefab, U32 Level, bool Name, bool CopyPrefab);
 		static bool initeLua();
 
 		KHandle _kroot;

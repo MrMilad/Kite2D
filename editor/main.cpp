@@ -22,11 +22,10 @@ int main(int argc, char *argv[])
 	palette.setColor(QPalette::ButtonText, Qt::white);
 	palette.setColor(QPalette::BrightText, Qt::red);
 	palette.setColor(QPalette::Link, QColor(42, 130, 218));
-
 	palette.setColor(QPalette::Highlight, QColor(0, 150, 215));
 	palette.setColor(QPalette::HighlightedText, Qt::white);
-
     a.setPalette(palette);
+
     MainWindow w;
 	w.setStyleSheet("QToolTip { border: 1px solid darkGray; color: #313131;}");
     w.show();

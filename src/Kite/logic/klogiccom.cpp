@@ -42,7 +42,7 @@ namespace Kite {
 	}
 
 	RecieveTypes KLogicCom::onMessage(KMessage *Message, MessageScope Scope) {
-		 std::string ctable = "_G.ENTITIES." + _ktname + "." + getName() + ".onMessage";
+		 std::string ctable = "_G." + _ktname + "." + getName() + ".onMessage";
 		if (_klstate != nullptr) {
 			LuaIntf::LuaRef lref(_klstate, ctable.c_str());
 			if (lref.isFunction()) {
@@ -72,7 +72,7 @@ namespace Kite {
 
 	void KLogicCom::removeLuaEnv() {
 		// remove environment table from lua
-		std::string ctable = "_G.ENTITIES." + _ktname;
+		std::string ctable = "_G." + _ktname;
 		if (_klstate != nullptr) {
 			LuaIntf::LuaRef lref(_klstate, ctable.c_str());
 			if (lref.isTable()) {

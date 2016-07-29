@@ -2,7 +2,7 @@
 #include <QtWidgets>
 #include <comproperty.h>
 
-Expander::Expander(Kite::KComponent *Comp, const QHash<QString, Kite::KResource *> *Dictionary, QTreeWidget *Parent):
+Expander::Expander(Kite::KComponent *Comp, QTreeWidget *Parent):
 	QObject(Parent), expandable(true)
 {
 	chandle = Comp->getHandle();
@@ -49,7 +49,8 @@ Expander::Expander(Kite::KComponent *Comp, const QHash<QString, Kite::KResource 
 
 	Parent->setItemWidget(head, 0, mainFrame);
 
-	content = new ComponentView(Comp, Parent, Dictionary);
+	content = new ComponentView(Comp, Parent);
+	connect(content, &ComponentView::updateResList, this, &Expander::updateResList);
 	
 	auto child = new QTreeWidgetItem(head);
 	child->setDisabled(true);

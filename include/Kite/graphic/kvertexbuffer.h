@@ -22,10 +22,9 @@
 
 /*! \file kvertexbuffer.h */
 
-#include "Kite/Core/system/ksystemdef.h"
-#include "Kite/core/system/kcoreinstance.h"
-#include "Kite/Core/graphic/kgraphicstructs.h"
-#include "Kite/Core/graphic/kgraphictypes.h"
+#include "Kite/core/kcoredef.h"
+#include "Kite/graphic/kgraphicstructs.h"
+#include "Kite/graphic/kgraphictypes.h"
 
 /*! \namespace Kite
 	\brief Public namespace.
@@ -37,11 +36,11 @@ namespace Kite{
 		Buffer objects are created in the OpenGL server so that the client application 
 		can avoid uploading vertices, indices, texture image data, etc every time they are needed.
 	*/
-    class KITE_FUNC_EXPORT KVertexBuffer : public KCoreInstance{
+    class KITE_FUNC_EXPORT KVertexBuffer{
     public:
 
 		//! Constructs an empty vertex buffer object (VBO).
-		KVertexBuffer(KBufferTargetTypes TargetType);
+		KVertexBuffer(BufferTarget TargetType);
 
 		//! Destructor
         ~KVertexBuffer();
@@ -57,7 +56,7 @@ namespace Kite{
 			\param BufferType A hint to the GL implementation as to how a buffer object's data store will be 
 						accessed
 		*/
-        void fill(const void *Data, U32 DataSize, KVertexBufferTypes BufferType);
+        void fill(const void *Data, U32 DataSize, VBufferType BufferType);
 
 		//! Map all of a buffer object's data store into the client's address space, and send its pointer to handle function.
 		/*!
@@ -122,7 +121,7 @@ namespace Kite{
 		/*!
 			\return Type of buffer
 		*/
-        inline KVertexBufferTypes getType() const {return _kbufType;}
+        inline VBufferType getType() const {return _kbufType;}
 
 		//! Get OpenGL ID of the vertex buffer object
 		/*!
@@ -137,8 +136,8 @@ namespace Kite{
 		U64 getInstanceSize() const;
 
     private:
-        KVertexBufferTypes _kbufType;	//!< Storage state of buffer
-		KBufferTargetTypes _kbufTarget;	//!< Type of buffer
+        VBufferType _kbufType;	//!< Storage state of buffer
+		BufferTarget _kbufTarget;	//!< Type of buffer
         U32 _ksize;		//!< Size of buffer
         U32 _kbufId;	//!< OpenGL vbo ID
         KCallVBUpdate *_kupdateHnd;	//!< Function pointer for update

@@ -20,8 +20,8 @@ KiteInfo::KiteInfo():
 	kmman.dump(meta);
 
 	// kite root namespace
-	auto kroot = new QStandardItem(QIcon(":/icons/dia16"), "Kite");
-	kroot->setToolTip("<font color = \"orange\">Kite2D</font>");
+	auto kroot = new QStandardItem(QIcon(":/icons/dia16"), "kite");
+	kroot->setToolTip("<font color = \"orange\">Kite2D namespace</font>");
 	model->appendRow(kroot);
 
 	// searching for resource categories

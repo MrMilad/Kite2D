@@ -9,17 +9,18 @@
 #include <unordered_map>
 #include <Kite/core/kresource.h>
 #include <Kite/core/kresourcemanager.h>
+#include <Kite/core/klistener.h>
 #include <Kite/meta/kmetaclass.h>
 #include "shared.h"
 
-class ResourceDock : public QDockWidget {
+class ResourceDock : public QDockWidget, public Kite::KListener {
 	Q_OBJECT
 
 public:
+	// pass empty string if there is no dictionary
 	explicit ResourceDock(QWidget *parent = 0);
 	~ResourceDock();
 
-	void setupCategories(const QStringList &CatList);
 	bool openResource(const QString &Address, const QString &Type);
 	Kite::KResource *getResource(const QString &Name);
 	Kite::KResource *addResource(const QString &Type);
@@ -29,7 +30,8 @@ public:
 	void clearResources();
 
 	inline void setCurrentDirectory(const QString &Directory) { currDirectory = Directory; }
-	inline auto const getDictionary() const { return &dictinary; }
+
+	Kite::RecieveTypes onMessage(Kite::KMessage *Message, Kite::MessageScope Scope);
 	
 	const std::unordered_map<std::string, std::string> *getKiteDictionary(const QString &AddressPrefix) const;
 
@@ -38,7 +40,6 @@ signals:
 	void resourceSelected(Kite::KResource *Res);
 	void resourceEdit(Kite::KResource *Res);
 	void resourceDelete(Kite::KResource *Res);
-	void resourceOpen(Kite::KResource *Res);
 
 private slots:
 	void actDoubleClicked(QTreeWidgetItem * item, int column);
@@ -57,6 +58,7 @@ private:
 	void setupActions();
 	void setupHTools();
 	void actionsControl(ActionsState State);
+	void setupCategories();
 
 	QTreeWidget *resTree;
 	QAction *addRes;
@@ -68,9 +70,9 @@ private:
 	QFrame *htools;
 	QLineEdit *ledit;
 	QString currDirectory;
-	QHash<QString, Kite::KResource *> dictinary;
-	QHash<QString, QPair<QString, QString>> formats; // <resource name, <format, icon>>
-	std::unordered_map<std::string, std::string> *kiteDictionary;
+	//QHash<QString, Kite::KResource *> dictinary;
+	QMultiHash<QString, QPair<QString, QString>> formats; // <resource name, <format, icon>>
+	//std::unordered_map<std::string, std::string> *kiteDictionary;
 	Kite::KResourceManager rman;
 };
 

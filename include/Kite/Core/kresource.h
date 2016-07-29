@@ -27,6 +27,7 @@
 #include "Kite/core/kostream.h"
 #include "Kite/meta/kmetadef.h"
 #include <cstring>
+#include <vector>
 #include "kresource.khgen.h"
 
 KMETA
@@ -37,19 +38,14 @@ namespace Kite{
 
 	KMETA_KRESOURCE_BODY();
 	public:
-		KResource(const std::string &Name);
+		KResource(const std::string &Name, bool IsComposite);
 
 		virtual ~KResource();
 
-		//! Read the resource from input stream.
-		/*!
-		\param Stream Input stream.
+		bool saveStream(KOStream *Stream, const std::string &Address, U32 Flag = 0);
 
-		\return True if loading was successful
-		*/
-		virtual bool loadStream(KIStream *Stream, const std::string &Address, U32 Flag = 0) = 0;
-
-		virtual bool saveStream(KOStream *Stream, const std::string &Address, U32 Flag = 0) = 0;
+		/// will not called with resource manager
+		virtual bool inite() = 0;
 
 		inline U32 getReferencesCount() const { return _kref; }
 
@@ -77,13 +73,36 @@ namespace Kite{
 		KM_PRO_SET(KP_NAME = "address")
 		inline void setAddress(const std::string &Address) { _kaddress = Address; }
 
+		KM_PRO_GET(KP_NAME = "isComposite", KP_TYPE = bool)
+		inline bool isComposite() const { return _kcomposite; }
+
+		KM_PRO_GET(KP_NAME = "isInite", KP_TYPE = bool)
+		inline bool isInite() const { return _kisInite; }
+
+	protected:
+		inline void setInite(bool Inite) { _kisInite = Inite; }
+		inline void setCompositeList(std::vector<KResource *> List) { _kclist = List; }
+		inline std::vector<KResource *> getCompositeList() const { return _kclist; }
+
 	private:
+		bool saveCompositeList(KOStream *Stream, const std::string &Address, U32 Flag = 0);
+
+		/// use setCompositeList() in _saveStream()
+		virtual bool _saveStream(KOStream *Stream, const std::string &Address, U32 Flag = 0) = 0;
+
+		/// use getCompositeList() in _loadStream()
+		/// loading resource without resource manager is not allowed
+		virtual bool _loadStream(KIStream *Stream, const std::string &Address, U32 Flag = 0) = 0;
+
 		inline void incRef() { ++_kref; }
 		inline void decRef() { _kref > 0 ? --_kref : _kref; }
 
+		bool _kisInite;
+		bool _kcomposite;
 		U32 _kref;
 		std::string _kname;
 		std::string _kaddress;
+		std::vector<KResource *> _kclist;
 	};
 }
 

@@ -17,14 +17,12 @@
     Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
     USA
 */
-#include "Kite/core/graphic/kimage.h"
-#include "src/Kite/core/graphic/imageio.h"
+#include "Kite/graphic/kimage.h"
+#include "src/Kite/graphic/imageio.h"
 #include <cstring>
 
 namespace Kite{
     KImage::KImage():
-		KCoreInstance(KCI_IMAGE),
-		KResource(KRT_IMAGE),
         _ksize(0,0)
     {}
 
@@ -74,16 +72,8 @@ namespace Kite{
         }
     }
 
-	bool KImage::loadFile(const std::string &FileName, U32 FileType) {
-		return Internal::ImageIO::readFromFile(FileName, _kpixels, _ksize);
-    }
-
-	bool KImage::loadMemory(const void *Data, std::size_t Size, U32 FileType) {
-		return Internal::ImageIO::readFromMemory(Data, Size, _kpixels, _ksize);
-    }
-
-	bool KImage::loadStream(KIStream &Stream, U32 FileType) {
-		return Internal::ImageIO::readFromStream(Stream, _kpixels, _ksize);
+	bool KImage::loadStream(KIStream *Stream, const std::string& Address) {
+		return Internal::ImageIO::readFromStream(Stream, Address, _kpixels, _ksize);
 	}
 
     bool KImage::save(const std::string &FileName){
@@ -152,8 +142,9 @@ namespace Kite{
         return KColor(pixel[0], pixel[1], pixel[2], pixel[3]);
     }
 
-	U64 KImage::getInstanceSize() const{
-		return _kpixels.size();
+	void KImage::clear() {
+		_kpixels.clear();
+		_ksize.x = 0;
+		_ksize.y = 0;
 	}
-
 }

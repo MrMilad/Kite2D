@@ -24,9 +24,17 @@ USA
 
 namespace Kite {
 	KScript::KScript(const std::string &Name) :
-		KResource(Name) {}
+		KResource(Name, false) 
+	{
+		// dont need initialize
+		setInite(true);
+	}
 
-	bool KScript::loadStream(KIStream *Stream, const std::string &Address, U32 Flag) {
+	bool KScript::inite() {
+		return true;
+	}
+
+	bool KScript::_loadStream(KIStream *Stream, const std::string &Address, U32 Flag) {
 		_kcode.clear();
 
 		if (!Stream->isOpen()) {
@@ -38,24 +46,24 @@ namespace Kite {
 			return false;
 		}
 
-		SIZE pos;
-		char *buffer = (char*)malloc(sizeof(char)*4096);
+		// create buffer
+		SIZE rsize = 0;
+		char *buffer = (char*)malloc(sizeof(char) * KTEXT_BUFF_SIZE);
 
+		// reading content
 		while (!Stream->eof()) {
-			pos = Stream->read(buffer, sizeof(char) * 4096);
-			buffer[pos] = 0;
+			rsize = Stream->read(buffer, sizeof(char) * KTEXT_BUFF_SIZE);
+			buffer[rsize] = 0;
+			_kcode.append(buffer);
 		}
 
-		setCode(buffer);
-		setName(Stream->getFileName());
-		setAddress(Stream->getPath());
-
+		// cleanup
 		free(buffer);
 		Stream->close();
 		return true;
 	}
 
-	bool KScript::saveStream(KOStream *Stream, const std::string &Address, U32 Flag) {
+	bool KScript::_saveStream(KOStream *Stream, const std::string &Address, U32 Flag) {
 		if (!Stream->isOpen()) {
 			Stream->close();
 		}
@@ -66,7 +74,7 @@ namespace Kite {
 		}
 
 		if (Stream->write(_kcode.data(), _kcode.size()) != _kcode.size()) {
-			KD_FPRINT("can't write data to stream. fpath: %s", Stream->getFullPath().c_str());
+			KD_FPRINT("can't write data to stream. address: %s", Address.c_str());
 			Stream->close();
 			return false;
 		}

@@ -24,8 +24,8 @@
 
 //#define GLEW_STATIC
 #include "extlibs/headers/gl/glew.h"
-#include "Kite/core/system/ksystemdef.h"
-#include "Kite/core/graphic/kgraphictypes.h"
+#include "Kite/core/kcoredef.h"
+#include "Kite/graphic/kgraphictypes.h"
 
 /*! \namespace Kite
 	\brief Public namespace.
@@ -80,7 +80,7 @@ namespace Internal{
 		\param call Any OpenGL function in debug mode
 	*/
 	#if defined(KITE_DEV_DEBUG)
-	#define DGL_CALL(call) call; KDEBUG_ASSERT_T(Kite::Internal::checkLastGLErr())
+	#define DGL_CALL(call) call; KD_ASSERT(Kite::Internal::checkLastGLErr())
 	#else
 	#define DGL_CALL(call) call;
 	#endif

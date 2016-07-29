@@ -21,6 +21,7 @@ USA
 #include "kmeta.khgen.h"
 #include <algorithm>
 #include "src/Kite/window/sdlcall.h"
+#include "src/Kite/graphic/glcall.h"
 #include "Kite/serialization/kbinaryserial.h"
 #include "Kite/serialization/types/kstdstring.h"
 #include "Kite/serialization/types/kstdumap.h"
@@ -100,13 +101,14 @@ namespace Kite {
 			}
 		}
 
-		// inite systems
+		// inite gl window
+		_kwindow = new KGLWindow(_kconfig.window);
+		_kwindow->open(); // we must open it for initialize glew
+
+		// inite systems (glew must initialize in render system)
 		for (auto it = _ksys.begin(); it != _ksys.end(); ++it) {
 			(*it)->inite((void *)_klstate);
 		}
-
-		// inite gl window
-		_kwindow = new KGLWindow(_kconfig.window);
 
 		// inite input (Mouse, Keyboard)
 		KKeyboard::initeKeyboard();
@@ -146,9 +148,6 @@ namespace Kite {
 			KD_PRINT("engine not initialized.");
 			return;
 		}
-
-		// open window
-		_kwindow->open();
 
 		while (_kwindow->update()) {
 

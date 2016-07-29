@@ -17,15 +17,14 @@
     Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
     USA
 */
-#include "Kite/core/graphic/kvertexbuffer.h"
-#include "src/Kite/core/graphic/glcall.h"
+#include "Kite/graphic/kvertexbuffer.h"
+#include "src/Kite/graphic/glcall.h"
 
 namespace Kite{
 	I32 KVertexBuffer::_ktargets[] = { GL_ELEMENT_ARRAY_BUFFER, GL_ARRAY_BUFFER };
     U32 KVertexBuffer::_klastBufId = 0;
-	KVertexBuffer::KVertexBuffer(KBufferTargetTypes TargetType) :
-		KCoreInstance(TargetType == KBT_INDEX ? KCI_IBO : KCI_VBO),
-        _kbufType(KVB_STATIC),
+	KVertexBuffer::KVertexBuffer(BufferTarget TargetType) :
+        _kbufType(VBufferType::STATIC),
 		_kbufTarget(TargetType),
         _ksize(0),
         _kbufId(0),
@@ -42,7 +41,7 @@ namespace Kite{
         }
     }
 
-    void KVertexBuffer::fill(const void *Data, U32 DataSize, KVertexBufferTypes BufferType){
+    void KVertexBuffer::fill(const void *Data, U32 DataSize, VBufferType BufferType){
         // check array pointer and size of array
         if (Data != 0 && DataSize > 0){
 			static int dataHint[] = { GL_STATIC_DRAW, GL_DYNAMIC_DRAW, GL_STREAM_DRAW };
@@ -50,8 +49,8 @@ namespace Kite{
 			bind();
 
             // fill buffer with vertex data
-			DGL_CALL(glBufferData(_ktargets[_kbufTarget], DataSize,
-                                  (const GLvoid *)Data, dataHint[BufferType]));
+			DGL_CALL(glBufferData(_ktargets[(U8)_kbufTarget], DataSize,
+                                  (const GLvoid *)Data, dataHint[(U8)BufferType]));
 
             _kbufType = BufferType;
             _ksize = DataSize;
@@ -65,16 +64,16 @@ namespace Kite{
 			bind();
 
             // map buffer
-			void *dataPtr = DGL_CALL(glMapBuffer(_ktargets[_kbufTarget], GL_WRITE_ONLY_ARB));
+			void *dataPtr = DGL_CALL(glMapBuffer(_ktargets[(U8)_kbufTarget], GL_WRITE_ONLY_ARB));
 
             // call update handle
             (*_kupdateHnd)(dataPtr, 0, _ksize, Sender);
 
             // unmap buffer
-			DGL_CALL(glUnmapBuffer(_ktargets[_kbufTarget]));
+			DGL_CALL(glUnmapBuffer(_ktargets[(U8)_kbufTarget]));
 
         }else{
-            KDEBUG_PRINT("buffer is not created or update handle not set yet.");
+            KD_PRINT("buffer is not created or update handle not set yet.");
         }
     }
 
@@ -94,7 +93,7 @@ namespace Kite{
             }
 
             // map a section of buffer
-			void *dataPtr = glMapBufferRange(_ktargets[_kbufTarget], (GLintptr)Offset, (GLsizeiptr)Size, acc);
+			void *dataPtr = glMapBufferRange(_ktargets[(U8)_kbufTarget], (GLintptr)Offset, (GLsizeiptr)Size, acc);
 
             // call update handle
             (*_kupdateHnd)(dataPtr, Offset, Size, Sender);
@@ -103,10 +102,10 @@ namespace Kite{
 			//DGL_CALL(glFlushMappedBufferRange(_ktargets[_kbufTarget], (GLintptr)Offset, (GLsizeiptr)Size)); // error prone!
 
 			// unmap buffer
-			DGL_CALL(glUnmapBuffer(_ktargets[_kbufTarget]));
+			DGL_CALL(glUnmapBuffer(_ktargets[(U8)_kbufTarget]));
 
         }else{
-            KDEBUG_PRINT("buffer is not created or update handle not set yet.");
+            KD_PRINT("buffer is not created or update handle not set yet.");
         }
     }
 
@@ -116,7 +115,7 @@ namespace Kite{
 			bind();
 
             // replace data
-			DGL_CALL(glBufferSubData(_ktargets[_kbufTarget], (GLintptr)Offset,
+			DGL_CALL(glBufferSubData(_ktargets[(U8)_kbufTarget], (GLintptr)Offset,
                                      (GLsizeiptr)Size, Data));
         }
     }
@@ -124,14 +123,14 @@ namespace Kite{
     void KVertexBuffer::bind() const{
         // bind buffer
         if (_klastBufId != _kbufId){
-			DGL_CALL(glBindBuffer(_ktargets[_kbufTarget], _kbufId));
+			DGL_CALL(glBindBuffer(_ktargets[(U8)_kbufTarget], _kbufId));
             _klastBufId = _kbufId;
         }
     }
 
     void KVertexBuffer::unbind(){
         if (_klastBufId == _kbufId){
-			DGL_CALL(glBindBuffer(_ktargets[_kbufTarget], 0));
+			DGL_CALL(glBindBuffer(_ktargets[(U8)_kbufTarget], 0));
             _klastBufId = 0;
         }
     }

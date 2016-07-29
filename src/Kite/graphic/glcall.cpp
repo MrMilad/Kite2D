@@ -17,7 +17,7 @@
     Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
     USA
 */
-#include "src/Kite/core/graphic/glcall.h"
+#include "src/Kite/graphic/glcall.h"
 
 namespace Kite{
 namespace Internal{
@@ -28,8 +28,7 @@ namespace Internal{
             glewExperimental = GL_TRUE;
             GLenum err = glewInit();
             if (err != GLEW_OK){
-                KDEBUG_PRINT("glewInit failed.");
-                KDEBUG_BREAK;
+                KD_PRINT("glewInit failed.");
                 return false;
             }
         }
@@ -48,47 +47,45 @@ namespace Internal{
 
         // get the last OpenGL error
         GLenum OGLErrCode = glGetError();
-        bool ret = true;
 
-        while (OGLErrCode != GL_NO_ERROR){
-            ret = false;
-            // decode the error code
-            switch (OGLErrCode){
-            case GL_INVALID_ENUM:
-                KDEBUG_PRINT("GL_INVALID_ENUM");
-                break;
+        // decode the error code
+        switch (OGLErrCode){
+		case GL_NO_ERROR:
+			return true;
 
-            case GL_INVALID_VALUE:
-                KDEBUG_PRINT("GL_INVALID_VALUE");
-                break;
+        case GL_INVALID_ENUM:
+            KD_PRINT("GL_INVALID_ENUM");
+			return false;
 
-            case GL_INVALID_OPERATION:
-                KDEBUG_PRINT("GL_INVALID_OPERATION");
-                break;
+        case GL_INVALID_VALUE:
+            KD_PRINT("GL_INVALID_VALUE");
+			return false;
 
-            case GL_STACK_OVERFLOW:
-                KDEBUG_PRINT("GL_STACK_OVERFLOW");
-                break;
+        case GL_INVALID_OPERATION:
+            KD_PRINT("GL_INVALID_OPERATION");
+			return false;
 
-            case GL_STACK_UNDERFLOW:
-                KDEBUG_PRINT("GL_STACK_UNDERFLOW");
-                break;
+        case GL_STACK_OVERFLOW:
+            KD_PRINT("GL_STACK_OVERFLOW");
+			return false;
 
-            case GL_OUT_OF_MEMORY:
-                KDEBUG_PRINT("GL_OUT_OF_MEMORY");
-                break;
+        case GL_STACK_UNDERFLOW:
+            KD_PRINT("GL_STACK_UNDERFLOW");
+			return false;
 
-            case GL_INVALID_FRAMEBUFFER_OPERATION_EXT:
-                KDEBUG_PRINT("GL_INVALID_FRAMEBUFFER_OPERATION_EXT");
-                break;
+        case GL_OUT_OF_MEMORY:
+            KD_PRINT("GL_OUT_OF_MEMORY");
+			return false;
 
-            default:
-                KDEBUG_PRINT("GL_UNKNOWN_ERROR");
-                break;
-            }
-            OGLErrCode = glGetError();
+        case GL_INVALID_FRAMEBUFFER_OPERATION_EXT:
+            KD_PRINT("GL_INVALID_FRAMEBUFFER_OPERATION_EXT");
+			return false;
+
+        default:
+            KD_PRINT("GL_UNKNOWN_ERROR");
+			return false;
         }
-        return ret;
+		return true;;
     }
 
 	GLBindGuard::GLBindGuard(KGLBindGuardTypes Type, GLint LastObjectID, GLint CurObjectID) :
@@ -108,7 +105,7 @@ namespace Internal{
 				DGL_CALL(glBindFramebuffer(GL_FRAMEBUFFER, _kglLastObj));
 				break;
 			default:
-				KDEBUG_PRINT("Invalid types.");
+				KD_PRINT("Invalid types.");
 				break;
 			}
 		}

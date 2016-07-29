@@ -59,21 +59,16 @@ namespace Kite{
 		I32 close() override;
 
 		KM_FUN()
-		inline const std::string &getFileName() override { return _kfname; }
+		inline const KFileInfo *getFileInfo() override { return &_kfinfo; }
 
 		KM_FUN()
-		inline const std::string &getPath() override { return _kpath; }
-
-		KM_FUN()
-		inline const std::string &getFullPath() override { return _kfullpath; }
+		void getFileInfoStr(const std::string &Address, KFileInfo &FileInfo) override;
 
 		KM_FUN()
 		inline IOMode getIOMode() override { return _kio; }
 
 	private:
-		std::string _kfname;
-		std::string _kpath;
-		std::string _kfullpath;
+		KFileInfo _kfinfo;
 		IOMode _kio;
 		FILE *_kfile;
 	};

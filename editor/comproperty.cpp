@@ -2,8 +2,8 @@
 #include "expander.h"
 #include <qobject.h>
 
-ComponentView::ComponentView(Kite::KComponent *Component, QWidget *Parent, const QHash<QString, Kite::KResource *> *Dictionary) :
-	QFrame(Parent), resDict(Dictionary) {
+ComponentView::ComponentView(Kite::KComponent *Component, QWidget *Parent) :
+	QFrame(Parent) {
 	compHandle = Component->getHandle();
 	auto meta = (Kite::KMetaClass *)getKMeta()->getMeta(Component->getClassName());
 	auto propList = meta->getProperties();
@@ -93,7 +93,8 @@ void ComponentView::createGUI(Kite::KComponent *Comp, const Kite::KMetaProperty 
 
 		// resource field
 		} else {
-			pgui = new priv::KSTR(Comp, Meta->name.c_str(), this, ronly, Meta->resType.c_str(), true, resDict);
+			pgui = new priv::KSTR(Comp, Meta->name.c_str(), this, ronly, Meta->resType.c_str(), true);
+			connect(pgui, &priv::KSTR::updateResList, this, &ComponentView::updateResList);
 		}
 		connect(pgui, &priv::KSTR::propertyEdited, this, &ComponentView::propChanged);
 		connect(this, &ComponentView::resetSig, pgui, &priv::KSTR::reset);

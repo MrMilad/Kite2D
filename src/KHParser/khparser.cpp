@@ -1713,7 +1713,7 @@ void createTemplMacro(const MClass &Cls, std::string &Output) {
 
 	// lua binding 
 	Output.append("if (Lua != nullptr) { \\\n"
-					"LuaIntf::LuaBinding(Lua).beginModule(\"Kite\").beginClass<"
+					"LuaIntf::LuaBinding(Lua).beginModule(\"kite\").beginClass<"
 					+ Cls.name + "<" + Cls.templType + ">>(Name.c_str())\\\n");
 
 	// constructure
@@ -1861,7 +1861,7 @@ void createMacros(const std::vector<MClass> &Cls, const std::vector<MEnum> &Enms
 
 		// lua binding
 		Output.append("if (Lua != nullptr){\\\n"
-					  "LuaIntf::LuaBinding(Lua).beginModule(\"Kite\")\\\n"
+					  "LuaIntf::LuaBinding(Lua).beginModule(\"kite\")\\\n"
 					  ".beginModule(\"" + Enms[i].name + "\")\\\n");
 		for (size_t count = 0; count < Enms[i].members.size(); ++count) {
 			Output.append(".addConstant(\"" + Enms[i].members[count].name + "\", " + Enms[i].name + "::" 
@@ -2061,7 +2061,7 @@ void createMacros(const std::vector<MClass> &Cls, const std::vector<MEnum> &Enms
 			if (isSerializer) baseName = "KBaseSerial";
 			if (isResource) baseName = "KResource";
 
-			Output.append("private:\\\n" +
+			Output.append("public:\\\n" +
 						  exstate + "inline std::string getType() const override { return \"" + Cls[i].name + "\"; }\\\n" +
 						  exstate + "inline U32 getHashType() const override { return " + hashCode + "; }\\\n" +
 						  exstate + "static " + Cls[i].name + " *to" + Cls[i].name + "(" + baseName + " *Base) {\\\n" +
@@ -2173,7 +2173,7 @@ void createMacros(const std::vector<MClass> &Cls, const std::vector<MEnum> &Enms
 			isSystem || isIStream || isOStream || isResource || isSerializer) {
 
 			Output.append("if (Lua != nullptr) { \\\n"
-						  "LuaIntf::LuaBinding(Lua).beginModule(\"Kite\").beginClass<"
+						  "LuaIntf::LuaBinding(Lua).beginModule(\"kite\").beginClass<"
 						  + Cls[i].name + ">(\"" + comName + "\")\\\n");
 
 			// constructure

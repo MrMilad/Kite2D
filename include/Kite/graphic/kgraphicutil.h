@@ -24,8 +24,8 @@
 	\brief All core graphic utility functions.
 */
 
-#include "Kite/Core/system/ksystemdef.h"
-#include "Kite/Core/graphic/kgraphictypes.h"
+#include "Kite/core/kcoredef.h"
+#include "Kite/graphic/kgraphictypes.h"
 #include <cstring>
 
 /*! \namespace Kite
@@ -45,7 +45,7 @@ namespace Kite{
 	//! Check availability of opengl shader programs
 	//KITE_FUNC_EXPORT extern bool isShaderAvailable(); 
 
-	KITE_FUNC_EXPORT extern const std::string &getBuiltinShader(KBuiltinShaderTypes Types);
+	KITE_FUNC_EXPORT extern const std::string &getBuiltinShader(BuiltinShaderType Types);
 
 }
 

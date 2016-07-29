@@ -116,7 +116,7 @@ namespace Kite {
 	}
 
 	void KEntity::setHandle(const KHandle Handle) {
-		_kluatable = "ENT" + std::to_string(Handle.index);
+		_kluatable = "ent" + std::to_string(Handle.index);
 		_khandle = Handle;
 	}
 

@@ -25,7 +25,7 @@ USA
 
 namespace Kite {
 	KPrefab::KPrefab(const std::string &Name) :
-		KResource(Name),
+		KResource(Name, false),
 		_kisempty(true),
 		_kreadPos(0)
 	{
@@ -33,11 +33,17 @@ namespace Kite {
 		_kcode.append("function execute(eman, ser)\n");
 		_kcode.append("local ent = eman:createEntity(\"\")\n");
 		_kcode.append("return ent.handle\nend");
+
+		setInite(true);
 	}
 
 	KPrefab::~KPrefab() {}
 
-	bool KPrefab::loadStream(KIStream *Stream, const std::string &Address, U32 Flag) {
+	bool KPrefab::inite() {
+		return true;
+	}
+
+	bool KPrefab::_loadStream(KIStream *Stream, const std::string &Address, U32 Flag) {
 		clear();
 		auto ret = _kdata.loadStream(Stream, Address);
 		_kdata >> _kcode;
@@ -46,7 +52,7 @@ namespace Kite {
 		return ret;
 	}
 
-	bool KPrefab::saveStream(KOStream *Stream, const std::string &Address, U32 Flag) {
+	bool KPrefab::_saveStream(KOStream *Stream, const std::string &Address, U32 Flag) {
 		KBinarySerial bserial;
 		if (_kreadPos == 0) {
 			bserial << _kcode;

@@ -84,7 +84,6 @@ namespace Kite{
 		// Create an OpenGL context associated with the window.
 		DSDL_CALL(_kcontext = SDL_GL_CreateContext(_kwindow));
 
-
 		DSDL_CALL(SDL_GL_SetSwapInterval(_kwinstate.swapInterval));
 
 		if (!_kwinstate.showCursor) {

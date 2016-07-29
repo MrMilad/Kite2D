@@ -22,9 +22,8 @@
 
 /*! \file kframebuffer.h */
 
-#include "Kite/Core/system/ksystemdef.h"
-#include "Kite/Core/system/kcoreinstance.h"
-#include "Kite/Core/graphic/ktexture.h"
+#include "Kite/core/kcoredef.h"
+#include "Kite/graphic/ktexture.h"
 
 /*! \namespace Kite
 	\brief Public namespace.
@@ -35,7 +34,7 @@ namespace Kite{
 	/*!
 		This class provides features such as render to texture and off-screen rendering.
 	*/
-    class KITE_FUNC_EXPORT KFrameBuffer : public KCoreInstance{
+    class KITE_FUNC_EXPORT KFrameBuffer{
 	public:
 
 		//! Constructs an frame buffer object (FBO).

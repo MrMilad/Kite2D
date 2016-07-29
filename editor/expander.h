@@ -14,7 +14,7 @@ class ComponentView;
 class Expander : public QObject {
 	Q_OBJECT
 public:
-	Expander(Kite::KComponent *Comp, const QHash<QString, Kite::KResource *> *Dictionary, QTreeWidget* Parent);
+	Expander(Kite::KComponent *Comp, QTreeWidget* Parent);
 
 	inline const QString &getCType() const { return ctype; }
 	inline auto getTreeItem() const { return head; }
@@ -25,6 +25,7 @@ signals:
 	void expandClicked(Kite::KHandle CHandle, const QString &CType);
 	void closeClicked(Kite::KHandle CHandle, const QString &CType);
 	void componentEdited(Kite::KHandle Chandle, const QString &CType, const QString &Pname, QVariant &Value);
+	void updateResList(const QString &Type, QStringList &List);
 
 private slots:
 	void expClicked();

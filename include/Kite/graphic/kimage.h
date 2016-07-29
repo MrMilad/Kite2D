@@ -22,11 +22,9 @@
 
 /*! \file kimage.h */
 
-#include "Kite/Core/system/ksystemdef.h"
-#include "Kite/Core/system/kcoreinstance.h"
-#include "Kite/Core/utility/kresource.h"
-#include "Kite/Core/math/kmathstructs.h"
-#include "Kite/Core/graphic/kgraphicstructs.h"
+#include "Kite/core/kcoredef.h"
+#include "Kite/math/kmathstructs.h"
+#include "Kite/graphic/kgraphicstructs.h"
 #include <string>
 #include <vector>
 
@@ -40,7 +38,7 @@ namespace Kite{
 		This class can create the image with only size and color of pixels,
 		or read and decode PNG, BMP, TGA formats from a file or memory or a input stream and also write that formats into a file.
 	*/
-    class KITE_FUNC_EXPORT KImage : public KCoreInstance, public KResource{
+    class KITE_FUNC_EXPORT KImage{
     public:
 		//! Constructs an empty image object.
         KImage();
@@ -69,31 +67,6 @@ namespace Kite{
 		*/
         void create(U32 Width, U32 Height, const U8 *Pixels);
 
-		//! Load the image from a file on disk
-		/*!
-			Supported formats: PNG, BMP, TGA.
-			if this function fails, the image is left unchanged.
-
-			\param FileName Address of the image file on the disk
-			\param FileTypes Type of file. set 0 for any type.
-
-			\return True if loading was successful
-		*/
-		bool loadFile(const std::string &FileName, U32 FileType = 0);
-
-		//! Load the image from a memory block
-		/*!
-			Supported formats: PNG, BMP, TGA.
-			if this function fails, the image is left unchanged.
-
-			\param Data Pointer to the file data in memory
-			\param Size Size of the data (in bytes)
-			\param FileTypes Type of file. set 0 for any type.
-
-			\return True if loading was successful
-		*/
-		bool loadMemory(const void *Data, std::size_t Size, U32 FileType = 0);
-
 		//! Read and decode pixels from input stream.
 		/*!
 			\param Stream Input stream.
@@ -101,7 +74,7 @@ namespace Kite{
 
 			\return True if loading was successful
 		*/
-		bool loadStream(KIStream &Stream, U32 FileType = 0);
+		bool loadStream(KIStream *Stream, const std::string& Address);
 
 		//! Load the image to a file on disk
 		/*!
@@ -167,11 +140,7 @@ namespace Kite{
 		*/
 		inline const U8 *getPixelsData() const { if (!_kpixels.empty()) return &_kpixels[0]; return 0; }
 
-		//! Get size of resource in memory
-		/*!
-			\return Size of resource in bytes
-		*/
-		U64 getInstanceSize() const;
+		void clear();
 
     private:
         std::vector<U8> _kpixels;	//!< Array of pixels

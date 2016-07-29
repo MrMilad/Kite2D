@@ -17,13 +17,12 @@
     Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
     USA
 */
-#include "Kite/Core/graphic/kframebuffer.h"
-#include "src/Kite/Core/graphic/glcall.h"
+#include "Kite/graphic/kframebuffer.h"
+#include "src/Kite/graphic/glcall.h"
 
 namespace Kite{
     U32 KFrameBuffer::_klastBufId = 0;
     KFrameBuffer::KFrameBuffer():
-		KCoreInstance(KCI_FBO),
         _kbufId(0)
     {
         // generate framebuffer
@@ -46,7 +45,7 @@ namespace Kite{
                                         GL_TEXTURE_2D, Texture->getGLID(), 0));
 
         // check status
-        KDEBUG_ASSERT_T(GL_FRAMEBUFFER_COMPLETE != glCheckFramebufferStatus(GL_FRAMEBUFFER));
+        KD_ASSERT(GL_FRAMEBUFFER_COMPLETE != glCheckFramebufferStatus(GL_FRAMEBUFFER));
     }
 
     void KFrameBuffer::bind(){

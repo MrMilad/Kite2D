@@ -43,13 +43,6 @@ void OutputDock::setupActions() {
 
 void OutputDock::setupHTools() {
 	htools = new QFrame(this);
-	auto vlayout = new QVBoxLayout(htools);
-	vlayout->setMargin(2);
-
-	hlabel = new QLabel(htools);
-	hlabel->setText("Engine Output");
-	hlabel->setStyleSheet("color: DodgerBlue;");
-	vlayout->addWidget(hlabel);
 
 	auto hlayout = new QHBoxLayout(htools);
 	hlayout->setMargin(0);
@@ -67,9 +60,7 @@ void OutputDock::setupHTools() {
 
 	hlayout->addStretch(1);
 
-	vlayout->addLayout(hlayout);
-
-	htools->setLayout(vlayout);
+	htools->setLayout(hlayout);
 	setTitleBarWidget(htools);
 }
 

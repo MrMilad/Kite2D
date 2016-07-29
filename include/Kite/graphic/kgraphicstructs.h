@@ -24,61 +24,44 @@
 	\brief All core graphic structs.
 */
 
-#include "Kite/Core/system/ksystemdef.h"
-#include "Kite/Core/graphic/kgraphictypes.h"
-#include "Kite/Core/math/kmath.h"
-#include "Kite/Core/meta/kmetadef.h"
-#include "Kite/Core/serialization/kbaseserial.h"
-#include <kgraphicstructs.khgen.h>
+#include "Kite/core/kcoredef.h"
+#include "Kite/meta/kmetadef.h"
+#include "Kite/graphic/kgraphictypes.h"
+#include "Kite/math/kmath.h"
+#include "Kite/meta/kmetadef.h"
+#include "kgraphicstructs.khgen.h"
 
 KMETA
 /*! \namespace Kite
 	\brief Public namespace.
 */
 namespace Kite{
-
-	KMETA_ENUM()
-	enum class myEnum : U32 {
-		EN1_MEM1 = 10,
-		EN1_MEM2 = 22,
-		EN1_MEM3 = 54
-	};
-	KMETA_MYENUM_BODY()
-
-	KMETA_ENUM()
-	enum class myEnum2 {
-		EN2_MEM1,
-		EN2_MEM2,
-		EN2_MEM3
-	};
-	KMETA_MYENUM2_BODY()
-
 	//! Utility struct for manipulating RGBAs color.
 	/*! 
 		KColor is a simple color struct composed of 4 components: r, g, b, a (opacity)
 		each component is an byte in the range [0, 255] (set*()/get*()), also in OpenGL Range [0, 1] (setGL*()/getGL*())
 	*/
-	KMETA_CLASS(POD)
+	KM_CLASS(POD)
 	struct KColor{
+		KMETA_KCOLOR_BODY();
 	//! Construct the color from its 4 RGBA components.
 	/*!
 	Range [0 to 255]
 	default value is (255, 255, 255, 255)
 	*/
-		KMETA_CONSTRUCTURE()
+		KM_CON(U8, U8, U8, U8)
 		KColor(U8 R = 255, U8 G = 255, U8 B = 255, U8 A = 255):
 			r(R / 255.0f), g(G / 255.0f), b(B / 255.0f), a(A / 255.0f) {}
 
 	//! Construct the color from a hexadecimal color code.
 	/*!
-	A large number of color codes defined in KColorTypes
+	A large number of color codes defined in Colors enum
 	However, the hexadecimal code can be passed directly
 	*/
-		KColor(KColorTypes HexCode)
-		{
-			r = ((U8)((HexCode >> 16) & 0xFF)) / 255.0f;
-			g = ((U8)((HexCode >> 8) & 0xFF)) / 255.0f;
-			b = ((U8)((HexCode)& 0xFF)) / 255.0f;
+		KColor(Colors HexCode){
+			r = ((U8)(((U32)HexCode >> 16) & 0xFF)) / 255.0f;
+			g = ((U8)(((U32)HexCode >> 8) & 0xFF)) / 255.0f;
+			b = ((U8)(((U32)HexCode)& 0xFF)) / 255.0f;
 			a = 1.0;
 		}
 
@@ -88,44 +71,48 @@ namespace Kite{
 		inline F32 getGLA() const { return a; }
 
 		//! Set R component. range [0 to 255]
-		KMETA_PROPERTY("r", "r component")
+		KM_PRO_GET(KP_NAME = "r", KP_TYPE = U8, KP_CM = "R component")
 		inline U8 getR() const { return (U8)(r * 255.0f); }
 
 		//! Set R component. range [0 to 255]
-		KMETA_PROPERTY("r")
+		KM_PRO_SET(KP_NAME = "r")
 		inline void setR(U8 R) { r = (R / 255.0f); }
 
 		//! Set G component. range [0 to 255]
-		KMETA_PROPERTY("g", "g component")
+		KM_PRO_GET(KP_NAME = "g", KP_TYPE = U8, KP_CM = "G component")
 		inline U8 getG() const { return (U8)(g * 255.0f); }
 
 		//! Set G component. range [0 to 255]
-		KMETA_PROPERTY("g")
+		KM_PRO_SET(KP_NAME = "g")
 		inline void setG(U8 G) { g = (G / 255.0f); }
 
 		//! Set B component. range [0 to 255]
-		KMETA_PROPERTY("b", "b component")
+		KM_PRO_GET(KP_NAME = "b", KP_TYPE = U8, KP_CM = "B component")
 		inline U8 getB() const { return (U8)(b * 255.0f); }
 
 		//! Set B component. range [0 to 255]
-		KMETA_PROPERTY("b")
+		KM_PRO_SET(KP_NAME = "b")
 		inline void setB(U8 B) { b = (B / 255.0f); }
 
 		//! Set A component. range [0 to 255]
-		KMETA_PROPERTY("a", "a component")
+		KM_PRO_GET(KP_NAME = "a", KP_TYPE = U8, KP_CM = "A component")
 		inline U8 getA() const { return (U8)(a * 255.0f); }
 
 		//! Set A component. range [0 to 255]
-		KMETA_PROPERTY("a")
+		KM_PRO_SET(KP_NAME = "a")
 		inline void setA(U8 A) { a = (A / 255.0f); }
 
-		KMETA_KCOLOR_BODY()
+		//! lua side function. in C++ use constructure instead.
+		KM_FUN()
+			static KColor fromName(Colors HexCode) {
+			return KColor(HexCode);
+		}
 
 	private:
-		KMETA_VARIABLE() F32 r;	//!< Red component
-		KMETA_VARIABLE() F32 g;	//!< Green component
-		KMETA_VARIABLE() F32 b;	//!< Blue component
-		KMETA_VARIABLE() F32 a;	//!< Alpha component (opacity)
+		KM_VAR(UNBIND) F32 r;	//!< Red component
+		KM_VAR(UNBIND) F32 g;	//!< Green component
+		KM_VAR(UNBIND) F32 b;	//!< Blue component
+		KM_VAR(UNBIND) F32 a;	//!< Alpha component (opacity)
 	};
 
 
@@ -371,14 +358,14 @@ namespace Kite{
 		Specifies how to configure the vertex buffer objects (VBO).
 	*/
     struct KBatchConfig{
-		U8 index;		//!< Index buffer config (KVertexBufferTypes)
-		U8 vertex;		//!< Vertex (position, uv, color) buffer config
-		U8 point;		//!< Point buffer config ( set it true when you want render particle emitters )
+		VBufferType index;		//!< Index buffer config (KVertexBufferTypes)
+		VBufferType vertex;		//!< Vertex (position, uv, color) buffer config
+		VBufferType point;		//!< Point buffer config ( set it true when you want render particle emitters )
 
 		//! Default constructors
-		KBatchConfig(KVertexBufferTypes Index = KVB_STREAM,
-					 KVertexBufferTypes Vertex = KVB_STREAM,
-					 KVertexBufferTypes Point = KVB_STREAM) :
+		KBatchConfig(VBufferType Index = VBufferType::STREAM,
+					 VBufferType Vertex = VBufferType::STREAM,
+					 VBufferType Point = VBufferType::STREAM) :
             index(Index), vertex(Vertex) , point(Point)
         {}
 
@@ -427,11 +414,11 @@ namespace Kite{
 			U32 objIndex;	//!< Index of current object
 			U32 lastTexId;	//!< Last used texture id
 			U32 lastShdId;	//!< Last used shader id
-			KGeoPrimitiveTypes lastGeo;	//!< Last used geometric type
+			PrimitiveType lastGeo;	//!< Last used geometric type
 
 			//! Default constructors
 			KCatchDraw(U32 ObjectIndex = 0, U32 LastTextureID = 0, U32 LastSeaderID = 0,
-				KGeoPrimitiveTypes GeoType = KGP_TRIANGLES) :
+					   PrimitiveType GeoType = PrimitiveType::TRIANGLES) :
 				objIndex(ObjectIndex),
 				lastTexId(LastTextureID),
 				lastShdId(LastSeaderID),

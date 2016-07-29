@@ -32,7 +32,7 @@ public:
 	explicit ComponentDock(QWidget *parent = 0);
 	~ComponentDock();
 
-	void inite(const QStringList &TypeList, const QHash<QString, Kite::KResource *> *Dictionary);
+	void inite(const QStringList &TypeList);
 
 public slots:
 	void entityEdit(Kite::KEntityManager *Eman, Kite::KEntity *Entity, bool isPrefab);
@@ -45,8 +45,10 @@ signals:
 	void resSelected(const QString &Name);
 	void revertPrefab(Kite::KEntity *Entity);
 	void applyPrefab(Kite::KEntity *Entity);
+	void requestResNames(const QString &Type, QStringList &List);
 
 private slots:
+void updateResList(const QString &Type, QStringList &List);
 	void actExeOrder();
 	void actCollAll();
 	void actAdd(QAction *Action);
@@ -91,7 +93,6 @@ private:
 	Kite::KEntityManager *eman;
 	priv::TreeItemPool treePool;
 	QList<Expander *> treeList;
-	const QHash<QString, Kite::KResource *> *resDict;
 };
 
 #endif // COMPONENTDOCK_H

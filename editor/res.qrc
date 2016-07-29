@@ -23,8 +23,8 @@
         <file alias="pod16">res/ico/pod16.png</file>
         <file alias="prop16">res/ico/property16.png</file>
         <file alias="propro16">res/ico/propertyRead16.png</file>
-        <file alias="script">res/ico/script.png</file>
-        <file alias="scene">res/ico/scene.png</file>
+        <file alias="scr">res/ico/script.png</file>
+        <file alias="sce">res/ico/scene.png</file>
         <file alias="cls16">res/ico/class16.png</file>
         <file alias="enm16">res/ico/enum16.png</file>
         <file alias="benm16">res/ico/benum16.png</file>
@@ -35,5 +35,21 @@
         <file alias="dia16">res/ico/daimond16.png</file>
         <file alias="clr">res/ico/eraser.png</file>
         <file alias="word">res/ico/word.png</file>
+        <file alias="col">res/ico/collapse.png</file>
+        <file alias="exp">res/ico/expand.png</file>
+        <file alias="down">res/ico/down.png</file>
+        <file alias="up">res/ico/up.png</file>
+        <file alias="order">res/ico/order.png</file>
+        <file alias="folder">res/ico/folder.png</file>
+        <file alias="cut">res/ico/cut.png</file>
+        <file alias="copy">res/ico/copy.png</file>
+        <file alias="paste">res/ico/paste.png</file>
+        <file alias="pre">res/ico/prefab.png</file>
+        <file alias="addpre">res/ico/addpre.png</file>
+        <file alias="vshader">res/ico/vshader.png</file>
+        <file alias="fshader">res/ico/fshader.png</file>
+        <file alias="gshader">res/ico/gshader.png</file>
+        <file alias="shaderp">res/ico/shaderp.png</file>
+        <file alias="texture">res/ico/texture.png</file>
     </qresource>
 </RCC>

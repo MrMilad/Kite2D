@@ -41,11 +41,7 @@ namespace Kite {
 		KScene(const std::string &Name);
 		~KScene();
 
-		/// load from an open stream
-		bool loadStream(KIStream *Stream, const std::string &Address, U32 Flag = 0) override;
-
-		/// save to an open stream
-		bool saveStream(KOStream *Stream, const std::string &Address, U32 Flag = 0) override;
+		bool inite() override;
 
 		KM_PRO_GET(KP_NAME = "isLoaded", KP_TYPE = bool, KP_CM = "is scene loaded")
 		inline bool isLoaded() const { return _kloaded; }
@@ -66,6 +62,10 @@ namespace Kite {
 		inline auto endResource() { return _kres.end(); }
 
 	private:
+		bool _saveStream(KOStream *Stream, const std::string &Address, U32 Flag = 0) override;
+
+		bool _loadStream(KIStream *Stream, const std::string &Address, U32 Flag = 0) override;
+
 		std::unordered_map<std::string, std::pair<std::string, U32>> _kres; // <name, <type, flag>>
 		KEntityManager _keman;
 		bool _kloaded;

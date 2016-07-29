@@ -30,13 +30,16 @@ USA
 
 namespace Kite {
 	KScene::KScene(const std::string &Name) :
-		KResource(Name),
+		KResource(Name, false),
 		_kloaded(false) 
-	{}
+	{
+		// dont need initialize
+		setInite(true);
+	}
 
 	KScene::~KScene() {}
 
-	bool KScene::loadStream(KIStream *Stream, const std::string &Address, U32 Flag) {
+	bool KScene::_loadStream(KIStream *Stream, const std::string &Address, U32 Flag) {
 		if (!Stream->isOpen()) {
 			Stream->close();
 		}
@@ -66,15 +69,16 @@ namespace Kite {
 		bserial >> _kres;
 		bserial >> _keman;
 
-		setName(Stream->getFileName());
-		setAddress(Stream->getPath());
-
 		_kloaded = true;
 		Stream->close();
 		return true;
 	}
 
-	bool KScene::saveStream(KOStream *Stream, const std::string &Address, U32 Flag) {
+	bool KScene::inite() {
+		return true;
+	}
+
+	bool KScene::_saveStream(KOStream *Stream, const std::string &Address, U32 Flag) {
 		KBinarySerial bserial;
 		bserial << std::string("KScene");
 		bserial << _kres;

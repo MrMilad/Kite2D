@@ -22,9 +22,8 @@
 
 /*! \file kvertexarray.h */
 
-#include "Kite/Core/system/ksystemdef.h"
-#include "Kite/Core/system/kcoreinstance.h"
-#include "Kite/Core/graphic/kgraphictypes.h"
+#include "Kite/core/kcoredef.h"
+#include "Kite/graphic/kgraphictypes.h"
 
 /*! \namespace Kite
 	\brief Public namespace.
@@ -40,7 +39,7 @@ namespace Kite{
 		this allows a very easy and efficient method of switching between OpenGL
 		buffer states for rendering different "objects" in a scene.
 	*/
-    class KITE_FUNC_EXPORT KVertexArray : public KCoreInstance{
+    class KITE_FUNC_EXPORT KVertexArray{
     public:
 
 		//! Constructs an vertex array object (VAO).
@@ -65,8 +64,8 @@ namespace Kite{
 					vertex attribute in the array in the data store of the buffer
 					The initial value is 0.
 		*/
-        void setAttribute(U16 Index, KAttributeCountTypes Count,
-                          KAttributeTypeTypes Type, bool Normalized,
+        void setAttribute(U16 Index, AttributeCount Count,
+                          AttributeType Type, bool Normalized,
                           I32 StrideSize, void *Offset);
 
 		//! Enable a generic vertex attribute array

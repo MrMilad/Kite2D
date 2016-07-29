@@ -85,9 +85,9 @@ USA
 #define KM_ENUM(...)		/// (name)
 #define KM_CLASS(...)		/// (FLAG)
 #define KM_CON(...)			///	(ptype1, ptype2, ...);
-#define KM_PRO_SET(...)		///	("name")
-#define KM_PRO_GET(...)		///	("name", type, "comment")
-#define KM_FUN(...)			/// ()
+#define KM_PRO_SET(...)		///	(KP_NAME = "name")
+#define KM_PRO_GET(...)		///	(KP_NAME = "name", KP_TYPE = type, KP_CM = "comment", KP_MIN = number, KP_MAX = number, KP_RES = "name")
+#define KM_FUN(...)			/// (KP_NAME = "name" (optional))
 #define KM_VAR(...)			/// ()
 #define KM_OPE(...)			/// (OPERATOR)
 #define KM_INFO(...)		/// ("key", "info")

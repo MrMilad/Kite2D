@@ -17,8 +17,8 @@
     Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
     USA
 */
-#include "Kite/core/system/ksystemdef.h"
-#include "src/Kite/core/graphic/imageio.h"
+#include "Kite/core/kcoredef.h"
+#include "src/Kite/graphic/imageio.h"
 #include <string>
 #include <algorithm>
 #include "extlibs/headers/stb_image.h"
@@ -48,7 +48,7 @@ namespace Internal{
             stbi_image_free(pixPtr);
             return true;
         }
-        KDEBUG_PRINT("Failed to load image");
+        KD_FPRINT("Failed to load image. address: %s", FileName.c_str());
 		return false;
     }
 
@@ -77,16 +77,28 @@ namespace Internal{
                 stbi_image_free(pixPtr);
 				return true;
             }
-            KDEBUG_PRINT("Failed to read image");
+			//KD_PRINT("Failed to read image from memory.");
 			return false;
         }
-        KDEBUG_PRINT("Failed to read image");
+        KD_PRINT("Failed to read image from memory.");
 		return false;
     }
 
-	bool ImageIO::readFromStream(KIStream &Stream, std::vector<U8> &Pixels, KVector2U32 &Size){
+	bool ImageIO::readFromStream(KIStream *Stream, const std::string &Address,
+								 std::vector<U8> &Pixels, KVector2U32 &Size){
 		// we need an empty array
 		Pixels.clear();
+
+		// check stream
+		if (!Stream->isOpen()) {
+			Stream->close();
+		}
+
+		// open stream in binary mode
+		if (!Stream->open(Address, IOMode::BIN)) {
+			KD_FPRINT("can't open stream. address: %s", Address.c_str());
+			return false;
+		}
 
 		// set callback
 		static stbi_io_callbacks _kcallb;
@@ -96,7 +108,8 @@ namespace Internal{
 
 		// read the image data and get a pointer to the pixels in memory
 		I32 width, height, channels;
-		U8* pixPtr = stbi_load_from_callbacks(&_kcallb, (void *) &Stream, &width, &height, &channels, STBI_rgb_alpha);
+		U8* pixPtr = stbi_load_from_callbacks(&_kcallb, (void *)Stream, &width, &height, &channels, STBI_rgb_alpha);
+		Stream->close();
 
 		if (pixPtr && width && height){
 			// assign the image properties
@@ -111,7 +124,7 @@ namespace Internal{
 			stbi_image_free(pixPtr);
 			return true;
 		}
-		KDEBUG_PRINT("Failed to load image");
+		KD_PRINT("Failed to load image");
 		return false;
 	}
 
@@ -145,7 +158,7 @@ namespace Internal{
             }
         }
 
-        KDEBUG_PRINT("Failed to write image");
+        KD_PRINT("Failed to write image");
 		return false;
     }
 

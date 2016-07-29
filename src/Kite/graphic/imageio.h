@@ -22,9 +22,9 @@
 
 /*! \file imageio.h */
 
-#include "Kite/core/system/knoncopyable.h"
-#include "Kite/Core/math/kmathstructs.h"
-#include "Kite/Core/utility/kistream.h"
+#include "Kite/core/knoncopyable.h"
+#include "Kite/math/kmathstructs.h"
+#include "Kite/Core/kistream.h"
 #include <string>
 #include <vector>
 
@@ -75,7 +75,7 @@ namespace Internal{
 
 			\return True if loading was successful
 		*/
-		static bool readFromStream(KIStream &Stream, std::vector<U8> &Pixels, KVector2U32 &Size);
+		static bool readFromStream(KIStream *Stream, const std::string &Address, std::vector<U8> &Pixels, KVector2U32 &Size);
 
 		//! Encode and write pixels from a pixels storage to the file.
 		/*!
@@ -86,7 +86,7 @@ namespace Internal{
 			\return True if saving was successful
 		*/
 		static bool writeToFile(const std::string &FileName, const std::vector<U8> &Pixels,
-                         const KVector2U32& Size);
+                         const KVector2U32 &Size);
 
 		//! Convert a string to lower case. this is a utility function.
 		/*!

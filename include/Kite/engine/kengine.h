@@ -56,8 +56,12 @@ namespace Kite {
 		KM_FUN()
 		static KEngine *createEngine();
 
+		// will show window but will not update it
 		bool inite(const KConfig *Config, bool IniteMeta);
+
+		// update window and systems
 		void start();
+
 		void shutdown();
 
 #ifdef KITE_EDITOR // editor hooks	

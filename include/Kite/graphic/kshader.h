@@ -22,75 +22,55 @@
 
 /*! \file kshader.h */
 
-#include "Kite/Core/system/ksystemdef.h"
-#include "Kite/Core/system/kcoreinstance.h"
-#include "Kite/Core/utility/kresource.h"
-#include "Kite/Core/graphic/kgraphictypes.h"
+#include "Kite/core/kcoredef.h"
+#include "Kite/core/kresource.h"
+#include "Kite/meta/kmetadef.h"
+#include "Kite/graphic/kgraphictypes.h"
 #include <string>
+#include "kshader.khgen.h"
 
 /*! \namespace Kite
 	\brief Public namespace.
 */
+KMETA
 namespace Kite{
 
 	//! The KShader class allows OpenGL shader programs to be compiled and get ready for shader program.
 	/*!
 		This class supports shader programs written in the OpenGL Shading Language (GLSL).
 	*/
-    class KITE_FUNC_EXPORT KShader : public KCoreInstance, public KResource{
+	KM_CLASS(RESOURCE)
+    class KITE_FUNC_EXPORT KShader : public KResource{
+		KMETA_KSHADER_BODY();
     public:
 
 		//! Default constructors
 		/*!
 			This constructor creates an invalid shader.
-
-			\param Types type of the shader (vertex or fragment)
+			shader type will detected from file extension after loading. (*.vert or *.frag or *.geom)
 		*/
-        KShader(KShaderTypes Types);
+        KShader(const std::string &Name);
 
 		//! Destructor
+		/// If a shader object is deleted while it is attached to a program object,
+		/// it will be flagged for deletion, and deletion will not occur until 
+		/// detach it from all KShaderProgram objects to which it is attached.
         ~KShader();
 
-		//! Load the shader (vertex or fragment) from the files on disk
-		/*!
-			\param ShaderFile Address of the shader file on the disk
-			\param FileTypes Type of file. set 0 for any type.
+		bool loadString(const std::string &Code, ShaderType Type);
 
-			\return True if loading was successful
-		*/
-        bool loadFile(const std::string &ShaderFile, U32 FileType = 0);
+		inline ShaderType getShaderType() const { return _kshtype; }
 
-		//! Load the shader (vertex or fragment) from memory
-		/*!
-			\param Data Null-terminated (\0) source code of the sahder (in char)
-			\param DataSize Size of data in bytes
-			\param FileTypes Type of file. set 0 for any type.
-
-			\return True if loading was successful
-		*/
-		bool loadMemory(const void * Data, std::size_t DataSize, U32 FileType = 0);
-
-		//! Load both the vertex and fragment shaders from input stream
-		/*!
-			\param ShaderStream InputStream of the vertex shader
-
-			\return True if loading was successful
-		*/
-		bool loadStream(KIStream &ShaderStream, U32 FileType = 0);
-
-		inline KShaderTypes getType() const { return _ktype; }
 		inline const std::string &getCode() const { return _kcode; }
 
-		//! Load both the vertex and fragment shaders directly from source
-		/*!
-		\param Null-terminated (\0) source code of the sahder
-
-		\return True if loading was successful
-		*/
-		bool loadString(const std::string &Source);
+		/// note: this function need an active opengl context.
+		bool inite() override;
 
 		//! Method to compile a shader and display any problems if compilation fails
 		/*!
+		note: this function will called by shader program in the link stage.
+		note: this function need an active opengl context.
+
 			\return True if compile was successful
 		*/
 		bool compile();
@@ -107,14 +87,16 @@ namespace Kite{
 		*/
         static const std::string getShaderVersion();
 
-		//! Get size of instance in memory
-		/*!
-		\return Size of instance in bytes
-		*/
-		U64 getInstanceSize() const;
-
     private:
-		KShaderTypes _ktype;
+
+		bool _saveStream(KOStream *Stream, const std::string &Address, U32 Flag = 0) override;
+
+		/// reloading new shader will not delete last shader (in opengl)
+		/// so carefull about reloading a new shader with an in-use object.
+		/// shader type will change according to file type
+		bool _loadStream(KIStream *Stream, const std::string &Address, U32 Flag = 0) override;
+
+		ShaderType _kshtype;
 		U32 _kglid;
 		std::string _kcode;
     };

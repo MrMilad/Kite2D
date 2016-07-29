@@ -35,6 +35,12 @@ source_group("Header Files\\Core" FILES ${COR_INC})
 source_group("Source Files\\Core" FILES ${COR_SRC})
 LIST(APPEND ALL_FILES ${COR_SRC} ${COR_INC})
 
+# graphic
+add_subdirectory(Kite/graphic)
+source_group("Header Files\\Graphic" FILES ${GFX_INC})
+source_group("Source Files\\Graphic" FILES ${GFX_SRC})
+LIST(APPEND ALL_FILES ${GFX_SRC} ${GFX_INC})
+
 # serialization
 add_subdirectory(Kite/serialization)
 source_group("Header Files\\Serialization" FILES ${SER_INC})
@@ -97,6 +103,7 @@ if (WINDOWS)
      target_link_libraries (Kite2D "luac.lib")
      target_link_libraries (Kite2D "SDL2.lib")
      target_link_libraries (Kite2D "SDL2main.lib")
+     target_link_libraries (Kite2D "opengl32.lib")
 endif()
 
 # set debug flags

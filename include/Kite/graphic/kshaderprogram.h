@@ -22,49 +22,38 @@
 
 /*! \file kshaderprogram.h */
 
-#include "Kite/Core/system/ksystemdef.h"
-#include "Kite/Core/system/kcoreinstance.h"
-#include "Kite/Core/graphic/kgraphictypes.h"
-#include "Kite/Core/graphic/kgraphicstructs.h"
-#include "Kite/Core/utility/kresource.h"
-#include "Kite/Core/utility/kostream.h"
-#include "Kite/core/graphic/kshader.h"
-#include "Kite/Core/graphic/ktexture.h"
-#include "Kite/Core/math/ktransform.h"
+#include "Kite/core/kcoredef.h"
+#include "Kite/meta/kmetadef.h"
+#include "Kite/graphic/kgraphictypes.h"
+#include "Kite/graphic/kgraphicstructs.h"
+#include "Kite/core/kresource.h"
+#include "Kite/graphic/kshader.h"
 #include <string>
+#include "kshaderprogram.khgen.h"
 
 /*! \namespace Kite
 	\brief Public namespace.
 */
+KMETA
 namespace Kite{
 	//! The KShaderProgram class allows OpenGL shader programs to be linked and used.
 	/*!
 	This class supports shader programs written in the OpenGL Shading Language (GLSL).
 	*/
-	class KITE_FUNC_EXPORT KShaderProgram : public KCoreInstance, public KResource{
+	KM_CLASS(RESOURCE)
+	class KITE_FUNC_EXPORT KShaderProgram : public KResource{
+		KMETA_KSHADERPROGRAM_BODY();
 	public:
 		//! Default constructors
 		/*!
 		This constructor creates an invalid shader program.
 		*/
-		KShaderProgram();
+		KShaderProgram(const std::string &Name);
 		~KShaderProgram();
 
-		bool loadFile(const std::string &FileName, U32 FileType = 0);
+		bool setShader(KShader *Shader);
 
-		bool loadMemory(const void *Data, std::size_t Size, U32 FileType = 0);
-
-		bool loadStream(KIStream &Stream, U32 FileType = 0);
-
-		bool saveFile(const std::string &FileName);
-
-		bool saveStream(KOStream &Stream);
-
-		//! Attach a shader (vertex or fragment) to the shader program
-		/*!
-		\param Shader The compiled shader object
-		*/
-		void attachShader(const KShader &Shader);
+		const KShader *getShader(ShaderType Type);
 
 		//! Associate a generic vertex attribute index with a named attribute variable
 		/*!
@@ -75,8 +64,17 @@ namespace Kite{
 		*/
 		void bindAttribute(U16 Index, const std::string &Name);
 
+		// note: We MUST have a valid rendering context before link
+		// the program or it causes a segfault!
+		// note call inite befor calling this function
+		bool inite() override;
+
 		//! Link the shader program
 		/*!
+		// note: We MUST have a valid rendering context before link
+		// the program or it causes a segfault!
+		// note call inite befor calling this function
+
 		\return True if linking was successful
 		*/
 		bool link();
@@ -158,19 +156,16 @@ namespace Kite{
 		*/
 		inline U32 getGLID() const { return _kprogId; }
 
-		//! Get size of resource in memory
-		/*!
-		\return Size of resource in bytes
-		*/
-		U64 getInstanceSize() const;
-
 	private:
-		bool _createShaders(const std::string &Vertex, const std::string &Fragment);
-		U32 _kshaderCount; 
-		U32 _kprogId;	//!< ID of shader program
+		bool _saveStream(KOStream *Stream, const std::string &Address, U32 Flag = 0) override;
+		bool _loadStream(KIStream *Stream, const std::string &Address, U32 Flag = 0) override;
+
+		U32 _kprogId;				//!< ID of shader program
 		static U32 _klastProgId;	//!< Last id of shader program 
-		std::string _kvert;
-		std::string _kfrag;
+		std::vector<std::pair<U16, std::string>> _kattribList;		//!< shader attribute list
+		KShader *_kvert;		//!< Vertex shader
+		KShader *_kfrag;		//!< Fragment shader
+		KShader *_kgeom;		//!< Geometry shader
 	};
 }
 

@@ -24,4 +24,5 @@ USA
 
 namespace Kite {
 	KMETA_KHANDLE_SOURCE();
+	//KMETA_KFILEINFO_SOURCE();
 }

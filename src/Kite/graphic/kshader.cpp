@@ -17,150 +17,194 @@
     Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
     USA
 */
-#include "Kite/core/graphic/kshader.h"
-#include "src/Kite/core/graphic/glcall.h"
-#include <fstream>
-#include <vector>
+#include "Kite/graphic/kshader.h"
+#include "src/Kite/graphic/glcall.h"
+#include "Kite/meta/kmetamanager.h"
+#include "Kite/meta/kmetaclass.h"
+#include <luaintf/LuaIntf.h>
 
 namespace Kite{
 
-	KShader::KShader(KShaderTypes Types):
-		KCoreInstance(KCI_SHADER),
-		KResource(KRT_SHADER)
-	{
-		_ktype = Types;
-		switch (Types){
-		case Kite::KS_VERTEX:
-			_kglid = DGL_CALL(glCreateShader(GL_VERTEX_SHADER));
-			break;
-		case Kite::KS_FRAGMENT:
-			_kglid = DGL_CALL(glCreateShader(GL_FRAGMENT_SHADER));
-			break;
-		case Kite::KS_GEOMETRY:
-			_kglid = DGL_CALL(glCreateShader(GL_GEOMETRY_SHADER));
-			break;
-		default:
-			_kglid = 0;
-			KDEBUG_PRINT("Invalid shader type");
-			break;
-		}
-	}
+	KShader::KShader(const std::string &Name) :
+		KResource(Name, false),
+		_kshtype(ShaderType::UNKNOWN),
+		_kglid(0)
+	{}
 
     KShader::~KShader(){
-		DGL_CALL(glDeleteShader(_kglid));
+		if (_kglid > 0) {
+			DGL_CALL(glDeleteShader(_kglid));
+		}
     }
 
-	bool KShader::loadFile(const std::string &ShaderFile, U32 FileType) {
-        // first make sure that we can use shaders
-//        if(!isShaderAvailable()){
-//            KDEBUG_PRINT("shader is not available.")
-//            return false;
-//        }
-
-		if (ShaderFile.empty()){
-			return false;
-        }
-
-		// open file in binary mode
-		std::ifstream reader(ShaderFile, std::ios_base::binary);
-		KDEBUG_ASSERT_T(reader);
-
-		// calculate size of file
-		reader.seekg(0, std::ios_base::end);
-		std::streamsize size = reader.tellg();
-		if (size <= 0){
-			KDEBUG_PRINT("empty file");
+	bool KShader::inite() {
+		if (_kcode.empty()) {
+			KD_PRINT("empty shader.");
 			return false;
 		}
 
-		// reading file
-		std::vector<char> shCod;
-		reader.seekg(0, std::ios_base::beg);
-		shCod.resize((U32)size);
-		reader.read(&shCod[0], size);
-		reader.close();
+		if (isInite()) {
+			return true;
+		}
 
-		// append '\0' at the end of cod
-		shCod.push_back('\0');
+		// create shader
+		if (_kshtype == ShaderType::VERTEX) {
+			_kglid = DGL_CALL(glCreateShader(GL_VERTEX_SHADER));
 
-		// get the source as a pointer to an array of characters
-		const GLchar *cod = &shCod[0];
+			// fragment
+		} else if (_kshtype == ShaderType::FRAGMENT) {
+			_kglid = DGL_CALL(glCreateShader(GL_FRAGMENT_SHADER));
 
-		// store code
-		_kcode.assign(&cod[0]);
+			// geometry
+		} else if (_kshtype == ShaderType::GEOMETRY) {
+			_kglid = DGL_CALL(glCreateShader(GL_GEOMETRY_SHADER));
 
-		// associate the source with the shader id
-		DGL_CALL(glShaderSource(_kglid, 1, &cod, NULL));
-		return true;
-    }
-
-	bool KShader::loadMemory(const void *Data, std::size_t DataSize, U32 FileType) {
-        // first make sure that we can use shaders
-//        if(!isShaderAvailable()){
-//            KDEBUG_PRINT("shader is not available.")
-//            return false;
-//        }
-
-		if (!Data){
-			return false;
-        }
-
-		// get the source as a pointer to an array of characters
-		const char *cod = (char *)Data;
-
-		// store code
-		_kcode.assign((char *)Data);
-
-		// associate the source with the shader id
-		DGL_CALL(glShaderSource(_kglid, 1, &cod, NULL));
-        return true;
-    }
-
-	bool KShader::loadStream(KIStream &ShaderStream, U32 FileType) {
-		std::vector<char> data;
-		// calculate size of stream
-		ShaderStream.seek(0, std::ios_base::end);
-		std::streamsize size = ShaderStream.tell();
-		if (size <= 0){
-			KDEBUG_PRINT("empty stream.");
+			// incorrect format
+		} else {
+			KD_PRINT("incorrect type.");
 			return false;
 		}
 
-		// reading file
-		ShaderStream.seek(0, std::ios_base::beg);
-		data.resize((U32)size);
-		ShaderStream.read(&data[0], size);
-
-		// append '\0' at the end of cod
-		data.push_back('\0');
-
-		// store code
-		_kcode.assign(&data[0]);
-
-		// get the source as a pointer to an array of characters
-		const GLchar *cod = &data[0];
-
 		// associate the source with the shader id
-		DGL_CALL(glShaderSource(_kglid, 1, &cod, NULL));
+		const GLchar *gcode = _kcode.c_str();
+		DGL_CALL(glShaderSource(_kglid, 1, &gcode, NULL));
+
+		setInite(true);
 		return true;
 	}
 
-	bool KShader::loadString(const std::string &Source) {
-		if (Source.empty()) {
-			KDEBUG_PRINT("Empty shader source");
+	bool KShader::_loadStream(KIStream *Stream, const std::string &Address, U32 Flag) {
+        // first make sure that we can use shaders
+//        if(!isShaderAvailable()){
+//            KDEBUG_PRINT("shader is not available.")
+//            return false;
+//        }
+
+		setInite(false);
+		_kcode.clear();
+		_kglid = 0;
+		_kshtype = ShaderType::UNKNOWN;
+
+		SIZE pos;
+		std::string type;
+
+		// extract format from address
+		if ((pos = Address.find_last_of('.')) == std::string::npos) {
+			KD_FPRINT("cant retrieve file format. faddress: %s", Address.c_str());
+			return false;
+		}
+		type = Address.substr(pos);
+
+		// create gl shader
+		// vertex
+		if (type == ".vert") {
+			_kshtype = ShaderType::VERTEX;
+
+			// fragment
+		} else if (type == ".frag") {
+			_kshtype = ShaderType::FRAGMENT;
+
+			// geometry
+		} else if (type == ".geom") {
+			_kshtype = ShaderType::GEOMETRY;
+
+			// incorrect format
+		} else {
+			KD_FPRINT("incorrect file format. faddress: %s", Address.c_str());
 			return false;
 		}
 
-		// get the source as a pointer to an array of characters
-		const GLchar *cod = &Source[0];
-		_kcode = Source;
+		// check stream
+		if (!Stream->isOpen()) {
+			Stream->close();
+		}
 
-		// associate the source with the shader id
-		DGL_CALL(glShaderSource(_kglid, 1, &cod, NULL));
+		// open stream in text mode
+		if (!Stream->open(Address, IOMode::TEXT)) {
+			KD_FPRINT("can't open stream. address: %s", Address.c_str());
+			return false;
+		}
+
+		// create buffer
+		SIZE rsize = 0;
+		char *buffer = (char*)malloc(sizeof(char) * KTEXT_BUFF_SIZE);
+		_kcode.reserve(Stream->getSize());
+
+		// reading content
+		while (!Stream->eof()) {
+			rsize = Stream->read(buffer, sizeof(char) * KTEXT_BUFF_SIZE);
+			buffer[rsize] = 0;
+			_kcode.append(buffer);
+		}
+
+		// cleanup buffer and stream
+		free(buffer);
+		Stream->close();
+		return true;
+    }
+
+	bool KShader::_saveStream(KOStream *Stream, const std::string &Address, U32 Flag) {
+		if (!Stream->isOpen()) {
+			Stream->close();
+		}
+
+		if (!Stream->open(Address, IOMode::TEXT)) {
+			KD_FPRINT("can't open stream. address: %s", Address.c_str());
+			return false;
+		}
+
+		if (Stream->write(_kcode.data(), _kcode.size()) != _kcode.size()) {
+			KD_FPRINT("can't write data to stream. address: %s", Address.c_str());
+			Stream->close();
+			return false;
+		}
+
+		Stream->close();
+		return true;
+	}
+
+	bool KShader::loadString(const std::string &Code, ShaderType Type) {
+		setInite(false);
+		_kcode = Code;
+		_kshtype = ShaderType::UNKNOWN;
+
+		if (Code.empty()) {
+			return false;
+		}
+
+		// create gl shader
+		// vertex
+		if (Type == ShaderType::VERTEX) {
+			_kshtype = ShaderType::VERTEX;
+
+			// fragment
+		} else if (Type == ShaderType::FRAGMENT) {
+			_kshtype = ShaderType::FRAGMENT;
+
+			// geometry
+		} else if (Type == ShaderType::GEOMETRY) {
+			_kshtype = ShaderType::GEOMETRY;
+
+			// incorrect format
+		} else {
+			KD_PRINT("incorrect type.");
+			return false;
+		}
+
 		return true;
 	}
 
 	bool KShader::compile(){
+		if (_kcode.empty()) {
+			KD_PRINT("empty shader.");
+			return false;
+		}
+
+		if (!isInite()) {
+			KD_PRINT("shader not initialized.");
+			return false;
+		}
+
 		// compile the shader
 		DGL_CALL(glCompileShader(_kglid));
 
@@ -176,8 +220,8 @@ namespace Kite{
 			GLchar *strInfoLog = new GLchar[infoLogLength + 1];
 			DGL_CALL(glGetShaderInfoLog(_kglid, infoLogLength, NULL, strInfoLog));
 
-			KDEBUG_PRINT("shader compilation failed: ");
-			KDEBUG_PRINT(strInfoLog);
+			KD_PRINT("shader compilation failed: ");
+			KD_PRINT(strInfoLog);
 			delete[] strInfoLog;
 			return false;
 		}
@@ -191,7 +235,5 @@ namespace Kite{
         return ver;
     }
 
-	U64 KShader::getInstanceSize() const{
-		return sizeof(KShader);
-	}
+	KMETA_KSHADER_SOURCE();
 }

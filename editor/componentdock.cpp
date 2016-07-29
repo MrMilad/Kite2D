@@ -7,7 +7,7 @@
 
 ComponentDock::ComponentDock(QWidget *Par) :
 	QDockWidget("Components Editor", Par),
-	eman(nullptr), mtypes(new QMenu(this)), resDict(nullptr)
+	eman(nullptr), mtypes(new QMenu(this))
 {
 	setObjectName("Components Editor");
 	setAllowedAreas(Qt::LeftDockWidgetArea | Qt::RightDockWidgetArea);
@@ -139,7 +139,6 @@ void ComponentDock::setupHTools() {
 
 	// lua table name
 	llabel = new QLabel(htools);
-	llabel->setStyleSheet("color: orange;");
 	hlayout->addWidget(llabel);
 
 	vlayout->addLayout(hlayout);
@@ -182,7 +181,7 @@ void ComponentDock::actionsControl(ActionsState State) {
 	}
 }
 
-void ComponentDock::inite(const QStringList &TypeList, const QHash<QString, Kite::KResource *> *Dictionary) {
+void ComponentDock::inite(const QStringList &TypeList) {
 	types = TypeList;
 	
 	mtypes->clear();
@@ -191,7 +190,7 @@ void ComponentDock::inite(const QStringList &TypeList, const QHash<QString, Kite
 		mtypes->addAction(comtype);
 	}
 
-	resDict = Dictionary;
+
 	initePool(TypeList);
 }
 
@@ -241,9 +240,10 @@ Expander *ComponentDock::createCom(const QString &CType) {
 	auto fakeEnt = fakeEman.createEntity("fake");
 	auto Comp = fakeEnt->addComponent(CType.toStdString(), "");
 	
-	auto header = new Expander(Comp, resDict, comTree);
+	auto header = new Expander(Comp, comTree);
 	connect(header, &Expander::closeClicked, this, &ComponentDock::actRemove);
 	connect(header, &Expander::componentEdited, this, &ComponentDock::actEdit);
+	connect(header, &Expander::updateResList, this, &ComponentDock::updateResList);
 
 	return header;
 }
@@ -377,7 +377,7 @@ void ComponentDock::entityEdit(Kite::KEntityManager *Eman, Kite::KEntity *Entity
 	actionsControl(AS_ON_LOAD);
 	QString name(Entity->getName().c_str());
 	hlabel->setText("Components Editor (" + name + ")");
-	llabel->setText(QString("Lua Table: ") + Entity->getLuaTName().c_str());
+	llabel->setText(QString("Lua Table: <font color = \"orange\">") + Entity->getLuaTName().c_str() + "</font>");
 	actSearch(ledit->text());
 }
 
@@ -390,6 +390,10 @@ void ComponentDock::entityDelete(Kite::KEntityManager *Eman, Kite::KEntity *Enti
 		hlabel->setText("Components Editor");
 		llabel->clear();
 	}
+}
+
+void ComponentDock::updateResList(const QString &Type, QStringList &List) {
+	emit(requestResNames(Type, List));
 }
 
 void ComponentDock::actExeOrder() {

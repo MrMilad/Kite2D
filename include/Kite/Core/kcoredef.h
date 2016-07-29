@@ -206,6 +206,7 @@ namespace Kite {
 
 /// max audio buffer (ogg vorbis)
 #define KOGG_BUFF_SIZE 4096
+#define KTEXT_BUFF_SIZE 4096
 
 /// Kite2D hash seed
 #define KHASH_SEED 13711010
@@ -301,5 +302,14 @@ namespace Kite{
     // OpenGL Context is HGLRC
     typedef void *KContextHandle;
 
+
+	//KM_CLASS(POD)
+	struct KFileInfo {
+		//KMETA_KFILEINFO_BODY();
+
+		std::string name;
+		std::string path;
+		std::string fullPath;
+	};
 }
 #endif // KCOREDEF_H

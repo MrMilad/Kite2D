@@ -22,28 +22,34 @@
 
 /*! \file ktexture.h */
 
-#include "Kite/Core/system/ksystemdef.h"
-#include "Kite/Core/system/kcoreinstance.h"
-#include "Kite/Core/utility/kresource.h"
-#include "Kite/Core/math/kmathstructs.h"
-#include "Kite/Core/graphic/kgraphictypes.h"
-#include "Kite/Core/graphic/kgraphicstructs.h"
-#include "Kite/Core/graphic/kimage.h"
+#include "Kite/core/kcoredef.h"
+#include "Kite/core/kresource.h"
+#include "Kite/meta/kmetadef.h"
+#include "Kite/math/kmathstructs.h"
+#include "Kite/graphic/kgraphictypes.h"
+#include "Kite/graphic/kgraphicstructs.h"
+#include "Kite/graphic/kimage.h"
+#include "ktexture.khgen.h"
 
 /*! \namespace Kite
 	\brief Public namespace.
 */
+KMETA
 namespace Kite{
 
 	//! The KTexture class encapsulates an OpenGL texture object.
 	/*!
 		KTexture makes it easy to work with OpenGL textures.
+		Supported formats: PNG, BMP, TGA.
+		note: only use KFOStream for saving textures.
 	*/
-    class KITE_FUNC_EXPORT KTexture : public KCoreInstance, public KResource{
+	KM_CLASS(RESOURCE)
+    class KITE_FUNC_EXPORT KTexture : public KResource{
+		KMETA_KTEXTURE_BODY();
     public:
 
-		//! Constructs an blank texture object.
-        KTexture();
+		//! Constructs an 1x1 texture object.
+        KTexture(const std::string &Name);
 
 		//! Destructor
         ~KTexture();
@@ -54,51 +60,20 @@ namespace Kite{
 			\param Filter of texture
 			\param Wrap Wrap of texture
 		*/
-        void create(const KVector2U32 &Size ,KTextureFilterTypes Filter, KTextureWrapTypes Wrap);
+        void create(const KVector2U32 &Size ,TextureFilter Filter, TextureWrap Wrap);
 
 		//! Create the texture from an image
 		/*!
 			The entire image is used to create the texture.
+			Image object can be deleted after callig this function.
 
 			\param Image Image to load into the texture
 			\param Filter of texture
 			\param Wrap Wrap of texture
 		*/
-        void create(const KImage &Image, KTextureFilterTypes Filter, KTextureWrapTypes Wrap);
+        void create(const KImage &Image, TextureFilter Filter, TextureWrap Wrap);
 
-		//! Load the texture from a file on disk
-		/*!
-		Supported formats: PNG, BMP, TGA.
-
-		\param FileName Address of the image file on the disk
-		\param FileTypes Type of file. set 0 for any type.
-
-		\return True if loading was successful
-		*/
-		bool loadFile(const std::string &FileName, U32 FileType = 0);
-
-		//! Load the texture from a memory block
-		/*!
-		Supported formats: PNG, BMP, TGA.
-
-		\param Data Pointer to the file data in memory
-		\param Size Size of the data (in bytes)
-		\param FileTypes Type of file. set 0 for any type.
-
-		\return True if loading was successful
-		*/
-		bool loadMemory(const void *Data, std::size_t Size, U32 FileType = 0);
-
-		//! Load the texture from input stream.
-		/*!
-		Supported formats: PNG, BMP, TGA.
-
-		\param Stream Input stream.
-		\param FileTypes Type of file. set 0 for any type.
-
-		\return True if loading was successful
-		*/
-		bool loadStream(KIStream &Stream, U32 FileType = 0);
+		bool inite() override;
 
 		//! Update whole or piece of texture with an image
 		/*!
@@ -106,41 +81,50 @@ namespace Kite{
 			If not, this is an undefined behaviour.
 			always "update" an existing texture is faster than "re-create" that.
 			this function does nothing if the texture was not previously created.
+			note: call inite before calling this function.
 
 			\param Image Image to copy into the texture
 			\param Position in the texture where to copy the source pixels
 		*/
 		void update(const KImage &Image, const KVector2U32 &Position);
 
+		inline KVector2U32 getSize() const { return _ksize; }
+
 		//! Get filter of the texture
 		/*!
 			\return Filter of the texture
 		*/
-        inline KTextureFilterTypes getFilter() const {return _kfilter;}
+        inline TextureFilter getFilter() const {return _kfilter;}
 
 		//! Get wrap of the texture
 		/*!
 			\return Filter of the texture
 		*/
-        inline KTextureWrapTypes getWrap() const {return _kwrap;}
+        inline TextureWrap getWrap() const {return _kwrap;}
 
 		//! Get OpenGL ID of the texture
 		/*!
+			note: call inite before calling this function.
+
 			\return OpenGL ID of the texture
 		*/
         inline U32 getGLID() const {return _ktexId;}
 
 		//! Set texture filtering
 		/*!
+			note: call inite before calling this function.
+
 			\param Filter Filter of the texture
 		*/
-        void setFilter(KTextureFilterTypes Filter);
+        void setFilter(TextureFilter Filter);
 
 		//! Set texture wraping
 		/*!
+			note: call inite before calling this function.
+
 			\param Wrap Wrap of the texture
 		*/
-        void setWrap(KTextureWrapTypes Wrap);
+        void setWrap(TextureWrap Wrap);
 
 		//! Bind the texture
 		/*!
@@ -156,21 +140,20 @@ namespace Kite{
 		//! Unbind current texture
 		static void unbindTexture();
 
-		//! Get size of resource in memory
-		/*!
-			\return Size of resource in bytes
-		*/
-		U64 getInstanceSize() const;
-
     private:
-		//! Create the texture
+		bool _saveStream(KOStream *Stream, const std::string &Address, U32 Flag = 0) override;
+		bool _loadStream(KIStream *Stream, const std::string &Address, U32 Flag = 0) override;
+
+		//! create the texture (opengl)
         static void _create(const U8 *Data, const KVector2U32 &Size,
-                            KTextureFilterTypes Filter, KTextureWrapTypes Wrap, KTexture &Instance);
-        U32 _ktexId;	//!< ogl texture name
-        KTextureFilterTypes _kfilter;	//!< Texture interpolation
-        KTextureWrapTypes _kwrap;		//!< Texture wrapping
-        KVector2U32 _ksize;				//!< Size of texture
-        static U32 _klastTexId;			//!< Static last texture ID
+                            TextureFilter Filter, TextureWrap Wrap, KTexture &Instance);
+
+        U32 _ktexId;			//!< ogl texture name
+        TextureFilter _kfilter;	//!< Texture interpolation
+        TextureWrap _kwrap;		//!< Texture wrapping
+        KVector2U32 _ksize;		//!< Size of texture
+		KImage _kimage;			//!< Offline pixel data
+        static U32 _klastTexId;	//!< Static last texture ID
     };
 }
 

@@ -17,36 +17,23 @@ License along with this library; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 USA
 */
-#ifndef KSCRIPT_H
-#define KSCRIPT_H
+#include "Kite/graphic/kgraphictypes.h"
+#include "Kite/meta/kmetamanager.h"
+#include "Kite/meta/kmetaenum.h"
+#include <luaintf/LuaIntf.h>
 
-#include "Kite/core/kcoredef.h"
-#include "Kite/core/kresource.h"
-#include "Kite/meta/kmetadef.h"
-#include <string>
-#include "kscript.khgen.h"
-
-KMETA
 namespace Kite {
-	KM_CLASS(RESOURCE)
-	class KITE_FUNC_EXPORT KScript : public KResource {
-		KMETA_KSCRIPT_BODY();
-	public:
-		KScript(const std::string &Name);
-
-		bool inite() override;
-
-		inline void setCode(const std::string &Code) { _kcode = Code; }
-
-		inline const std::string &getCode() const { return _kcode; }
-
-	private:
-		bool _saveStream(KOStream *Stream, const std::string &Address, U32 Flag = 0) override;
-
-		bool _loadStream(KIStream *Stream, const std::string &Address, U32 Flag = 0) override;
-
-		std::string _kcode;
-	};
+	KMETA_TEXTUREENV_SOURCE();
+	KMETA_VBUFFERTYPE_SOURCE();
+	KMETA_BUFFERTARGET_SOURCE();
+	KMETA_MAPACCESS_SOURCE();
+	KMETA_PRIMITIVETYPE_SOURCE();
+	KMETA_COLORS_SOURCE();
+	KMETA_TEXTUREFILTER_SOURCE();
+	KMETA_TEXTUREWRAP_SOURCE();
+	KMETA_SHADERTYPE_SOURCE();
+	KMETA_ATTRIBUTECOUNT_SOURCE();
+	KMETA_ATTRIBUTETYPE_SOURCE();
+	KMETA_BUILTINSHADERTYPE_SOURCE();
+	KMETA_ATLASFILE_SOURCE();
 }
-
-#endif // KSCRIPT_H

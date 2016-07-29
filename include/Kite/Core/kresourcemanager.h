@@ -23,6 +23,7 @@ USA
 #include "Kite/core/kcoredef.h"
 #include "Kite/core/kresource.h"
 #include "Kite/core/kistream.h"
+#include "Kite/core/kmessenger.h"
 #include "Kite/meta/kmetadef.h"
 #include <type_traits>
 #include <unordered_map>
@@ -34,7 +35,7 @@ USA
 KMETA
 namespace Kite{
 	KM_CLASS(SCRIPTABLE)
-	class KITE_FUNC_EXPORT KResourceManager{
+	class KITE_FUNC_EXPORT KResourceManager : public KMessenger{
 		KMETA_KRESOURCEMANAGER_BODY();
 	public:
 		KResourceManager();
@@ -53,6 +54,7 @@ namespace Kite{
 
 		/// R: resource type
 		/// S: stream type
+		/// this function can use same as get function but will increment ref counter of source with each call
 		KM_FUN()
 		KResource *load(const std::string &SType, const std::string &RType, const std::string &Address, U32 Flag = 0);
 
@@ -72,11 +74,18 @@ namespace Kite{
 
 		const std::vector<KResource *> &dump();
 
+		const std::vector<std::string> &getRegisteredTypes();
+
+		bool isRegiteredType(const std::string &Type);
+
 		/// clear all resources
 		KM_FUN()
 		void clear();
 
 	private:
+		
+		bool loadCompositeList(KResource *Res, KIStream *Stream, const std::string &Address, U32 Flag = 0);
+
 		const std::unordered_map<std::string, std::string> *_kdict;
 		std::unordered_map<std::string, std::pair<KResource *, KIStream *>> _kmap;
 		std::unordered_map<std::string, std::pair<KResource *(*)(const std::string &), bool>> _krfactory;

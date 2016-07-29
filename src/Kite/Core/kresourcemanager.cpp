@@ -20,6 +20,10 @@ USA
 #include "Kite/core/kresourcemanager.h"
 #include "Kite/meta/kmetamanager.h"
 #include "Kite/meta/kmetaclass.h"
+#include "Kite/serialization/types/kstdstring.h"
+#include "Kite/serialization/types/kstdvector.h"
+#include "Kite/serialization/types/kstdpair.h"
+#include "Kite/serialization/kbinaryserial.h"
 #include <luaintf\LuaIntf.h>
 
 namespace Kite {
@@ -103,6 +107,7 @@ namespace Kite {
 		}
 
 		// create key from file name
+		// always we save original file address (not name) as a key
 		std::string tempKey(ResName);
 		std::transform(ResName.begin(), ResName.end(), tempKey.begin(), ::tolower);
 
@@ -120,15 +125,30 @@ namespace Kite {
 			return nullptr;
 		}
 
-		// create new resource and assocated input stream
-		KResource *resource = rfactory->second.first("");
+		// retrieving file name and path
+		KFileInfo finfo;
+		stream->getFileInfoStr(ResName, finfo);
 
-		if (!resource->loadStream(stream, ResName, Flag)) {
+		// create new resource and assocated input stream
+		KResource *resource = rfactory->second.first(finfo.name);
+
+		// loading composite resources (recursive)
+		if (resource->isComposite()) {
+			if (!loadCompositeList(resource, stream, ResName)) {
+				KD_FPRINT("can't load composite resource. rname: %s", ResName.c_str());
+				delete resource;
+				delete stream;
+				return nullptr;
+			}
+		}
+
+		if (!resource->_loadStream(stream, ResName, Flag)) {
 			KD_FPRINT("can't load resource. rname: %s", ResName.c_str());
 			delete resource;
 			delete stream;
 			return nullptr;
 		}
+		resource->setAddress(finfo.path);
 
 		// stream lifetime
 		std::pair<KResource *, KIStream *> pair;
@@ -145,6 +165,13 @@ namespace Kite {
 
 		// insert resource to name/map
 		_kmap.insert({ tempKey, pair });
+
+		// post a message about new resource
+		KMessage msg;
+		msg.setType("RES_LOAD");
+		msg.setData((void *)resource, sizeof(resource));
+		postMessage(&msg, MessageScope::ALL);
+
 		return resource;
 	}
 
@@ -208,7 +235,7 @@ namespace Kite {
 		std::string tempKey(ResName);
 		std::transform(ResName.begin(), ResName.end(), tempKey.begin(), ::tolower);
 
-		// first, check our resource catch
+		// check our resource catch
 		auto found = _kmap.find(tempKey);
 		if (found != _kmap.end()) {
 			return found->second.first;
@@ -249,6 +276,13 @@ namespace Kite {
 
 			// check resource count
 			if (found->second.first->getReferencesCount() == 0) {
+
+				// post a message about unloaded resource
+				KMessage msg;
+				msg.setType("RES_UNLOAD");
+				msg.setData((void *)found->second.first, sizeof(found->second.first));
+				postMessage(&msg, MessageScope::ALL);
+
 				// free resource
 				delete found->second.first;
 
@@ -266,17 +300,43 @@ namespace Kite {
 
 	const std::vector<KResource *> &KResourceManager::dump() {
 		static std::vector<KResource *> res;
+		res.clear();
 		res.reserve(_kmap.size());
 
-		for (auto it = _kmap.begin(); it != _kmap.end(); ++it) {
+		for (auto it = _kmap.cbegin(); it != _kmap.cend(); ++it) {	
 			res.push_back(it->second.first);
 		}
 
 		return res;
 	}
 
+	const std::vector<std::string> &KResourceManager::getRegisteredTypes() {
+		static std::vector<std::string> rlist;
+		rlist.clear();
+		rlist.reserve(_krfactory.size());
+
+		for (auto it = _krfactory.begin(); it != _krfactory.end(); ++it) {
+			rlist.push_back(it->first);
+		}
+
+		return rlist;
+	}
+
+	bool KResourceManager::isRegiteredType(const std::string &Type) {
+		if (_krfactory.find(Type) != _krfactory.end()) {
+			return true;
+		}
+		return false;
+	}
+
 	void KResourceManager::clear() {
 		for (auto it = _kmap.begin(); it != _kmap.end(); ++it) {
+			// post a message about unloaded resource
+			KMessage msg;
+			msg.setType("RES_UNLOAD");
+			msg.setData((void *)it->second.first, sizeof(it->second.first));
+			postMessage(&msg, MessageScope::ALL);
+
 			// free resource
 			delete it->second.first;
 
@@ -289,6 +349,40 @@ namespace Kite {
 
 		// clear map
 		_kmap.clear();
+	}
+
+	bool KResourceManager::loadCompositeList(KResource *Res, KIStream *Stream, const std::string &Address, U32 Flag) {
+		std::vector<std::pair<std::string, std::string>> plist;
+		KBinarySerial serializer;
+		if (!serializer.loadStream(Stream, Address + ".dep")) {
+			KD_FPRINT("cant load resource composite list. rname: %s", Res->getName().c_str());
+			return false;
+		}
+		serializer >> plist;
+		Res->_kclist.clear();
+
+		// retrieving file name and path
+		KFileInfo finfo;
+		Stream->getFileInfoStr(Address, finfo);
+
+		// loading coposite resources
+		for (auto it = plist.begin(); it != plist.end(); ++it) {
+
+			// case1: first we try load composite resources based our name\address dictionary
+			auto comp = load(Stream->getType(), it->second, it->first);
+			if (comp == nullptr) {
+
+				// case 2: then we try load it based parrent address
+				auto comp = load(Stream->getType(), it->second, finfo.path + "\\" + it->first);
+				if (comp == nullptr) {
+					KD_FPRINT("cant load composite resource. composite name: %s", it->first.c_str());
+					return false;
+				}
+			}
+			Res->_kclist.push_back(comp);
+		}
+
+		return true;
 	}
 
 	KMETA_KRESOURCEMANAGER_SOURCE();

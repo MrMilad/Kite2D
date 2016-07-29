@@ -66,31 +66,31 @@ void ObjectDock::setupActions() {
 	connect(renameObj, &QAction::triggered, this, &ObjectDock::actRename);
 	this->addAction(renameObj);
 
-	remObj = new QAction(QIcon(":/icons/remove"), "Remove Object", this);
+	remObj = new QAction(QIcon(":/icons/close"), "Remove Object", this);
 	remObj->setShortcut(QKeySequence(Qt::Key_Delete));
 	remObj->setShortcutContext(Qt::WidgetWithChildrenShortcut);
 	connect(remObj, &QAction::triggered, this, &ObjectDock::actRemove);
 	this->addAction(remObj);
 
-	prefab = new QAction(QIcon(":/icons/edit"), "Create Prefab", this);
+	prefab = new QAction(QIcon(":/icons/addpre"), "Create Prefab", this);
 	prefab->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_P));
 	prefab->setShortcutContext(Qt::WidgetWithChildrenShortcut);
 	connect(prefab, &QAction::triggered, this, &ObjectDock::actPrefab);
 	this->addAction(prefab);
 
-	copy = new QAction(QIcon(":/icons/edit"), "Copy", this);
+	copy = new QAction(QIcon(":/icons/copy"), "Copy", this);
 	copy->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_C));
 	copy->setShortcutContext(Qt::WidgetWithChildrenShortcut);
 	connect(copy, &QAction::triggered, this, &ObjectDock::actCopy);
 	this->addAction(copy);
 
-	cut = new QAction(QIcon(":/icons/edit"), "Cut", this);
+	cut = new QAction(QIcon(":/icons/cut"), "Cut", this);
 	cut->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_X));
 	cut->setShortcutContext(Qt::WidgetWithChildrenShortcut);
 	connect(cut, &QAction::triggered, this, &ObjectDock::actCut);
 	this->addAction(cut);
 
-	paste = new QAction(QIcon(":/icons/edit"), "Paste", this);
+	paste = new QAction(QIcon(":/icons/paste"), "Paste", this);
 	paste->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_V));
 	paste->setShortcutContext(Qt::WidgetWithChildrenShortcut);
 	paste->setDisabled(true);
@@ -391,6 +391,9 @@ void ObjectDock::actClicked() {
 }
 
 void ObjectDock::actRClicked(const QPoint & pos) {
+	if (currRes == nullptr) {
+		return;
+	}
 	auto item = objTree->itemAt(pos);
 	QMenu cmenu(this);
 	QPoint mpos(pos);

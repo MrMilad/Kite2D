@@ -55,13 +55,10 @@ namespace Kite{
 		virtual I32 close() = 0;
 
 		KM_FUN()
-		virtual const std::string &getFileName() = 0;
+		virtual const KFileInfo *getFileInfo() = 0;
 
 		KM_FUN()
-		virtual const std::string &getPath() = 0;
-
-		KM_FUN()
-		virtual const std::string &getFullPath() = 0;
+		virtual void getFileInfoStr(const std::string &Address, KFileInfo &FileInfo) = 0;
 
 		KM_FUN()
 		virtual IOMode getIOMode() = 0;

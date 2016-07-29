@@ -20,9 +20,9 @@
 #ifndef KGRAPHICTYPES_H
 #define KGRAPHICTYPES_H
 
-#include "Kite/Core/meta/kmetadef.h"
-#include "Kite/Core/meta/kmetaenum.h"
-#include "Kite/Core/meta/kmetamanager.h"
+#include "Kite/core/kcoredef.h"
+#include "Kite/meta/kmetadef.h"
+#include "kgraphictypes.khgen.h"
 
 /*! \file kgraphictypes.h
 	\brief All core graphic types.
@@ -31,59 +31,70 @@
 /*! \namespace Kite
 	\brief Public namespace.
 */
+KMETA
 namespace Kite{
 	/*! \enum Pixel blend
 	\brief Blend types
 	*/
-    enum KTextureEnvMode{
-        KTE_ADD = 0,
-        KTE_MODULATE,
-        KTE_DECAL,
-        KTE_BLEND,
-        KTE_REPLACE,
-        KTE_COMBINE
+	KM_ENUM()
+    enum class TextureEnv : U8{
+        ADD = 0,
+        MODULATE,
+        DECAL,
+        BLEND,
+        REPLACE,
+        COMBINE
     };
+	KMETA_TEXTUREENV_BODY();
 
 	/*! \enum KVertexBufferTypes
 		\brief Performance hint for VBO to provide how the buffer object is going to be used.
 	*/
-    enum KVertexBufferTypes : U8{
-        KVB_STATIC = 0,	//!< The data in VBO will not be changed (specified once and used many times)
-        KVB_DYNAMIC,	//!< The data in VBO will be changed frequently (specified and used repeatedly)
-        KVB_STREAM		//!< The data in VBO will be changed every frame (specified once and used once)
+	KM_ENUM()
+    enum class VBufferType : U8{
+        STATIC = 0,	//!< The data in VBO will not be changed (specified once and used many times)
+        DYNAMIC,	//!< The data in VBO will be changed frequently (specified and used repeatedly)
+        STREAM		//!< The data in VBO will be changed every frame (specified once and used once)
     };
+	KMETA_VBUFFERTYPE_BODY();
 
 	/*! \enum KBufferTargetTypes
 		\brief Buffer types.
 	*/
-	enum KBufferTargetTypes{
-		KBT_INDEX = 0,	//!< Index buffer
-		KBT_VERTEX		//!< Vertex buffer
+	KM_ENUM()
+	enum class BufferTarget : U8{
+		INDEX = 0,	//!< Index buffer
+		VERTEX		//!< Vertex buffer
 	};
+	KMETA_BUFFERTARGET_BODY();
 
 	/*! \enum KMapAccessTypes */
-    enum KMapAccessTypes{
-        KMA_READ = 0,	//!< Reading access
-        KMA_WRITE,		//!< Writing access
-        KMA_RW			//!< Reading/writing access
+	KM_ENUM()
+    enum class MapAccess : U8{
+        READ = 0,	//!< Reading access
+        WRITE,		//!< Writing access
+        RW			//!< Reading/writing access
     };
+	KMETA_MAPACCESS_BODY();
 
 	/*! \enum KGeoPrimitiveTypes
 		\brief Primitive types
 	*/
-    enum KGeoPrimitiveTypes{
-        KGP_POINTS = 0,
-        KGP_LINES,
-        KGP_LINE_STRIP,
-        KGP_LINE_LOOP,
-        KGP_TRIANGLES,
-        KGP_TRIANGLE_STRIP,
-        KGP_TRIANGLE_FAN,
-        KGP_LINE_STRIP_ADJACENCY,
-        KGP_LINES_ADJACENCY,
-        KGP_TRIANGLE_STRIP_ADJACENCY,
-        KGP_TRIANGLES_ADJACENCY
+	KM_ENUM()
+    enum class PrimitiveType : U8{
+        POINTS = 0,
+        LINES,
+        LINE_STRIP,
+        LINE_LOOP,
+        TRIANGLES,
+        TRIANGLE_STRIP,
+        TRIANGLE_FAN,
+        LINE_STRIP_ADJACENCY,
+        LINES_ADJACENCY,
+        TRIANGLE_STRIP_ADJACENCY,
+        TRIANGLES_ADJACENCY
     };
+	KMETA_PRIMITIVETYPE_BODY();
 
 //    enum KFilteringDrawTypes{
 //        KFD_ALIASED,
@@ -93,95 +104,82 @@ namespace Kite{
 	/*! \enum KColorTypes
 		\brief Hex colors code
 	*/
-    enum KColorTypes{
-        KC_BLACK = 0x000000,           KC_WHITE = 0xFFFFFF,
-        KC_RED = 0xff0000,             KC_YELLOW = 0xffff00,
-        KC_BLUE = 0x0000ff,            KC_GREEN = 0x00ff00,
-        KC_CRIMSON = 0xDC143C,         KC_PINK = 0xFFC0CB,
-        KC_PALEVIOLETRED = 0xDB7093,   KC_LIMEGREEN = 0x32CD32,
-        KC_LAVENDERBLUSH = 0xFFF0F5,   KC_HOTPINK = 0xFF69B4,
-        KC_RASPBERRY = 0x872657,       KC_COBALTGREEN = 0x3D9140,
-        KC_DEEPPINK = 0xFF1493,        KC_MAROON = 0xFF34B3,
-        KC_VIOLET = 0xEE82EE,          KC_MEDIUMSEAGREEN = 0x3CB371,
-        KC_DARKVIOLET = 0x9400D3,      KC_ORCHID = 0xDA70D6,
-        KC_THISTLE = 0xD8BFD8,         KC_CYAN = 0x00FFFF,
-        KC_PLUM = 0xDDA0DD,            KC_MAGENTA  = 0xFF00FF,
-        KC_BLUEVIOLET = 0x8A2BE2,      KC_POWDERBLUE = 0xB0E0E6,
-        KC_PURPLE = 0x800080,          KC_GHOSTWHITE = 0xF8F8FF,
-        KC_INDIGO = 0x4B0082,          KC_DODGERBLUE = 0x1E90FF,
-        KC_LAVENDER = 0xE6E6FA,        KC_NAVY = 0x000080,
-        KC_MIDNIGHTBLUE = 0x191970,    KC_CORNFLOWERBLUE = 0x6495ED,
-        KC_COBALT = 0x3D59AB,          KC_ROYALBLUE = 0x4169E1,
-        KC_LIGHTSTEELBLUE = 0xB0C4DE,  KC_SLATEGRAY = 0x708090,
-        KC_SKYBLUE = 0x87CEEB,         KC_PEACOCK = 0x33A1C9,
-        KC_CADETBLUE = 0x5F9EA0,       KC_AZURE = 0xF0FFFF,
-        KC_COLDGREY = 0x808A87,        KC_SPRINGGREEN = 0x00FF7F,
-        KC_EMERALDGREEN = 0x00C957,    KC_MINT = 0xBDFCC9,
-        KC_DARKSEAGREEN = 0x8FBC8F,    KC_PALEGREEN = 0x98FB98,
-        KC_FORESTGREEN = 0x228B22,     KC_LAWNGREEN = 0x7CFC00,
-        KC_GREENYELLOW = 0xADFF2F,     KC_MELON = 0xE3A869,
-        KC_OLIVEDRAB = 0x6B8E23,       KC_IVORY = 0xFFFFF0,
-        KC_BEIGE = 0xF5F5DC,           KC_ORANGE = 0xFF8000,
-        KC_OLIVE = 0x808000,           KC_DARKKHAKI = 0xBDB76B,
-        KC_KHAKI = 0xF0E68C,           KC_SIENNA = 0xA0522D,
-        KC_PALEGOLDENROD = 0xEEE8AA,   KC_BANANA = 0xE3CF57,
-        KC_GOLD = 0xFFD700,            KC_SNOW = 0xFFFAFA,
-        KC_CADMIUMYELLOW = 0xFF9912,   KC_BRICK = 0x9C661F,
-        KC_ARKORANGE = 0xFF8C00,       KC_CARROT = 0xED9121,
-        KC_FLESH = 0xFF7D40,           KC_CADMIUMORANGE = 0xFF6103,
-        KC_CORAL = 0x8B5742,           KC_SALMON = 0xFA8072,
-        KC_BROWN = 0xA52A2A,           KC_FIREBRICK = 0xB22222,
-        KC_GRAY = 0x808080
+	KM_ENUM()
+    enum class Colors : U32{
+        BLACK = 0x000000,           WHITE = 0xFFFFFF,
+        RED = 0xff0000,             YELLOW = 0xffff00,
+        BLUE = 0x0000ff,            GREEN = 0x00ff00,
+        CRIMSON = 0xDC143C,         PINK = 0xFFC0CB,
+        PALEVIOLETRED = 0xDB7093,   LIMEGREEN = 0x32CD32,
+        LAVENDERBLUSH = 0xFFF0F5,   HOTPINK = 0xFF69B4,
+        RASPBERRY = 0x872657,       COBALTGREEN = 0x3D9140,
+        DEEPPINK = 0xFF1493,        MAROON = 0xFF34B3,
+        VIOLET = 0xEE82EE,          MEDIUMSEAGREEN = 0x3CB371,
+        DARKVIOLET = 0x9400D3,      ORCHID = 0xDA70D6,
+        THISTLE = 0xD8BFD8,         CYAN = 0x00FFFF,
+        PLUM = 0xDDA0DD,            MAGENTA  = 0xFF00FF,
+        BLUEVIOLET = 0x8A2BE2,      POWDERBLUE = 0xB0E0E6,
+        PURPLE = 0x800080,          GHOSTWHITE = 0xF8F8FF,
+        INDIGO = 0x4B0082,          DODGERBLUE = 0x1E90FF,
+        LAVENDER = 0xE6E6FA,        NAVY = 0x000080,
+        MIDNIGHTBLUE = 0x191970,    CORNFLOWERBLUE = 0x6495ED,
+        COBALT = 0x3D59AB,          ROYALBLUE = 0x4169E1,
+        LIGHTSTEELBLUE = 0xB0C4DE,  SLATEGRAY = 0x708090,
+        SKYBLUE = 0x87CEEB,         PEACOCK = 0x33A1C9,
+        CADETBLUE = 0x5F9EA0,       AZURE = 0xF0FFFF,
+        COLDGREY = 0x808A87,        SPRINGGREEN = 0x00FF7F,
+        EMERALDGREEN = 0x00C957,    MINT = 0xBDFCC9,
+        DARKSEAGREEN = 0x8FBC8F,    PALEGREEN = 0x98FB98,
+        FORESTGREEN = 0x228B22,     LAWNGREEN = 0x7CFC00,
+        GREENYELLOW = 0xADFF2F,     MELON = 0xE3A869,
+        OLIVEDRAB = 0x6B8E23,       IVORY = 0xFFFFF0,
+        BEIGE = 0xF5F5DC,           ORANGE = 0xFF8000,
+        OLIVE = 0x808000,           DARKKHAKI = 0xBDB76B,
+        KHAKI = 0xF0E68C,           SIENNA = 0xA0522D,
+        PALEGOLDENROD = 0xEEE8AA,   BANANA = 0xE3CF57,
+        GOLD = 0xFFD700,            SNOW = 0xFFFAFA,
+        CADMIUMYELLOW = 0xFF9912,   BRICK = 0x9C661F,
+        ARKORANGE = 0xFF8C00,       CARROT = 0xED9121,
+        FLESH = 0xFF7D40,           CADMIUMORANGE = 0xFF6103,
+        CORAL = 0x8B5742,           SALMON = 0xFA8072,
+        BROWN = 0xA52A2A,           FIREBRICK = 0xB22222,
+        GRAY = 0x808080
     };
-
-    /*enum KColorComponent{
-        KCC_R = 0,
-        KCC_G = 1,
-        KCC_B = 2,
-        KCC_A = 3
-    };
-
-    enum KRectComponent{
-        KRC_X = 0,
-        KRC_Y = 1,
-        KRC_W = 2,
-        KRC_H = 3
-    };*/
-
-
-//    enum KFontCharSetTypes{
-//        KFC_ANSI,
-//        KFC_ARABIC,
-//        KFC_HEBREW,
-//        KFC_AUTO
-//    };
+	KMETA_COLORS_BODY();
 
 	/*! \enum KTextureFilterTypes
 		\brief Magnification texture filtering options
 	*/
-    enum KTextureFilterTypes : U8{
-		KTF_NEAREST = 0,	//!< Select the texel nearest the texture coordinate
-        KTF_LINEAR		//!< Perform a weighted linear blend between the nearest adjacent samples
+	KM_ENUM()
+    enum class TextureFilter : U8{
+		NEAREST = 0,	//!< Select the texel nearest the texture coordinate
+        LINEAR		//!< Perform a weighted linear blend between the nearest adjacent samples
     };
+	KMETA_TEXTUREFILTER_BODY();
 
 	/*! \enum KTextureWrapTypes
 		\brief The possible heuristic when a texture coordinate is not within the [0, 1] range
 	*/
-    enum KTextureWrapTypes : U8{
-		KTW_REPEAT = 0,				//!< The texture coordinate wraps around the texture
-        KTW_MIRRORED_REPEAT,	//!< The texture coordinate wraps around like a mirror
-        KTW_CLAMP_TO_EDGE		//!< The texture coordinate is clamped to the [0, 1] range
+	KM_ENUM()
+    enum class TextureWrap : U8{
+		REPEAT = 0,			//!< The texture coordinate wraps around the texture
+        MIRRORED_REPEAT,	//!< The texture coordinate wraps around like a mirror
+        CLAMP_TO_EDGE		//!< The texture coordinate is clamped to the [0, 1] range
      // KTW_CLAMP_TO_BORDER		// border not supported (see KTexture::create())
     };
+	KMETA_TEXTUREWRAP_BODY();
 
 	/*! \enum KShaderTypes
 		\brief OpenGL shader types
 	*/
-    enum KShaderTypes{
-        KS_VERTEX,	//!< Vertex shader
-        KS_FRAGMENT,	//!< Fragment shader
-		KS_GEOMETRY //!< Geometry shader
+	KM_ENUM()
+    enum class ShaderType : U8{
+        VERTEX = 0,	//!< Vertex shader
+        FRAGMENT,	//!< Fragment shader
+		GEOMETRY,	//!< Geometry shader
+		UNKNOWN
     };
+	KMETA_SHADERTYPE_BODY();
 
 //    enum KShaderTextureTypes{
 //        KST_CURRENT = 0
@@ -190,43 +188,51 @@ namespace Kite{
 	/*! \enum KAttributeCountTypes
 		\brief Specifies the number of components per generic vertex attribute. (Internally use)
 	*/
-    enum KAttributeCountTypes{
-        KAC_1COMPONENT = 1,
-        KAC_2COMPONENT = 2,
-        KAC_3COMPONENT = 3,
-        KAC_4COMPONENT = 4,
+	KM_ENUM()
+    enum class AttributeCount : U8{
+        COMPONENT_1 = 1,
+        COMPONENT_2 = 2,
+        COMPONENT_3 = 3,
+        COMPONENT_4 = 4
     };
+	KMETA_ATTRIBUTECOUNT_BODY();
 
 	/*! \enum KAttributeTypeTypes
 		\brief Specifies the data type of each component in the array. (Internally use)
 	*/
-    enum KAttributeTypeTypes{
-        KAT_BYTE = 0,
-        KAT_UNSIGNED_BYTE,
-        KAT_SHORT,
-        KAT_UNSIGNED_SHORT,
-        KAT_FIXED,
-        KAT_FLOAT
+	KM_ENUM()
+    enum class AttributeType : U8{
+        BYTE = 0,
+        UNSIGNED_BYTE,
+        SHORT,
+        UNSIGNED_SHORT,
+        FIXED,
+        FLOAT
     };
+	KMETA_ATTRIBUTETYPE_BODY();
 
-	enum KBuiltinShaderTypes {
-		KBS_VERT,
-		KBS_FRAG_COLOR,
-		KBS_FRAG_TEXTURE,
-		KBS_FRAG_TEXTURE_COLOR,
-		KBS_VERT_POINT,
-		KBS_FRAG_POINT_COLOR,
-		KBS_FRAG_POINT_TEXTURE,
-		KBS_FRAG_POINT_TEXTURE_COLOR,
+	KM_ENUM()
+	enum class BuiltinShaderType : U8 {
+		VERT = 0,
+		FRAG_COLOR,
+		FRAG_TEXTURE,
+		FRAG_TEXTURE_COLOR,
+		VERT_POINT,
+		FRAG_POINT_COLOR,
+		FRAG_POINT_TEXTURE,
+		FRAG_POINT_TEXTURE_COLOR,
 	};
+	KMETA_BUILTINSHADERTYPE_BODY();
 
 	/*! \typedef KAtlasFileTypes
 	\brief Types of the atlas files
 	*/
-	enum KAtlasFileTypes {
-		KAF_ATLAS,	//!< Default KAtlas format (compact format in speed and size)
-		KAF_JSON	//!< Adobe Flash created JSON 
+	KM_ENUM()
+	enum class AtlasFile : U8{
+		ATLAS,	//!< Default KAtlas format (compact format, better speed and size)
+		JSON	//!< Adobe Flash created JSON 
 	};
+	KMETA_ATLASFILE_BODY();
 
 	/*! \typedef KCallVBUpdate
 		\brief Function handle for mapping and updating VBO buffers

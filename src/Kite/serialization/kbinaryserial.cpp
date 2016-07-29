@@ -194,7 +194,7 @@ namespace Kite {
 	}
 
 	void KBinarySerial::setReadPos(U32 Pos){
-		if (Pos < _kdata.size()) {
+		if (Pos < _kdata.size() || Pos == 0) {
 			_kpos = Pos;
 		} else {
 			_kpos = _kdata.size();

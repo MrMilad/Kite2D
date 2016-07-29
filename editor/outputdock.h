@@ -33,7 +33,6 @@ private:
 	QAction *clearAll;
 	QAction *wordWrap;
 	QFrame *htools;
-	QLabel *hlabel;
 };
 
 #endif // OUTPUTDOCK_H

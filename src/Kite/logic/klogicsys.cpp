@@ -78,11 +78,6 @@ namespace Kite {
 		if (Data != nullptr && !isInite()) {
 			_klvm = static_cast<lua_State *>(Data);
 
-			// creata entiti table in global
-			LuaIntf::LuaRef glob(_klvm, "_G");
-			LuaIntf::LuaRef ent = LuaIntf::LuaRef::createTable(_klvm);
-			glob.set("ENTITIES", ent);
-
 			setInite(true);
 			return true;
 		}
@@ -91,7 +86,7 @@ namespace Kite {
 	}
 
 	bool KLogicSys::updateComp(F32 Delta, KEntity *Self, KLogicCom *Comp) {
-		std::string address("ENTITIES." + Comp->getTName() + "." + Comp->getName() + ".update");
+		std::string address(Comp->getTName() + "." + Comp->getName() + ".update");
 
 #ifdef KITE_DEV_DEBUG
 		std::string tname(Comp->getTName());	// copy tname because we need it for showing message in the catch section
@@ -132,19 +127,19 @@ namespace Kite {
 		if (script != nullptr && !script->getCode().empty()) {
 
 			// first check entiti table 
-			std::string code("_G.ENTITIES." + Component->getTName());
+			std::string code("_G." + Component->getTName());
 			LuaIntf::LuaRef etable(_klvm, code.c_str());
 
 			// there isn't a table for entity
 			// we create it
 			if (!etable.isTable()) {
-				etable = LuaIntf::LuaRef(_klvm, "_G.ENTITIES");
+				etable = LuaIntf::LuaRef(_klvm, "_G");
 				etable.set(Component->getTName().c_str(), LuaIntf::LuaRef::createTable(_klvm));
 			}
 
 			// create a table for its component
 			code.clear();
-			code = "_G.ENTITIES." + Component->getTName();
+			code = "_G." + Component->getTName();
 			etable = LuaIntf::LuaRef(_klvm, code.c_str());
 			etable.set(Component->getName(), LuaIntf::LuaRef::createTable(_klvm));
 
@@ -153,11 +148,10 @@ namespace Kite {
 			code.reserve(script->getCode().size());
 			code = script->getCode();
 
-			std::string address("ENTITIES." + Component->getTName() + "." + Component->getName());
+			std::string address(Component->getTName() + "." + Component->getName());
 			code.insert(0, "_ENV = " + address + " \n");
-			code.insert(0, address + ".Global = _G \n");
-			code.insert(0, address + ".Kite = _G.Kite \n");
-			code.insert(0, address + ".Entities = _G.ENTITIES \n");
+			code.insert(0, address + ".global = _G \n");
+			code.insert(0, address + ".kite = _G.kite \n");
 			code.insert(0, address + ".print = print \n");
 
 			int ret = luaL_dostring(_klvm, code.c_str());
@@ -175,7 +169,7 @@ namespace Kite {
 
 	bool KLogicSys::initeComp(KEntity *Self, KLogicCom *Comp) {
 		// call inite function of component
-		std::string address("ENTITIES." + Comp->getTName() + "." + Comp->getName());
+		std::string address(Comp->getTName() + "." + Comp->getName());
 		address.append(".inite");
 
 #ifdef KITE_DEV_DEBUG
@@ -203,7 +197,7 @@ namespace Kite {
 
 	bool KLogicSys::startComp(KEntity *Self, KLogicCom *Comp) {
 		// call start function of component
-		std::string address("ENTITIES." + Comp->getTName() + "." + Comp->getName());
+		std::string address(Comp->getTName() + "." + Comp->getName());
 		address.append(".start");
 
 #ifdef KITE_DEV_DEBUG

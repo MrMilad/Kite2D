@@ -35,7 +35,6 @@ namespace Kite{
 	}
 
 	bool KFIStream::open(const std::string &Address, IOMode Type) {
-		_kfullpath = Address;
 		_kio = Type;
 		if (Address.empty()) {
 			KD_PRINT("address is empty");
@@ -61,16 +60,8 @@ namespace Kite{
 			return false;
 		}
 
-		// extract address info
-		SIZE pos = _kfullpath.find_last_of("/\\");
-		if (pos != std::string::npos) {
-			_kpath = _kfullpath.substr(0, pos);
-			_kfname = _kfullpath.substr(pos + 1);
-
-		} else { // if we not found '/' or '\\'
-			_kpath.clear();
-			_kfname = _kfullpath;
-		}
+		// file information
+		getFileInfoStr(Address, _kfinfo);
 
 		return true;
 	}
@@ -127,6 +118,20 @@ namespace Kite{
 			_kfile = nullptr;
 		}
 		return 0;
+	}
+
+	void KFIStream::getFileInfoStr(const std::string &Address, KFileInfo &FInfo) {
+		// extract address info
+		SIZE pos = Address.find_last_of("/\\");
+		FInfo.fullPath = Address;
+		if (pos != std::string::npos) {
+			FInfo.path = Address.substr(0, pos);
+			FInfo.name = Address.substr(pos + 1);
+
+		} else { // if we not found '/' or '\\'
+			FInfo.path.clear();
+			FInfo.name = Address;
+		}
 	}
 	KMETA_KFISTREAM_SOURCE();
 }

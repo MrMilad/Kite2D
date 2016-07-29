@@ -17,16 +17,14 @@ License along with this library; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 USA
 */
-#include "Kite/Core/graphic/kgraphicstructs.h"
-#include "Kite/Core/meta/kmetamanager.h"
-#include "Kite/Core/meta/kmetaclass.h"
-#include "Kite/Core/serialization/kbaseserial.h"
-#include "Kite/Core/serialization/types/kstdstring.h"
+#include "Kite/graphic/kgraphicstructs.h"
+#include "Kite/meta/kmetamanager.h"
+#include "Kite/meta/kmetaclass.h"
+#include "Kite/serialization/kbaseserial.h"
+#include "Kite/serialization/types/kstdstring.h"
 #include <luaintf\LuaIntf.h>
 #include <kgraphicstructs.khgen.h>
 
 namespace Kite {
-	KMETA_MYENUM_SOURCE();
-	KMETA_MYENUM2_SOURCE();
 	KMETA_KCOLOR_SOURCE();
 }

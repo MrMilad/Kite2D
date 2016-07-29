@@ -278,7 +278,7 @@ namespace Kite {
 		for (auto it = lclist.begin(); it != lclist.end(); ++it) {
 			auto lcomp = Entity->getComponent("Logic", (*it));
 			// components
-			Prefab->_kcode.append("local comp = Kite.Logic.toLogic(ent:addComponent(\"Logic\", \"" + lcomp->getName() + "\"))\n");
+			Prefab->_kcode.append("local comp = kite.Logic.toLogic(ent:addComponent(\"Logic\", \"" + lcomp->getName() + "\"))\n");
 			Prefab->_kcode.append("comp:deserial(ser, false)\n");
 			lcomp->serial(Prefab->_kdata, false);
 		}
@@ -288,7 +288,7 @@ namespace Kite {
 		Entity->getFixedComponents(clist);
 		for (auto it = clist.begin(); it != clist.end(); ++it) {
 			// components
-			Prefab->_kcode.append("comp = Kite." + (*it)->getType() + ".to" + (*it)->getType() +
+			Prefab->_kcode.append("comp = kite." + (*it)->getType() + ".to" + (*it)->getType() +
 								  "(ent:addComponent(\"" + (*it)->getType() + "\", \"" + (*it)->getName() + "\"))\n");
 
 			// transform data not saved with prefab

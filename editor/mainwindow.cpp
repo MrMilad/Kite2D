@@ -22,6 +22,7 @@ MainWindow::MainWindow(QWidget *parent)
 	exec(new Executer)
 {
     this->setMinimumSize(1000, 600);
+
 	setupDocks();
 	setupActions();
 	setupStatusBar();
@@ -74,7 +75,6 @@ void MainWindow::setupDocks(){
     // resource dock
 	resDock = new ResourceDock(this);
 	resDock->setObjectName("Resources");
-	resDock->setupCategories(*kinfo->getResourceTypes());
     addDockWidget(Qt::LeftDockWidgetArea, resDock);
 	
 	// output dock
@@ -87,7 +87,6 @@ void MainWindow::setupDocks(){
     addDockWidget(Qt::LeftDockWidgetArea, objDock);	
 	connect(resDock, &ResourceDock::resourceSelected, objDock, &ObjectDock::resEdit);
 	connect(resDock, &ResourceDock::resourceDelete, objDock, &ObjectDock::resDelete);
-	connect(resDock, &ResourceDock::resourceOpen, objDock, &ObjectDock::installEntityCallback);
 	connect(resDock, &ResourceDock::resourceAdded, objDock, &ObjectDock::installEntityCallback);
 	connect(objDock, &ObjectDock::requestCreateResource, resDock, &ResourceDock::addResource);
 	connect(objDock, &ObjectDock::requestGetResource, resDock, &ResourceDock::getResource);
@@ -95,11 +94,12 @@ void MainWindow::setupDocks(){
 
     // component/properties dock
     prpDock = new ComponentDock(this);
-	prpDock->inite(*kinfo->getComponentTypes(), resDock->getDictionary());
+	prpDock->inite(*kinfo->getComponentTypes());
     addDockWidget(Qt::RightDockWidgetArea, prpDock);
 	connect(objDock, &ObjectDock::objectSelected, prpDock, &ComponentDock::entityEdit);
 	connect(objDock, &ObjectDock::objectDelete, prpDock, &ComponentDock::entityDelete);
 	connect(prpDock, &ComponentDock::resSelected, resDock, &ResourceDock::selectResource);
+	connect(prpDock, &ComponentDock::requestResNames, resDock, &ResourceDock::filterByType);
 	connect(prpDock, &ComponentDock::revertPrefab, objDock, &ObjectDock::revertPrefab);
 	connect(prpDock, &ComponentDock::applyPrefab, objDock, &ObjectDock::applyPrefab);
 
@@ -316,7 +316,7 @@ void MainWindow::saveXML(QIODevice *device, const QString &Address){
 	stream.writeEndElement(); // config
 
 	// resources
-	stream.writeStartElement("resources");
+	/*stream.writeStartElement("resources");
 	auto resDict = resDock->getDictionary();
 	for (auto it = resDict->cbegin(); it != resDict->cend(); ++it) {
 		KFOStream fstream;
@@ -331,7 +331,7 @@ void MainWindow::saveXML(QIODevice *device, const QString &Address){
 		stream.writeAttribute("name", it.key());
 		stream.writeAttribute("type", (*it)->getType().c_str());
 		stream.writeEndElement();
-	}
+	}*/
 
 	stream.writeEndElement(); // resources
 
@@ -572,7 +572,6 @@ void MainWindow::closeProject() {
 
 		// clear resource tree
 		resDock->clearResources();
-		resDock->setupCategories(*kinfo->getResourceTypes());
 
 		delete curProject;
 		curProject = nullptr;

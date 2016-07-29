@@ -17,20 +17,19 @@
     Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
     USA
 */
-#include "Kite/Core/graphic/kvertexarray.h"
-#include "src/Kite/Core/graphic/glcall.h"
+#include "Kite/graphic/kvertexarray.h"
+#include "src/Kite/graphic/glcall.h"
 
 namespace Kite{
     U32 KVertexArray::_klastArrayId = 0;
     KVertexArray::KVertexArray():
-		KCoreInstance(KCI_VAO),
         _karrayId(0)
     {
         DGL_CALL(glGenVertexArrays(1, &_karrayId));
     }
 
-    void KVertexArray::setAttribute(U16 Index, KAttributeCountTypes Count,
-                                KAttributeTypeTypes Type, bool Normalized,
+    void KVertexArray::setAttribute(U16 Index, AttributeCount Count,
+                                AttributeType Type, bool Normalized,
                                 I32 StrideSize, void * Offset){
         static GLenum type[] = {GL_BYTE,
                                 GL_UNSIGNED_BYTE,
@@ -39,7 +38,7 @@ namespace Kite{
                                 GL_FIXED,
                                 GL_FLOAT};
 
-        DGL_CALL(glVertexAttribPointer(Index, Count, type[Type], Normalized, StrideSize, (const GLvoid *)Offset));
+        DGL_CALL(glVertexAttribPointer(Index, (U8)Count, type[(U8)Type], Normalized, StrideSize, (const GLvoid *)Offset));
     }
 
     void KVertexArray::enableAttribute(U16 Index){

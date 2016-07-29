@@ -109,9 +109,8 @@ signals:
 		Q_OBJECT
 	public:
 		KSTR(Kite::KComponent *Comp, const QString &PName, QWidget *Parent,
-			 bool ROnly = false, const QString &ResType = "", bool IsRes = false,
-			 const QHash<QString, Kite::KResource *> *Dictionary = nullptr) :
-			KProp(Parent), pname(PName), isRes(IsRes), resDict(Dictionary){
+			 bool ROnly = false, const QString &ResType = "", bool IsRes = false) :
+			KProp(Parent), pname(PName), isRes(IsRes){
 			ptype = Comp->getType().c_str();
 			auto hlayout = new QHBoxLayout(this);
 			hlayout->setMargin(0);
@@ -132,6 +131,7 @@ signals:
 				hlayout->addWidget(ledit);
 			} else {
 				combo = new QComboBox(Parent);
+				combo->addItem(initeVal.as<std::string>().c_str());
 				combo->setCurrentText(initeVal.as<std::string>().c_str());
 				combo->setObjectName(ResType);
 				combo->installEventFilter(this);
@@ -145,10 +145,13 @@ signals:
 
 		void reset(Kite::KComponent *Comp) override {
 			auto val = Comp->getProperty(pname.toStdString());
+			combo->clear();
 			if (isRes) {
 				if (val.as<std::string>().empty()) {
+					combo->addItem("");
 					combo->setCurrentText("");
 				} else {
+					combo->addItem(val.as<std::string>().c_str());
 					combo->setCurrentText(val.as<std::string>().c_str());
 				}
 			} else {
@@ -158,6 +161,7 @@ signals:
 
 signals:
 		void propertyEdited(const QString &PType, const QString &PName, QVariant &Val);
+		void updateResList(const QString &Type, QStringList &List);
 
 		private slots :
 		void valueChanged(const QString &Val) {
@@ -168,25 +172,16 @@ signals:
 
 	protected:
 		bool eventFilter(QObject *Obj, QEvent *Event) {
-			if (resDict != nullptr) {
-				if (Event->type() == QEvent::MouseButtonPress) {
-					auto text = combo->currentText();
-					combo->clear();
-					auto type = combo->objectName();
+			static QStringList resList;
+			if (Event->type() == QEvent::MouseButtonPress) {
+				auto text = combo->currentText();
+				combo->clear();
+				auto type = combo->objectName();
 
-					if (resDict != nullptr) {
-						QStringList items;
-						items.push_back("");
-						for (auto it = resDict->cbegin(); it != resDict->cend(); ++it) {
-							if ((*it)->getType().c_str() == type) {
-								items.push_back(it.key());
-							}
-						}
-
-						combo->addItems(items);
-						combo->setCurrentText(text);
-					}
-				}
+				emit(updateResList(combo->objectName(), resList));
+				combo->addItem(""); // empty res
+				combo->addItems(resList);
+				combo->setCurrentText(text);
 			}
 			return false;
 		}
@@ -197,7 +192,6 @@ signals:
 		QComboBox *combo;
 		QString pname;
 		QString ptype;
-		const QHash<QString, Kite::KResource *> *resDict;
 	};
 
 	// I32
@@ -433,11 +427,12 @@ signals:
 class ComponentView : public QFrame {
 	Q_OBJECT
 public:
-	ComponentView(Kite::KComponent *Component, QWidget *Parent, const QHash<QString, Kite::KResource *> *Dictionary);
+	ComponentView(Kite::KComponent *Component, QWidget *Parent);
 
 Q_SIGNALS:
 	void componentEdited(Kite::KHandle Chandle, const QString &CType, const QString &Pname, QVariant &Value);
 	void resetSig(Kite::KComponent *Comp);
+	void updateResList(const QString &Type, QStringList &List);
 
 public slots:
 void reset(Kite::KComponent *Comp);
@@ -458,6 +453,5 @@ private:
 
 	void createGUI(Kite::KComponent *Comp, const Kite::KMetaProperty *Meta, QFormLayout *Layout);
 	Kite::KHandle compHandle;
-	const QHash<QString, Kite::KResource *> *resDict;
 };
 #endif // COMPROPERTY_H

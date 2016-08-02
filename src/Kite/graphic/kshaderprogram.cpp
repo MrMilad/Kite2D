@@ -69,7 +69,8 @@ namespace Kite{
 		return true;
 	}
 
-	bool KShaderProgram::_loadStream(KIStream *Stream, const std::string &Address, U32 Flag) {
+	bool KShaderProgram::_loadStream(KIStream *Stream, const std::string &Address) {
+		setModified(true);
 		setInite(false);
 
 		if (!Stream->isOpen()) {
@@ -116,7 +117,7 @@ namespace Kite{
 		return true;
 	}
 
-	bool KShaderProgram::_saveStream(KOStream *Stream, const std::string &Address, U32 Flag) {
+	bool KShaderProgram::_saveStream(KOStream *Stream, const std::string &Address) {
 		KBinarySerial bserial;
 		bserial << std::string("KSHProg");
 		bserial << _kattribList;
@@ -140,12 +141,19 @@ namespace Kite{
 		return true;
 	}
 
-	bool KShaderProgram::setShader(KShader *Shader){
-		if (Shader->getShaderType() == ShaderType::VERTEX) {
+	bool KShaderProgram::setShader(KShader *Shader, ShaderType Type){
+		setModified(true);
+		if (Shader != nullptr) {
+			if (Shader->getShaderType() != Type) {
+				KD_PRINT("shader type missmatch.");
+				return false;
+			}
+		}
+		if (Type == ShaderType::VERTEX) {
 			_kvert = Shader;
-		} else if (Shader->getShaderType() == ShaderType::FRAGMENT) {
+		} else if (Type == ShaderType::FRAGMENT) {
 			_kfrag = Shader;
-		} else if (Shader->getShaderType() == ShaderType::GEOMETRY) {
+		} else if (Type == ShaderType::GEOMETRY) {
 			_kgeom = Shader;
 		} else {
 			KD_PRINT("incorrect shader type.");
@@ -167,6 +175,7 @@ namespace Kite{
 	}
 
 	void KShaderProgram::bindAttribute(U16 Index, const std::string &Name){
+		setModified(true);
 		_kattribList.push_back({ Index, Name });
 	}
 

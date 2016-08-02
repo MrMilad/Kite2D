@@ -41,14 +41,6 @@ namespace Kite{
 		KResourceManager();
 		~KResourceManager();
 
-		bool registerIStream(const std::string &SType, KIStream *(*Func)());
-
-		bool registerResource(const std::string &RType, KResource *(*Func)(const std::string &), bool CatchStream);
-
-		void setDictionary(const std::unordered_map<std::string, std::string> *Dictionary);
-
-		inline const auto getDictionary() const { return _kdict; }
-
 		KM_FUN()
 		KResource *create(const std::string &RType, const std::string &Name);
 
@@ -56,7 +48,7 @@ namespace Kite{
 		/// S: stream type
 		/// this function can use same as get function but will increment ref counter of source with each call
 		KM_FUN()
-		KResource *load(const std::string &SType, const std::string &RType, const std::string &Address, U32 Flag = 0);
+		KResource *load(const std::string &SType, const std::string &RType, const std::string &Address);
 
 		/// add a loadded resource to resource manager
 		/// pass stream if resource hase a catched stream 
@@ -68,9 +60,18 @@ namespace Kite{
 		KM_FUN()
 		KResource *get(const std::string &Address);
 
-		/// unload any resource with any type
+		/// unload any resource with any type.
+		/// Immediately: ref counter will ignored and resource will deleted immediately if passed true
+		/// so careful about pointer dangling 
 		KM_FUN()
-		void unload(const std::string &Address);
+		void unload(const std::string &Address, bool Immediately = false);
+
+		bool saveDictionary(KOStream *Stream, const std::string &Address);
+
+		bool loadDictionary(KIStream *Stream, const std::string &Address);
+
+		inline const auto getDictionary() const { return &_kdict; }
+
 
 		const std::vector<KResource *> &dump();
 
@@ -82,11 +83,15 @@ namespace Kite{
 		KM_FUN()
 		void clear();
 
+		bool registerIStream(const std::string &SType, KIStream *(*Func)());
+
+		bool registerResource(const std::string &RType, KResource *(*Func)(const std::string &), bool CatchStream);
+
 	private:
 		
 		bool loadCompositeList(KResource *Res, KIStream *Stream, const std::string &Address, U32 Flag = 0);
 
-		const std::unordered_map<std::string, std::string> *_kdict;
+		std::unordered_map<std::string, std::string> _kdict;
 		std::unordered_map<std::string, std::pair<KResource *, KIStream *>> _kmap;
 		std::unordered_map<std::string, std::pair<KResource *(*)(const std::string &), bool>> _krfactory;
 		std::unordered_map<std::string, KIStream *(*)()> _ksfactory;

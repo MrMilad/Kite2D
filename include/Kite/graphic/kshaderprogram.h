@@ -51,7 +51,8 @@ namespace Kite{
 		KShaderProgram(const std::string &Name);
 		~KShaderProgram();
 
-		bool setShader(KShader *Shader);
+		/// pass nullptr for removing current shader
+		bool setShader(KShader *Shader, ShaderType Type);
 
 		const KShader *getShader(ShaderType Type);
 
@@ -157,8 +158,8 @@ namespace Kite{
 		inline U32 getGLID() const { return _kprogId; }
 
 	private:
-		bool _saveStream(KOStream *Stream, const std::string &Address, U32 Flag = 0) override;
-		bool _loadStream(KIStream *Stream, const std::string &Address, U32 Flag = 0) override;
+		bool _saveStream(KOStream *Stream, const std::string &Address) override;
+		bool _loadStream(KIStream *Stream, const std::string &Address) override;
 
 		U32 _kprogId;				//!< ID of shader program
 		static U32 _klastProgId;	//!< Last id of shader program 

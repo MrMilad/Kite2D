@@ -20,15 +20,14 @@ USA
 #include "Kite/core/kresourcemanager.h"
 #include "Kite/meta/kmetamanager.h"
 #include "Kite/meta/kmetaclass.h"
-#include "Kite/serialization/types/kstdstring.h"
-#include "Kite/serialization/types/kstdvector.h"
-#include "Kite/serialization/types/kstdpair.h"
 #include "Kite/serialization/kbinaryserial.h"
+#include "Kite/serialization/types/kstdstring.h"
+#include "Kite/serialization/types/kstdumap.h"
+#include "Kite/serialization/types/kstdpair.h"
 #include <luaintf\LuaIntf.h>
 
 namespace Kite {
-	KResourceManager::KResourceManager() :
-		_kdict(nullptr) {}
+	KResourceManager::KResourceManager(){}
 
 	KResourceManager::~KResourceManager(){
 		clear();
@@ -56,10 +55,6 @@ namespace Kite {
 		return true;
 	}
 
-	void KResourceManager::setDictionary(const std::unordered_map<std::string, std::string> *Dictionary) {
-		_kdict = Dictionary;
-	}
-
 	KResource *KResourceManager::create(const std::string &RType, const std::string &Name) {
 		auto factory = _krfactory.find(RType);
 		if (factory == _krfactory.end()) {
@@ -72,7 +67,7 @@ namespace Kite {
 	}
 
 	KResource *KResourceManager::load(const std::string &SType, const std::string &RType,
-									  const std::string &Address, U32 Flag){
+									  const std::string &Address){
 		// check for stream factory methode
 		auto sfactory = _ksfactory.find(SType);
 		if (sfactory == _ksfactory.end()) {
@@ -96,14 +91,14 @@ namespace Kite {
 		}
 
 		// first check our dictionary
+		bool isOnDict = false;
 		std::string ResName = Address;
-		if (_kdict != nullptr) {
-			auto dfound = _kdict->find(Address);
+		auto dfound = _kdict.find(Address);
 
-			// using dictionary key
-			if (dfound != _kdict->end()) {
-				ResName = dfound->second;
-			}
+		// using dictionary key
+		if (dfound != _kdict.end()) {
+			isOnDict = true;
+			ResName = dfound->second;
 		}
 
 		// create key from file name
@@ -131,6 +126,7 @@ namespace Kite {
 
 		// create new resource and assocated input stream
 		KResource *resource = rfactory->second.first(finfo.name);
+		resource->setModified(true);
 
 		// loading composite resources (recursive)
 		if (resource->isComposite()) {
@@ -142,7 +138,7 @@ namespace Kite {
 			}
 		}
 
-		if (!resource->_loadStream(stream, ResName, Flag)) {
+		if (!resource->_loadStream(stream, ResName)) {
 			KD_FPRINT("can't load resource. rname: %s", ResName.c_str());
 			delete resource;
 			delete stream;
@@ -163,8 +159,11 @@ namespace Kite {
 		// increment refrence count
 		resource->incRef();
 
-		// insert resource to name/map
+		// insert resource to address/map
 		_kmap.insert({ tempKey, pair });
+
+		// insert resource to name dictionary (will override last address with same name)
+		_kdict.insert({ finfo.name, finfo.fullPath });
 
 		// post a message about new resource
 		KMessage msg;
@@ -222,13 +221,10 @@ namespace Kite {
 		// first check our dictionary
 		std::string ResName = Name;
 
-		if (_kdict != nullptr) {
-			auto dfound = _kdict->find(ResName);
-
-			// using dictionary key
-			if (dfound != _kdict->end()) {
-				ResName = dfound->second;
-			}
+		auto dfound = _kdict.find(ResName);
+		// using dictionary key
+		if (dfound != _kdict.end()) {
+			ResName = dfound->second;
 		}
 
 		// create key from file name
@@ -245,7 +241,7 @@ namespace Kite {
 		return nullptr;
 	}
 
-	void KResourceManager::unload(const std::string &Name) {
+	void KResourceManager::unload(const std::string &Name, bool Immediately) {
 		// checking file name
 		if (Name.empty()) {
 			KD_PRINT("empty resource name is not valid");
@@ -255,13 +251,10 @@ namespace Kite {
 		// first check our dictionary
 		std::string ResName = Name;
 		
-		if (_kdict != nullptr) {
-			auto dfound = _kdict->find(ResName);
-
-			// using dictionary key
-			if (dfound != _kdict->end()) {
-				ResName = dfound->second;
-			}
+		auto dfound = _kdict.find(ResName);
+		// using dictionary key
+		if (dfound != _kdict.end()) {
+			ResName = dfound->second;
 		}
 
 
@@ -275,7 +268,7 @@ namespace Kite {
 			found->second.first->decRef();
 
 			// check resource count
-			if (found->second.first->getReferencesCount() == 0) {
+			if (found->second.first->getReferencesCount() == 0 || Immediately) {
 
 				// post a message about unloaded resource
 				KMessage msg;
@@ -293,6 +286,7 @@ namespace Kite {
 				}
 
 				// erase pair from catch
+				// we dont need remove it from name\dictionary
 				_kmap.erase(found);
 			}
 		}
@@ -308,6 +302,30 @@ namespace Kite {
 		}
 
 		return res;
+	}
+
+	bool KResourceManager::saveDictionary(KOStream *Stream, const std::string &Address) {
+		KBinarySerial bserial;
+		bserial << _kdict;
+
+		if (!bserial.saveStream(Stream, Address, 0)) {
+			KD_FPRINT("cant save resource dictionary. address: %s", Address.c_str());
+			return false;
+		}
+
+		return true;
+	}
+
+	bool KResourceManager::loadDictionary(KIStream *Stream, const std::string &Address) {
+		KBinarySerial bserial;
+		if (!bserial.loadStream(Stream, Address)) {
+			KD_FPRINT("cant load resource dictionary. address: %s", Address.c_str());
+			return false;
+		}
+
+		bserial >> _kdict;
+
+		return true;
 	}
 
 	const std::vector<std::string> &KResourceManager::getRegisteredTypes() {
@@ -349,6 +367,7 @@ namespace Kite {
 
 		// clear map
 		_kmap.clear();
+		_kdict.clear();
 	}
 
 	bool KResourceManager::loadCompositeList(KResource *Res, KIStream *Stream, const std::string &Address, U32 Flag) {
@@ -373,7 +392,7 @@ namespace Kite {
 			if (comp == nullptr) {
 
 				// case 2: then we try load it based parrent address
-				auto comp = load(Stream->getType(), it->second, finfo.path + "\\" + it->first);
+				comp = load(Stream->getType(), it->second, finfo.path + "\\" + it->first);
 				if (comp == nullptr) {
 					KD_FPRINT("cant load composite resource. composite name: %s", it->first.c_str());
 					return false;

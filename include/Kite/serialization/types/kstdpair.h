@@ -22,6 +22,7 @@ USA
 
 #include "Kite/core/kcoredef.h"
 #include "Kite/serialization/kbaseserial.h"
+#include "Kite/serialization/kserialization.h"
 #include <utility>
 
 namespace Kite {

@@ -8,6 +8,7 @@
 #include <climits>
 #include "frmnewproj.h"
 #include "frmprojsettings.h"
+#include "frmabout.h"
 #include "comproperty.h"
 #include <Kite/serialization/kbinaryserial.h>
 #include <Kite/serialization/types/kstdstring.h>
@@ -40,6 +41,20 @@ MainWindow::MainWindow(QWidget *parent)
 
 MainWindow::~MainWindow()
 {}
+
+void MainWindow::toggleFullScreen() {
+	if (this->isFullScreen()) {
+		this->showMaximized();
+
+	} else {
+		this->showFullScreen();
+	}
+}
+
+void MainWindow::aboutDialogue() {
+	static frmAbout *about = new frmAbout(this);
+	about->exec();
+}
 
 void MainWindow::showSwitchOutput() {
 	if (outDock->isHidden()) {
@@ -116,11 +131,12 @@ void MainWindow::setupDocks(){
 }
 
 void MainWindow::setupScene(){
-	mainTab = new MainTab(this);
-	mainTab->setCompleterModel(kinfo->getModel());
+	mainTab = new MainTab(kinfo, this);
 	connect(resDock, &ResourceDock::resourceSelected, mainTab, &MainTab::selectResource);
 	connect(resDock, &ResourceDock::resourceEdit, mainTab, &MainTab::openTabs);
 	connect(resDock, &ResourceDock::resourceDelete, mainTab, &MainTab::closeResource);
+	connect(mainTab, &MainTab::requestResList, resDock, &ResourceDock::filterByTypeRes);
+	connect(mainTab, &MainTab::requestRes, resDock, &ResourceDock::getResource);
 
     sceneView = new QGraphicsView();
 	mainTab->addTab(sceneView, "Scene");
@@ -136,6 +152,9 @@ void MainWindow::setupScene(){
 }
 
 void MainWindow::setupActions() {
+	showAbout = new QAction("About Kite2D Game Editor", this);
+	connect(showAbout, &QAction::triggered, this, &MainWindow::aboutDialogue);
+
 	newProj = new QAction(QIcon(":/icons/new"), "New Project", this);
 	newProj->setShortcut(QKeySequence(Qt::CTRL + Qt::SHIFT + Qt::Key_N));
 	newProj->setShortcutContext(Qt::ApplicationShortcut);
@@ -187,10 +206,29 @@ void MainWindow::setupActions() {
 
 void MainWindow::setupMenus(){
 	// menu bar
-	menuBar()->setStyleSheet("QMenu::separator {\n"
-							 "height: 1px;\n"
-							 "background: rgb(129, 129, 129);\n"
-							 "margin-left: 25px;}");
+	menuBar()->setStyleSheet("QMenuBar { border: 0px; }\n"
+							 "QMenu::separator { height: 1px;\n background: rgb(129, 129, 129);\n margin-left: 25px;}");
+
+	// menuba main frame
+	auto mframe = new QFrame(this);
+	auto hlayout = new QHBoxLayout(mframe);
+	hlayout->setMargin(0);
+
+	// fullscreen exit
+	auto fscreenExit = new QToolButton(this);
+	fscreenExit->setDefaultAction(exit);
+	fscreenExit->setAutoRaise(true);
+
+	// notifications
+	auto btnNotify = new QToolButton(this);
+	btnNotify->setIcon(QIcon(":/icons/notifi"));
+	btnNotify->setToolTip("Notifications");
+	btnNotify->setAutoRaise(true);
+	btnNotify->setDisabled(true);
+
+	hlayout->addWidget(btnNotify);
+	hlayout->addWidget(fscreenExit);
+	menuBar()->setCornerWidget(mframe);
 
 	// file
     fileMenu = menuBar()->addMenu(tr("&File"));
@@ -203,6 +241,14 @@ void MainWindow::setupMenus(){
 	fileMenu->addSeparator();
 	fileMenu->addAction(exit);
 
+	// view
+	winMenu = menuBar()->addMenu(tr("&View"));
+	auto fscreen = winMenu->addAction("Full Screen (Toggle)");
+	fscreen->setShortcut(QKeySequence(Qt::CTRL + Qt::ALT + Qt::Key_F));
+	fscreen->setShortcutContext(Qt::ApplicationShortcut);
+	this->addAction(fscreen);
+	connect(fscreen, &QAction::triggered, this, &MainWindow::toggleFullScreen);
+
 	// test
 	fileMenu = menuBar()->addMenu(tr("&Test"));
 	fileMenu->addAction(playScene);
@@ -211,12 +257,15 @@ void MainWindow::setupMenus(){
 
 	// window
 	winMenu = menuBar()->addMenu(tr("&Window"));
+	winMenu->addSeparator();
+	winMenu->addAction(showAbout);
 
 }
 
 void MainWindow::setupToolbar(){
     fileTolb = addToolBar(tr("Toolbar"));
 	fileTolb->setObjectName("Toolbar");
+	fileTolb->setStyleSheet("QToolBar { border: 0px }");
 	fileTolb->addAction(newProj);
 	fileTolb->addAction(openProj);
 	fileTolb->addSeparator();
@@ -231,7 +280,7 @@ void MainWindow::setupToolbar(){
 
 void MainWindow::setupStatusBar() {
 	auto klabel = new QLabel(this);
-	klabel->setText("Kite2D ver " + QString::number(K2D_VER_MAJ) +
+	klabel->setText("Kite2D Game Editor ver " + QString::number(K2D_VER_MAJ) +
 					"." + QString::number(K2D_VER_MIN) +
 					"." + QString::number(K2D_VER_BUILD));
 	klabel->setStyleSheet("color: orange;");
@@ -316,27 +365,33 @@ void MainWindow::saveXML(QIODevice *device, const QString &Address){
 	stream.writeEndElement(); // config
 
 	// resources
-	/*stream.writeStartElement("resources");
-	auto resDict = resDock->getDictionary();
-	for (auto it = resDict->cbegin(); it != resDict->cend(); ++it) {
-		KFOStream fstream;
-		(*it)->saveStream(&fstream, Address.toStdString() + "/resources/" + it.key().toStdString());
-		fstream.close();
+	KFOStream fstream;
+	std::unordered_map<std::string, std::string> dict;
+	stream.writeStartElement("resources");
+	auto resList = resDock->dumpResource();
+	for (auto it = resList.cbegin(); it != resList.cend(); ++it) {
+		dict.insert({ (*it)->getName(), Address.toStdString() + "/resources/" + (*it)->getName() });
 
-		Kite::KBinarySerial bserial;
-		bserial << *resDock->getKiteDictionary(Address + "/");
-		bserial.saveStream(&fstream, Address.toStdString() + "/dict.kdict", 0);
+		if ((*it)->isModified()) {
+			(*it)->saveStream(&fstream, Address.toStdString() + "/resources/" + (*it)->getName());
+		}
 
 		stream.writeStartElement("item");
-		stream.writeAttribute("name", it.key());
+		stream.writeAttribute("name", (*it)->getName().c_str());
 		stream.writeAttribute("type", (*it)->getType().c_str());
 		stream.writeEndElement();
-	}*/
+	}
 
 	stream.writeEndElement(); // resources
 
 	stream.writeEndElement(); // k2dproject
 	stream.writeEndDocument();
+
+	// save dictinary
+	Kite::KBinarySerial bserial;
+	bserial << dict;
+	bserial.saveStream(&fstream, Address.toStdString() + "/dict.kdict", 0);
+	curProject->config.dictionary = Address.toStdString() + "/dict.kdict";
 }
 
 bool MainWindow::loadXML(QIODevice *device, const QString &Address) {
@@ -351,7 +406,7 @@ bool MainWindow::loadXML(QIODevice *device, const QString &Address) {
 			curProject->name = xml.attributes().value("name").toString();
 			curProject->Path = finfo.path();
 			curProject->resPath = finfo.path() + "/resources";
-			curProject->config.dictionary = finfo.path().toStdString() + "/dict.kdict";
+			//curProject->config.dictionary = finfo.path().toStdString() + "/dict.kdict";
 			head = true;
 		}
 
@@ -407,6 +462,8 @@ bool MainWindow::loadXML(QIODevice *device, const QString &Address) {
 					}
 				}
 			}
+			// reset resource modify value
+			resDock->resetModify();
 		}
 	}
 

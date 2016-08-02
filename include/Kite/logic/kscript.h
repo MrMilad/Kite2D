@@ -36,14 +36,14 @@ namespace Kite {
 
 		bool inite() override;
 
-		inline void setCode(const std::string &Code) { _kcode = Code; }
+		inline void setCode(const std::string &Code) { _kcode = Code; setModified(true); }
 
 		inline const std::string &getCode() const { return _kcode; }
 
 	private:
-		bool _saveStream(KOStream *Stream, const std::string &Address, U32 Flag = 0) override;
+		bool _saveStream(KOStream *Stream, const std::string &Address) override;
 
-		bool _loadStream(KIStream *Stream, const std::string &Address, U32 Flag = 0) override;
+		bool _loadStream(KIStream *Stream, const std::string &Address) override;
 
 		std::string _kcode;
 	};

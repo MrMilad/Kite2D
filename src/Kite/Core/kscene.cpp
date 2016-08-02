@@ -30,8 +30,7 @@ USA
 
 namespace Kite {
 	KScene::KScene(const std::string &Name) :
-		KResource(Name, false),
-		_kloaded(false) 
+		KResource(Name, false)
 	{
 		// dont need initialize
 		setInite(true);
@@ -39,7 +38,8 @@ namespace Kite {
 
 	KScene::~KScene() {}
 
-	bool KScene::_loadStream(KIStream *Stream, const std::string &Address, U32 Flag) {
+	bool KScene::_loadStream(KIStream *Stream, const std::string &Address) {
+		setModified(true);
 		if (!Stream->isOpen()) {
 			Stream->close();
 		}
@@ -51,7 +51,6 @@ namespace Kite {
 
 		KBinarySerial bserial;
 		if (!bserial.loadStream(Stream, Address)) {
-			_kloaded = false;
 			KD_PRINT("can't load stream");
 			Stream->close();
 			return false;
@@ -69,7 +68,6 @@ namespace Kite {
 		bserial >> _kres;
 		bserial >> _keman;
 
-		_kloaded = true;
 		Stream->close();
 		return true;
 	}
@@ -78,7 +76,7 @@ namespace Kite {
 		return true;
 	}
 
-	bool KScene::_saveStream(KOStream *Stream, const std::string &Address, U32 Flag) {
+	bool KScene::_saveStream(KOStream *Stream, const std::string &Address) {
 		KBinarySerial bserial;
 		bserial << std::string("KScene");
 		bserial << _kres;
@@ -94,22 +92,25 @@ namespace Kite {
 		return true;
 	}
 
-	bool KScene::addResource(const std::string &RName, const std::string &RType, U32 Flag) {
+	bool KScene::addResource(const std::string &RName, const std::string &RType) {
+		setModified(true);
 		auto found = _kres.find(RName);
 		if (found != _kres.end()) {
 			KD_FPRINT("this resource is exist. rname: %s", RName.c_str());
 			return false;
 		}
 
-		_kres.insert({ RName, {RType, Flag}});
+		_kres.insert({ RName, RType});
 		return true;
 	}
 
 	void KScene::removeResource(const std::string &RName) {
+		setModified(true);
 		_kres.erase(RName);
 	}
 
 	void KScene::clearResources() {
+		setModified(true);
 		_kres.clear();
 	}
 

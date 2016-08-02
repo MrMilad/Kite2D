@@ -76,16 +76,16 @@ namespace Kite{
 		*/
 		bool loadStream(KIStream *Stream, const std::string& Address);
 
-		//! Load the image to a file on disk
+		//! Encode and write pixels to output stream.
 		/*!
 			Supported formats: PNG, BMP, TGA.
-			if this function fails, the image is left unchanged.
 
+			\param Stream Input stream.
 			\param FileName Address of the file on the disk
 
 			\return True if saving was successful
 		*/
-        bool save(const std::string &FileName);
+        bool saveStream(KOStream *Stream, const std::string& Address);
 
 		//! Create a transparency mask from a specified color - key
 		/*!

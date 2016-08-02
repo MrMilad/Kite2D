@@ -39,13 +39,20 @@ SOURCES += main.cpp\
     maintab.cpp\
     completer.cpp\
     kiteinfo.cpp\
-    highlighter.cpp \
     frmprojsettings.cpp \
     executer.cpp\
     outputdock.cpp \
     frmexeorder.cpp \
     frmaddobj.cpp \
-    frmnewres.cpp
+    frmnewres.cpp \
+    frmabout.cpp \
+    luaeditor.cpp \
+    tabwidget.cpp \
+    luahlight.cpp \
+    glsleditor.cpp \
+    glslhlight.cpp \
+    shprogeditor.cpp \
+    textureeditor.cpp
 
 HEADERS  += mainwindow.h \
     shared.h \
@@ -60,13 +67,20 @@ HEADERS  += mainwindow.h \
     maintab.h\
     completer.h\
     kiteinfo.h\
-    highlighter.h \
     frmprojsettings.h \
     executer.h\
     outputdock.h \
     frmexeorder.h \
     frmaddobj.h \
-    frmnewres.h
+    frmnewres.h \
+    frmabout.h \
+    tabwidget.h \
+    luaeditor.h \
+    luahlight.h \
+    glsleditor.h \
+    glslhlight.h \
+    shprogeditor.h \
+    textureeditor.h
 
 RESOURCES += \
     res.qrc
@@ -76,4 +90,5 @@ FORMS += \
     frmprojsettings.ui \
     frmexeorder.ui \
     frmaddobj.ui \
-    frmnewres.ui
+    frmnewres.ui \
+    frmabout.ui

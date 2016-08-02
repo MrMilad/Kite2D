@@ -21,6 +21,10 @@
 #include "src/Kite/graphic/imageio.h"
 #include <string>
 #include <algorithm>
+#define STBI_ONLY_PNG
+#define STBI_ONLY_BMP
+#define STBI_ONLY_TGA
+#define STB_IMAGE_IMPLEMENTATION
 #include "extlibs/headers/stb_image.h"
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #include "extlibs/headers/stb_image_write.h"
@@ -108,6 +112,7 @@ namespace Internal{
 
 		// read the image data and get a pointer to the pixels in memory
 		I32 width, height, channels;
+		//U8* pixPtr = stbi_load(Address.c_str(), &width, &height, &channels, STBI_rgb_alpha);
 		U8* pixPtr = stbi_load_from_callbacks(&_kcallb, (void *)Stream, &width, &height, &channels, STBI_rgb_alpha);
 		Stream->close();
 
@@ -162,18 +167,80 @@ namespace Internal{
 		return false;
     }
 
+	bool ImageIO::writeToStream(KOStream *Stream, const std::string &Address, const std::vector<U8> &Pixels, const KVector2U32 &Size) {
+
+		// check stream
+		if (!Stream->isOpen()) {
+			Stream->close();
+		}
+
+		// open stream in binary mode
+		if (!Stream->open(Address, IOMode::BIN)) {
+			KD_FPRINT("can't open stream. address: %s", Address.c_str());
+			return false;
+		}
+
+		KFileInfo finfo;
+		Stream->getFileInfoStr(Address, finfo);
+
+		// make sure the image is not empty
+		if (!Pixels.empty() && (Size.x > 0) && (Size.y > 0)) {
+			// Deduce the image type from its extension
+			if (finfo.name.size() > 3) {
+				// Extract the extension
+				std::string extension = finfo.name.substr(finfo.name.size() - 3);
+
+				toLower(extension);
+				if (extension == "bmp") {
+					// BMP format
+					if (!stbi_write_bmp_to_func(_write, Stream, Size.x, Size.y, 4, &Pixels[0])) {
+						KD_PRINT("Failed to write image");
+						Stream->close();
+						return false;
+					}
+				} else if (extension == "tga") {
+					// TGA format
+					if (!stbi_write_tga_to_func(_write, Stream, Size.x, Size.y, 4, &Pixels[0])) {
+						KD_PRINT("Failed to write image");
+						Stream->close();
+						return false;
+					}
+				} else if (extension == "png") {
+					// PNG format
+					if (!stbi_write_png_to_func(_write, Stream, Size.x, Size.y, 4, &Pixels[0], 0)){
+						KD_PRINT("Failed to write image");
+						Stream->close();
+						return false;
+					}
+				} else {
+					KD_FPRINT("this format is not supported. format: %s", extension.c_str());
+					Stream->close();
+					return false;
+				}
+			}
+		}
+
+		Stream->close();
+		return true;
+	}
+
     // Convert a string to lower case
     void ImageIO::toLower(std::string &str){
 		std::transform(str.begin(), str.end(), str.begin(), ::tolower);
     }
 
+	void ImageIO::_write(void *user, void *data, int size) {
+		KOStream *stream = (KOStream *)user;
+		stream->write(data, size);
+	}
+
 	int ImageIO::_read(void *user, char *data, int size){
 		KIStream *stream = (KIStream *)user;
 		return (int)stream->read(data, size);
 	}
-	void ImageIO::_skip(void *user, unsigned n){
+	void ImageIO::_skip(void *user, int n){
 		KIStream *stream = (KIStream *)user;
-		stream->seek(stream->tell() + n, SEEK_CUR);
+		stream->seek(n, SEEK_CUR);
 	}
 
 	int ImageIO::_eof(void *user){

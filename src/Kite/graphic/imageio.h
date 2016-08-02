@@ -25,6 +25,7 @@
 #include "Kite/core/knoncopyable.h"
 #include "Kite/math/kmathstructs.h"
 #include "Kite/Core/kistream.h"
+#include "Kite/Core/kostream.h"
 #include <string>
 #include <vector>
 
@@ -85,8 +86,9 @@ namespace Internal{
 
 			\return True if saving was successful
 		*/
-		static bool writeToFile(const std::string &FileName, const std::vector<U8> &Pixels,
-                         const KVector2U32 &Size);
+		static bool writeToFile(const std::string &FileName, const std::vector<U8> &Pixels, const KVector2U32 &Size);
+
+		static bool writeToStream(KOStream *Stream, const std::string &Address, const std::vector<U8> &Pixels, const KVector2U32 &Size);
 
 		//! Convert a string to lower case. this is a utility function.
 		/*!
@@ -95,9 +97,10 @@ namespace Internal{
         static void toLower(std::string &String);
 
 	private:
-		static int _read(void *user, char *data, int size);   // fill 'data' with 'size' bytes.  return number of bytes actually read 
-		static void _skip(void *user, unsigned n);            // skip the next 'n' bytes
-		static int _eof(void *user);                       // returns nonzero if we are at end of file/data
+		static void _write(void *user, void *data, int size);	// write 'size' byte of 'data'
+		static int _read(void *user, char *data, int size);		// fill 'data' with 'size' bytes.  return number of bytes actually read 
+		static void _skip(void *user, int n);					// skip the next 'n' bytes
+		static int _eof(void *user);							// returns nonzero if we are at end of file/data
     };
 }
 }

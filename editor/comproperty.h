@@ -18,7 +18,7 @@ namespace priv {
 		auto spin1 = new T();
 
 		spin1->setFixedWidth(80);
-		spin1->setStyleSheet("color: DarkViolet;");
+		//spin1->setStyleSheet("color: DarkViolet;");
 
 		// is unsigned
 		if (unsig) {
@@ -72,7 +72,7 @@ namespace priv {
 			if (ROnly) {
 				check->setCheckable(false);
 			}
-			check->setStyleSheet("color: DarkViolet;");
+			//check->setStyleSheet("color: DarkViolet;");
 			connect(check, &QCheckBox::stateChanged, this, &KBOOL::valueChanged);
 			hlayout->addWidget(check);
 			hlayout->addStretch(1);

@@ -99,7 +99,6 @@ namespace Kite {
 		std::vector<std::unique_ptr<KSystem>> _ksys;
 		bool _kinite;
 		KConfig _kconfig;
-		std::unordered_map<std::string, std::string> _kdict;
 		static bool deleted;
 		static KEngine *instance;
 #ifdef KITE_EDITOR // editor hooks

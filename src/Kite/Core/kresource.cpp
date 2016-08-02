@@ -28,6 +28,7 @@ USA
 
 namespace Kite {
 	KResource::KResource(const std::string &Name, bool IsComposite) :
+		_kisModified(false),
 		_kisInite(false),
 		_kcomposite(IsComposite),
 		_kname(Name),
@@ -35,13 +36,13 @@ namespace Kite {
 
 	KResource::~KResource() {};
 
-	bool KResource::saveStream(KOStream *Stream, const std::string &Address, U32 Flag) {
-		if (!_saveStream(Stream, Address, Flag)) {
+	bool KResource::saveStream(KOStream *Stream, const std::string &Address, bool SaveDependency) {
+		if (!_saveStream(Stream, Address)) {
 			return false;
 		}
 
 		if (isComposite()) {
-			if (!saveCompositeList(Stream, Address, Flag)) {
+			if (!saveCompositeList(Stream, Address, SaveDependency)) {
 				KD_PRINT("cant save composite resource list.");
 				return false;
 			}
@@ -49,7 +50,7 @@ namespace Kite {
 		return true;
 	}
 
-	bool KResource::saveCompositeList(KOStream *Stream, const std::string &Address, U32 Flag) {
+	bool KResource::saveCompositeList(KOStream *Stream, const std::string &Address, bool SaveDependency) {
 		if (!_kclist.empty()) {
 			// address info
 			KFileInfo finfo;
@@ -61,9 +62,11 @@ namespace Kite {
 				if ((*it) != nullptr) {
 
 					// save resource itself
-					if (!(*it)->saveStream(Stream, finfo.path + "\\" + (*it)->getName())) {
-						KD_FPRINT("cant save composite resource. rname: %s", (*it)->getName().c_str());
-						return false;
+					if (SaveDependency) {
+						if (!(*it)->saveStream(Stream, finfo.path + "\\" + (*it)->getName())) {
+							KD_FPRINT("cant save composite resource. rname: %s", (*it)->getName().c_str());
+							return false;
+						}
 					}
 
 					// save resource info

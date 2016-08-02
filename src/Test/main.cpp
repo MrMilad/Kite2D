@@ -2,6 +2,7 @@
 #include <Kite/graphic/kshaderprogram.h>
 #include <Kite/graphic/ktexture.h>
 #include <time.h>
+#include <Kite/graphic/kimage.h>
 
 using namespace Kite;
 
@@ -20,9 +21,11 @@ int main() {
 
 	engine->inite(sc, false);
 
-	//auto tex = (KTexture *)rman.create("KTexture", "text");
-	auto tex = rman.load("KFIStream", "KTexture",  "C:\\Users\\_M1L4D_\\Desktop\\hh\\resources\\qwe");
-	tex->inite();
+	//auto pre = rman.create("KTexture", "texure");
+	//pre->saveStream(&stream, "e:\\tex.tex");
+	auto tex = rman.load("KFIStream", "KTexture", "e:\\tex.tex");
+	tex->saveStream(&stream, "f:\\test.tex");
+	//tex->inite();
 
 	engine->start();
 

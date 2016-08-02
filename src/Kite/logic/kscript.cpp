@@ -34,7 +34,8 @@ namespace Kite {
 		return true;
 	}
 
-	bool KScript::_loadStream(KIStream *Stream, const std::string &Address, U32 Flag) {
+	bool KScript::_loadStream(KIStream *Stream, const std::string &Address) {
+		setModified(true);
 		_kcode.clear();
 
 		if (!Stream->isOpen()) {
@@ -63,7 +64,7 @@ namespace Kite {
 		return true;
 	}
 
-	bool KScript::_saveStream(KOStream *Stream, const std::string &Address, U32 Flag) {
+	bool KScript::_saveStream(KOStream *Stream, const std::string &Address) {
 		if (!Stream->isOpen()) {
 			Stream->close();
 		}

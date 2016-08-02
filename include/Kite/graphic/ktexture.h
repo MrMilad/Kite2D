@@ -73,6 +73,8 @@ namespace Kite{
 		*/
         void create(const KImage &Image, TextureFilter Filter, TextureWrap Wrap);
 
+		void getImage(KImage &ImageOutput);
+
 		bool inite() override;
 
 		//! Update whole or piece of texture with an image
@@ -141,8 +143,8 @@ namespace Kite{
 		static void unbindTexture();
 
     private:
-		bool _saveStream(KOStream *Stream, const std::string &Address, U32 Flag = 0) override;
-		bool _loadStream(KIStream *Stream, const std::string &Address, U32 Flag = 0) override;
+		bool _saveStream(KOStream *Stream, const std::string &Address) override;
+		bool _loadStream(KIStream *Stream, const std::string &Address) override;
 
 		//! create the texture (opengl)
         static void _create(const U8 *Data, const KVector2U32 &Size,

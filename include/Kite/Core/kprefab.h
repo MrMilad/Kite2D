@@ -17,53 +17,46 @@ License along with this library; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 USA
 */
-#ifndef KSCENE_H
-#define KSCENE_H
+#ifndef KPREFAB_H
+#define KPREFAB_H
 
 #include "Kite/core/kcoredef.h"
-#include "Kite/core/kentitymanager.h"
-#include "Kite/core/kresourcemanager.h"
 #include "Kite/core/kresource.h"
 #include "Kite/meta/kmetadef.h"
+#include "Kite/serialization/kbinaryserial.h"
 #include <string>
-#include <unordered_map>
-#include "kscene.khgen.h"
+#include "kprefab.khgen.h"
 
 KMETA
 namespace Kite {
 	KM_CLASS(RESOURCE, SCRIPTABLE)
-	class KITE_FUNC_EXPORT KScene : public KResource {
-		friend class KSceneManager;
-
-		// KM_INFO("CatchStream", "false"); // false by default
-		KMETA_KSCENE_BODY();
+	class KITE_FUNC_EXPORT KPrefab : public KResource {
+		friend class KEntityManager;
+		KMETA_KPREFAB_BODY();
 	public:
-		KScene(const std::string &Name);
-		~KScene();
+		KM_CON(std::string)
+		KPrefab(const std::string &Name);
+		~KPrefab();
 
 		bool inite() override;
 
-		KM_PRO_GET(KP_NAME = "entityManager", KP_TYPE = KEntityManager, KP_CM = "getting scene entity manager")
-		inline auto *getEManager() { return &_keman; }
+		KM_FUN()
+		void clear();
 
-		bool addResource(const std::string &RName, const std::string &RType);
+		KM_FUN()
+		inline const std::string &getCode() const { return _kcode; }
 
-		void removeResource(const std::string &RName);
-
-		void clearResources();
-
-		inline auto beginResource() { return _kres.begin(); }
-		inline auto endResource() { return _kres.end(); }
-
+		inline bool isEmpty() const { return _kisempty; }
 	private:
 		bool _saveStream(KOStream *Stream, const std::string &Address) override;
 
 		bool _loadStream(KIStream *Stream, const std::string &Address) override;
 
-		std::unordered_map<std::string, std::string> _kres; // <name, <type, flag>>
-		KEntityManager _keman;
+		void initeLoad();
+		bool _kisempty;
+		std::string _kcode;
+		KBinarySerial _kdata;
 	};
 }
 
-
-#endif // KSCENE_H
+#endif // KPREFAB_H

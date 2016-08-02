@@ -35,7 +35,7 @@ namespace Kite {
 			return true;
 		}
 
-		scene = (KScene *)_krman->load("KFIStream", "KScene", Name, false);
+		scene = (KScene *)_krman->load("KFIStream", "KScene", Name);
 		if (scene == nullptr) {
 			KD_FPRINT("can't load scene. sname: %s", Name.c_str());
 			return false;
@@ -43,7 +43,7 @@ namespace Kite {
 
 		// load and inite scene resources
 		for (auto it = scene->beginResource(); it != scene->endResource(); ++it) {
-			auto res = _krman->load("KFIStream", it->second.first, it->first, it->second.second);
+			auto res = _krman->load("KFIStream", it->first, it->second);
 			if (res != nullptr) {
 				res->inite();
 			}

@@ -25,16 +25,16 @@ public:
 	Kite::KResource *getResource(const QString &Name);
 	Kite::KResource *addResource(const QString &Type);
 	void filterByType(const QString &Type, QStringList &List);
+	void filterByTypeRes(const QString &Type, QList<const Kite::KResource *> &List);
 	void selectResource(const QString &Name);
 	void manageUsedResource(const QHash<QString, QVector<Kite::KMetaProperty>> *ResComponents);
 	void clearResources();
-
+	const std::vector<Kite::KResource *> &dumpResource();
 	inline void setCurrentDirectory(const QString &Directory) { currDirectory = Directory; }
+	void resetModify();
 
 	Kite::RecieveTypes onMessage(Kite::KMessage *Message, Kite::MessageScope Scope);
 	
-	const std::unordered_map<std::string, std::string> *getKiteDictionary(const QString &AddressPrefix) const;
-
 signals:
 	void resourceAdded(Kite::KResource *Res);
 	void resourceSelected(Kite::KResource *Res);
@@ -72,7 +72,6 @@ private:
 	QString currDirectory;
 	//QHash<QString, Kite::KResource *> dictinary;
 	QMultiHash<QString, QPair<QString, QString>> formats; // <resource name, <format, icon>>
-	//std::unordered_map<std::string, std::string> *kiteDictionary;
 	Kite::KResourceManager rman;
 };
 

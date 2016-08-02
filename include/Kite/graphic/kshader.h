@@ -89,12 +89,12 @@ namespace Kite{
 
     private:
 
-		bool _saveStream(KOStream *Stream, const std::string &Address, U32 Flag = 0) override;
+		bool _saveStream(KOStream *Stream, const std::string &Address) override;
 
 		/// reloading new shader will not delete last shader (in opengl)
 		/// so carefull about reloading a new shader with an in-use object.
 		/// shader type will change according to file type
-		bool _loadStream(KIStream *Stream, const std::string &Address, U32 Flag = 0) override;
+		bool _loadStream(KIStream *Stream, const std::string &Address) override;
 
 		ShaderType _kshtype;
 		U32 _kglid;

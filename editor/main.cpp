@@ -1,6 +1,7 @@
 #include "mainwindow.h"
 #include <QApplication>
 #include <QStyleFactory>
+#include <qsplashscreen.h>
 
 int main(int argc, char *argv[])
 {
@@ -26,9 +27,14 @@ int main(int argc, char *argv[])
 	palette.setColor(QPalette::HighlightedText, Qt::white);
     a.setPalette(palette);
 
+	QPixmap pixmap(":/icons/logo");
+	QSplashScreen splash(pixmap);
+	splash.show();
+	a.processEvents();
+
     MainWindow w;
 	w.setStyleSheet("QToolTip { border: 1px solid darkGray; color: #313131;}");
     w.show();
-
+	splash.finish(&w);
 	return a.exec();
 }

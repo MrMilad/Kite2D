@@ -22,9 +22,8 @@ USA
 #include <algorithm>
 #include "src/Kite/window/sdlcall.h"
 #include "src/Kite/graphic/glcall.h"
-#include "Kite/serialization/kbinaryserial.h"
+#include "Kite/serialization/kserialization.h"
 #include "Kite/serialization/types/kstdstring.h"
-#include "Kite/serialization/types/kstdumap.h"
 #include <luaintf\LuaIntf.h>
 
 namespace Kite {
@@ -115,18 +114,11 @@ namespace Kite {
 		KMouse::initeMouse();
 
 		// load dictionary
-		_kdict.clear();
 		if (!_kconfig.dictionary.empty()) {
-			KFIStream fstream;
-			KBinarySerial bserial;
-			if (!bserial.loadStream(&fstream, _kconfig.dictionary)) {
-				KD_FPRINT("can't load dictionary. dname: %s", _kconfig.dictionary.c_str());
+			KFIStream stream;
+			if (!_krman->loadDictionary(&stream, _kconfig.dictionary)) {
 				return false;
 			}
-			bserial >> _kdict;
-			_krman->setDictionary(&_kdict);
-
-			fstream.close();
 		}
 
 		// load and set startUp scene

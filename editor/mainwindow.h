@@ -37,6 +37,9 @@ public:
     ~MainWindow();
 
 private slots:
+void toggleFullScreen();
+
+void aboutDialogue();
 void showSwitchOutput();
 void closeEvent(QCloseEvent *event) override;
 
@@ -86,6 +89,7 @@ private:
 	QMenu *compMenu;
 
     QToolBar *fileTolb;
+	QAction *showAbout;
 	QAction *newProj;
 	QAction *openProj;
 	QAction *saveProj;

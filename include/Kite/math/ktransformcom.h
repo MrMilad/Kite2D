@@ -47,46 +47,46 @@ namespace Kite{
         /// set position
         /// completely restore the previous position
         /// default (0, 0)
-		KM_PRO_SET(KP_NAME = "Position")
+		KM_PRO_SET(KP_NAME = "position")
         void setPosition(const KVector2F32& Position);
 
-		KM_PRO_GET(KP_NAME = "Position", KP_TYPE = KVector2F32, KP_CM = "Position value")
+		KM_PRO_GET(KP_NAME = "position", KP_TYPE = KVector2F32, KP_CM = "Position value")
         inline const KVector2F32 &getPosition() const {return _kposition;}
 
         /// completely restore the previous Rotation
         /// range [0, 360]
         /// default 0
-		KM_PRO_SET(KP_NAME = "Rotation")
+		KM_PRO_SET(KP_NAME = "rotation")
         void setRotation(F32 Angle);
 
-		KM_PRO_GET(KP_NAME = "Rotation", KP_TYPE = F32, KP_CM = "Rotation value")
+		KM_PRO_GET(KP_NAME = "rotation", KP_TYPE = F32, KP_CM = "Rotation value")
         inline F32 getRotation() const {return _krotation;}
 
         /// set scale
         /// completely restore the previous scale
         /// default (1, 1)
-		KM_PRO_SET(KP_NAME = "Scale")
+		KM_PRO_SET(KP_NAME = "scale")
         void setScale(const KVector2F32 &Scale);
 
-		KM_PRO_GET(KP_NAME = "Scale", KP_TYPE = KVector2F32, KP_CM = "Scale value")
+		KM_PRO_GET(KP_NAME = "scale", KP_TYPE = KVector2F32, KP_CM = "Scale value")
         inline const KVector2F32 &getScale() const {return _kscale;}
 
 		/// set scale
 		/// completely restore the previous scale
 		/// default (0, 0)
-		KM_PRO_SET(KP_NAME = "Skew")
+		KM_PRO_SET(KP_NAME = "skew")
 		void setSkew(const KVector2F32 &Skew);
 
-		KM_PRO_GET(KP_NAME = "Skew", KP_TYPE = KVector2F32, KP_CM = "Skew value")
+		KM_PRO_GET(KP_NAME = "skew", KP_TYPE = KVector2F32, KP_CM = "Skew value")
 		inline const KVector2F32 &getSkew() const { return _kskew; }
 
         /// set center of (position, scale, rotation)
         /// relative to the top-left
         /// default (0, 0)
-		KM_PRO_SET(KP_NAME = "Center")
+		KM_PRO_SET(KP_NAME = "center")
         void setCenter(const KVector2F32 &Center);
 
-		KM_PRO_GET(KP_NAME = "Center", KP_TYPE = KVector2F32, KP_CM = "Center value")
+		KM_PRO_GET(KP_NAME = "center", KP_TYPE = KVector2F32, KP_CM = "Center value")
         inline const KVector2F32 &getCenter() const {return _kcenter;}
 
 		/// return the combined matrix

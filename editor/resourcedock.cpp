@@ -274,12 +274,33 @@ void ResourceDock::clearResources() {
 	}
 }
 
+void ResourceDock::resetModify() {
+	auto rlist = rman.dump();
+	for (auto it = rlist.begin(); it != rlist.end(); ++it) {
+		(*it)->isModified();
+	}
+}
+
+const std::vector<Kite::KResource *> &ResourceDock::dumpResource() {
+	return rman.dump();
+}
+
 void ResourceDock::filterByType(const QString &Type, QStringList &List) {
 	List.clear();
 	auto dumpList = rman.dump();
 	for (auto it = dumpList.begin(); it != dumpList.end(); ++it) {
 		if ((*it)->getType() == Type.toStdString()) {
 			List.append((*it)->getName().c_str());
+		}
+	}
+}
+
+void ResourceDock::filterByTypeRes(const QString &Type, QList<const Kite::KResource *> &List) {
+	List.clear();
+	auto dumpList = rman.dump();
+	for (auto it = dumpList.begin(); it != dumpList.end(); ++it) {
+		if ((*it)->getType() == Type.toStdString()) {
+			List.push_back((*it));
 		}
 	}
 }
@@ -336,16 +357,6 @@ void ResourceDock::manageUsedResource(const QHash<QString, QVector<Kite::KMetaPr
 			}
 		}
 	}
-}
-
-const std::unordered_map<std::string, std::string> *ResourceDock::getKiteDictionary(const QString &AddressPrefix) const {
-	/*kiteDictionary->clear();
-	for (auto it = dictinary.begin(); it != dictinary.end(); ++it) {
-		kiteDictionary->insert({ it.key().toStdString(), AddressPrefix.toStdString() + "resources/" + it.key().toStdString()});
-	}
-
-	return kiteDictionary;*/
-	return nullptr;
 }
 
 bool ResourceDock::openResource(const QString &Address, const QString &Type) {
@@ -571,13 +582,17 @@ void ResourceDock::actAdd() {
 void ResourceDock::actOpen() {
 	auto pitem = resTree->currentItem();
 	auto restype = pitem->text(0);
-	auto frm = formats.find(restype);
+	auto frm = formats.values(restype);
 
 	if (pitem->parent() != nullptr) {
 		return;
 	}
 
-	QString fileName = QFileDialog::getOpenFileName(this, "Open " + restype, "", "Kite2D Resource File (*" + frm->first + ")");
+	QString formats;
+	for (auto it = frm.begin(); it != frm.end(); ++it) {
+		formats += " *" + it->first;
+	}
+	QString fileName = QFileDialog::getOpenFileName(this, "Open " + restype, currDirectory, "Kite2D Resource File (" + formats + ")");
 
 	if (!fileName.isEmpty()) {
 		openResource(fileName, restype);
@@ -612,7 +627,7 @@ void ResourceDock::actSaveAs() {
 
 	if (!fileName.isEmpty()) {
 		Kite::KFOStream ostream;
-		if (!res->saveStream(&ostream, fileName.toStdString())) {
+		if (!res->saveStream(&ostream, fileName.toStdString(), true)) {
 			QMessageBox msg;
 			msg.setWindowTitle("Message");
 			msg.setText("cant open file stream with the given address.\nfile address: " + fileName);
@@ -645,7 +660,7 @@ void ResourceDock::actRemove() {
 	}
 
 	auto item = resTree->currentItem();
-	rman.unload(item->text(0).toStdString());
+	rman.unload(item->text(0).toStdString(), true);
 
 	delete item;
 }

@@ -42,9 +42,11 @@ namespace Kite{
 
 		virtual ~KResource();
 
-		bool saveStream(KOStream *Stream, const std::string &Address, U32 Flag = 0);
+		bool saveStream(KOStream *Stream, const std::string &Address, bool SaveDependency = false);
 
-		/// will not called with resource manager
+		/// second phase initialization. (OpenGL, OpenAL, ... object initialization).
+		/// in the simple resources (ex: script) there is no need to implement this function. just return true.
+		/// will not called with resource manager.
 		virtual bool inite() = 0;
 
 		inline U32 getReferencesCount() const { return _kref; }
@@ -64,14 +66,8 @@ namespace Kite{
 		KM_PRO_GET(KP_NAME = "name", KP_TYPE = std::string)
 		inline const std::string &getName() const { return _kname; }
 
-		KM_PRO_SET(KP_NAME = "name")
-		inline void setName(const std::string &Name) { _kname = Name; }
-
 		KM_PRO_GET(KP_NAME = "address", KP_TYPE = std::string)
 		inline const std::string &getAddress() const { return _kaddress; }
-
-		KM_PRO_SET(KP_NAME = "address")
-		inline void setAddress(const std::string &Address) { _kaddress = Address; }
 
 		KM_PRO_GET(KP_NAME = "isComposite", KP_TYPE = bool)
 		inline bool isComposite() const { return _kcomposite; }
@@ -79,24 +75,32 @@ namespace Kite{
 		KM_PRO_GET(KP_NAME = "isInite", KP_TYPE = bool)
 		inline bool isInite() const { return _kisInite; }
 
+		/// main usage: for saving modified resource in editor
+		KM_PRO_GET(KP_NAME = "isModified", KP_TYPE = bool, KP_CM = "is scene modified")
+		inline bool isModified() { bool temp = _kisModified; _kisModified = false;  return temp; }
+
 	protected:
+		inline void setModified(bool Modify) { _kisModified = Modify; }
 		inline void setInite(bool Inite) { _kisInite = Inite; }
 		inline void setCompositeList(std::vector<KResource *> List) { _kclist = List; }
 		inline std::vector<KResource *> getCompositeList() const { return _kclist; }
 
 	private:
-		bool saveCompositeList(KOStream *Stream, const std::string &Address, U32 Flag = 0);
+		inline void setName(const std::string &Name) { _kname = Name; }
+		inline void setAddress(const std::string &Address) { _kaddress = Address; }
+		bool saveCompositeList(KOStream *Stream, const std::string &Address, bool SaveDependency);
 
 		/// use setCompositeList() in _saveStream()
-		virtual bool _saveStream(KOStream *Stream, const std::string &Address, U32 Flag = 0) = 0;
+		virtual bool _saveStream(KOStream *Stream, const std::string &Address) = 0;
 
 		/// use getCompositeList() in _loadStream()
 		/// loading resource without resource manager is not allowed
-		virtual bool _loadStream(KIStream *Stream, const std::string &Address, U32 Flag = 0) = 0;
+		virtual bool _loadStream(KIStream *Stream, const std::string &Address) = 0;
 
 		inline void incRef() { ++_kref; }
 		inline void decRef() { _kref > 0 ? --_kref : _kref; }
 
+		bool _kisModified;
 		bool _kisInite;
 		bool _kcomposite;
 		U32 _kref;

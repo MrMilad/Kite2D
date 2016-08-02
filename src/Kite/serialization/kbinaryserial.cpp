@@ -188,9 +188,9 @@ namespace Kite {
 		_kpos = 0;
 	}
 
-	void KBinarySerial::append(KBinarySerial *Data) {
-		_kdata.reserve(_kdata.size() + Data->_kdata.size());
-		_kdata.insert(_kdata.end(), Data->_kdata.begin(), Data->_kdata.end());
+	void KBinarySerial::append(const KBinarySerial *Object) {
+		_kdata.reserve(_kdata.size() + Object->_kdata.size());
+		_kdata.insert(_kdata.end(), Object->_kdata.cbegin(), Object->_kdata.cend());
 	}
 
 	void KBinarySerial::setReadPos(U32 Pos){

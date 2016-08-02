@@ -76,8 +76,8 @@ namespace Kite{
 		return Internal::ImageIO::readFromStream(Stream, Address, _kpixels, _ksize);
 	}
 
-    bool KImage::save(const std::string &FileName){
-		return Internal::ImageIO::writeToFile(FileName, _kpixels, _ksize);
+    bool KImage::saveStream(KOStream *Stream, const std::string& Address){
+		return Internal::ImageIO::writeToStream(Stream, Address, _kpixels, _ksize);
     }
 
     void KImage::makeColorMask(const KColor& Color, U8 Alpha){

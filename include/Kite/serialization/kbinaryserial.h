@@ -31,6 +31,41 @@ KMETA
 namespace Kite {
 	KM_CLASS(SERIALIZER)
 	class KITE_FUNC_EXPORT KBinarySerial : public KBaseSerial{
+		friend KBaseSerial &operator<<(KBinarySerial &Out, const KBinarySerial &Value) {
+			// write data size
+			SIZE dsize = Value._kdata.size();
+			Out.writePOD(&dsize, sizeof(SIZE), false);
+
+			// write version
+			U32 ver = Value.getVersion();
+			Out.writePOD(&ver, sizeof(U32), false);
+
+			// write data
+			Out.append(&Value);
+
+			return Out;
+		}
+		friend KBaseSerial &operator>>(KBinarySerial &In, KBinarySerial &Value) {
+			Value.clearCatch();
+
+			// read size
+			SIZE dsize = 0;
+			In.readPOD(&dsize, sizeof(SIZE), false);
+			Value._kdata.resize(dsize);
+
+			// read version
+			U32 ver = 0;
+			In.readPOD(&ver, sizeof(U32), false);
+			Value.setVersion(ver);
+
+			// read data 
+			if (dsize > 0) {
+				// pass true for str parameter because we dont need binary calculatin
+				In.readPOD((void*)&Value._kdata[0], dsize, true);
+			}
+
+			return In;
+		}
 		KMETA_KBINARYSERIAL_BODY();
 	public:
 		KM_CON()
@@ -53,7 +88,7 @@ namespace Kite {
 		void clearCatch();
 
 		KM_FUN()
-		void append(KBinarySerial *Data);
+		void append(const KBinarySerial *Object);
 
 		KM_FUN()
 		void setReadPos(U32 Pos);

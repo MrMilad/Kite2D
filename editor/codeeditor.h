@@ -6,7 +6,6 @@
 #include <qstandarditemmodel.h>
 #include <Kite/core/kresource.h>
 #include <kite/logic/kscript.h>
-#include "highlighter.h"
 #include "completer.h"
 
 QT_BEGIN_NAMESPACE
@@ -22,21 +21,16 @@ class CodeEditor : public QPlainTextEdit{
     Q_OBJECT
 
 public:
-    CodeEditor(QWidget *parent = 0);
+    CodeEditor(Completer *Comp, QWidget *parent = 0);
 	
     void lineNumberAreaPaintEvent(QPaintEvent *Event);
     int lineNumberAreaWidth();
-
-	static void setCompleterModel(QStandardItemModel *Model);
+	inline void setStartNumber(unsigned int Number) { snumber = Number; }
 
 protected:
     void resizeEvent(QResizeEvent *event) Q_DECL_OVERRIDE;
 	void keyPressEvent(QKeyEvent *e) Q_DECL_OVERRIDE;
 	void focusInEvent(QFocusEvent *e) Q_DECL_OVERRIDE;
-
-public slots:
-	void scriptEdit(Kite::KResource *Res);
-	void scriptDelete(Kite::KResource *Res);
 
 private slots:
     void updateLineNumberAreaWidth(int newBlockCount);
@@ -45,11 +39,10 @@ private slots:
 	void insertCompletion(const QString &completion);
 
 private:
+	unsigned int snumber;
 	QString textUnderCursor() const;
     QWidget *lineNumberArea;
-	Kite::KScript *currScript;
-	Highlighter *hlight;
-	static Completer *completer;
+	Completer *comp;
 };
 
 

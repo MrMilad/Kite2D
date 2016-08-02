@@ -73,7 +73,8 @@ namespace Kite{
 		return true;
 	}
 
-	bool KShader::_loadStream(KIStream *Stream, const std::string &Address, U32 Flag) {
+	bool KShader::_loadStream(KIStream *Stream, const std::string &Address) {
+		setModified(true);
         // first make sure that we can use shaders
 //        if(!isShaderAvailable()){
 //            KDEBUG_PRINT("shader is not available.")
@@ -143,7 +144,7 @@ namespace Kite{
 		return true;
     }
 
-	bool KShader::_saveStream(KOStream *Stream, const std::string &Address, U32 Flag) {
+	bool KShader::_saveStream(KOStream *Stream, const std::string &Address) {
 		if (!Stream->isOpen()) {
 			Stream->close();
 		}
@@ -164,6 +165,7 @@ namespace Kite{
 	}
 
 	bool KShader::loadString(const std::string &Code, ShaderType Type) {
+		setModified(true);
 		setInite(false);
 		_kcode = Code;
 		_kshtype = ShaderType::UNKNOWN;

@@ -1,6 +1,7 @@
 #ifndef MAINTAB_H
 #define MAINTAB_H
 
+#include <qlist.h>
 #include <qtabwidget.h>
 #include <qhash.h>
 #include <qaction.h>
@@ -8,16 +9,19 @@
 #include <qdockwidget.h>
 #include <Kite/core/kresource.h>
 #include <qstandarditemmodel.h>
+#include "tabwidget.h"
 #include "shared.h"
 
 class MainTab : public QTabWidget {
 	Q_OBJECT
 
 public:
-	explicit MainTab(QWidget *parent = 0);
+	explicit MainTab(KiteInfo *KInfo ,QWidget *parent = 0);
 	~MainTab();
 
-	inline void setCompleterModel(QStandardItemModel *Model) { cmodel = Model; }
+signals:
+	void requestResList(const QString &Type, QList<const Kite::KResource *> &List);
+	Kite::KResource *requestRes(const QString &Name);
 
 public slots:
 	void saveAll();
@@ -37,13 +41,15 @@ protected:
 	void focusOutEvent(QFocusEvent *Event) override;
 
 private:
+	void registerTabs();
 	int createTab(QWidget *Widget, Kite::KResource *ResPtr);
 	void deleteTab(QWidget *Widget);
 	void deleteDock(QDockWidget *Dock);
 
+	KiteInfo *kinfo;
 	QVector<QShortcut *> shortcuts;
-	QHash<Kite::KResource *, QPair<QWidget *, QDockWidget *>> resMap;
-	QStandardItemModel *cmodel;
+	QHash<QString, TabWidget *(*)(Kite::KResource *, KiteInfo *, QWidget *)> tabFactory;
+	QHash<Kite::KResource *, QPair<TabWidget *, QDockWidget *>> resMap;
 };
 
 #endif // MAINTAB_H

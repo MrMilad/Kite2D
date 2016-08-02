@@ -47,12 +47,7 @@ namespace Kite{
         }
     }
 
-	bool KTexture::_saveStream(KOStream *Stream, const std::string &Address, U32 Flag) {
-		if (Stream->getHashType() != KFOStream().getHashType()) {
-			KD_FPRINT("only file stream is allowed for saving texures. rname: %s", getName().c_str());
-			return false;
-		}
-
+	bool KTexture::_saveStream(KOStream *Stream, const std::string &Address) {
 		// texture information
 		KBinarySerial bserial;
 		bserial << std::string("KTex");
@@ -77,12 +72,12 @@ namespace Kite{
 			U8 *pdata = new U8[_ksize.x * _ksize.y];
 			DGL_CALL(glGetTexImage(GL_TEXTURE_2D, 0, GL_RGBA8, GL_UNSIGNED_BYTE, (GLvoid *)pdata));
 			_kimage.create(_ksize.x, _ksize.y, pdata);
-			_kimage.save(Address + ".png");
+			_kimage.saveStream(Stream, Address + ".png");
 			delete[] pdata;
 
 		// offline pixel data (memory side)
 		} else {
-			if (!_kimage.save(Address + ".png")) {
+			if (!_kimage.saveStream(Stream, Address + ".png")) {
 				KD_FPRINT("cant save image. rname: %s", getName().c_str() );
 				return false;
 			}
@@ -91,7 +86,8 @@ namespace Kite{
 		return true;
 	}
 
-	bool KTexture::_loadStream(KIStream *Stream, const std::string &Address, U32 Flag) {
+	bool KTexture::_loadStream(KIStream *Stream, const std::string &Address) {
+		setModified(true);
 		// load texture info 
 		if (!Stream->isOpen()) {
 			Stream->close();
@@ -113,7 +109,7 @@ namespace Kite{
 		bserial >> format;
 
 		if (format != "KTex") {
-			KD_PRINT("incorrect file format.");
+			KD_PRINT("incorrect file format");
 			Stream->close();
 			return false;
 		}
@@ -124,22 +120,46 @@ namespace Kite{
 		Stream->close();
 
 		// load image
-		_kimage.loadStream(Stream, Address + ".png");
+		if (!_kimage.loadStream(Stream, Address + ".png")) {
+			KD_PRINT("cant load image file");
+			Stream->close();
+			return false;
+		}
 
 		return true;
 	}
 
     void KTexture::create(const Kite::KVector2U32 &Size, TextureFilter Filter, TextureWrap Wrap){
+		setModified(true);
 		_kfilter = Filter;
 		_kwrap = Wrap;
 		_kimage.create(Size.x, Size.y, KColor(0, 0, 0, 255));
     }
 
     void KTexture::create(const KImage &Image, TextureFilter Filter, TextureWrap Wrap){
+		setModified(true);
 		_kfilter = Filter;
 		_kwrap = Wrap;
 		_kimage = Image;
     }
+
+	void KTexture::getImage(KImage &ImageOutput) {
+		// online pixel data (opengl side)
+		if (isInite()) {
+			// save currently binded texture then bind our texture temporary
+			Internal::GLBindGuard guard(Internal::KBG_TEXTURE, _klastTexId, _ktexId);
+			DGL_CALL(glBindTexture(GL_TEXTURE_2D, _ktexId));
+
+			U8 *pdata = new U8[_ksize.x * _ksize.y];
+			DGL_CALL(glGetTexImage(GL_TEXTURE_2D, 0, GL_RGBA8, GL_UNSIGNED_BYTE, (GLvoid *)pdata));
+			ImageOutput.create(_ksize.x, _ksize.y, pdata);
+			delete[] pdata;
+
+		// offline pixel data (memory side)
+		} else {
+			ImageOutput.create(_kimage.getSize().x, _kimage.getSize().y, _kimage.getPixelsData());
+		}
+	}
 
 	bool KTexture::inite() {
 		// generate texture
@@ -201,6 +221,7 @@ namespace Kite{
     }
 
     void KTexture::setFilter(TextureFilter Filter){
+		setModified(true);
 		if (!isInite()) {
 			KD_FPRINT("texture not initialized. rname: %s", getName().c_str());
 			return;
@@ -225,6 +246,7 @@ namespace Kite{
     }
 
     void KTexture::setWrap(TextureWrap Wrap){
+		setModified(true);
 		if (!isInite()) {
 			KD_FPRINT("texture not initialized. rname: %s", getName().c_str());
 			return;

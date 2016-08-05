@@ -22,6 +22,7 @@ USA
 #include "Kite/meta/kmetamanager.h"
 #include "Kite/meta/kmetaclass.h"
 #include "Kite/meta/kmetatypes.h"
+#include "Kite/math/ktransformcom.h"
 #include <luaintf/LuaIntf.h>
 
 namespace Kite {
@@ -34,7 +35,7 @@ namespace Kite {
 				auto entity = EManager->getEntity(ehandle);
 				if (entity->isActive()) {
 					if (it->getNeedUpdate()) {
-						this->computeMatrix(*it);
+						computeMatrix(&(*it));
 					}
 				}
 			}
@@ -47,25 +48,25 @@ namespace Kite {
 		return true;
 	}
 
-	void KTransformSys::computeMatrix(KTransformCom &Component) {
-		F32 angle = -Component._krotation * KMATH_PIsub180; // 3.14 \ 180;
-		F32 skewX = Component._kskew.x * KMATH_PIsub180;
-		F32 skewY = Component._kskew.y * KMATH_PIsub180;
+	void KTransformSys::computeMatrix(KTransformCom *Component) {
+		F32 angle = -Component->_krotation * KMATH_PIsub180; // 3.14 \ 180;
+		F32 skewX = Component->_kskew.x * KMATH_PIsub180;
+		F32 skewY = Component->_kskew.y * KMATH_PIsub180;
 		F32 cosine = (float)(std::cos(angle));
 		F32 sine = (float)(std::sin(angle));
 		F32 tanX = (float)(std::tan(skewX));
 		F32 tanY = (float)(std::tan(skewY));
-		F32 sxc = Component._kscale.x * cosine;
-		F32 syc = Component._kscale.y * cosine;
-		F32 sxs = Component._kscale.x * sine + tanX;
-		F32 sys = Component._kscale.y * sine + tanY;
-		F32 tx = -Component._kcenter.x * sxc - Component._kcenter.y * sys + Component._kposition.x;
-		F32 ty = Component._kcenter.x * sxs - Component._kcenter.y * syc + Component._kposition.y;
+		F32 sxc = Component->_kscale.x * cosine;
+		F32 syc = Component->_kscale.y * cosine;
+		F32 sxs = Component->_kscale.x * sine + tanX;
+		F32 sys = Component->_kscale.y * sine + tanY;
+		F32 tx = -Component->_kcenter.x * sxc - Component->_kcenter.y * sys + Component->_kposition.x;
+		F32 ty = Component->_kcenter.x * sxs - Component->_kcenter.y * syc + Component->_kposition.y;
 
-		Component._kmatrix = KMatrix3(sxc, sys, tx,
+		Component->_kmatrix = KMatrix3(sxc, sys, tx,
 											-sxs, syc, ty,
 											0.f, 0.f, 1.f);
-		Component.setNeedUpdate(false);
+		Component->setNeedUpdate(false);
 	}
 
 	KMETA_KTRANSFORMSYS_SOURCE();

@@ -17,23 +17,35 @@ License along with this library; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 USA
 */
-#include "Kite/graphic/kgraphictypes.h"
-#include "Kite/meta/kmetamanager.h"
-#include "Kite/meta/kmetaenum.h"
-#include <luaintf/LuaIntf.h>
+#include "Kite/core/kcoredef.h"
 
 namespace Kite {
-	KMETA_TEXTUREENV_SOURCE();
-	KMETA_VBUFFERTYPE_SOURCE();
-	KMETA_BUFFERTARGET_SOURCE();
-	KMETA_MAPACCESS_SOURCE();
-	KMETA_GLPRIMITIVE_SOURCE();
-	KMETA_COLORS_SOURCE();
-	KMETA_TEXTUREFILTER_SOURCE();
-	KMETA_TEXTUREWRAP_SOURCE();
-	KMETA_SHADERTYPE_SOURCE();
-	KMETA_ATTRIBUTECOUNT_SOURCE();
-	KMETA_ATTRIBUTETYPE_SOURCE();
-	KMETA_BUILTINSHADERTYPE_SOURCE();
-	KMETA_ATLASFILE_SOURCE();
+	printCallback pcallback = &defaultPrint;
+	char *buffer = new char[500];
+
+	void defaultPrint(const std::string &Text, msgType MType) {
+		switch (MType) {
+		case Kite::msgType::MSG_DEBUG:
+			printf("DEBUG: %s\n", Text.c_str());
+			break;
+		case Kite::msgType::MSG_ASSERT:
+			printf("ASSERT: %s\n", Text.c_str());
+			break;
+		case Kite::msgType::MSG_BREAK:
+			printf("BREAK: %s\n", Text.c_str());
+			break;
+		case Kite::msgType::MSG_LUA:
+			printf("LUA: %s\n", Text.c_str());
+			break;
+		default:
+			printf("%s\n", Text.c_str());
+			break;
+		}
+		
+	}
+
+	void setEditorPrintCallback(printCallback Callback) {
+		pcallback = Callback;
+	}
+
 }

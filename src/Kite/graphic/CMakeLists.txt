@@ -15,6 +15,9 @@ set(GFX_SRC
     ${SRCROOT}/kvertexarray.cpp
     ${SRCROOT}/kvertexbuffer.cpp
     ${SRCROOT}/kgraphictypes.cpp
+    ${SRCROOT}/krendersys.cpp
+    ${SRCROOT}/krendercom.cpp
+    ${SRCROOT}/kcameracom.cpp
     PARENT_SCOPE
 )
 
@@ -31,6 +34,9 @@ set(GFX_INC
     ${INCROOT}/ktexture.h
     ${INCROOT}/kvertexarray.h
     ${INCROOT}/kvertexbuffer.h
+    ${INCROOT}/krendersys.h
+    ${INCROOT}/krendercom.h
+    ${INCROOT}/kcameracom.h
     PARENT_SCOPE
 )
 

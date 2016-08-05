@@ -114,12 +114,6 @@ namespace Kite{
 		*/
         inline U32 getGLID() const {return _karrayId;}
 
-		//! Get size of resource in memory
-		/*!
-		\return Size of resource in bytes
-		*/
-		U64 getInstanceSize() const;
-
     private:
         U32 _karrayId;				//!< OpenGL VAO ID
         static U32 _klastArrayId;	//!< Last VAO ID

@@ -36,8 +36,12 @@ USA
 #include <vector>
 #include "kentity.khgen.h"
 
+
 KMETA
 namespace Kite {
+#ifdef KITE_EDITOR
+	typedef void(*AddCallback)(KComponent *, void *);
+#endif
 	class KEntityManager;
 	KM_CLASS(ENTITY, SCRIPTABLE)
 	class KITE_FUNC_EXPORT KEntity: public KMessenger, public KListener{
@@ -127,6 +131,10 @@ namespace Kite {
 
 		inline const auto childList() const { return &_kchilds; }
 
+#ifdef KITE_EDITOR
+		inline void setAddComCallback(AddCallback Callback, void *OpaqPtr) { _kaddCallb = Callback; _kopaqPtr = OpaqPtr; }
+#endif
+
 	private:
 
 		// internal use 
@@ -154,6 +162,12 @@ namespace Kite {
 		// runtime variables (
 		std::unordered_map<std::string, Internal::BaseCHolder<KComponent> *> *_kcstorage;
 		KCFStorage<KEntity> *_kestorage;
+
+		// editor only
+#ifdef KITE_EDITOR
+		AddCallback _kaddCallb;
+		void *_kopaqPtr;
+#endif
 	};
 }
 

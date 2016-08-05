@@ -5,6 +5,7 @@
 #include "Kite/core/kcomponent.h"
 #include "Kite/core/kany.h"
 #include "Kite/core/kcorestructs.h"
+#include "Kite/graphic/kgraphicstructs.h"
 #include "Kite/math/kmathstructs.h"
 #include <Kite/meta/kmetamanager.h>
 #include <Kite/meta/kmetabase.h>
@@ -17,7 +18,6 @@ namespace priv {
 	T * singleSpin(int Min = 0, int Max = 0, bool unsig = false) {
 		auto spin1 = new T();
 
-		spin1->setFixedWidth(80);
 		//spin1->setStyleSheet("color: DarkViolet;");
 
 		// is unsigned
@@ -48,6 +48,140 @@ namespace priv {
 		virtual void reset(Kite::KComponent *Comp) = 0;
 	};
 
+	// enum
+	class KENUM : public KProp {
+		Q_OBJECT
+	public:
+		KENUM (Kite::KComponent *Comp, const QString &PName, QWidget *Parent,
+			  const QStringList &Items, bool ROnly = false) :
+			KProp(Parent), pname(PName) {
+			ctype = Comp->getType().c_str();
+			auto hlayout = new QHBoxLayout(this);
+			hlayout->setMargin(0);
+			hlayout->setSpacing(0);
+
+			auto initeVal = Comp->getProperty(PName.toStdString());
+			combo = new QComboBox();
+			combo->addItems(Items);
+			combo->setCurrentIndex(initeVal.asFreeCast<int>());
+
+			if (ROnly) {
+				combo->setDisabled(true);
+			}
+			connect(combo, static_cast<void(QComboBox::*)(int)>(&QComboBox::currentIndexChanged),
+					this, &KENUM::valueChanged);
+			hlayout->addWidget(combo);
+
+			if (ROnly) {
+				auto lblROnly = new QLabel(this);
+				lblROnly->setText("<img src=\":/icons/lock\" height=\"12\" width=\"12\" >");
+				lblROnly->setToolTip("Read-Only Property");
+				hlayout->addSpacing(2);
+				hlayout->addWidget(lblROnly);
+			}
+		}
+
+		void reset(Kite::KComponent *Comp) override {
+			auto val = Comp->getProperty(pname.toStdString());
+			combo->setCurrentIndex(val.asFreeCast<int>());
+		}
+
+signals:
+		void propertyEdited(const QString &CType, const QString &PName, QVariant &Val);
+
+		private slots :
+		void valueChanged(int Val) {
+			Kite::KAny pval(Val, true);
+			QVariant v = qVariantFromValue((void *)&pval);
+			emit(propertyEdited(ctype, pname, v));
+		}
+
+	private:
+		QComboBox *combo;
+		QString pname;
+		QString ctype;
+	};
+
+	// color
+	class KCOLOR : public KProp {
+		Q_OBJECT
+	public:
+		KCOLOR(Kite::KComponent *Comp, const QString &PName, QWidget *Parent,
+			  bool ROnly = false) :
+			KProp(Parent), pname(PName) {
+			ctype = Comp->getType().c_str();
+			ronly = ROnly;
+			auto hlayout = new QHBoxLayout(this);
+			hlayout->setMargin(0);
+			hlayout->setSpacing(0);
+
+			auto initeVal = Comp->getProperty(PName.toStdString()).as<Kite::KColor>();
+			color.setRgb(initeVal.getR(), initeVal.getG(), initeVal.getB(), initeVal.getA());
+			btnBrowse = new QToolButton(this);
+			btnBrowse->setAutoRaise(true);
+			btnBrowse->setFixedHeight(24);
+			btnBrowse->setSizePolicy(QSizePolicy::Policy::Preferred, QSizePolicy::Policy::Fixed);
+			btnBrowse->setToolButtonStyle(Qt::ToolButtonStyle::ToolButtonTextOnly);
+			btnBrowse->setText("");
+			btnBrowse->setStyleSheet("QToolButton { border: 2px solid black;\n"
+									 "border-radius: 4px;\n"
+									 "background-color: rgb("
+									 + QString::number(initeVal.getR()) + ", "
+									 + QString::number(initeVal.getG()) + ", "
+									 + QString::number(initeVal.getB()) + "); }");
+			connect(btnBrowse, &QToolButton::clicked, this, &KCOLOR::valueChanged);
+			hlayout->addWidget(btnBrowse, 1);
+
+			if (ROnly) {
+				auto lblROnly = new QLabel(this);
+				lblROnly->setText("<img src=\":/icons/lock\" height=\"12\" width=\"12\" >");
+				lblROnly->setToolTip("Read-Only Property");
+				hlayout->addSpacing(2);
+				hlayout->addWidget(lblROnly);
+			}
+		}
+
+		void reset(Kite::KComponent *Comp) override {
+			auto initeVal = Comp->getProperty(pname.toStdString()).as<Kite::KColor>();
+			color.setRgb(initeVal.getR(), initeVal.getG(), initeVal.getB(), initeVal.getA());
+			btnBrowse->setStyleSheet("QToolButton { border: 2px solid black;\n"
+									 "border-radius: 4px;\n"
+									 "background-color: rgb("
+									 + QString::number(initeVal.getR()) + ", "
+									 + QString::number(initeVal.getG()) + ", "
+									 + QString::number(initeVal.getB()) + "); }");
+		}
+
+signals:
+		void propertyEdited(const QString &CType, const QString &PName, QVariant &Val);
+
+		private slots :
+		void valueChanged() {
+			if (!ronly) {
+				color = QColorDialog::getColor();
+				if (color.isValid()) {
+					Kite::KAny pval(Kite::KColor(color.red(), color.green(), color.blue(), color.alpha()));
+					QVariant v = qVariantFromValue((void *)&pval);
+					btnBrowse->setStyleSheet("QToolButton { border: 2px solid black;\n"
+											 "border-radius: 4px;\n"
+											 "background-color: rgb("
+											 + QString::number(color.red()) + ", "
+											 + QString::number(color.green()) + ", "
+											 + QString::number(color.blue()) + "); }");
+
+					emit(propertyEdited(ctype, pname, v));
+				}
+			}
+		}
+
+	private:
+		bool ronly;
+		QToolButton *btnBrowse;
+		QColor color;
+		QString pname;
+		QString ctype;
+	};
+
 	// bool
 	class KBOOL : public KProp {
 		Q_OBJECT
@@ -76,6 +210,14 @@ namespace priv {
 			connect(check, &QCheckBox::stateChanged, this, &KBOOL::valueChanged);
 			hlayout->addWidget(check);
 			hlayout->addStretch(1);
+
+			if (ROnly) {
+				auto lblROnly = new QLabel(this);
+				lblROnly->setText("<img src=\":/icons/lock\" height=\"12\" width=\"12\" >");
+				lblROnly->setToolTip("Read-Only Property");
+				hlayout->addSpacing(2);
+				hlayout->addWidget(lblROnly);
+			}
 		}
 
 		void reset(Kite::KComponent *Comp) override {
@@ -128,17 +270,28 @@ signals:
 				}
 				connect(ledit, &QLineEdit::textChanged, this, &KSTR::valueChanged);
 				connect(ledit, &QLineEdit::textChanged, ledit, &QLineEdit::setToolTip);
-				hlayout->addWidget(ledit);
+				hlayout->addWidget(ledit, 1);
 			} else {
 				combo = new QComboBox(Parent);
 				combo->addItem(initeVal.as<std::string>().c_str());
 				combo->setCurrentText(initeVal.as<std::string>().c_str());
 				combo->setObjectName(ResType);
 				combo->installEventFilter(this);
+				if (ROnly) {
+					combo->setDisabled(true);
+				}
 				connect(combo, static_cast<void(QComboBox::*)(const QString &)>(&QComboBox::currentIndexChanged),
 						this, &KSTR::valueChanged);
 
-				hlayout->addWidget(combo);
+				hlayout->addWidget(combo, 1);
+			}
+
+			if (ROnly) {
+				auto lblROnly = new QLabel(this);
+				lblROnly->setText("<img src=\":/icons/lock\" height=\"12\" width=\"12\" >");
+				lblROnly->setToolTip("Read-Only Property");
+				hlayout->addSpacing(2);
+				hlayout->addWidget(lblROnly);
 			}
 			
 		}
@@ -219,17 +372,25 @@ signals:
 
 			auto initeVal = Comp->getProperty(PName.toStdString());
 			spin = singleSpin<QSpinBox>(Min, Max);
-			spin->setValue(initeVal.as<int>());
+			spin->setValue(initeVal.asFreeCast<int>());
 			spin->setReadOnly(ROnly);
 			connect(spin, static_cast<void(QSpinBox::*)(int)>(&QSpinBox::valueChanged), this, &KI32::valueChanged);
 			hlayout->addWidget(spin);
 
 			hlayout->addStretch(1);
+
+			if (ROnly) {
+				auto lblROnly = new QLabel(this);
+				lblROnly->setText("<img src=\":/icons/lock\" height=\"12\" width=\"12\" >");
+				lblROnly->setToolTip("Read-Only Property");
+				hlayout->addSpacing(2);
+				hlayout->addWidget(lblROnly);
+			}
 		}
 
 		void reset(Kite::KComponent *Comp) override {
 			auto val = Comp->getProperty(pname.toStdString());
-			spin->setValue(val.as<int>());
+			spin->setValue(val.asFreeCast<int>());
 		}
 
 	signals:
@@ -237,7 +398,7 @@ signals:
 
 	private slots :
 		void valueChanged(int Val) {
-			Kite::KAny pval(Val);
+			Kite::KAny pval(Val, true);
 			QVariant v = qVariantFromValue((void *)&pval);
 			emit(propertyEdited(ptype, pname, v));
 		}
@@ -281,7 +442,7 @@ signals:
 			spin->setDecimals(2);
 			spin->setSingleStep(0.1);
 			connect(spin, static_cast<void(QDoubleSpinBox::*)(double)>(&QDoubleSpinBox::valueChanged), this, &KF32::valueChanged);
-			hlayout->addWidget(spin);
+			hlayout->addWidget(spin, 1);
 
 			// slider
 			if (Min != Max) {
@@ -291,18 +452,23 @@ signals:
 				slider->setOrientation(Qt::Orientation::Horizontal);
 				slider->setValue((initeVal.as<float>() * 100));
 				connect(slider, &QSlider::valueChanged, this, &KF32::floatSlider);
-				hlayout->addWidget(slider);
-			} else {
-				hlayout->addStretch(1);
-			}
+				hlayout->addWidget(slider, 1);
+			} 
 			
+			if (ROnly) {
+				auto lblROnly = new QLabel(this);
+				lblROnly->setText("<img src=\":/icons/lock\" height=\"12\" width=\"12\" >");
+				lblROnly->setToolTip("Read-Only Property");
+				hlayout->addSpacing(2);
+				hlayout->addWidget(lblROnly);
+			}
 		}
 
 		void reset(Kite::KComponent *Comp) override {
 			auto val = Comp->getProperty(pname.toStdString());
-			spin->setValue(val.as<float>());
+			spin->setValue(val.asFreeCast<float>());
 			if (slider != nullptr) {
-				slider->setValue(val.as<float>() * 100);
+				slider->setValue(val.asFreeCast<float>() * 100);
 			}
 		}
 
@@ -314,7 +480,7 @@ signals:
 			if (slider != nullptr) {
 				slider->setValue(Val * 100);
 			}
-			Kite::KAny pval((float)Val);
+			Kite::KAny pval((float)Val, true);
 			QVariant v = qVariantFromValue((void *)&pval);
 			emit(propertyEdited(ptype, pname, v));
 		}
@@ -364,7 +530,7 @@ signals:
 			xspin->setDecimals(2);
 			xspin->setSingleStep(0.1);
 			connect(xspin, static_cast<void(QDoubleSpinBox::*)(double)>(&QDoubleSpinBox::valueChanged), this, &KV2F32::valueXChanged);
-			hlayout->addWidget(xspin);
+			hlayout->addWidget(xspin, 1);
 
 			hlayout->addSpacing(10);
 
@@ -384,9 +550,16 @@ signals:
 			yspin->setDecimals(2);
 			yspin->setSingleStep(0.1);
 			connect(yspin, static_cast<void(QDoubleSpinBox::*)(double)>(&QDoubleSpinBox::valueChanged), this, &KV2F32::valueYChanged);
-			hlayout->addWidget(yspin);
+			hlayout->addWidget(yspin, 1);
 
-			hlayout->addStretch(1);
+			if (ROnly) {
+				auto lblROnly = new QLabel(this);
+				lblROnly->setText("<img src=\":/icons/lock\" height=\"12\" width=\"12\" >");
+				lblROnly->setToolTip("Read-Only Property");
+				hlayout->addSpacing(2);
+				hlayout->addWidget(lblROnly);
+			}
+			//hlayout->addStretch(1);
 		}
 
 		void reset(Kite::KComponent *Comp) override {
@@ -442,7 +615,7 @@ void propChanged(const QString &CType, const QString &Pname, QVariant &Value);
 
 private:
 	static Kite::KMetaManager *getKMeta() {
-		static auto kmeta = Kite::KMetaManager();
+		static Kite::KMetaManager kmeta;
 		static bool inite = false;
 		if (!inite) {
 			Kite::registerKiteMeta(&kmeta);
@@ -451,7 +624,8 @@ private:
 		return &kmeta;
 	}
 
-	void createGUI(Kite::KComponent *Comp, const Kite::KMetaProperty *Meta, QFormLayout *Layout);
+	void createPOD(Kite::KComponent *Comp, const Kite::KMetaProperty *Meta, QFormLayout *Layout);
+	void createEnum(Kite::KComponent *Comp, const Kite::KMetaProperty *PMeta, const Kite::KMetaEnum *EMeta, QFormLayout *Layout);
 	Kite::KHandle compHandle;
 };
 #endif // COMPROPERTY_H

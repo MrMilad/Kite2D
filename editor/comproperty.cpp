@@ -1,6 +1,7 @@
 #include "comproperty.h"
 #include "expander.h"
 #include <qobject.h>
+#include <Kite/meta/kmetaenum.h>
 
 ComponentView::ComponentView(Kite::KComponent *Component, QWidget *Parent) :
 	QFrame(Parent) {
@@ -22,16 +23,24 @@ ComponentView::ComponentView(Kite::KComponent *Component, QWidget *Parent) :
 			flayout->addRow(invalidType);
 			continue;
 
-		} else if ((propTypeMeta->getMetaType() != Kite::KMetaTypes::KMT_POD) &&
-				   !(propTypeMeta->getFlag() & POD)) {
+		// POD
+		} else if ((propTypeMeta->getMetaType() == Kite::KMetaTypes::KMT_POD) ||
+				   (propTypeMeta->getFlag() & POD)) {
+
+			createPOD(Component, &(*it), flayout);
+
+		// Enum
+		} else if (propTypeMeta->getMetaType() == Kite::KMetaTypes::KMT_ENUM){
+			createEnum(Component, &(*it), (const Kite::KMetaEnum *)propTypeMeta, flayout);
+
+		} else {
 			QString val("Unsupported Property Type! Name: ");
 			auto invalidType = new QLabel(val + it->name.c_str() + " Type: " + it->typeName.c_str());
 			invalidType->setStyleSheet("QLabel { color : red; }");
 			flayout->addRow(invalidType);
 			continue;
 
-		} else {
-			createGUI(Component, &(*it), flayout);
+			
 		}
 	}
 
@@ -47,7 +56,7 @@ void ComponentView::propChanged(const QString &CType, const QString &Pname, QVar
 	emit(componentEdited(compHandle, CType, Pname, Value));
 }
 
-void ComponentView::createGUI(Kite::KComponent *Comp, const Kite::KMetaProperty *Meta, QFormLayout *Layout) {
+void ComponentView::createPOD(Kite::KComponent *Comp, const Kite::KMetaProperty *Meta, QFormLayout *Layout) {
 	// F32
 	if (Meta->typeName == "F32") {
 		// create an appropriate widgte and bind property to it
@@ -58,6 +67,7 @@ void ComponentView::createGUI(Kite::KComponent *Comp, const Kite::KMetaProperty 
 		connect(this, &ComponentView::resetSig, pgui, &priv::KF32::reset);
 		Layout->addRow(Meta->name.c_str(), pgui);
 
+	//bool
 	} else if (Meta->typeName == "bool") {
 		// create an appropriate widgte and bind property to it
 		bool ronly = false;
@@ -98,6 +108,7 @@ void ComponentView::createGUI(Kite::KComponent *Comp, const Kite::KMetaProperty 
 		}
 		connect(pgui, &priv::KSTR::propertyEdited, this, &ComponentView::propChanged);
 		connect(this, &ComponentView::resetSig, pgui, &priv::KSTR::reset);
+
 		Layout->addRow(Meta->name.c_str(), pgui);
 
 	// KVector2F32
@@ -108,9 +119,47 @@ void ComponentView::createGUI(Kite::KComponent *Comp, const Kite::KMetaProperty 
 		auto pgui = new priv::KV2F32(Comp, Meta->name.c_str(), this, ronly, Meta->min, Meta->max);
 		connect(pgui, &priv::KV2F32::propertyEdited, this, &ComponentView::propChanged);
 		connect(this, &ComponentView::resetSig, pgui, &priv::KV2F32::reset);
+
 		Layout->addRow(Meta->name.c_str(), pgui);
+
+	// KColor
+	} else if (Meta->typeName == "KColor") {
+		// create an appropriate widgte and bind property to it
+		bool ronly = false;
+		if (Meta->type == Kite::KMetaPropertyTypes::KMP_GETTER) ronly = true;
+		auto pgui = new priv::KCOLOR(Comp, Meta->name.c_str(), this, ronly);
+		connect(pgui, &priv::KCOLOR::propertyEdited, this, &ComponentView::propChanged);
+		connect(this, &ComponentView::resetSig, pgui, &priv::KCOLOR::reset);
+		Layout->addRow(Meta->name.c_str(), pgui);
+
+	// unimplemented type
+	} else {
+		QString val("Unimplemented Property Type! Name: ");
+		auto invalidType = new QLabel(val + Meta->name.c_str() + " Type: " + Meta->typeName.c_str());
+		invalidType->setStyleSheet("QLabel { color : red; }");
+		Layout->addRow(invalidType);
 	}
 
+}
+
+void ComponentView::createEnum(Kite::KComponent *Comp, const Kite::KMetaProperty *PMeta,
+							   const Kite::KMetaEnum *EMeta, QFormLayout *Layout) {
+
+	// is read-only
+	bool ronly = false;
+	if (PMeta->type == Kite::KMetaPropertyTypes::KMP_GETTER) ronly = true;
+
+	// catch items
+	auto members = EMeta->getMembers();
+	QStringList items;
+	for (auto it = members->cbegin(); it != members->cend(); ++it) {
+		items.push_back(it->name.c_str());
+	}
+
+	auto pgui = new priv::KENUM(Comp, PMeta->name.c_str(), this, items, ronly);
+	connect(pgui, &priv::KENUM::propertyEdited, this, &ComponentView::propChanged);
+	connect(this, &ComponentView::resetSig, pgui, &priv::KENUM::reset);
+	Layout->addRow(PMeta->name.c_str(), pgui);
 }
 
 

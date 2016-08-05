@@ -67,7 +67,4 @@ namespace Kite{
         _klastBufId = 0;
     }
 
-	U64 KFrameBuffer::getInstanceSize() const{
-		return sizeof(KFrameBuffer);
-	}
 }

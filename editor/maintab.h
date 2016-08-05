@@ -17,6 +17,8 @@ class MainTab : public QTabWidget {
 
 public:
 	explicit MainTab(KiteInfo *KInfo ,QWidget *parent = 0);
+	void setScene(QWidget *Scene);
+	bool isOpen(Kite::KResource *Res);
 	~MainTab();
 
 signals:
@@ -46,6 +48,7 @@ private:
 	void deleteTab(QWidget *Widget);
 	void deleteDock(QDockWidget *Dock);
 
+	QWidget *scene;
 	KiteInfo *kinfo;
 	QVector<QShortcut *> shortcuts;
 	QHash<QString, TabWidget *(*)(Kite::KResource *, KiteInfo *, QWidget *)> tabFactory;

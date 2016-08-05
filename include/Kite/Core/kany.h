@@ -38,13 +38,15 @@ namespace Kite {
 		bool is_null() const { if (!ptr) { return true; } return false; }
 		bool not_null() const { if (ptr) { return true; } return false; }
 
-		template<typename U> KAny(U&& value)
-			: ptr(new Derived<StorageType<U>>(std::forward<U>(value))) {
-
-		}
+		template<typename U> KAny(U&& value, bool CastFree = false):
+			ptr(new Derived<StorageType<U>>(std::forward<U>(value))),
+			_kcfree(CastFree)
+			{}
 
 		template<class U> bool is() const {
 			typedef StorageType<U> T;
+
+			if (_kcfree) return true;
 
 			auto derived = dynamic_cast<Derived<T>*> (ptr);
 
@@ -57,6 +59,11 @@ namespace Kite {
 		StorageType<U>& as() {
 			typedef StorageType<U> T;
 
+			if (_kcfree) {
+				auto derived = static_cast<Derived<T>*> (ptr);
+				return derived->value;
+			}
+
 			auto derived = dynamic_cast<Derived<T>*> (ptr);
 
 			if (!derived)
@@ -66,12 +73,21 @@ namespace Kite {
 		}
 
 		template<class U>
+		StorageType<U>& asFreeCast() {
+			typedef StorageType<U> T;
+
+			auto derived = static_cast<Derived<T>*> (ptr);
+			return derived->value;
+
+		}
+
+		template<class U>
 		operator U() {
 			return as<StorageType<U>>();
 		}
 
 		KAny()
-			: ptr(nullptr) {
+			: ptr(nullptr), _kcfree(false) {
 
 		}
 
@@ -147,6 +163,7 @@ namespace Kite {
 		}
 
 		Base* ptr;
+		bool _kcfree;
 	};
 }
 

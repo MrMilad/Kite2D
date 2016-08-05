@@ -29,6 +29,10 @@ USA
 
 namespace Kite {
 	KEntity::KEntity(const std::string &Name):
+#ifdef KITE_EDITOR
+		 _kaddCallb(nullptr),
+		_kopaqPtr(nullptr),
+#endif
 		_kplistid(0), _kname(Name),
 		_kcstorage(nullptr),
 		_kestorage(nullptr),
@@ -195,6 +199,20 @@ namespace Kite {
 
 		// call attach functon
 		com->attached(this);
+
+		// check component's dependency (recursive).
+		// circular-dependency is allowed but not recommended.
+		auto depList = com->getDependency();
+		for (auto it = depList.begin(); it != depList.end(); ++it) {
+			addComponent((*it));
+		}
+
+		// call editor callback
+#ifdef KITE_EDITOR
+		if (_kaddCallb) {
+			(*_kaddCallb)(com, _kopaqPtr);
+		}
+#endif
 
 		return com;
 	}

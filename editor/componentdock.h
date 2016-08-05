@@ -62,6 +62,7 @@ void updateResList(const QString &Type, QStringList &List);
 	void actApllyPrefab();
 
 private:
+	static void addComCallb(Kite::KComponent *NewComp, void *Ptr);
 	void setupTree();
 	void setupActions();
 	void setupHTools();

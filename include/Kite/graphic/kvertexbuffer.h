@@ -129,12 +129,6 @@ namespace Kite{
 		*/
 		inline U32 getGLID() const { return _kbufId; }
 
-		//! Get size of resource in memory
-		/*!
-			\return Size of resource in bytes
-		*/
-		U64 getInstanceSize() const;
-
     private:
         VBufferType _kbufType;	//!< Storage state of buffer
 		BufferTarget _kbufTarget;	//!< Type of buffer

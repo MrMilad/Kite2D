@@ -139,7 +139,7 @@ void MainWindow::setupScene(){
 	connect(mainTab, &MainTab::requestRes, resDock, &ResourceDock::getResource);
 
     sceneView = new QGraphicsView();
-	mainTab->addTab(sceneView, "Scene");
+	mainTab->setScene(sceneView);
 
 	setCentralWidget(mainTab);
 	
@@ -379,6 +379,11 @@ void MainWindow::saveXML(QIODevice *device, const QString &Address){
 		stream.writeStartElement("item");
 		stream.writeAttribute("name", (*it)->getName().c_str());
 		stream.writeAttribute("type", (*it)->getType().c_str());
+		if (mainTab->isOpen((*it))) {
+			stream.writeAttribute("open", "true");
+		} else {
+			stream.writeAttribute("open", "false");
+		}
 		stream.writeEndElement();
 	}
 
@@ -458,6 +463,11 @@ bool MainWindow::loadXML(QIODevice *device, const QString &Address) {
 						if (!resDock->openResource(curProject->resPath + "/" + xml.attributes().value("name").toString(),
 												  xml.attributes().value("type").toString())) {
 							return false;
+						}
+
+						// open tab
+						if (xml.attributes().value("open").toString() == "true") {
+							mainTab->openTabs(resDock->getResource(xml.attributes().value("name").toString()));
 						}
 					}
 				}

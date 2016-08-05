@@ -78,9 +78,5 @@ namespace Kite{
         DGL_CALL(glBindVertexArray(0));
         _klastArrayId = 0;
     }
-
-	U64 KVertexArray::getInstanceSize() const{
-		return sizeof(KVertexArray);
-	}
 }
 

@@ -19,16 +19,13 @@ int main() {
 	auto sc = new KConfig();
 	auto engine = KEngine::createEngine();
 
+	KAny any(GLPrimitive::LINES);
+	//int f = (int)GLPrimitive::LINES;
+	int f = any.asFreeCast<int>();
+
 	engine->inite(sc, false);
 
-	//auto pre = rman.create("KTexture", "texure");
-	//pre->saveStream(&stream, "e:\\tex.tex");
-	auto tex = rman.load("KFIStream", "KTexture", "e:\\tex.tex");
-	tex->saveStream(&stream, "f:\\test.tex");
-	//tex->inite();
-
 	engine->start();
-
 	engine->shutdown();
 	delete engine;
 	delete sc;

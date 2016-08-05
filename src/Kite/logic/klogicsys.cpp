@@ -22,6 +22,7 @@ USA
 #include "Kite/meta/kmetamanager.h"
 #include "Kite/meta/kmetaclass.h"
 #include "Kite/meta/kmetatypes.h"
+#include "Kite/logic/klogiccom.h"
 #include <luaintf/LuaIntf.h>
 #ifdef KITE_DEV_DEBUG
 #include <exception>

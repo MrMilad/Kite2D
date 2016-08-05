@@ -22,6 +22,12 @@ ComponentDock::ComponentDock(QWidget *Par) :
 
 ComponentDock::~ComponentDock() {}
 
+void ComponentDock::addComCallb(Kite::KComponent *NewComp, void *Ptr) {
+	auto cls = (ComponentDock *)Ptr;
+	cls->fetchFromPool(NewComp);
+	emit(cls->componentAdded(cls->eman->getEntity(cls->currEntity), NewComp));
+}
+
 void ComponentDock::setupTree() {
 	auto mainFrame = new QFrame(this);
 	auto vlayout = new QVBoxLayout(mainFrame);
@@ -350,6 +356,9 @@ void ComponentDock::entityEdit(Kite::KEntityManager *Eman, Kite::KEntity *Entity
 	// entity info
 	currEntity = Entity->getHandle();
 
+	// set callback
+	Entity->setAddComCallback(addComCallb, this);
+
 	// prefab frame
 	showFrame(Entity, isPrefab);
 
@@ -417,10 +426,7 @@ void ComponentDock::actAdd(QAction *Action) {
 			return;
 		}
 
-		auto comp = ent->addComponent("Logic", text.toStdString());
-		fetchFromPool(comp);
-		//createComponent(ent, comp);
-		emit(componentAdded(ent, comp));
+		ent->addComponent("Logic", text.toStdString());
 		// fixed components
 	} else {
 		// available name
@@ -432,10 +438,7 @@ void ComponentDock::actAdd(QAction *Action) {
 			msg.exec();
 			return;
 		}
-		auto comp = ent->addComponent(Action->text().toStdString(), Action->text().toStdString());
-		fetchFromPool(comp);
-		//createComponent(ent, cptr);
-		emit(componentAdded(ent, comp));
+		ent->addComponent(Action->text().toStdString(), Action->text().toStdString());
 	}
 
 }
@@ -447,10 +450,7 @@ void ComponentDock::actAddDef() {
 		return;
 	}
 
-	auto comp = ent->addComponent("Logic", text.toStdString());
-	fetchFromPool(comp);
-	//createComponent(ent, ent->getComponent("Logic", chandle));
-	emit(componentAdded(ent, comp));
+	ent->addComponent("Logic", text.toStdString());
 }
 
 void ComponentDock::actRemove(Kite::KHandle CHandle, const QString &CType) {

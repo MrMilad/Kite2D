@@ -141,8 +141,4 @@ namespace Kite{
         _klastBufId = 0;
     }
 
-	U64 KVertexBuffer::getInstanceSize() const{
-		return _ksize;
-	}
-
 }

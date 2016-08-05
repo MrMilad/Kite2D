@@ -32,12 +32,29 @@ Expander::Expander(Kite::KComponent *Comp, QTreeWidget *Parent):
 	hlayout->setSpacing(0);
 	hlayout->addStretch(1);
 
+	// dependecy label
+	if (!Comp->getDependency().empty()) {
+		auto lblDep = new QLabel(mainFrame);
+		lblDep->setText("<img src=\":/icons/depend\" height=\"16\" width=\"16\" >");
+		lblDep->setStyleSheet("QToolTip { border: 1px solid #2c2c2c; background-color: #242424; color: white;}");
+		QString tooltip("<font color=\"orange\">Dependency List:</font>");
+		auto depList = Comp->getDependency();
+		for (auto it = depList.begin(); it != depList.end(); ++it) {
+			tooltip += "\n" + QString((*it).c_str());
+		}
+		lblDep->setToolTip(tooltip);
+		hlayout->addWidget(lblDep);
+		hlayout->addSpacing(2);
+	}
+
+	// remove button
 	auto btnClose = new QToolButton(mainFrame);
 	btnClose->setContentsMargins(0, 0, 0, 0); 
 	btnClose->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Preferred);
 	btnClose->setIcon(QIcon(":/icons/close"));
 	btnClose->setToolButtonStyle(Qt::ToolButtonIconOnly);
 	btnClose->setAutoRaise(true);
+	btnClose->setToolTip("Remove Component");
 	hlayout->addWidget(btnClose);
 
 	auto mainLayout = new QHBoxLayout(mainFrame);
@@ -55,7 +72,6 @@ Expander::Expander(Kite::KComponent *Comp, QTreeWidget *Parent):
 	auto child = new QTreeWidgetItem(head);
 	child->setDisabled(true);
 	Parent->setItemWidget(child, 0, content);
-
 
 	connect(content, &ComponentView::componentEdited, this, &Expander::componentEdited);
 	connect(btnExpand, &QToolButton::pressed, this, &Expander::expClicked);

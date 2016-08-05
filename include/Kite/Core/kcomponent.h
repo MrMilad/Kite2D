@@ -28,6 +28,7 @@ USA
 #include "Kite/meta/kmetadef.h"
 #include "Kite/serialization/kserialization.h"
 #include <string>
+#include <vector>
 #include "kcomponent.khgen.h"
 
 KMETA
@@ -80,17 +81,26 @@ namespace Kite {
 		KM_PRO_GET(KP_NAME = "lsitener", KP_TYPE = KListener, KP_CM = "cmponent message listener")
 		inline KListener &getListener() { return *(KListener *)this; }
 
+		KM_FUN()
+		inline const std::vector<std::string> &getDependency() const { return _kdeplist; }
+
 		KMETA_KCOMPONENT_BODY();
 
 	protected:
+		/// add component dependency.
+		/// use this function in constructure.
+		/// circular-dependency is allowed but not recommended. (bad design)
+		/// dont add Logic component as dependency
+		inline void addDependency(const std::string &ComponentName) { _kdeplist.push_back(ComponentName); }
 		inline void setNeedUpdate(bool NeedUpdate) { _kneedup = NeedUpdate; }
 		inline void setOwnerHandle(const KHandle &Handle) { _kohandle = Handle; }
 
 	private:
+		bool _kneedup;
+		std::vector<std::string> _kdeplist;
 		KM_VAR() std::string _kname;
 		KM_VAR() KHandle _khandle;
 		KM_VAR() KHandle _kohandle;
-		KM_VAR() bool _kneedup;
 	};
 }
 

@@ -78,12 +78,6 @@ namespace Kite{
 		*/
 		inline U32 getGLID() const { return _kbufId; }
 
-		//! Get size of instance in memory
-		/*!
-		\return Size of instance in bytes
-		*/
-		U64 getInstanceSize() const;
-
     private:
         U32 _kbufId;			//!< OpenGL FBO ID
         static U32 _klastBufId; //!< Last FBO ID

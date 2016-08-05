@@ -1843,8 +1843,9 @@ void createMacros(const std::vector<MClass> &Cls, const std::vector<MEnum> &Enms
 					  //"namespace Internal{\\\n"
 					  "void Internal::Register" + Enms[i].name + "::registerMeta(KMetaManager *MMan, lua_State *Lua){\\\n"
 					  "static KMetaEnum instance(\"" + Enms[i].name + "\", 0, sizeof(" + Enms[i].name + "));\\\n"
-					  "if (MMan != nullptr){\\\n"
-					  "MMan->setMeta((KMetaBase *)&instance);\\\n");
+					  "static bool initeMeta = false;\\\n"
+					  "if (MMan != nullptr){MMan->setMeta((KMetaBase *)&instance);}\\\n"
+					  "if (!initeMeta){\\\n");
 
 		// enum members
 		for (size_t count = 0; count < Enms[i].members.size(); ++count) {
@@ -1857,7 +1858,7 @@ void createMacros(const std::vector<MClass> &Cls, const std::vector<MEnum> &Enms
 			}
 			Output.append("instance.addMember(KMetaEnumMember(\"" + Enms[i].members[count].name + "\", " + value + ", " + number + "));\\\n");
 		}
-		Output.append("}\\\n");
+		Output.append("initeMeta = true;}\\\n");
 
 		// lua binding
 		Output.append("if (Lua != nullptr){\\\n"

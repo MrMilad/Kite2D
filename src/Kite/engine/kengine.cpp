@@ -82,12 +82,12 @@ namespace Kite {
 		// inite Kite2D ResourceManager, SceneManager, MetaManager
 		if (IniteMeta) {
 			_kmman = new KMetaManager();
+			registerKiteMeta(_kmman, _klstate);
 		}
 
 		_krman = new KResourceManager();
 		_ksman = new KSceneManager(*_krman);
 
-		registerKiteMeta(_kmman, _klstate);
 		registerRTypes(_krman); // CTypes will registered in EntityManager constructure
 
 		// create systems

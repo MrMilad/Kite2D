@@ -37,7 +37,7 @@ namespace Kite{
 	\brief Blend types
 	*/
 	KM_ENUM()
-    enum class TextureEnv : U8{
+    enum class TextureEnv{
         ADD = 0,
         MODULATE,
         DECAL,
@@ -51,7 +51,7 @@ namespace Kite{
 		\brief Performance hint for VBO to provide how the buffer object is going to be used.
 	*/
 	KM_ENUM()
-    enum class VBufferType : U8{
+    enum class VBufferType{
         STATIC = 0,	//!< The data in VBO will not be changed (specified once and used many times)
         DYNAMIC,	//!< The data in VBO will be changed frequently (specified and used repeatedly)
         STREAM		//!< The data in VBO will be changed every frame (specified once and used once)
@@ -62,7 +62,7 @@ namespace Kite{
 		\brief Buffer types.
 	*/
 	KM_ENUM()
-	enum class BufferTarget : U8{
+	enum class BufferTarget{
 		INDEX = 0,	//!< Index buffer
 		VERTEX		//!< Vertex buffer
 	};
@@ -70,7 +70,7 @@ namespace Kite{
 
 	/*! \enum KMapAccessTypes */
 	KM_ENUM()
-    enum class MapAccess : U8{
+    enum class MapAccess{
         READ = 0,	//!< Reading access
         WRITE,		//!< Writing access
         RW			//!< Reading/writing access
@@ -81,7 +81,7 @@ namespace Kite{
 		\brief Primitive types
 	*/
 	KM_ENUM()
-    enum class PrimitiveType : U8{
+    enum class GLPrimitive{
         POINTS = 0,
         LINES,
         LINE_STRIP,
@@ -94,7 +94,7 @@ namespace Kite{
         TRIANGLE_STRIP_ADJACENCY,
         TRIANGLES_ADJACENCY
     };
-	KMETA_PRIMITIVETYPE_BODY();
+	KMETA_GLPRIMITIVE_BODY();
 
 //    enum KFilteringDrawTypes{
 //        KFD_ALIASED,
@@ -105,7 +105,7 @@ namespace Kite{
 		\brief Hex colors code
 	*/
 	KM_ENUM()
-    enum class Colors : U32{
+    enum class Colors{
         BLACK = 0x000000,           WHITE = 0xFFFFFF,
         RED = 0xff0000,             YELLOW = 0xffff00,
         BLUE = 0x0000ff,            GREEN = 0x00ff00,
@@ -151,7 +151,7 @@ namespace Kite{
 		\brief Magnification texture filtering options
 	*/
 	KM_ENUM()
-    enum class TextureFilter : U8{
+    enum class TextureFilter{
 		NEAREST = 0,	//!< Select the texel nearest the texture coordinate
         LINEAR		//!< Perform a weighted linear blend between the nearest adjacent samples
     };
@@ -161,7 +161,7 @@ namespace Kite{
 		\brief The possible heuristic when a texture coordinate is not within the [0, 1] range
 	*/
 	KM_ENUM()
-    enum class TextureWrap : U8{
+    enum class TextureWrap{
 		REPEAT = 0,			//!< The texture coordinate wraps around the texture
         MIRRORED_REPEAT,	//!< The texture coordinate wraps around like a mirror
         CLAMP_TO_EDGE		//!< The texture coordinate is clamped to the [0, 1] range
@@ -173,7 +173,7 @@ namespace Kite{
 		\brief OpenGL shader types
 	*/
 	KM_ENUM()
-    enum class ShaderType : U8{
+    enum class ShaderType{
         VERTEX = 0,	//!< Vertex shader
         FRAGMENT,	//!< Fragment shader
 		GEOMETRY,	//!< Geometry shader
@@ -189,7 +189,7 @@ namespace Kite{
 		\brief Specifies the number of components per generic vertex attribute. (Internally use)
 	*/
 	KM_ENUM()
-    enum class AttributeCount : U8{
+    enum class AttributeCount{
         COMPONENT_1 = 1,
         COMPONENT_2 = 2,
         COMPONENT_3 = 3,
@@ -201,7 +201,7 @@ namespace Kite{
 		\brief Specifies the data type of each component in the array. (Internally use)
 	*/
 	KM_ENUM()
-    enum class AttributeType : U8{
+    enum class AttributeType{
         BYTE = 0,
         UNSIGNED_BYTE,
         SHORT,
@@ -212,7 +212,7 @@ namespace Kite{
 	KMETA_ATTRIBUTETYPE_BODY();
 
 	KM_ENUM()
-	enum class BuiltinShaderType : U8 {
+	enum class BuiltinShaderType {
 		VERT = 0,
 		FRAG_COLOR,
 		FRAG_TEXTURE,
@@ -228,7 +228,7 @@ namespace Kite{
 	\brief Types of the atlas files
 	*/
 	KM_ENUM()
-	enum class AtlasFile : U8{
+	enum class AtlasFile{
 		ATLAS,	//!< Default KAtlas format (compact format, better speed and size)
 		JSON	//!< Adobe Flash created JSON 
 	};

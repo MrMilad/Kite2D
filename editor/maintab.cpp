@@ -9,7 +9,8 @@
 
 MainTab::MainTab(KiteInfo *KInfo,QWidget *parent) :
 	QTabWidget(parent),
-	kinfo(KInfo)
+	kinfo(KInfo),
+	scene(nullptr)
 {
 	setStyleSheet("QTabBar::tab { height: 23px; }");
 	setMovable(true);
@@ -17,6 +18,20 @@ MainTab::MainTab(KiteInfo *KInfo,QWidget *parent) :
 }
 
 MainTab::~MainTab() {}
+
+void MainTab::setScene(QWidget *Scene) {
+	if (scene == nullptr) {
+		scene = Scene;
+		addTab(Scene, "Scene");
+	}
+}
+
+bool MainTab::isOpen(Kite::KResource *Res) {
+	if (resMap.find(Res) == resMap.end()) {
+		return false;
+	}
+	return true;
+}
 
 void MainTab::focusInEvent(QFocusEvent *Event) {
 	for (auto it = shortcuts.begin(); it != shortcuts.end(); ++it) {
@@ -99,8 +114,9 @@ void MainTab::selectResource(Kite::KResource *Res) {
 
 	if (found == resMap.end()) {
 		if (Res->getType() == "KScene") {
-			setTabText(0, Res->getName().c_str());
-			setCurrentIndex(0);
+			auto ind = indexOf(scene);
+			setTabText(ind, Res->getName().c_str());
+			setCurrentIndex(ind);
 		}
 
 	} else {
@@ -134,8 +150,9 @@ void MainTab::openTabs(Kite::KResource *Res) {
 	if (found == resMap.end()) {
 		// scene 
 		if (Res->getType() == "KScene") {
-			setTabText(0, Res->getName().c_str());
-			setCurrentIndex(0);
+			auto ind = indexOf(scene);
+			setTabText(ind, Res->getName().c_str());
+			setCurrentIndex(ind);
 		
 		// other resources
 		} else {
@@ -174,16 +191,19 @@ void MainTab::openTabs(Kite::KResource *Res) {
 }
 
 void MainTab::closeResource(Kite::KResource *Res) {
-	auto found = resMap.find(Res);
+	if (Res->getType() == "KScene") {
+		auto ind = indexOf(scene);
+		setTabText(ind, "Scene");
+		return;
+	}
 
+	auto found = resMap.find(Res);
 	if (found != resMap.end()) {
 		found->first->saveChanges();
 
 		// pined (tab)
 		if ((*found).second == nullptr) {
-			if (Res->getType() != "KScene") {
-				deleteTab((*found).first);
-			}
+			deleteTab((*found).first);
 
 		// unpined (dock)
 		} else {

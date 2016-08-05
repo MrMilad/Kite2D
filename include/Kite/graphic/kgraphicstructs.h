@@ -414,11 +414,11 @@ namespace Kite{
 			U32 objIndex;	//!< Index of current object
 			U32 lastTexId;	//!< Last used texture id
 			U32 lastShdId;	//!< Last used shader id
-			PrimitiveType lastGeo;	//!< Last used geometric type
+			GLPrimitive lastGeo;	//!< Last used geometric type
 
 			//! Default constructors
 			KCatchDraw(U32 ObjectIndex = 0, U32 LastTextureID = 0, U32 LastSeaderID = 0,
-					   PrimitiveType GeoType = PrimitiveType::TRIANGLES) :
+					   GLPrimitive GeoType = GLPrimitive::TRIANGLES) :
 				objIndex(ObjectIndex),
 				lastTexId(LastTextureID),
 				lastShdId(LastSeaderID),

@@ -17,13 +17,13 @@ License along with this library; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 USA
 */
-#include "Kite/Core/memory/klinearstorage.h"
+#include "Kite/memory/klinearstorage.h"
 
 namespace Kite {
 
 	KLinearStorage::KLinearStorage(SIZE size, void *start)
 		: KBaseStorage(size, start), _kcurPos(start) {
-		KDEBUG_ASSERT(size > 0);
+		KD_ASSERT(size > 0);
 	}
 
 	KLinearStorage::~KLinearStorage() {
@@ -31,7 +31,7 @@ namespace Kite {
 	}
 
 	void* KLinearStorage::allocate(SIZE size, U8 alignment) {
-		KDEBUG_ASSERT(size != 0);
+		KD_ASSERT(size != 0);
 
 		U8 adjustment = Internal::alignForwardAdjustment(_kcurPos, alignment);
 
@@ -49,7 +49,7 @@ namespace Kite {
 	}
 
 	void KLinearStorage::deallocate(void* p) {
-		KDEBUG_ASSERT("Use clear() instead");
+		KD_PRINT("Use clear() instead");
 	}
 
 	void KLinearStorage::clear() {

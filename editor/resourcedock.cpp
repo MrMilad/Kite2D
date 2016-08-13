@@ -332,8 +332,8 @@ void ResourceDock::manageUsedResource(const QHash<QString, QVector<Kite::KMetaPr
 				eit->getScriptComponents(lcomps);
 				for (auto sit = lcomps.begin(); sit != lcomps.end(); ++sit) {
 					auto script = (Kite::KLogicCom *)eit->getComponent("Logic", (*sit));
-					if (!script->getScript().empty()) {
-						scene->addResource(script->getScript(), "KScript");
+					if (!script->getScript().str.empty()) {
+						scene->addResource(script->getScript().str, "KScript");
 					}
 				}
 

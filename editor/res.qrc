@@ -35,11 +35,10 @@
         <file alias="dia16">res/ico/daimond16.png</file>
         <file alias="clr">res/ico/eraser.png</file>
         <file alias="word">res/ico/word.png</file>
-        <file alias="col">res/ico/collapse.png</file>
-        <file alias="exp">res/ico/expand.png</file>
+        <file alias="colall">res/ico/collapse.png</file>
+        <file alias="expall">res/ico/expand.png</file>
         <file alias="down">res/ico/down.png</file>
         <file alias="up">res/ico/up.png</file>
-        <file alias="order">res/ico/order.png</file>
         <file alias="folder">res/ico/folder.png</file>
         <file alias="cut">res/ico/cut.png</file>
         <file alias="copy">res/ico/copy.png</file>
@@ -51,5 +50,15 @@
         <file alias="gshader">res/ico/gshader.png</file>
         <file alias="shaderp">res/ico/shaderp.png</file>
         <file alias="texture">res/ico/texture.png</file>
+        <file alias="logo">res/logo.png</file>
+        <file alias="notifi">res/ico/wifi.png</file>
+        <file alias="depend">res/ico/dependency.png</file>
+        <file alias="order">res/ico/eorder.png</file>
+        <file alias="lock">res/ico/locked.png</file>
+        <file alias="col">res/ico/collapse2.png</file>
+        <file alias="exp">res/ico/expand2.png</file>
+    </qresource>
+    <qresource prefix="/back">
+        <file alias="dense">res/dense.png</file>
     </qresource>
 </RCC>

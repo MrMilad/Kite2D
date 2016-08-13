@@ -20,9 +20,9 @@ USA
 #ifndef KPROXYSTORAGE_H
 #define KPROXYSTORAGE_H
 
-#include "Kite/Core/system/ksystemdef.h"
-#include "kite/Core/system/knoncopyable.h"
-#include "Kite/Core/memory/kbasestorage.h"
+#include "Kite/core/kcoredef.h"
+#include "kite/core/knoncopyable.h"
+#include "Kite/memory/kbasestorage.h"
 
 namespace Kite {
 	class KITE_FUNC_EXPORT KProxyStorage : public KBaseStorage, KNonCopyable {
@@ -38,15 +38,15 @@ namespace Kite {
 		KBaseStorage& _kallocator;
 	};
 
-	inline KProxyStorage* newProxyAllocator(KBaseStorage& Allocator) {
-		void* p = Allocator.allocate(sizeof(KProxyStorage), __alignof(KProxyStorage));
-		return new (p) KProxyStorage(Allocator);
+	inline KProxyStorage* newKProxyStorage(KBaseStorage& Storage) {
+		void* p = Storage.allocate(sizeof(KProxyStorage), __alignof(KProxyStorage));
+		return new (p) KProxyStorage(Storage);
 	}
 
-	inline void deleteProxyAllocator(KProxyStorage& ProxyAllocator, KBaseStorage& Allocator) {
-		ProxyAllocator.~KProxyStorage();
+	inline void deleteProxyAllocator(KProxyStorage& ProxyStorage, KBaseStorage& Storage) {
+		ProxyStorage.~KProxyStorage();
 
-		Allocator.deallocate(&ProxyAllocator);
+		Storage.deallocate(&ProxyStorage);
 	}
 }
 

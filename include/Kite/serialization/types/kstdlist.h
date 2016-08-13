@@ -27,8 +27,8 @@ USA
 
 namespace Kite {
 
-	template<typename T1>
-	KBaseSerial &operator<<(KBaseSerial &Out, const std::list<T1> &Value) {
+	template<typename T1, typename T2>
+	KBaseSerial &operator<<(KBaseSerial &Out, const std::list<T1, T2> &Value) {
 		bool empty = true;
 		U32 size = 0;
 
@@ -48,8 +48,8 @@ namespace Kite {
 		return Out;
 	}
 
-	template<typename T1>
-	KBaseSerial &operator>>(KBaseSerial &In, std::list<T1> &Value) {
+	template<typename T1, typename T2>
+	KBaseSerial &operator>>(KBaseSerial &In, std::list<T1, T2> &Value) {
 		bool empty = true;
 		U32 size = 0;
 		Value.clear();

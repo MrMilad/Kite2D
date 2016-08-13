@@ -20,9 +20,9 @@ USA
 #ifndef KSTACKSTORAGE_H
 #define KSTACKSTORAGE_H
 
-#include "Kite/Core/system/ksystemdef.h"
-#include "kite/Core/system/knoncopyable.h"
-#include "Kite/Core/memory/kbasestorage.h"
+#include "Kite/core/kcoredef.h"
+#include "kite/core/knoncopyable.h"
+#include "Kite/memory/kbasestorage.h"
 
 namespace Kite {
 	class KITE_FUNC_EXPORT KStackStorage : public KBaseStorage, KNonCopyable {
@@ -53,15 +53,15 @@ namespace Kite {
 		void*  _kcurPos;
 	};
 
-	inline KStackStorage *newStackAllocator(SIZE Size, KBaseStorage& Allocator) {
-		void *p = Allocator.allocate(Size + sizeof(KStackStorage), __alignof(KStackStorage));
+	inline KStackStorage *newKStackStorage(SIZE Size, KBaseStorage& Storage) {
+		void *p = Storage.allocate(Size + sizeof(KStackStorage), __alignof(KStackStorage));
 		return new (p) KStackStorage(Size, Internal::add(p, sizeof(KStackStorage)));
 	}
 
-	inline void deleteStackAllocator(KStackStorage &StackAllocator, KBaseStorage &Allocator) {
-		StackAllocator.~KStackStorage();
+	inline void deleteKStackStorage(KStackStorage &StackStorage, KBaseStorage &Storage) {
+		StackStorage.~KStackStorage();
 
-		Allocator.deallocate(&StackAllocator);
+		Storage.deallocate(&StackStorage);
 	}
 }
 

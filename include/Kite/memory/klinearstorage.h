@@ -20,9 +20,9 @@ USA
 #ifndef KLINEARSTORAGE_H
 #define KLINEARSTORAGE_H
 
-#include "Kite/Core/system/ksystemdef.h"
-#include "kite/Core/system/knoncopyable.h"
-#include "Kite/Core/memory/kbasestorage.h"
+#include "Kite/core/kcoredef.h"
+#include "kite/core/knoncopyable.h"
+#include "Kite/memory/kbasestorage.h"
 
 namespace Kite {
 	class KITE_FUNC_EXPORT KLinearStorage : public KBaseStorage, KNonCopyable {
@@ -43,15 +43,15 @@ namespace Kite {
 		void *_kcurPos;
 	};
 
-	inline KLinearStorage* newLinearAllocator(SIZE Size, KBaseStorage& Allocator) {
-		void* p = Allocator.allocate(Size + sizeof(KLinearStorage), __alignof(KLinearStorage));
+	inline KLinearStorage* newKLinearStorage(SIZE Size, KBaseStorage& Storage) {
+		void* p = Storage.allocate(Size + sizeof(KLinearStorage), __alignof(KLinearStorage));
 		return new (p) KLinearStorage(Size, Internal::add(p, sizeof(KLinearStorage)));
 	}
 
-	inline void deleteLinearAllocator(KLinearStorage& LinearAllocator, KBaseStorage& Allocator) {
-		LinearAllocator.~KLinearStorage();
+	inline void deleteLinearAllocator(KLinearStorage& LinearStorage, KBaseStorage& Storage) {
+		LinearStorage.~KLinearStorage();
 
-		Allocator.deallocate(&LinearAllocator);
+		Storage.deallocate(&LinearStorage);
 	}
 }
 

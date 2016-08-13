@@ -75,13 +75,27 @@ namespace Kite {
 		void unregisterComponent(const std::string &CType);
 
 		KM_FUN()
-			bool isRegisteredComponent(const std::string &CType);
+		bool isRegisteredComponent(const std::string &CType);
+
+		KM_FUN()
+		bool createLayer(const std::string &Name);
+
+		/// remove built-in layers is not allowed
+		/// all entities of removed layer will be added to 'unlayered' layer
+		KM_FUN()
+		void removeLayer(const std::string &Name);
+
+		KM_FUN()
+		const std::vector<KLayerInfo> &getLayersInfo();
+
+		void addEntityToLayer(const KHandle &Entity, const std::string &Layer);
 
 		/// create entity in the root branch. (parent = 0)
 		/// after creating an entity, all previous pointers may be invalid.
 		/// so always use handle whene need an older entity.
 		/// if an empty string pass as name parameter, 
-		/// a new name (ent + N) will generated for entity.
+		/// a new name (ent + N) will generated for entity. (N = ordred number)
+		/// entity will added to 'unlayered' layer.
 		KM_FUN()
 			KEntity *createEntity(const std::string &Name = "");
 
@@ -120,27 +134,17 @@ namespace Kite {
 		KM_FUN()
 		KHandle loadPrefab(KPrefab *Prefab);
 
+		inline const auto getLayerStorage() const { return &_klayermap; }
+
 		// create new entity will invalidate iterators (use index instead)
-		inline auto beginEntity() { return _kestorage.getContiner()->begin(); }
-
-		inline auto endEntity() { return _kestorage.getContiner()->end(); }
-
-		inline const auto getEntityContiner() { return _kestorage.getContiner(); }
+		inline const auto getEntityStorage() { return _kestorage.getContiner(); }
 
 		template<typename T>
-		auto beginComponent(const std::string &CType){
+		auto getComponentStorage(const std::string &CType){
 			auto found = _kcstorage.find(CType);
 			KD_ASSERT(found != _kcstorage.end());
 			Internal::CHolder<T, KComponent> *drived = static_cast<Internal::CHolder<T, KComponent> *>(found->second);
-			return drived->getStorage()->getContiner()->begin();
-		}
-
-		template<typename T>
-		auto endComponent(const std::string &CType) {
-			auto found = _kcstorage.find(CType);
-			KD_ASSERT(found != _kcstorage.end());
-			Internal::CHolder<T, KComponent> *drived = static_cast<Internal::CHolder<T, KComponent> *>(found->second);
-			return drived->getStorage()->getContiner()->end();
+			return drived->getStorage()->getContiner();
 		}
 
 #ifdef KITE_EDITOR
@@ -155,12 +159,15 @@ namespace Kite {
 		void recursiveDeleter(KHandle EHandle);
 		void initeRoot();
 		U32 recursiveSaveChilds(KEntity *Entity, KPrefab *Prefab, U32 Level, bool Name, bool CopyPrefab);
+		void removeCurrentLayer(KEntity *Entity);
 		static bool initeLua();
 
 		KHandle _kroot;
-		KCFStorage<KEntity> _kestorage;
-		std::unordered_map<std::string, Internal::BaseCHolder<KComponent> *> _kcstorage;
-		std::unordered_map<std::string, KHandle> _kentmap;
+		KCFStorage<KEntity> _kestorage; // entity storage
+		std::unordered_map<std::string, Internal::BaseCHolder<KComponent> *> _kcstorage; // map of component storages
+		std::unordered_map<std::string, KHandle> _kentmap; 
+		std::unordered_map<std::string, std::pair<KLayerInfo, std::vector<KHandle>>> _klayermap;
+
 		std::vector<KHandle> _ktrash;
 		static lua_State *_klstate;
 		U32 _knum;

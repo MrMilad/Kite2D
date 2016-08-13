@@ -57,6 +57,8 @@ namespace Kite {
 
 		if (!empty) {
 			In >> size;
+			Value.clear();
+			Value.reserve(size);
 			for (SIZE i = 0; i < size; ++i) {
 				T1 first;
 				In >> first;
@@ -64,12 +66,14 @@ namespace Kite {
 				T2 second;
 				In >> second;
 
-				Value[first] = second;
+				Value.insert({ first, second });
 			}
 		}
 
 		return In;
 	}
+
+
 }
 
 #endif // KSTDUMAP_H

@@ -41,7 +41,12 @@ namespace Kite {
 
 	public:
 		KCFStorage() :
-			_kmodified(false) {}
+			_kmodified(false) 
+		{
+			_kcontiner.reserve(KCFSTORAGE_CHUNK_SIZE);
+			_kexhandle.reserve(KCFSTORAGE_CHUNK_SIZE);
+			_khandle.reserve(KCFSTORAGE_CHUNK_SIZE);
+		}
 
 		KHandle add(const T &Object) {
 			// create component

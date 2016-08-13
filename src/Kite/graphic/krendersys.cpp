@@ -28,8 +28,8 @@ namespace Kite{
 	bool KRenderSys::update(F32 Delta, KEntityManager *EManager, KResourceManager *RManager) {
 		// update all active camera
 		if (EManager->isRegisteredComponent("Camera")) {
-			for (auto it = EManager->beginComponent<KCameraCom>("Camera");
-			it != EManager->endComponent<KCameraCom>("Camera"); ++it) {
+			auto continer = EManager->getComponentStorage<KCameraCom>("Camera"); // avoid hash lookup in every turn of for-loop
+			for (auto it = continer->begin(); it != continer->end(); ++it) {
 				auto ehandle = it->getOwnerHandle();
 				auto entity = EManager->getEntity(ehandle);
 				if (entity->isActive()) {

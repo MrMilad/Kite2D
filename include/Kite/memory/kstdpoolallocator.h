@@ -20,16 +20,17 @@ USA
 #ifndef KSTDPOOLALLOCATOR_H
 #define KSTDPOOLALLOCATOR_H
 
-#include "Kite/Core/system/ksystemdef.h"
-#include "kite/Core/memory/kbasestorage.h"
+#include "Kite/core/kcoredef.h"
+#include "kite/memory/kbasestorage.h"
 #include <cstdlib>
 #include <memory>
 #include <utility>
+#include <list>
 
 namespace Kite {
 	template <class T, bool deallocationFlag = false>
 	class KSTDPoolAllocator {
-		template<class T, Bool deallocationFlag>
+		template<class T, bool deallocationFlag>
 		friend class KSTDPoolAllocator;
 	public:
 		typedef size_t    size_type;
@@ -56,7 +57,7 @@ namespace Kite {
 
 		/// usage:
 		/// beware of most vexing parse (two extra parenthesis in contructure)
-		/// eg: std::vector<int, KSTDAllocator<int>> myVec((KSTDAllocator<int>(BaseAlloc)));
+		/// eg: std::vector<int, KSTDPoolAllocator<int>> myVec((KSTDPoolAllocator<int>(BaseAlloc)));
 		KSTDPoolAllocator(KBaseStorage &PoolStorage)
 		{
 			_kpool.reset(&PoolStorage);
@@ -67,17 +68,17 @@ namespace Kite {
 		}
 
 		pointer allocate(size_type n, const void * = 0) {
-			KDEBUG_ASSERT(_kpool != nullptr);
+			KD_ASSERT(_kpool != nullptr);
 			size_t size = sizeof(T) * n;
 			T* t = (T *)_kpool->allocate(size, alignof(T));
 			if (t == nullptr) {
-				KDEBUG_PRINT("allocation failed. There is not enough room")
+				KD_PRINT("allocation failed. There is not enough room")
 			}
 			return t;
 		}
 
 		void deallocate(void* p, size_type) {
-			KDEBUG_ASSERT(_kpool);
+			KD_ASSERT(_kpool);
 			if (p && deallocationFlag) {
 				_kpool->deallocate(p);
 			}
@@ -101,20 +102,20 @@ namespace Kite {
 		const_pointer address(const_reference x) const { return &x; }
 
 		size_type max_size() const { 
-			KDEBUG_ASSERT(_kpool != nullptr);
-			return (_kpool->getSize() \ sizeof(T));
+			KD_ASSERT(_kpool != nullptr);
+			return (_kpool->getSize() / sizeof(T));
 		}
 
 		template <class U>
 		struct rebind { typedef KSTDPoolAllocator<U, deallocationFlag> other; };
 
-		KSTDPoolAllocator<T>&  operator=(const KSTDPoolAllocator& Copy) { 
+		KSTDPoolAllocator<T>&  operator=(const KSTDPoolAllocator &Copy) { 
 			_kpool = Copy._kpool;
 			return *this;
 		}
 
 		template <class U>
-		KSTDPoolAllocator& operator=(const KSTDPoolAllocator<U, deallocationFlag> & Copy) { 
+		KSTDPoolAllocator& operator=(const KSTDPoolAllocator<U, deallocationFlag> &Copy) { 
 			_kpool = Copy._kpool;
 			return *this;
 		}

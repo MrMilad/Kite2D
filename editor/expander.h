@@ -8,7 +8,7 @@
 #include <qvariant.h>
 #include <Kite/core/kresource.h>
 
-class QToolButton;
+class QPushButton;
 class ComponentView;
 
 class Expander : public QObject {
@@ -35,8 +35,7 @@ private:
 	bool expandable;
 	QTreeWidgetItem *head;
 	ComponentView *content;
-	QToolButton *btnExpand;
-	QFrame *mainFrame;
+	QPushButton *btnExpand;
 	Kite::KHandle chandle;
 	QString ctype;
 };

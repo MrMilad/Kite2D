@@ -28,6 +28,31 @@ void ComponentDock::addComCallb(Kite::KComponent *NewComp, void *Ptr) {
 	emit(cls->componentAdded(cls->eman->getEntity(cls->currEntity), NewComp));
 }
 
+void ComponentDock::onExpand(const QModelIndex &Index) {
+	auto frame = (QFrame *)comTree->indexWidget(Index);
+	auto btnExpand = frame->findChild<QPushButton *>("btnExpand");
+
+	btnExpand->setIcon(QIcon(":/icons/col"));
+	btnExpand->setStyleSheet("QPushButton { text-align: left;"
+									 "color: rgb(255, 255, 255);"
+									 "background-color: rgb(38, 38, 38);"
+									 "border: 1px solid rgb(38, 38, 38);"
+									 "border-top-left-radius: 3px;"
+									 "border-top-right-radius: 3px;}");
+}
+
+void ComponentDock::onCollpase(const QModelIndex &Index) {
+	auto frame = (QFrame *)comTree->indexWidget(Index);
+	auto btnExpand = frame->findChild<QPushButton *>("btnExpand");
+
+	btnExpand->setIcon(QIcon(":/icons/exp"));
+	btnExpand->setStyleSheet("QPushButton { text-align: left;"
+							 "color: rgb(255, 255, 255);"
+							 "background-color: rgb(38, 38, 38);"
+							 "border: 1px solid rgb(38, 38, 38);"
+							 "border-radius: 3px;}");
+}
+
 void ComponentDock::setupTree() {
 	auto mainFrame = new QFrame(this);
 	auto vlayout = new QVBoxLayout(mainFrame);
@@ -40,10 +65,18 @@ void ComponentDock::setupTree() {
 	comTree->setHeaderLabel("Components Editor");
 	comTree->setHeaderHidden(true);
 	comTree->setSelectionMode(QAbstractItemView::SingleSelection);
-	comTree->setRootIsDecorated(false);
 	comTree->setExpandsOnDoubleClick(false);
+	comTree->setRootIsDecorated(false);
 	comTree->setIndentation(0);
 	comTree->setAnimated(true);
+	comTree->setFocusPolicy(Qt::FocusPolicy::NoFocus);
+	comTree->setStyleSheet("QTreeView {background-color: rgb(88,88,88);"
+						   "padding: 3px;"
+						   "selection-background-color: transparent;}");
+
+	connect(comTree, &QTreeWidget::expanded, this, &ComponentDock::onExpand);
+	connect(comTree, &QTreeWidget::collapsed, this, &ComponentDock::onCollpase);
+
 	vlayout->addWidget(comTree);
 
 	// prefab frame
@@ -88,11 +121,11 @@ void ComponentDock::setupActions() {
 	connect(addDefComp, &QAction::triggered, this, &ComponentDock::actAddDef);
 	this->addAction(addDefComp);
 
-	collAll = new QAction(QIcon(":/icons/col"), "Collapse All", this);
+	collAll = new QAction(QIcon(":/icons/colall"), "Collapse All", this);
 	connect(collAll, &QAction::triggered, this, &ComponentDock::actCollAll);
 	this->addAction(collAll);
 
-	exeOrder = new QAction(QIcon(":/icons/order"), "Execution Order", this);
+	exeOrder = new QAction(QIcon(":/icons/order"), "Logic Execution Order", this);
 	//exeOrder->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_N));
 	//exeOrder->setShortcutContext(Qt::WidgetWithChildrenShortcut);
 	connect(exeOrder, &QAction::triggered, this, &ComponentDock::actExeOrder);
@@ -138,7 +171,7 @@ void ComponentDock::setupHTools() {
 	auto btnExeOrder = new QToolButton(htools);
 	btnExeOrder->setDefaultAction(exeOrder);
 	btnExeOrder->setIcon(QIcon(":/icons/order"));
-	btnExeOrder->setToolButtonStyle(Qt::ToolButtonStyle::ToolButtonTextBesideIcon);
+	btnExeOrder->setToolButtonStyle(Qt::ToolButtonStyle::ToolButtonIconOnly);
 	hlayout->addWidget(btnExeOrder);
 
 	hlayout->addStretch(1);
@@ -150,24 +183,41 @@ void ComponentDock::setupHTools() {
 	vlayout->addLayout(hlayout);
 
 	auto hlayout2 = new QHBoxLayout(htools);
-	hlayout2->setMargin(3);
+	hlayout2->setMargin(0);
+
+	auto lblLayer = new QLabel(this);
+	lblLayer->setText("Layer: ");
+	hlayout2->addWidget(lblLayer);
+
+	cmbLayer = new QComboBox(this);
+	hlayout2->addWidget(cmbLayer, 1);
+	hlayout2->addSpacing(5);
+
+	auto chkStatic = new QCheckBox(this);
+	chkStatic->setText("Static");
+	hlayout2->addWidget(chkStatic);
+
+	vlayout->addLayout(hlayout2);
+
+	auto hlayout3 = new QHBoxLayout(htools);
+	hlayout3->setMargin(3);
 
 	auto btnCollpaseAll = new QToolButton(htools);
 	btnCollpaseAll->setDefaultAction(collAll);
 	btnCollpaseAll->setIcon(QIcon(":/icons/col"));
 	btnCollpaseAll->setToolButtonStyle(Qt::ToolButtonIconOnly);
-	hlayout2->addWidget(btnCollpaseAll);
+	hlayout3->addWidget(btnCollpaseAll);
 
-	hlayout2->addSpacing(10);
+	hlayout3->addSpacing(10);
 
 	ledit = new QLineEdit(htools);
 	ledit->setPlaceholderText("Search");
 	ledit->addAction(QIcon(":/icons/search"), QLineEdit::ActionPosition::TrailingPosition);
 	ledit->setStyleSheet("background-color: gray;");
 	connect(ledit, &QLineEdit::textChanged, this, &ComponentDock::actSearch);
-	hlayout2->addWidget(ledit);
+	hlayout3->addWidget(ledit);
 
-	vlayout->addLayout(hlayout2);
+	vlayout->addLayout(hlayout3);
 
 	htools->setLayout(vlayout);
 	setTitleBarWidget(htools);
@@ -474,7 +524,7 @@ void ComponentDock::actClear() {
 
 void ComponentDock::actSearch(const QString &Pharase) {
 	for (auto it = treeList.begin(); it != treeList.end(); ++it) {
-		if ((*it)->getTreeItem()->text(0).contains(Pharase, Qt::CaseInsensitive) && !Pharase.isEmpty()) {
+		if ((*it)->getTreeItem()->text(0).contains(Pharase, Qt::CaseInsensitive) || Pharase.isEmpty()) {
 			(*it)->highlight(true);
 		} else {
 			(*it)->highlight(false);

@@ -49,6 +49,9 @@ if (BUILD_EDITOR_VER)
 	add_definitions(-DKITE_EDITOR)
 endif()
 
+# glew
+add_definitions(-DGLEW_STATIC)
+
 # set some msvc compiler flags
 if(COMPILER_MSVC)
 	# remove SL security warnings with Visual C++

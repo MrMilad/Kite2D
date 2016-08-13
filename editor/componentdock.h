@@ -17,6 +17,7 @@
 class QMenu;
 class QFormLayout;
 class Expander;
+class QComboBox;
 
 namespace priv {
 	struct TreeItemPool {
@@ -60,6 +61,8 @@ void updateResList(const QString &Type, QStringList &List);
 	void actSelectPrefab();
 	void actRevertPrefab();
 	void actApllyPrefab();
+	void onExpand(const QModelIndex &);
+	void onCollpase(const QModelIndex &);
 
 private:
 	static void addComCallb(Kite::KComponent *NewComp, void *Ptr);
@@ -85,6 +88,7 @@ private:
 	QAction *preApply;
 	QFrame *htools;
 	QLineEdit *ledit;
+	QComboBox *cmbLayer;
 	QLabel *hlabel;
 	QLabel *llabel;
 	QMenu *mtypes;

@@ -17,7 +17,7 @@ License along with this library; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 USA
 */
-#include "Kite/Core/memory/kphysicalstorage.h"
+#include "Kite/memory/kphysicalstorage.h"
 #include <cstdlib>
 
 namespace Kite {
@@ -27,7 +27,7 @@ namespace Kite {
 	KPhysicalStorage::~KPhysicalStorage() {}
 
 	void* KPhysicalStorage::allocate(SIZE size, U8 alignment) {
-		KDEBUG_ASSERT(size != 0);
+		KD_ASSERT(size != 0);
 
 		void *p1 = nullptr;
 		void **p2 = nullptr;
@@ -36,7 +36,7 @@ namespace Kite {
 		p2 = (void**)(((size_t)(p1)+offset)&~(alignment - 1));  //line 5
 		p2[-1] = p1; //line 6
 
-		KDEBUG_ASSERT(p2 != nullptr);
+		KD_ASSERT(p2 != nullptr);
 
 		_kusedMem += size + offset;
 		++_knumAlloc;

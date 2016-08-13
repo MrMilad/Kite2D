@@ -22,6 +22,7 @@ USA
 
 #include "Kite/core/kcoredef.h"
 #include "Kite/core/kcoretypes.h"
+#include "Kite/core/kcorestructs.h"
 #include "Kite/core/klistener.h"
 #include "Kite/core/kmessenger.h"
 #include "Kite/core/kany.h"

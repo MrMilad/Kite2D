@@ -62,8 +62,8 @@ namespace Kite {
 		return RecieveTypes::IGNORED;
 	}
 
-	void KLogicCom::setScript(const std::string &ResName) {
-		if (ResName != _kscriptName) {
+	void KLogicCom::setScript(const KStringID &ResName) {
+		if (ResName.hash != _kscriptName.hash) {
 			removeLuaEnv();
 			_kscriptName = ResName;
 			setNeedUpdate(true);

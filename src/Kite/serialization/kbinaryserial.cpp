@@ -30,7 +30,9 @@ USA
 namespace Kite {
 	KBinarySerial::KBinarySerial() :
 		_kpos(0),
-		_kendfile(true) {}
+		_kendfile(true) {
+		_kdata.reserve(KBSERIAL_CHUNK_SIZE);
+	}
 
 	bool KBinarySerial::loadStream(KIStream *Stream, const std::string &Address) {
 		_kpos = 0;
@@ -150,7 +152,10 @@ namespace Kite {
 				fin = (const U8 *)Value;
 			}
 
-			_kdata.reserve(_kdata.size() + Size);
+			// reserve another big chunk
+			if (Size >= _kdata.capacity() - _kdata.size()) {
+				_kdata.reserve(_kdata.capacity() + KBSERIAL_CHUNK_SIZE);
+			}
 			_kdata.insert(_kdata.end(), &fin[0], &fin[Size]);
 		}
 

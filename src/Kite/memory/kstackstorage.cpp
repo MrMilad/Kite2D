@@ -17,12 +17,12 @@ License along with this library; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 USA
 */
-#include "Kite/Core/memory/kstackstorage.h"
+#include "Kite/memory/kstackstorage.h"
 
 namespace Kite {
 	KStackStorage::KStackStorage(SIZE Size, void *Start)
 		: KBaseStorage(Size, Start), _kcurPos(Start) {
-		KDEBUG_ASSERT(Size > 0);
+		KD_ASSERT(Size > 0);
 
 #if _DEBUG
 		_kprevPos = nullptr;
@@ -38,7 +38,7 @@ namespace Kite {
 	}
 
 	void* KStackStorage::allocate(SIZE Size, U8 Alignment) {
-		KDEBUG_ASSERT(Size != 0);
+		KD_ASSERT(Size != 0);
 
 		U8 adjustment = Internal::alignForwardAdjustmentWithHeader(_kcurPos, Alignment, sizeof(AllocationHeader));
 
@@ -68,7 +68,7 @@ namespace Kite {
 	}
 
 	void KStackStorage::deallocate(void *Pointer) {
-		KDEBUG_ASSERT(Pointer == _kprevPos);
+		KD_ASSERT(Pointer == _kprevPos);
 
 		//Access the AllocationHeader in the bytes before Pointer
 		AllocationHeader* header = (AllocationHeader*)(Internal::subtract(Pointer, sizeof(AllocationHeader)));

@@ -62,7 +62,7 @@ void ComponentView::createPOD(Kite::KComponent *Comp, const Kite::KMetaProperty 
 		// create an appropriate widgte and bind property to it
 		bool ronly = false;
 		if (Meta->type == Kite::KMetaPropertyTypes::KMP_GETTER) ronly = true;
-		auto pgui = new priv::KF32(Comp, Meta->name.c_str(), " ", this, ronly, Meta->min, Meta->max);
+		auto pgui = new priv::KF32(Comp, Meta->name.c_str(), "", this, ronly, Meta->min, Meta->max);
 		connect(pgui, &priv::KF32::propertyEdited, this, &ComponentView::propChanged);
 		connect(this, &ComponentView::resetSig, pgui, &priv::KF32::reset);
 		Layout->addRow(Meta->name.c_str(), pgui);
@@ -84,9 +84,9 @@ void ComponentView::createPOD(Kite::KComponent *Comp, const Kite::KMetaProperty 
 		if (Meta->type == Kite::KMetaPropertyTypes::KMP_GETTER) ronly = true;
 		priv::KI32 *pgui = 0;
 		if (Meta->typeName == "I32") {
-			pgui = new priv::KI32(Comp, Meta->name.c_str(), " ", this, ronly, Meta->min, Meta->max);
+			pgui = new priv::KI32(Comp, Meta->name.c_str(), "", this, ronly, Meta->min, Meta->max);
 		} else {
-			pgui = new priv::KI32(Comp, Meta->name.c_str(), " ", this, ronly, Meta->min, INT32_MAX);
+			pgui = new priv::KI32(Comp, Meta->name.c_str(), "", this, ronly, Meta->min, INT32_MAX);
 		}
 		connect(pgui, &priv::KI32::propertyEdited, this, &ComponentView::propChanged);
 		connect(this, &ComponentView::resetSig, pgui, &priv::KI32::reset);
@@ -98,16 +98,28 @@ void ComponentView::createPOD(Kite::KComponent *Comp, const Kite::KMetaProperty 
 		bool ronly = false;
 		if (Meta->type == Kite::KMetaPropertyTypes::KMP_GETTER) ronly = true;
 		priv::KSTR *pgui = 0;
-		if (Meta->resType.empty()) {
-			pgui = new priv::KSTR(Comp, Meta->name.c_str(), this, ronly);
-
-		// resource field
-		} else {
-			pgui = new priv::KSTR(Comp, Meta->name.c_str(), this, ronly, Meta->resType.c_str(), true);
-			connect(pgui, &priv::KSTR::updateResList, this, &ComponentView::updateResList);
-		}
+		pgui = new priv::KSTR(Comp, Meta->name.c_str(), this, ronly);
 		connect(pgui, &priv::KSTR::propertyEdited, this, &ComponentView::propChanged);
 		connect(this, &ComponentView::resetSig, pgui, &priv::KSTR::reset);
+
+		Layout->addRow(Meta->name.c_str(), pgui);
+
+	// string id
+	} else if (Meta->typeName == "KStringID") {
+		// create an appropriate widgte and bind property to it
+		bool ronly = false;
+		if (Meta->type == Kite::KMetaPropertyTypes::KMP_GETTER) ronly = true;
+		priv::KSTRID *pgui = 0;
+		if (Meta->resType.empty()) {
+			pgui = new priv::KSTRID(Comp, Meta->name.c_str(), this, ronly);
+
+			// resource field
+		} else {
+			pgui = new priv::KSTRID(Comp, Meta->name.c_str(), this, ronly, Meta->resType.c_str(), true);
+			connect(pgui, &priv::KSTRID::updateResList, this, &ComponentView::updateResList);
+		}
+		connect(pgui, &priv::KSTRID::propertyEdited, this, &ComponentView::propChanged);
+		connect(this, &ComponentView::resetSig, pgui, &priv::KSTRID::reset);
 
 		Layout->addRow(Meta->name.c_str(), pgui);
 

@@ -48,17 +48,17 @@ namespace Kite {
 		RecieveTypes onMessage(KMessage *Message, MessageScope Scope) override;
 
 		KM_PRO_SET(KP_NAME = "script")
-		void setScript(const std::string &ResName);
+		void setScript(const KStringID &ResName);
 		
-		KM_PRO_GET(KP_NAME = "script", KP_TYPE = std::string, KP_CM = "name of the lua script resource", KP_RES = "KScript")
-		inline const std::string &getScript() const { return _kscriptName; }
+		KM_PRO_GET(KP_NAME = "script", KP_TYPE = KStringID, KP_CM = "name of the lua script resource", KP_RES = "KScript")
+		inline const KStringID &getScript() const { return _kscriptName; }
 
 	private:
 		inline const std::string &getTName() { return _ktname; }
 		void removeLuaEnv();
 		void setLuaState(lua_State *L);
 
-		KM_VAR() std::string _kscriptName;
+		KM_VAR() KStringID _kscriptName;
 		KM_VAR() std::string _ktname;
 
 		bool _kinite;

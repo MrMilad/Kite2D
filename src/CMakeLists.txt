@@ -79,10 +79,10 @@ LIST(APPEND ALL_FILES ${LOG_SRC} ${LOG_INC})
 #LIST(APPEND ALL_FILES ${AUD_SRC} ${AUD_INC})
 
 # memory
-#add_subdirectory(Kite/memory)
-#source_group("Header Files\\Memory" FILES ${MEM_INC})
-#source_group("Source Files\\Memory" FILES ${MEM_SRC})
-#LIST(APPEND ALL_FILES ${MEM_SRC} ${MEM_INC})
+add_subdirectory(Kite/memory)
+source_group("Header Files\\Memory" FILES ${MEM_INC})
+source_group("Source Files\\Memory" FILES ${MEM_SRC})
+LIST(APPEND ALL_FILES ${MEM_SRC} ${MEM_INC})
 
 # engine
 add_subdirectory(Kite/engine)
@@ -104,6 +104,8 @@ if (WINDOWS)
      target_link_libraries (Kite2D "SDL2.lib")
      target_link_libraries (Kite2D "SDL2main.lib")
      target_link_libraries (Kite2D "opengl32.lib")
+     target_link_libraries (Kite2D  $<$<CONFIG:Release>:foonathan_memory.lib>)
+     target_link_libraries (Kite2D  $<$<CONFIG:Debug>:debug/foonathan_memory>)
 endif()
 
 # set debug flags
@@ -158,4 +160,5 @@ if (WINDOWS)
      target_link_libraries (Test "${PROJECT_BINARY_DIR}/lib/debug/Kite2Dd.lib")
      target_link_libraries (Test "lua_dll.lib")
      target_link_libraries (Test "luac.lib")
+     target_link_libraries (Test  $<$<CONFIG:Debug>:debug/foonathan_memory>)
 endif()

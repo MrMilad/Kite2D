@@ -12,7 +12,7 @@ MainTab::MainTab(KiteInfo *KInfo,QWidget *parent) :
 	kinfo(KInfo),
 	scene(nullptr)
 {
-	setStyleSheet("QTabBar::tab { height: 23px; }");
+	setStyleSheet("QTabBar::tab { height: 23px;}");
 	setMovable(true);
 	registerTabs();
 }
@@ -66,14 +66,16 @@ int MainTab::createTab(QWidget *Widget, Kite::KResource *ResPtr) {
 	connect(unpinTab, &QAction::triggered, this, &MainTab::unpinTab);
 
 	auto btnUnpin = new QToolButton();
-	btnUnpin->setFixedSize(15, 15);
+	btnUnpin->setIconSize(QSize(8, 8));
 	btnUnpin->setDefaultAction(unpinTab);
+	btnUnpin->setAutoRaise(true);
 	unpinTab->setParent(btnUnpin);
 	flayout->addWidget(btnUnpin);
 
 	auto btnClose = new QToolButton();
-	btnClose->setFixedSize(15, 15);
 	btnClose->setDefaultAction(closeTab);
+	btnClose->setIconSize(QSize(8, 8));
+	btnClose->setAutoRaise(true);
 	closeTab->setParent(btnClose);
 	flayout->addWidget(btnClose);
 
@@ -261,8 +263,8 @@ void MainTab::unpinTab() {
 		pinAction->setData(qVariantFromValue((void *)found.key()));
 		connect(pinAction, &QAction::triggered, this, &MainTab::pinDock);
 		auto btnPin = new QToolButton();
-		btnPin->setFixedSize(15, 15);
 		btnPin->setDefaultAction(pinAction);
+		btnPin->setIconSize(QSize(8, 8));
 		flayout->addWidget(btnPin);
 
 		// close button
@@ -270,7 +272,7 @@ void MainTab::unpinTab() {
 		closeAction->setData(qVariantFromValue((void *)found.key()));
 		connect(closeAction, &QAction::triggered, this, &MainTab::closeDock);
 		auto btnClose = new QToolButton();
-		btnClose->setFixedSize(15, 15);
+		btnClose->setIconSize(QSize(8, 8));
 		btnClose->setDefaultAction(closeAction);
 		flayout->addWidget(btnClose);
 

@@ -18,12 +18,13 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 USA
 */
 
-#include "Kite\core\kentitymanager.h"
+#include "Kite/core/kentitymanager.h"
 #include <algorithm>
 #include "Kite/meta/kmetamanager.h"
 #include "Kite/meta/kmetaclass.h"
 #include "Kite/serialization/types/kstdstring.h"
 #include "Kite/serialization/types/kstdumap.h"
+#include "Kite/serialization/types/kstdpair.h"
 #include "Kite/core/kcoreutil.h"
 #include "kmeta.khgen.h"
 #include <luaintf\LuaIntf.h>
@@ -55,10 +56,11 @@ namespace Kite {
 		return isInite;
 	}
 
-	KEntityManager::KEntityManager():
+	KEntityManager::KEntityManager() :
 		_knum(0)
-	{
+		{
 		KD_ASSERT(initeLua());
+		_kentmap.reserve(KCFSTORAGE_CHUNK_SIZE);
 		registerCTypes(this);
 		initeRoot();
 	}
@@ -72,6 +74,10 @@ namespace Kite {
 	}
 
 	void KEntityManager::initeRoot() {
+		// built-in layers
+		auto layer = &_klayermap.insert({ "unlayered",{ KLayerInfo("unlayered", true), std::vector<KHandle>() } }).first->second.second;
+		layer->reserve(KCFSTORAGE_CHUNK_SIZE);
+
 		// create root
 		_kroot = _kestorage.add(KEntity("Root"));
 		_kestorage.get(_kroot)->setHandle(_kroot);
@@ -83,6 +89,84 @@ namespace Kite {
 
 		// register it to map
 		_kentmap.insert({ "Root", _kroot });
+
+		// do not add root to default layer
+	}
+
+	bool KEntityManager::createLayer(const std::string &Name) {
+		if (Name.empty()) {
+			KD_PRINT("empty name is not allowed for layers");
+			return false;
+		}
+
+		// layer is exist?
+		auto found = _klayermap.find(Name);
+		if (found != _klayermap.end()) {
+			KD_FPRINT("this layer is exist. name: %s", Name.c_str());
+			return false;
+		}
+
+		// create layer
+		_klayermap.insert({ Name, {KLayerInfo(Name, false), std::vector<KHandle>() } }).first->second.first;
+
+		return true;
+	}
+
+	void KEntityManager::removeLayer(const std::string &Name) {
+		auto found = _klayermap.find(Name);
+		auto unlayered = _klayermap.find("unlayered");
+		if (found != _klayermap.end()) {
+			if (found->second.first.isBuiltin) {
+				KD_FPRINT("removing built-it layers is not allowed. name: %s", Name.c_str());
+				return;
+			}
+
+			// move all objects to 'unlayered' layer
+			unlayered->second.second.reserve(unlayered->second.second.size() + found->second.second.size());
+			for (auto it = found->second.second.begin(); it != found->second.second.end(); ++it) {
+				_kestorage.get((*it))->_klayerName = unlayered->second.first.name;
+				unlayered->second.second.push_back((*it));
+			}
+			_klayermap.erase(found);
+		}
+	}
+
+	const std::vector<KLayerInfo> &KEntityManager::getLayersInfo(){
+		static std::vector<KLayerInfo> ilist;
+		ilist.clear();
+		ilist.reserve(_klayermap.size());
+		
+		for (auto it = _klayermap.begin(); it != _klayermap.end(); ++it) {
+			ilist.push_back(it->second.first);
+		}
+
+		return ilist;
+	}
+
+	void KEntityManager::addEntityToLayer(const KHandle &Entity, const std::string &Layer) {
+		auto newlayer = _klayermap.find(Layer);
+		if (newlayer == _klayermap.end()) {
+			KD_FPRINT("there is no layer with the given name. layer name: %s", Layer.c_str());
+			return;
+		}
+
+		auto ent = _kestorage.get(Entity);
+
+		// equal layer
+		if (newlayer->second.first.name.hash == ent->_klayerName.hash) {
+			KD_FPRINT("this entity is currently inside the given layer. entity name: %s", ent->getName().c_str());
+			return;
+		}
+
+		// deattach from current layer
+		if (!ent->_klayerName.str.empty()) {
+			removeCurrentLayer(ent);
+		}
+
+		// attach to new layer
+		newlayer->second.second.push_back(Entity);
+		ent->_klayerName = newlayer->second.first.name;
+		ent->_klayerid = newlayer->second.second.size() - 1;
 	}
 
 	KEntity *KEntityManager::createEntity(const std::string &Name) {
@@ -120,6 +204,9 @@ namespace Kite {
 
 		// register it's to map
 		_kentmap.insert({ ename, hndl });
+
+		// add it to default layer
+		addEntityToLayer(hndl, "unlayered");
 		
 		// post a message about new entity
 		KMessage msg;
@@ -342,14 +429,14 @@ namespace Kite {
 		LuaIntf::LuaRef lref(_klstate, "_G.execute");
 		KHandle handle;
 		if (lref.isFunction()) {
-#ifdef KITE_DEV_DEBUG
+#if defined(KITE_DEV_DEBU)
 			try {
 				handle = lref.call<KHandle>(this, (KBaseSerial *)&Prefab->_kdata);
 			} catch (std::exception& e) {
 				KD_FPRINT("prefab execute function failed. %s", e.what());
 				return KHandle();
 			}
-#elif
+#else
 			handle = lref.call<KHandle>(this, (KBaseSerial *)&Prefab->_kdata);
 #endif
 		} else {
@@ -405,6 +492,7 @@ namespace Kite {
 			it->second->serial(Out);
 		}
 		Out << _kentmap;
+		Out << _klayermap;
 	}
 
 	void KEntityManager::deserial(KBaseSerial &In) {
@@ -415,16 +503,36 @@ namespace Kite {
 			it->second->deserial(In);
 		}
 		In >> _kentmap;
+		In >> _klayermap;
 
-		// inite entities
+		// inite entities 
 		for (auto it = _kestorage.getContiner()->begin(); it != _kestorage.getContiner()->end(); ++it) {
 			it->_kcstorage = &_kcstorage;
 			it->_kestorage = &_kestorage;
 		}
 	}
 
+	void KEntityManager::removeCurrentLayer(KEntity *Entity) {
+		auto oldlayer = _klayermap.find(Entity->_klayerName.str);
+		auto oldlist = &oldlayer->second.second;
+
+		// swap with last item in continer and remove
+		auto lastEnt = _kestorage.get(oldlist->back());
+		lastEnt->_klayerid = Entity->_klayerid;
+
+		(*oldlist)[Entity->_klayerid] = oldlist->back();
+		oldlist->pop_back();
+
+		Entity->_klayerid = 0;
+		Entity->_klayerName.str.clear();
+		Entity->_klayerName.hash = 0;
+	}
+
 	void KEntityManager::recursiveDeleter(KHandle EHandle) {
 		auto ent = _kestorage.get(EHandle);
+
+		// remove entity from its layer
+		removeCurrentLayer(ent);
 
 		// mark removed entity as deactive and store it in trash list
 		ent->setActive(false);

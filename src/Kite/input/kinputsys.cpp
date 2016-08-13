@@ -28,8 +28,8 @@ USA
 namespace Kite {
 	bool KInputSys::update(F32 Delta, KEntityManager *EManager, KResourceManager *RManager) {
 		if (EManager->isRegisteredComponent("Input")) {
-			for (auto it = EManager->beginComponent<KInputCom>("Input");
-			it != EManager->endComponent<KInputCom>("Input"); ++it) {
+			auto continer = EManager->getComponentStorage<KInputCom>("Input"); // avoid hash lookup in every turn of for-loop
+			for (auto it = continer->begin(); it != continer->end(); ++it) {
 				auto EHandle = it->getOwnerHandle();
 				auto entity = EManager->getEntity(EHandle);
 				if (entity->isActive()) {

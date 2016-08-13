@@ -20,9 +20,25 @@ USA
 #include "Kite/core/kcorestructs.h"
 #include "Kite/meta/kmetamanager.h"
 #include "Kite/meta/kmetaclass.h"
+#include "Kite/core/kcoreutil.h"
+#include "Kite/serialization/kserialization.h"
+#include "Kite/serialization/types/kstdstring.h"
 #include <luaintf\LuaIntf.h>
 
 namespace Kite {
 	KMETA_KHANDLE_SOURCE();
 	//KMETA_KFILEINFO_SOURCE();
+
+	KStringID::KStringID(const std::string &String) :
+		str(String) {
+		hash = getHash32(str.c_str(), str.size(), KHASH_SEED);
+	}
+
+	KStringID::KStringID() :
+		str(""), hash(0) {}
+	KMETA_KSTRINGID_SOURCE();
+
+	KLayerInfo::KLayerInfo(const std::string &Name, bool IsBuiltin):
+		name(Name), isBuiltin(IsBuiltin){}
+	KMETA_KLAYERINFO_SOURCE();
 }

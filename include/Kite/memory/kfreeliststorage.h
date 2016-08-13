@@ -20,9 +20,9 @@ USA
 #ifndef KFREELISTSTORAGE_H
 #define KFREELISTSTORAGE_H
 
-#include "Kite/Core/system/ksystemdef.h"
-#include "kite/Core/system/knoncopyable.h"
-#include "Kite/Core/memory/kbasestorage.h"
+#include "Kite/core/kcoredef.h"
+#include "kite/core/knoncopyable.h"
+#include "Kite/memory/kbasestorage.h"
 
 namespace Kite {
 	class KITE_FUNC_EXPORT KFreeListStorage : public KBaseStorage, KNonCopyable {
@@ -49,15 +49,15 @@ namespace Kite {
 		FreeBlock *_kfreeBlocks;
 	};
 
-	inline KFreeListStorage* newFreeListAllocator(SIZE size, KBaseStorage& allocator) {
-		void *p = allocator.allocate(size + sizeof(KFreeListStorage), __alignof(KFreeListStorage));
+	inline KFreeListStorage* newKFreeListStorage(SIZE size, KBaseStorage& Storage) {
+		void *p = Storage.allocate(size + sizeof(KFreeListStorage), __alignof(KFreeListStorage));
 		return new (p) KFreeListStorage(size, Internal::add(p, sizeof(KFreeListStorage)));
 	}
 
-	inline void deleteFreeListAllocator(KFreeListStorage& freeListAllocator, KBaseStorage& allocator) {
-		freeListAllocator.~KFreeListStorage();
+	inline void deleteKFreeListStorage(KFreeListStorage& FreeListStorage, KBaseStorage& Storage) {
+		FreeListStorage.~KFreeListStorage();
 
-		allocator.deallocate(&freeListAllocator);
+		Storage.deallocate(&FreeListStorage);
 	}
 }
 

@@ -246,13 +246,13 @@ signals:
 		QString ctype;
 	};
 
-	// string
-	class KSTR : public KProp {
+	// string id
+	class KSTRID : public KProp {
 		Q_OBJECT
 	public:
-		KSTR(Kite::KComponent *Comp, const QString &PName, QWidget *Parent,
+		KSTRID(Kite::KComponent *Comp, const QString &PName, QWidget *Parent,
 			 bool ROnly = false, const QString &ResType = "", bool IsRes = false) :
-			KProp(Parent), pname(PName), isRes(IsRes){
+			KProp(Parent), pname(PName), isRes(IsRes) {
 			ptype = Comp->getType().c_str();
 			auto hlayout = new QHBoxLayout(this);
 			hlayout->setMargin(0);
@@ -262,26 +262,26 @@ signals:
 			if (!isRes) {
 				ledit = new QLineEdit(Parent);
 				ledit->setStyleSheet("color: orange;");
-				ledit->setText(initeVal.as<std::string>().c_str());
+				ledit->setText(initeVal.as<Kite::KStringID>().str.c_str());
 				ledit->setReadOnly(ROnly);
 				if (ROnly) {
 					ledit->setStyleSheet("color: orange;"
 										 "border: none;");
 				}
-				connect(ledit, &QLineEdit::textChanged, this, &KSTR::valueChanged);
+				connect(ledit, &QLineEdit::textChanged, this, &KSTRID::valueChanged);
 				connect(ledit, &QLineEdit::textChanged, ledit, &QLineEdit::setToolTip);
 				hlayout->addWidget(ledit, 1);
 			} else {
 				combo = new QComboBox(Parent);
-				combo->addItem(initeVal.as<std::string>().c_str());
-				combo->setCurrentText(initeVal.as<std::string>().c_str());
+				combo->addItem(initeVal.as<Kite::KStringID>().str.c_str());
+				combo->setCurrentText(initeVal.as<Kite::KStringID>().str.c_str());
 				combo->setObjectName(ResType);
 				combo->installEventFilter(this);
 				if (ROnly) {
 					combo->setDisabled(true);
 				}
 				connect(combo, static_cast<void(QComboBox::*)(const QString &)>(&QComboBox::currentIndexChanged),
-						this, &KSTR::valueChanged);
+						this, &KSTRID::valueChanged);
 
 				hlayout->addWidget(combo, 1);
 			}
@@ -293,22 +293,22 @@ signals:
 				hlayout->addSpacing(2);
 				hlayout->addWidget(lblROnly);
 			}
-			
+
 		}
 
 		void reset(Kite::KComponent *Comp) override {
 			auto val = Comp->getProperty(pname.toStdString());
 			combo->clear();
 			if (isRes) {
-				if (val.as<std::string>().empty()) {
+				if (val.as<Kite::KStringID>().str.empty()) {
 					combo->addItem("");
 					combo->setCurrentText("");
 				} else {
-					combo->addItem(val.as<std::string>().c_str());
-					combo->setCurrentText(val.as<std::string>().c_str());
+					combo->addItem(val.as<Kite::KStringID>().str.c_str());
+					combo->setCurrentText(val.as<Kite::KStringID>().str.c_str());
 				}
 			} else {
-				ledit->setText(val.as<std::string>().c_str());
+				ledit->setText(val.as<Kite::KStringID>().str.c_str());
 			}
 		}
 
@@ -318,7 +318,7 @@ signals:
 
 		private slots :
 		void valueChanged(const QString &Val) {
-			Kite::KAny pval(Val.toStdString());
+			Kite::KAny pval(Kite::KStringID(Val.toStdString()));
 			QVariant v = qVariantFromValue((void *)&pval);
 			emit(propertyEdited(ptype, pname, v));
 		}
@@ -347,6 +347,62 @@ signals:
 		QString ptype;
 	};
 
+	// string
+	class KSTR : public KProp {
+		Q_OBJECT
+	public:
+		KSTR(Kite::KComponent *Comp, const QString &PName, QWidget *Parent,
+			 bool ROnly = false) :
+			KProp(Parent), pname(PName){
+			ptype = Comp->getType().c_str();
+			auto hlayout = new QHBoxLayout(this);
+			hlayout->setMargin(0);
+			hlayout->setSpacing(0);
+
+			auto initeVal = Comp->getProperty(PName.toStdString());
+			ledit = new QLineEdit(Parent);
+			ledit->setStyleSheet("color: orange;");
+			ledit->setText(initeVal.as<std::string>().c_str());
+			ledit->setReadOnly(ROnly);
+			if (ROnly) {
+				ledit->setStyleSheet("color: orange;"
+										"border: none;");
+			}
+			connect(ledit, &QLineEdit::textChanged, this, &KSTR::valueChanged);
+			connect(ledit, &QLineEdit::textChanged, ledit, &QLineEdit::setToolTip);
+			hlayout->addWidget(ledit, 1);
+
+			if (ROnly) {
+				auto lblROnly = new QLabel(this);
+				lblROnly->setText("<img src=\":/icons/lock\" height=\"12\" width=\"12\" >");
+				lblROnly->setToolTip("Read-Only Property");
+				hlayout->addSpacing(2);
+				hlayout->addWidget(lblROnly);
+			}
+			
+		}
+
+		void reset(Kite::KComponent *Comp) override {
+			auto val = Comp->getProperty(pname.toStdString());
+			ledit->setText(val.as<std::string>().c_str());
+		}
+
+signals:
+		void propertyEdited(const QString &PType, const QString &PName, QVariant &Val);
+
+		private slots :
+		void valueChanged(const QString &Val) {
+			Kite::KAny pval(Val.toStdString());
+			QVariant v = qVariantFromValue((void *)&pval);
+			emit(propertyEdited(ptype, pname, v));
+		}
+
+	private:
+		QLineEdit *ledit;
+		QString pname;
+		QString ptype;
+	};
+
 	// I32
 	class KI32 : public KProp {
 		Q_OBJECT
@@ -365,6 +421,7 @@ signals:
 				label->setStyleSheet("background-color: green; color: white;"
 									 "border-top-left-radius: 4px;"
 									 "border-bottom-left-radius: 4px;"
+									 "border-bottom-right-radius: 0px;"
 									 "margin-left: 2px;"
 									 "margin-right: 3px;");
 				hlayout->addWidget(label);
@@ -428,6 +485,7 @@ signals:
 				label->setStyleSheet("background-color: green; color: white;"
 									 "border-top-left-radius: 4px;"
 									 "border-bottom-left-radius: 4px;"
+									 "border-bottom-right-radius: 0px;"
 									 "margin-left: 2px;"
 									 "margin-right: 3px;");
 				hlayout->addWidget(label);
@@ -515,11 +573,11 @@ signals:
 			// X
 			auto xlabel = new QLabel(this);
 			xlabel->setText("X");
-			xlabel->setStyleSheet("background-color: green; color: white;"
-									"border-top-left-radius: 4px;"
-									"border-bottom-left-radius: 4px;"
-									"margin-left: 2px;"
-									"margin-right: 3px;");
+			xlabel->setStyleSheet("QLabel {background-color: green; color: white;"
+								  "border-top-left-radius: 4px;"
+								  "border-bottom-left-radius: 4px;"
+								  "border-bottom-right-radius: 0px;"
+								  "margin-left: 2px;}");
 			hlayout->addWidget(xlabel);
 
 			auto initeVal = Comp->getProperty(PName.toStdString());
@@ -537,11 +595,11 @@ signals:
 			// Y
 			auto ylabel = new QLabel(this);
 			ylabel->setText("Y");
-			ylabel->setStyleSheet("background-color: red; color: white;"
+			ylabel->setStyleSheet("QLabel {background-color: red; color: white;"
 								  "border-top-left-radius: 4px;"
 								  "border-bottom-left-radius: 4px;"
-								  "margin-left: 2px;"
-								  "margin-right: 3px;");
+								  "border-bottom-right-radius: 0px;"
+								  "margin-left: 2px;}");
 			hlayout->addWidget(ylabel);
 
 			yspin = singleSpin<QDoubleSpinBox>(Min, Max);

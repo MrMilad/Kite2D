@@ -86,6 +86,9 @@ namespace Kite {
 		KM_PRO_GET(KP_NAME = "prefab", KP_TYPE = std::string, KP_CM = "entity prefab name")
 			inline const std::string &getPrefab() const { return _kprefabName; }
 
+		KM_PRO_GET(KP_NAME = "layerName", KP_TYPE = std::string, KP_CM = "name of the current layer of entity")
+		inline const std::string &getLayerName() const { return _klayerName.str; }
+
 		KM_FUN()
 		KComponent *addComponent(const std::string &CType, const std::string &CName = "");
 
@@ -154,6 +157,8 @@ namespace Kite {
 		KM_VAR() std::string _kprefabName;								// entity prefab name
 		KM_VAR() std::string _kname;									// entity unique name
 		KM_VAR() std::string _kluatable;								// entity env table name in lua
+		KM_VAR() KStringID _klayerName;									// entity layer name (empty = no layer)
+		KM_VAR() U32 _klayerid;
 		KM_VAR() std::unordered_map<std::string, KHandle> _kfixedComp;	// fixed components slots (built-in components)
 		KM_VAR() std::unordered_map<std::string, KHandle> _klogicComp;	// dynamic components (logic components)
 		KM_VAR() std::vector<KHandle> _klogicOrder;						// logic components queue by order

@@ -19,13 +19,23 @@ Expander::Expander(Kite::KComponent *Comp, QTreeWidget *Parent):
 	head->setText(0, name);
 	head->setHidden(true);
 
-	mainFrame = new QFrame(Parent);
+	auto headFrame = new QFrame(Parent);
+	auto headLayout = new QVBoxLayout(headFrame);
+	headLayout->setMargin(0);
+	headLayout->addSpacing(3);
 
-	btnExpand = new QToolButton(mainFrame);
-	btnExpand->setIcon(QIcon(":/icons/comp32"));
-	btnExpand->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
+	btnExpand = new QPushButton(Parent);
+	btnExpand->setObjectName("btnExpand");
+	btnExpand->setIcon(QIcon(":/icons/exp"));
 	btnExpand->setText(name);
+	btnExpand->setFocusPolicy(Qt::NoFocus);
 	btnExpand->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
+	btnExpand->setStyleSheet("QPushButton { text-align: left;"
+							 "color: rgb(255, 255, 255);"
+							 "background-color: rgb(38, 38, 38);"
+							 "border: 1px solid rgb(38, 38, 38);"
+							 "border-radius: 3px;}");
+	headLayout->addWidget(btnExpand);
 
 	auto hlayout = new QHBoxLayout(btnExpand);
 	hlayout->setMargin(0);
@@ -34,7 +44,7 @@ Expander::Expander(Kite::KComponent *Comp, QTreeWidget *Parent):
 
 	// dependecy label
 	if (!Comp->getDependency().empty()) {
-		auto lblDep = new QLabel(mainFrame);
+		auto lblDep = new QLabel(btnExpand);
 		lblDep->setText("<img src=\":/icons/depend\" height=\"16\" width=\"16\" >");
 		lblDep->setStyleSheet("QToolTip { border: 1px solid #2c2c2c; background-color: #242424; color: white;}");
 		QString tooltip("<font color=\"orange\">Dependency List:</font>");
@@ -48,25 +58,23 @@ Expander::Expander(Kite::KComponent *Comp, QTreeWidget *Parent):
 	}
 
 	// remove button
-	auto btnClose = new QToolButton(mainFrame);
+	auto btnClose = new QToolButton(btnExpand);
 	btnClose->setContentsMargins(0, 0, 0, 0); 
-	btnClose->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Preferred);
+	btnClose->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred);
 	btnClose->setIcon(QIcon(":/icons/close"));
+	btnClose->setIconSize(QSize(8, 8));
 	btnClose->setToolButtonStyle(Qt::ToolButtonIconOnly);
 	btnClose->setAutoRaise(true);
 	btnClose->setToolTip("Remove Component");
 	hlayout->addWidget(btnClose);
 
-	auto mainLayout = new QHBoxLayout(mainFrame);
-	mainLayout->setMargin(0);
-	mainLayout->setSpacing(0);
-	mainLayout->addWidget(btnExpand);
-
-	mainFrame->setLayout(mainLayout);
-
-	Parent->setItemWidget(head, 0, mainFrame);
+	Parent->setItemWidget(head, 0, headFrame);
 
 	content = new ComponentView(Comp, Parent);
+	content->setStyleSheet("QFrame {background-color: rgb(58, 58, 58);\n"
+						   "border: 1px solid rgb(58, 58, 58);\n"
+						   "border-bottom-left-radius: 3px;\n"
+						   "border-bottom-right-radius: 3px;}");
 	connect(content, &ComponentView::updateResList, this, &Expander::updateResList);
 	
 	auto child = new QTreeWidgetItem(head);
@@ -74,7 +82,7 @@ Expander::Expander(Kite::KComponent *Comp, QTreeWidget *Parent):
 	Parent->setItemWidget(child, 0, content);
 
 	connect(content, &ComponentView::componentEdited, this, &Expander::componentEdited);
-	connect(btnExpand, &QToolButton::pressed, this, &Expander::expClicked);
+	connect(btnExpand, &QPushButton::pressed, this, &Expander::expClicked);
 	connect(btnClose, &QToolButton::clicked, this, &Expander::clsClicked);
 }
 
@@ -92,11 +100,7 @@ void Expander::reset(Kite::KComponent *Comp) {
 }
 
 void Expander::highlight(bool Selected) {
-	if (Selected) {
-		btnExpand->setStyleSheet("background-color: green;");
-	} else {
-		btnExpand->setStyleSheet("");
-	}
+	head->setHidden(!Selected);
 }
 
 void Expander::expClicked() {

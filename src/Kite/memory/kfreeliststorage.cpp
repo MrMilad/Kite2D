@@ -17,12 +17,12 @@ License along with this library; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 USA
 */
-#include "Kite/Core/memory/kfreeliststorage.h"
+#include "Kite/memory/kfreeliststorage.h"
 
 namespace Kite {
 	KFreeListStorage::KFreeListStorage(SIZE size, void* start)
 		: KBaseStorage(size, start), _kfreeBlocks((FreeBlock*)start) {
-		KDEBUG_ASSERT(size > sizeof(FreeBlock));
+		KD_ASSERT(size > sizeof(FreeBlock));
 
 		_kfreeBlocks->size = size;
 		_kfreeBlocks->next = nullptr;
@@ -33,7 +33,7 @@ namespace Kite {
 	}
 
 	void* KFreeListStorage::allocate(SIZE size, U8 alignment) {
-		KDEBUG_ASSERT(size != 0 && alignment != 0);
+		KD_ASSERT(size != 0 && alignment != 0);
 
 		FreeBlock* prev_free_block = nullptr;
 		FreeBlock* free_block = _kfreeBlocks;
@@ -83,18 +83,18 @@ namespace Kite {
 			_kusedMem += total_size;
 			_knumAlloc++;
 
-			KDEBUG_ASSERT(Internal::alignForwardAdjustment((void*)aligned_address, alignment) == 0);
+			KD_ASSERT(Internal::alignForwardAdjustment((void*)aligned_address, alignment) == 0);
 
 			return (void*)aligned_address;
 		}
 
-		KDEBUG_PRINT(false && "Couldn't find free block large enough!");
+		KD_PRINT("Couldn't find free block large enough!");
 
 		return nullptr;
 	}
 
 	void KFreeListStorage::deallocate(void* p) {
-		KDEBUG_ASSERT(p != nullptr);
+		KD_ASSERT(p != nullptr);
 
 		AllocationHeader* header = (AllocationHeader*)Internal::subtract(p, sizeof(AllocationHeader));
 

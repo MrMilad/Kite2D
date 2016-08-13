@@ -20,9 +20,9 @@ USA
 #ifndef KPHYSICALSTORAGE_H
 #define KPHYSICALSTORAGE_H
 
-#include "Kite/Core/system/ksystemdef.h"
-#include "kite/Core/system/knoncopyable.h"
-#include "Kite/Core/memory/kbasestorage.h"
+#include "Kite/core/kcoredef.h"
+#include "kite/core/knoncopyable.h"
+#include "Kite/memory/kbasestorage.h"
 #include <list>
 
 namespace Kite {

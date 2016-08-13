@@ -35,7 +35,7 @@ namespace Kite {
 		}
 
 		virtual ~KBaseStorage() {
-			KDEBUG_ASSERT(_knumAlloc == 0 && _kusedMem == 0);
+			KD_ASSERT(_knumAlloc == 0 && _kusedMem == 0);
 
 			_kstart = nullptr;
 			_ksize = 0;
@@ -70,21 +70,21 @@ namespace Kite {
 		}
 	};
 
-	template <class T> T* allocateNew(KBaseStorage& allocator) {
-		return new (allocator.allocate(sizeof(T), __alignof(T))) T;
+	template <class T> T* allocateNew(KBaseStorage& Storage) {
+		return new (Storage.allocate(sizeof(T), __alignof(T))) T;
 	}
 
-	template <class T> T* allocateNew(KBaseStorage& allocator, const T& t) {
-		return new (allocator.allocate(sizeof(T), __alignof(T))) T(t);
+	template <class T> T* allocateNew(KBaseStorage& Storage, const T& t) {
+		return new (Storage.allocate(sizeof(T), __alignof(T))) T(t);
 	}
 
-	template<class T> void deallocateDelete(KBaseStorage& allocator, T& object) {
+	template<class T> void deallocateDelete(KBaseStorage& Storage, T& object) {
 		object.~T();
-		allocator.deallocate(&object);
+		Storage.deallocate(&object);
 	}
 
-	template<class T> T* allocateArray(KBaseStorage& allocator, SIZE length) {
-		KDEBUG_ASSERT(length != 0);
+	template<class T> T* allocateArray(KBaseStorage& Storage, SIZE length) {
+		KD_ASSERT(length != 0);
 
 		U8 headerSize = sizeof(SIZE) / sizeof(T);
 
@@ -92,7 +92,7 @@ namespace Kite {
 			headerSize += 1;
 
 		// Allocate extra space to store array length in the bytes before the array
-		T * p = ((T*)allocator.allocate(sizeof(T)*(length + headerSize), __alignof(T))) + headerSize;
+		T * p = ((T*)Storage.allocate(sizeof(T)*(length + headerSize), __alignof(T))) + headerSize;
 
 		*(((SIZE *)p) - 1) = length;
 
@@ -102,8 +102,8 @@ namespace Kite {
 		return p;
 	}
 
-	template<class T> void deallocateArray(KBaseStorage &allocator, T *array) {
-		KDEBUG_ASSERT(array != nullptr);
+	template<class T> void deallocateArray(KBaseStorage &Storage, T *array) {
+		KD_ASSERT(array != nullptr);
 
 		SIZE length = *(((SIZE *)array) - 1);
 
@@ -116,7 +116,7 @@ namespace Kite {
 		if (sizeof(SIZE) % sizeof(T) > 0)
 			headerSize += 1;
 
-		allocator.deallocate(array - headerSize);
+		Storage.deallocate(array - headerSize);
 	}
 
 	namespace Internal {

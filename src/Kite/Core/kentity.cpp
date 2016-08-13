@@ -33,10 +33,12 @@ namespace Kite {
 		 _kaddCallb(nullptr),
 		_kopaqPtr(nullptr),
 #endif
-		_kplistid(0), _kname(Name),
+		_kplistid(0),
+		_kname(Name),
 		_kcstorage(nullptr),
 		_kestorage(nullptr),
-		_kisPrefab(false)
+		_kisPrefab(false),
+		_klayerid(0)
 	{}
 
 	KEntity::~KEntity() {}

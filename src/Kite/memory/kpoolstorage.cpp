@@ -17,24 +17,24 @@ License along with this library; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 USA
 */
-#include "Kite/Core/memory/kpoolstorage.h"
+#include "Kite/memory/kpoolstorage.h"
 
 namespace Kite {
 	KPoolStorage::KPoolStorage(SIZE ObjectSize, U8 ObjectAlignment, SIZE Size, void *Mem)
 		: KBaseStorage(Size, Mem), _kobjectSize(ObjectSize), _kobjectAlignment(ObjectAlignment) {
-		KDEBUG_ASSERT(ObjectSize >= sizeof(void*));
+		KD_ASSERT(ObjectSize >= sizeof(void*));
 
 		// Calculate adjustment needed to keep object correctly aligned
 		U8 adjustment = Internal::alignForwardAdjustment(Mem, ObjectAlignment);
 
 		_kfreeList = (void**)Internal::add(Mem, adjustment);
 
-		size_t numObjects = (Size - adjustment) / ObjectSize;
+		_kmaxpsize = (Size - adjustment) / ObjectSize;
 
 		void** p = _kfreeList;
 
 		//Initialize free blocks list
-		for (size_t i = 0; i < numObjects - 1; i++) {
+		for (size_t i = 0; i < _kmaxpsize - 1; i++) {
 			*p = Internal::add(p, ObjectSize);
 			p = (void**)*p;
 		}
@@ -47,7 +47,7 @@ namespace Kite {
 	}
 
 	void* KPoolStorage::allocate(SIZE Size, U8 Alignment) {
-		KDEBUG_ASSERT(Size == _kobjectSize && Alignment == _kobjectAlignment);
+		KD_ASSERT(Size == _kobjectSize && Alignment == _kobjectAlignment);
 
 		if (_kfreeList == nullptr)
 			return nullptr;

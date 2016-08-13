@@ -20,9 +20,9 @@ USA
 #ifndef KPOOLSTORAGE_H
 #define KPOOLSTORAGE_H
 
-#include "Kite/Core/system/ksystemdef.h"
-#include "kite/Core/system/knoncopyable.h"
-#include "Kite/Core/memory/kbasestorage.h"
+#include "Kite/core/kcoredef.h"
+#include "kite/core/knoncopyable.h"
+#include "Kite/memory/kbasestorage.h"
 
 namespace Kite {
 	class KITE_FUNC_EXPORT KPoolStorage : public KBaseStorage, KNonCopyable {
@@ -30,9 +30,13 @@ namespace Kite {
 		KPoolStorage(SIZE ObjectSize, U8 ObjectAlignment, SIZE Size, void *Mem);
 		~KPoolStorage();
 
+		/// only 1 object must allocated per call
 		void *allocate(SIZE Size, U8 Alignment) override;
 
+		/// only 1 object must deallocated per call
 		void deallocate(void *Pointer) override;
+
+		inline U32 getMaxPoolSize() const { return _kmaxpsize; }
 
 		// custom deleter for shared pointers
 		template<typename T>
@@ -42,21 +46,22 @@ namespace Kite {
 		}
 
 	private:
+		SIZE _kmaxpsize;
 		SIZE _kobjectSize;
 		U8 _kobjectAlignment;
 
 		void ** _kfreeList;
 	};
 
-	inline KPoolStorage* newPoolAllocator(SIZE objectSize, U8 objectAlignment, SIZE size, KBaseStorage& allocator) {
-		void *p = allocator.allocate(size + sizeof(KPoolStorage), __alignof(KPoolStorage));
+	inline KPoolStorage* newKPoolStorage(SIZE objectSize, U8 objectAlignment, SIZE size, KBaseStorage& Storage) {
+		void *p = Storage.allocate(size + sizeof(KPoolStorage), __alignof(KPoolStorage));
 		return new (p) KPoolStorage(objectSize, objectAlignment, size, Internal::add(p, sizeof(KPoolStorage)));
 	}
 
-	inline void deletePoolAllocator(KPoolStorage &poolAllocator, KBaseStorage &allocator) {
-		poolAllocator.~KPoolStorage();
+	inline void deleteKPoolStorage(KPoolStorage &PoolStorage, KBaseStorage &Storage) {
+		PoolStorage.~KPoolStorage();
 
-		allocator.deallocate(&poolAllocator);
+		Storage.deallocate(&PoolStorage);
 	}
 }
 

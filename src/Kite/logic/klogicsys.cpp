@@ -33,7 +33,7 @@ namespace Kite {
 		// check component registration
 		if (EManager->isRegisteredComponent("Logic")) {
 			// iterate over objects
-			auto econtiner = EManager->getEntityContiner();
+			auto econtiner = EManager->getEntityStorage();
 			for (auto i = 0; i < econtiner->size(); ++i) {
 				auto ent = &econtiner->at(i);
 				if (ent->isActive()) {
@@ -115,7 +115,7 @@ namespace Kite {
 
 	bool KLogicSys::catchAndRegist(KLogicCom *Component, KResourceManager *RManager) {
 		// retrive script rsource from resource manager
-		KScript *script = (KScript *)RManager->get(Component->getScript());
+		KScript *script = (KScript *)RManager->get(Component->getScript().str);
 		if (script == nullptr) {
 			KD_FPRINT("can't load script resource. cname: %s", Component->getName().c_str());
 			return false;

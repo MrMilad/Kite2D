@@ -20,6 +20,7 @@ USA
 #include "Kite/core/kcoredef.h"
 
 namespace Kite {
+#if defined(KITE_EDITOR) && defined(KITE_DEV_DEBUG)
 	printCallback pcallback = &defaultPrint;
 	char *buffer = new char[500];
 
@@ -47,5 +48,5 @@ namespace Kite {
 	void setEditorPrintCallback(printCallback Callback) {
 		pcallback = Callback;
 	}
-
+#endif
 }

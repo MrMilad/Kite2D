@@ -120,6 +120,42 @@ namespace Kite{
 
 	};
 
+	KM_CLASS(POD)
+	struct KITE_FUNC_EXPORT KStringID  {
+		KMETA_KSTRINGID_BODY();
+
+		KM_VAR() std::string str;
+		KM_VAR() U32 hash;
+
+		KStringID();
+
+		KM_CON(std::string)
+		KStringID(const std::string &String);
+	};
+
+	class KStringIDHasher {
+	public:
+		size_t operator() (KStringID const& key) const {
+			return key.hash;
+		}
+	};
+	class KStringIDEq {
+	public:
+		bool operator() (KStringID const& t1, KStringID const& t2) const {
+			return (t1.hash == t2.hash);
+		}
+	};
+
+	KM_CLASS(POD)
+	struct KLayerInfo {
+		KMETA_KLAYERINFO_BODY();
+
+		KM_VAR() bool isBuiltin;
+		KM_VAR() KStringID name;
+
+		KM_CON(std::string, bool)
+		KLayerInfo(const std::string &Name = "", bool IsBuiltin = false);
+	};
 }
 
 #endif // KCORESTRUCTS_H

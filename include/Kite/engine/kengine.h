@@ -64,7 +64,7 @@ namespace Kite {
 
 		void shutdown();
 
-#ifdef KITE_EDITOR // editor hooks	
+#if defined(KITE_EDITOR) && defined (KITE_DEV_DEBUG) // editor hooks	
 		inline void setExitFlag(bool Value) { exitFlag = Value; }
 		inline void setPauseFlag(bool Value) { pauseFlag = Value; }
 #endif
@@ -101,7 +101,7 @@ namespace Kite {
 		KConfig _kconfig;
 		static bool deleted;
 		static KEngine *instance;
-#ifdef KITE_EDITOR // editor hooks
+#if defined(KITE_EDITOR) && defined (KITE_DEV_DEBUG) // editor hooks
 		std::atomic<bool> exitFlag;
 		std::atomic<bool> pauseFlag;
 

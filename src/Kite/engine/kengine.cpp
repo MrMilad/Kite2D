@@ -46,7 +46,7 @@ namespace Kite {
 		_krman(nullptr), _keman(nullptr),
 		_kinite (false) 
 	{
-#ifdef KITE_EDITOR
+#if defined(KITE_EDITOR) && defined (KITE_DEV_DEBUG)
 		exitFlag = false;
 		pauseFlag = false;
 #endif
@@ -74,7 +74,7 @@ namespace Kite {
 		}
 
 		// redirect lua print output into editor
-#ifdef KITE_EDITOR
+#if defined(KITE_EDITOR) && defined (KITE_DEV_DEBUG)
 		LuaIntf::LuaRef lprint(_klstate, "_G");
 		lprint["print"] = luaCustomPrint;
 #endif
@@ -82,12 +82,12 @@ namespace Kite {
 		// inite Kite2D ResourceManager, SceneManager, MetaManager
 		if (IniteMeta) {
 			_kmman = new KMetaManager();
-			registerKiteMeta(_kmman, _klstate);
 		}
 
 		_krman = new KResourceManager();
 		_ksman = new KSceneManager(*_krman);
 
+		registerKiteMeta(_kmman, _klstate); // _kmman can be passed as nullptr
 		registerRTypes(_krman); // CTypes will registered in EntityManager constructure
 
 		// create systems
@@ -102,7 +102,7 @@ namespace Kite {
 
 		// inite gl window
 		_kwindow = new KGLWindow(_kconfig.window);
-		_kwindow->open(); // we must open it for initialize glew
+		_kwindow->open(); // we have to open the window for initialize glew
 
 		// inite systems (glew must initialize in render system)
 		for (auto it = _ksys.begin(); it != _ksys.end(); ++it) {
@@ -143,7 +143,7 @@ namespace Kite {
 
 		while (_kwindow->update()) {
 
-#ifdef KITE_EDITOR
+#if defined(KITE_EDITOR) && defined (KITE_DEV_DEBUG)
 			if (exitFlag.load()) { break; }
 			if (pauseFlag.load()) { continue; }
 #endif
@@ -186,7 +186,7 @@ namespace Kite {
 		Internal::destroySDL();
 	}
 
-#ifdef KITE_EDITOR
+#if defined(KITE_EDITOR) && defined(KITE_DEV_DEBUG)
 	int KEngine::luaCustomPrint(lua_State* L) {
 		int nargs = lua_gettop(L);
 

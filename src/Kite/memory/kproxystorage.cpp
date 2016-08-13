@@ -17,7 +17,7 @@ License along with this library; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 USA
 */
-#include "Kite/Core/memory/kproxystorage.h"
+#include "Kite/memory/kproxystorage.h"
 
 namespace Kite {
 	KProxyStorage::KProxyStorage(KBaseStorage& Allocator)
@@ -30,7 +30,7 @@ namespace Kite {
 	}
 
 	void* KProxyStorage::allocate(SIZE size, U8 alignment) {
-		KDEBUG_ASSERT(size != 0);
+		KD_ASSERT(size != 0);
 		_knumAlloc++;
 
 		size_t mem = _kallocator.getUsedMemory();

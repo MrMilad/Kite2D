@@ -29,8 +29,8 @@ namespace Kite {
 
 	bool KTransformSys::update(F32 Delta, KEntityManager *EManager, KResourceManager *RManager) {
 		if (EManager->isRegisteredComponent("Transform")) {
-			for (auto it = EManager->beginComponent<KTransformCom>("Transform");
-			it != EManager->endComponent<KTransformCom>("Transform"); ++it) {
+			auto continer = EManager->getComponentStorage<KTransformCom>("Transform"); // avoid hash lookup in every turn of for-loop
+			for (auto it = continer->begin(); it != continer->end(); ++it) {
 				auto ehandle = it->getOwnerHandle();
 				auto entity = EManager->getEntity(ehandle);
 				if (entity->isActive()) {

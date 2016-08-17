@@ -47,7 +47,7 @@ namespace Kite{
         }
     }
 
-	bool KTexture::_saveStream(KOStream *Stream, const std::string &Address) {
+	bool KTexture::_saveStream(KOStream &Stream, const std::string &Address) {
 		// texture information
 		KBinarySerial bserial;
 		bserial << std::string("KTex");
@@ -56,11 +56,11 @@ namespace Kite{
 
 		if (!bserial.saveStream(Stream, Address, 0)) {
 			KD_PRINT("can't save stream.");
-			Stream->close();
+			Stream.close();
 			return false;
 		}
 
-		Stream->close();
+		Stream.close();
 
 		// texture pixels (we always pixels in png format)
 		// online pixel data (opengl side)
@@ -86,14 +86,14 @@ namespace Kite{
 		return true;
 	}
 
-	bool KTexture::_loadStream(KIStream *Stream, const std::string &Address) {
+	bool KTexture::_loadStream(KIStream &Stream, const std::string &Address) {
 		setModified(true);
 		// load texture info 
-		if (!Stream->isOpen()) {
-			Stream->close();
+		if (!Stream.isOpen()) {
+			Stream.close();
 		}
 
-		if (!Stream->open(Address, IOMode::BIN)) {
+		if (!Stream.open(Address, IOMode::BIN)) {
 			KD_FPRINT("can't open stream. address: %s", Address.c_str());
 			return false;
 		}
@@ -101,7 +101,7 @@ namespace Kite{
 		KBinarySerial bserial;
 		if (!bserial.loadStream(Stream, Address)) {
 			KD_PRINT("can't load stream");
-			Stream->close();
+			Stream.close();
 			return false;
 		}
 		std::string format;
@@ -110,19 +110,19 @@ namespace Kite{
 
 		if (format != "KTex") {
 			KD_PRINT("incorrect file format");
-			Stream->close();
+			Stream.close();
 			return false;
 		}
 
 		bserial >> _kfilter;
 		bserial >> _kwrap;
 
-		Stream->close();
+		Stream.close();
 
 		// load image
 		if (!_kimage.loadStream(Stream, Address + ".png")) {
 			KD_PRINT("cant load image file");
-			Stream->close();
+			Stream.close();
 			return false;
 		}
 
@@ -162,6 +162,10 @@ namespace Kite{
 	}
 
 	bool KTexture::inite() {
+		if (isInite()) {
+			return true;
+		}
+
 		// generate texture
 		DGL_CALL(glGenTextures(1, &_ktexId));
 

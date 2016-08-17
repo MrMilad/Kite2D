@@ -10,9 +10,9 @@ ComponentView::ComponentView(Kite::KComponent *Component, QWidget *Parent) :
 	auto propList = meta->getProperties();
 
 	auto flayout = new QFormLayout(this);
-	flayout->setContentsMargins(10, 0, 10, 0);
+	flayout->setContentsMargins(3, 0, 3, 0);
 	flayout->setHorizontalSpacing(5);
-	flayout->setVerticalSpacing(3);
+	flayout->setVerticalSpacing(2);
 
 	for (auto it = propList->cbegin(); it != propList->cend(); ++it) {
 		auto propTypeMeta = getKMeta()->getMeta(it->typeName);
@@ -131,6 +131,28 @@ void ComponentView::createPOD(Kite::KComponent *Comp, const Kite::KMetaProperty 
 		auto pgui = new priv::KV2F32(Comp, Meta->name.c_str(), this, ronly, Meta->min, Meta->max);
 		connect(pgui, &priv::KV2F32::propertyEdited, this, &ComponentView::propChanged);
 		connect(this, &ComponentView::resetSig, pgui, &priv::KV2F32::reset);
+
+		Layout->addRow(Meta->name.c_str(), pgui);
+
+	// KVector2U32
+	} else if (Meta->typeName == "KVector2U32") {
+		// create an appropriate widgte and bind property to it
+		bool ronly = false;
+		if (Meta->type == Kite::KMetaPropertyTypes::KMP_GETTER) ronly = true;
+		auto pgui = new priv::KV2U32(Comp, Meta->name.c_str(), this, ronly, Meta->min, Meta->max);
+		connect(pgui, &priv::KV2U32::propertyEdited, this, &ComponentView::propChanged);
+		connect(this, &ComponentView::resetSig, pgui, &priv::KV2U32::reset);
+
+		Layout->addRow(Meta->name.c_str(), pgui);
+
+	// KRectF32
+	} else if (Meta->typeName == "KRectF32") {
+		// create an appropriate widgte and bind property to it
+		bool ronly = false;
+		if (Meta->type == Kite::KMetaPropertyTypes::KMP_GETTER) ronly = true;
+		auto pgui = new priv::KRF32(Comp, Meta->name.c_str(), this, ronly);
+		connect(pgui, &priv::KRF32::propertyEdited, this, &ComponentView::propChanged);
+		connect(this, &ComponentView::resetSig, pgui, &priv::KRF32::reset);
 
 		Layout->addRow(Meta->name.c_str(), pgui);
 

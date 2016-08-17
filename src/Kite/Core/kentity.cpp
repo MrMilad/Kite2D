@@ -38,7 +38,8 @@ namespace Kite {
 		_kcstorage(nullptr),
 		_kestorage(nullptr),
 		_kisPrefab(false),
-		_klayerid(0)
+		_klayerid(0),
+		_kzorder(0)
 	{}
 
 	KEntity::~KEntity() {}
@@ -178,7 +179,7 @@ namespace Kite {
 		}
 		
 		auto found = _kcstorage->find(CType);
-		if (_kcstorage->find(CType) == _kcstorage->end()) {
+		if (found == _kcstorage->end()) {
 			KD_FPRINT("unregistered component types. ctype: %s   cname: %s", CType.c_str(), CName.c_str());
 			return nullptr;
 
@@ -206,7 +207,10 @@ namespace Kite {
 		// circular-dependency is allowed but not recommended.
 		auto depList = com->getDependency();
 		for (auto it = depList.begin(); it != depList.end(); ++it) {
-			addComponent((*it));
+			auto dep = addComponent((*it));
+			if (dep) {
+				++dep->_krefcounter;
+			}
 		}
 
 		// call editor callback
@@ -296,9 +300,15 @@ namespace Kite {
 			return;
 		}
 
-		// deattach component from entity and call deattach function
+		// check ref counter
 		auto hndl = getComponentHandle(CType, Name);
 		auto comPtr = found->second->get(hndl);
+		if (comPtr->_krefcounter > 0) {
+			KD_FPRINT("this component is required by another component. you shuld remove them first. ctype: %s   cname: %s", CType.c_str(), Name.c_str());
+			return;
+		}
+
+		// deattach component from entity and call deattach function
 		comPtr->setOwnerHandle(getHandle());
 		comPtr->deattached(this);
 		
@@ -313,6 +323,15 @@ namespace Kite {
 				}
 			}
 		} else {
+			// dec ref counter
+			auto depList = comPtr->getDependency();
+			for (auto it = depList.begin(); it != depList.end(); ++it) {
+				auto dep = getComponentByName((*it), "");
+				if (dep) {
+					--dep->_krefcounter;
+				}
+			}
+
 			_kfixedComp.erase(CType);
 		}
 

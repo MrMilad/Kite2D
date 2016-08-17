@@ -88,18 +88,18 @@ namespace Internal{
 		return false;
     }
 
-	bool ImageIO::readFromStream(KIStream *Stream, const std::string &Address,
+	bool ImageIO::readFromStream(KIStream &Stream, const std::string &Address,
 								 std::vector<U8> &Pixels, KVector2U32 &Size){
 		// we need an empty array
 		Pixels.clear();
 
 		// check stream
-		if (!Stream->isOpen()) {
-			Stream->close();
+		if (!Stream.isOpen()) {
+			Stream.close();
 		}
 
 		// open stream in binary mode
-		if (!Stream->open(Address, IOMode::BIN)) {
+		if (!Stream.open(Address, IOMode::BIN)) {
 			KD_FPRINT("can't open stream. address: %s", Address.c_str());
 			return false;
 		}
@@ -113,8 +113,8 @@ namespace Internal{
 		// read the image data and get a pointer to the pixels in memory
 		I32 width, height, channels;
 		//U8* pixPtr = stbi_load(Address.c_str(), &width, &height, &channels, STBI_rgb_alpha);
-		U8* pixPtr = stbi_load_from_callbacks(&_kcallb, (void *)Stream, &width, &height, &channels, STBI_rgb_alpha);
-		Stream->close();
+		U8* pixPtr = stbi_load_from_callbacks(&_kcallb, (void *)&Stream, &width, &height, &channels, STBI_rgb_alpha);
+		Stream.close();
 
 		if (pixPtr && width && height){
 			// assign the image properties
@@ -167,21 +167,21 @@ namespace Internal{
 		return false;
     }
 
-	bool ImageIO::writeToStream(KOStream *Stream, const std::string &Address, const std::vector<U8> &Pixels, const KVector2U32 &Size) {
+	bool ImageIO::writeToStream(KOStream &Stream, const std::string &Address, const std::vector<U8> &Pixels, const KVector2U32 &Size) {
 
 		// check stream
-		if (!Stream->isOpen()) {
-			Stream->close();
+		if (!Stream.isOpen()) {
+			Stream.close();
 		}
 
 		// open stream in binary mode
-		if (!Stream->open(Address, IOMode::BIN)) {
+		if (!Stream.open(Address, IOMode::BIN)) {
 			KD_FPRINT("can't open stream. address: %s", Address.c_str());
 			return false;
 		}
 
 		KFileInfo finfo;
-		Stream->getFileInfoStr(Address, finfo);
+		Stream.getFileInfoStr(Address, finfo);
 
 		// make sure the image is not empty
 		if (!Pixels.empty() && (Size.x > 0) && (Size.y > 0)) {
@@ -193,34 +193,34 @@ namespace Internal{
 				toLower(extension);
 				if (extension == "bmp") {
 					// BMP format
-					if (!stbi_write_bmp_to_func(_write, Stream, Size.x, Size.y, 4, &Pixels[0])) {
+					if (!stbi_write_bmp_to_func(_write, &Stream, Size.x, Size.y, 4, &Pixels[0])) {
 						KD_PRINT("Failed to write image");
-						Stream->close();
+						Stream.close();
 						return false;
 					}
 				} else if (extension == "tga") {
 					// TGA format
-					if (!stbi_write_tga_to_func(_write, Stream, Size.x, Size.y, 4, &Pixels[0])) {
+					if (!stbi_write_tga_to_func(_write, &Stream, Size.x, Size.y, 4, &Pixels[0])) {
 						KD_PRINT("Failed to write image");
-						Stream->close();
+						Stream.close();
 						return false;
 					}
 				} else if (extension == "png") {
 					// PNG format
-					if (!stbi_write_png_to_func(_write, Stream, Size.x, Size.y, 4, &Pixels[0], 0)){
+					if (!stbi_write_png_to_func(_write, &Stream, Size.x, Size.y, 4, &Pixels[0], 0)){
 						KD_PRINT("Failed to write image");
-						Stream->close();
+						Stream.close();
 						return false;
 					}
 				} else {
 					KD_FPRINT("this format is not supported. format: %s", extension.c_str());
-					Stream->close();
+					Stream.close();
 					return false;
 				}
 			}
 		}
 
-		Stream->close();
+		Stream.close();
 		return true;
 	}
 

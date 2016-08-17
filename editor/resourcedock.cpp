@@ -31,7 +31,7 @@ Kite::RecieveTypes ResourceDock::onMessage(Kite::KMessage *Message, Kite::Messag
 		auto res = (Kite::KResource *)Message->getData();
 
 		// add it to tree
-		auto icons = formats.values(res->getType().c_str());
+			auto icons = formats.values(res->getType().c_str());
 		auto pitem = resTree->findItems(res->getType().c_str(), Qt::MatchFlag::MatchRecursive).first();
 		auto item = new QTreeWidgetItem(pitem);
 		item->setText(0, res->getName().c_str());
@@ -325,7 +325,8 @@ void ResourceDock::manageUsedResource(const QHash<QString, QVector<Kite::KMetaPr
 
 			scene->clearResources();
 
-			for (auto eit = eman->beginEntity(); eit != eman->endEntity(); ++eit) {
+			auto econtiner = eman->getEntityStorage();
+			for (auto eit = econtiner->begin(); eit != econtiner->end(); ++eit) {
 
 				// first we collect scripts from logic components
 				std::vector<Kite::KHandle> lcomps;
@@ -337,7 +338,7 @@ void ResourceDock::manageUsedResource(const QHash<QString, QVector<Kite::KMetaPr
 					}
 				}
 
-				// then we collect another resources from components
+				// then we collect resources from other components
 				for (auto cit = ResComponents->begin(); cit != ResComponents->end(); ++cit) {
 					if (cit.key() == "Logic") {
 						continue;
@@ -347,7 +348,13 @@ void ResourceDock::manageUsedResource(const QHash<QString, QVector<Kite::KMetaPr
 						for (auto pit = cit->begin(); pit != cit->end(); ++pit) {
 							auto com = eit->getComponentByName(cit.key().toStdString(), "");
 							auto res = com->getProperty(pit->name);
-							auto resName = res.as<std::string>();
+							std::string resName;
+							if (pit->typeName == "std::string") {
+								resName = res.as<std::string>();
+							} else if (pit->typeName == "KStringID") {
+								resName = res.as<Kite::KStringID>().str;
+							}
+							
 							if (!resName.empty()) {
 								scene->addResource(resName, pit->resType);
 							}
@@ -359,15 +366,19 @@ void ResourceDock::manageUsedResource(const QHash<QString, QVector<Kite::KMetaPr
 	}
 }
 
-bool ResourceDock::openResource(const QString &Address, const QString &Type) {
+bool ResourceDock::openResource(const QString &Address, const QString &Type, bool WarnExist) {
 	// check name
 	QFileInfo file(Address);
 	if (rman.get(Address.toStdString()) != nullptr) {
-		QMessageBox msg;
-		msg.setWindowTitle("Message");
-		msg.setText("This file is already exist.\nType: " + Type + "\nAddress: " + Address);
-		msg.exec();
-		return false;
+		if (WarnExist) {
+			QMessageBox msg;
+			msg.setWindowTitle("Message");
+			msg.setText("This file is already exist.\nType: " + Type + "\nAddress: " + Address);
+			msg.exec();
+			return false;
+		} else {
+			return true;
+		}
 	}
 
 	// check type
@@ -495,7 +506,7 @@ Kite::KResource *ResourceDock::addResource(const QString &Type) {
 
 	// save it to the hard disk
 	Kite::KFOStream fstream;
-	if (!newres->saveStream(&fstream, currDirectory.toStdString() + "\\" + text.toStdString())) {
+	if (!newres->saveStream(fstream, currDirectory.toStdString() + "\\" + text.toStdString())) {
 		QMessageBox msg;
 		msg.setWindowTitle("Message");
 		msg.setText("cant create resource file.!\nresource type: " + Type);
@@ -608,7 +619,7 @@ void ResourceDock::actSave() {
 	}
 
 	Kite::KFOStream ostream;
-	if (!res->saveStream(&ostream, res->getAddress() + "\\" + res->getName())) {
+	if (!res->saveStream(ostream, res->getAddress() + "\\" + res->getName())) {
 		QMessageBox msg;
 		msg.setWindowTitle("Message");
 		msg.setText("cant save resource.\nfile address: " + QString(res->getName().c_str()));
@@ -627,7 +638,7 @@ void ResourceDock::actSaveAs() {
 
 	if (!fileName.isEmpty()) {
 		Kite::KFOStream ostream;
-		if (!res->saveStream(&ostream, fileName.toStdString(), true)) {
+		if (!res->saveStream(ostream, fileName.toStdString(), true)) {
 			QMessageBox msg;
 			msg.setWindowTitle("Message");
 			msg.setText("cant open file stream with the given address.\nfile address: " + fileName);

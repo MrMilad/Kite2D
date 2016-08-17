@@ -62,6 +62,12 @@ namespace Kite {
 		KM_PRO_GET(KP_NAME = "handle", KP_TYPE = KHandle, KP_CM = "entity handle")
 		inline KHandle getHandle() const { return _khandle; }
 
+		KM_PRO_GET(KP_NAME = "zorder", KP_TYPE = U32, KP_CM = "render order")
+		inline U32 getZOrder() const { return _kzorder; }
+
+		KM_PRO_SET(KP_NAME = "zorder")
+		inline void setZOrder(U32 Order) { _kzorder = Order; }
+
 		KM_PRO_GET(KP_NAME = "name", KP_TYPE = std::string, KP_CM = "entity unique name")
 		inline const std::string &getName() const { return _kname; }
 
@@ -78,13 +84,13 @@ namespace Kite {
 		void setActive(bool Active);
 
 		KM_PRO_GET(KP_NAME = "isPrefab", KP_TYPE = bool, KP_CM = "is prefab")
-			inline bool isPrefab() const {return _kisPrefab; }
+		inline bool isPrefab() const {return _kisPrefab; }
 
 		KM_PRO_GET(KP_NAME = "envTableName", KP_TYPE = std::string, KP_CM = "entity env table name in lua")
 		inline const std::string &getLuaTName() const { return _kluatable; }
 
 		KM_PRO_GET(KP_NAME = "prefab", KP_TYPE = std::string, KP_CM = "entity prefab name")
-			inline const std::string &getPrefab() const { return _kprefabName; }
+		inline const std::string &getPrefab() const { return _kprefabName; }
 
 		KM_PRO_GET(KP_NAME = "layerName", KP_TYPE = std::string, KP_CM = "name of the current layer of entity")
 		inline const std::string &getLayerName() const { return _klayerName.str; }
@@ -159,6 +165,7 @@ namespace Kite {
 		KM_VAR() std::string _kluatable;								// entity env table name in lua
 		KM_VAR() KStringID _klayerName;									// entity layer name (empty = no layer)
 		KM_VAR() U32 _klayerid;
+		KM_VAR() U32 _kzorder;
 		KM_VAR() std::unordered_map<std::string, KHandle> _kfixedComp;	// fixed components slots (built-in components)
 		KM_VAR() std::unordered_map<std::string, KHandle> _klogicComp;	// dynamic components (logic components)
 		KM_VAR() std::vector<KHandle> _klogicOrder;						// logic components queue by order

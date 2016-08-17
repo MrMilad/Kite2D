@@ -38,13 +38,13 @@ namespace Kite {
 
 	KScene::~KScene() {}
 
-	bool KScene::_loadStream(KIStream *Stream, const std::string &Address) {
+	bool KScene::_loadStream(KIStream &Stream, const std::string &Address) {
 		setModified(true);
-		if (!Stream->isOpen()) {
-			Stream->close();
+		if (!Stream.isOpen()) {
+			Stream.close();
 		}
 
-		if (!Stream->open(Address, IOMode::BIN)) {
+		if (!Stream.open(Address, IOMode::BIN)) {
 			KD_FPRINT("can't open stream. address: %s", Address.c_str());
 			return false;
 		}
@@ -52,7 +52,7 @@ namespace Kite {
 		KBinarySerial bserial;
 		if (!bserial.loadStream(Stream, Address)) {
 			KD_PRINT("can't load stream");
-			Stream->close();
+			Stream.close();
 			return false;
 		}
 		std::string format;
@@ -61,14 +61,14 @@ namespace Kite {
 
 		if (format != "KScene") {
 			KD_PRINT("incorrect file format.");
-			Stream->close();
+			Stream.close();
 			return false;
 		}
 
 		bserial >> _kres;
 		bserial >> _keman;
 
-		Stream->close();
+		Stream.close();
 		return true;
 	}
 
@@ -76,7 +76,7 @@ namespace Kite {
 		return true;
 	}
 
-	bool KScene::_saveStream(KOStream *Stream, const std::string &Address) {
+	bool KScene::_saveStream(KOStream &Stream, const std::string &Address) {
 		KBinarySerial bserial;
 		bserial << std::string("KScene");
 		bserial << _kres;
@@ -84,11 +84,11 @@ namespace Kite {
 
 		if (!bserial.saveStream(Stream, Address, 0)) {
 			KD_PRINT("can't save stream.");
-			Stream->close();
+			Stream.close();
 			return false;
 		}
 
-		Stream->close();
+		Stream.close();
 		return true;
 	}
 

@@ -66,6 +66,40 @@ namespace Kite {
 		return factory->second.first(Name);
 	}
 
+	KResource *KResourceManager::createAndRegist(const std::string &RType, const std::string &Name) {
+		auto factory = _krfactory.find(RType);
+		if (factory == _krfactory.end()) {
+			KD_FPRINT("unregistered resource type. rtype: %s", RType.c_str());
+			return nullptr;
+		}
+
+		if (get(Name)) {
+			KD_FPRINT("this name is already exixst. rname: %s", Name.c_str());
+			return nullptr;
+		}
+
+		// create new resource and return it
+		auto newRes = factory->second.first(Name);
+
+		// increment refrence count
+		newRes->incRef();
+
+		// create key 
+		std::string tempKey(Name);
+		std::transform(Name.begin(), Name.end(), tempKey.begin(), ::tolower);
+
+		// insert resource to address/map
+		_kmap.insert({ tempKey, {newRes , nullptr} });
+
+		// post a message about new resource
+		KMessage msg;
+		msg.setType("RES_CREATED");
+		msg.setData((void *)newRes, sizeof(newRes));
+		postMessage(&msg, MessageScope::ALL);
+
+		return newRes;
+	}
+
 	KResource *KResourceManager::load(const std::string &SType, const std::string &RType,
 									  const std::string &Address){
 		// check for stream factory methode
@@ -130,7 +164,7 @@ namespace Kite {
 
 		// loading composite resources (recursive)
 		if (resource->isComposite()) {
-			if (!loadCompositeList(resource, stream, ResName)) {
+			if (!loadCompositeList(resource, *stream, ResName)) {
 				KD_FPRINT("can't load composite resource. rname: %s", ResName.c_str());
 				delete resource;
 				delete stream;
@@ -138,7 +172,7 @@ namespace Kite {
 			}
 		}
 
-		if (!resource->_loadStream(stream, ResName)) {
+		if (!resource->_loadStream(*stream, ResName)) {
 			KD_FPRINT("can't load resource. rname: %s", ResName.c_str());
 			delete resource;
 			delete stream;
@@ -304,7 +338,7 @@ namespace Kite {
 		return res;
 	}
 
-	bool KResourceManager::saveDictionary(KOStream *Stream, const std::string &Address) {
+	bool KResourceManager::saveDictionary(KOStream &Stream, const std::string &Address) {
 		KBinarySerial bserial;
 		bserial << _kdict;
 
@@ -316,7 +350,7 @@ namespace Kite {
 		return true;
 	}
 
-	bool KResourceManager::loadDictionary(KIStream *Stream, const std::string &Address) {
+	bool KResourceManager::loadDictionary(KIStream &Stream, const std::string &Address) {
 		KBinarySerial bserial;
 		if (!bserial.loadStream(Stream, Address)) {
 			KD_FPRINT("cant load resource dictionary. address: %s", Address.c_str());
@@ -370,7 +404,7 @@ namespace Kite {
 		_kdict.clear();
 	}
 
-	bool KResourceManager::loadCompositeList(KResource *Res, KIStream *Stream, const std::string &Address, U32 Flag) {
+	bool KResourceManager::loadCompositeList(KResource *Res, KIStream &Stream, const std::string &Address) {
 		std::vector<std::pair<std::string, std::string>> plist;
 		KBinarySerial serializer;
 		if (!serializer.loadStream(Stream, Address + ".dep")) {
@@ -382,17 +416,17 @@ namespace Kite {
 
 		// retrieving file name and path
 		KFileInfo finfo;
-		Stream->getFileInfoStr(Address, finfo);
+		Stream.getFileInfoStr(Address, finfo);
 
-		// loading coposite resources
+		// loading composite resources
 		for (auto it = plist.begin(); it != plist.end(); ++it) {
 
 			// case1: first we try load composite resources based our name\address dictionary
-			auto comp = load(Stream->getType(), it->second, it->first);
+			auto comp = load(Stream.getType(), it->second, it->first);
 			if (comp == nullptr) {
 
 				// case 2: then we try load it based parrent address
-				comp = load(Stream->getType(), it->second, finfo.path + "\\" + it->first);
+				comp = load(Stream.getType(), it->second, finfo.path + "\\" + it->first);
 				if (comp == nullptr) {
 					KD_FPRINT("cant load composite resource. composite name: %s", it->first.c_str());
 					return false;

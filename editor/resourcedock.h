@@ -21,7 +21,7 @@ public:
 	explicit ResourceDock(QWidget *parent = 0);
 	~ResourceDock();
 
-	bool openResource(const QString &Address, const QString &Type);
+	bool openResource(const QString &Address, const QString &Type, bool WarnExist = true);
 	Kite::KResource *getResource(const QString &Name);
 	Kite::KResource *addResource(const QString &Type);
 	void filterByType(const QString &Type, QStringList &List);

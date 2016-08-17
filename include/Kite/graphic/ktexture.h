@@ -143,8 +143,8 @@ namespace Kite{
 		static void unbindTexture();
 
     private:
-		bool _saveStream(KOStream *Stream, const std::string &Address) override;
-		bool _loadStream(KIStream *Stream, const std::string &Address) override;
+		bool _saveStream(KOStream &Stream, const std::string &Address) override;
+		bool _loadStream(KIStream &Stream, const std::string &Address) override;
 
 		//! create the texture (opengl)
         static void _create(const U8 *Data, const KVector2U32 &Size,

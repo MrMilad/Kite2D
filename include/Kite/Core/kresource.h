@@ -22,6 +22,7 @@
 
 #include "Kite/core/kcoredef.h"
 #include "Kite/core/kcoretypes.h"
+#include "Kite/core/kcorestructs.h"
 #include "Kite/core/knoncopyable.h"
 #include "Kite/core/kistream.h"
 #include "Kite/core/kostream.h"
@@ -42,7 +43,7 @@ namespace Kite{
 
 		virtual ~KResource();
 
-		bool saveStream(KOStream *Stream, const std::string &Address, bool SaveDependency = false);
+		bool saveStream(KOStream &Stream, const std::string &Address, bool SaveDependency = false);
 
 		/// second phase initialization. (OpenGL, OpenAL, ... object initialization).
 		/// in the simple resources (ex: script) there is no need to implement this function. just return true.
@@ -64,7 +65,10 @@ namespace Kite{
 		virtual KResource *getBase() = 0;
 
 		KM_PRO_GET(KP_NAME = "name", KP_TYPE = std::string)
-		inline const std::string &getName() const { return _kname; }
+		inline const std::string &getName() const { return _kname.str; }
+
+		KM_PRO_GET(KP_NAME = "nameID", KP_TYPE = KStringID)
+		inline const KStringID &getNameID() const { return _kname; }
 
 		KM_PRO_GET(KP_NAME = "address", KP_TYPE = std::string)
 		inline const std::string &getAddress() const { return _kaddress; }
@@ -86,16 +90,16 @@ namespace Kite{
 		inline std::vector<KResource *> getCompositeList() const { return _kclist; }
 
 	private:
-		inline void setName(const std::string &Name) { _kname = Name; }
+		inline void setName(const std::string &Name) { _kname = KStringID(Name); }
 		inline void setAddress(const std::string &Address) { _kaddress = Address; }
-		bool saveCompositeList(KOStream *Stream, const std::string &Address, bool SaveDependency);
+		bool saveCompositeList(KOStream &Stream, const std::string &Address, bool SaveDependency);
 
 		/// use setCompositeList() in _saveStream()
-		virtual bool _saveStream(KOStream *Stream, const std::string &Address) = 0;
+		virtual bool _saveStream(KOStream &Stream, const std::string &Address) = 0;
 
 		/// use getCompositeList() in _loadStream()
 		/// loading resource without resource manager is not allowed
-		virtual bool _loadStream(KIStream *Stream, const std::string &Address) = 0;
+		virtual bool _loadStream(KIStream &Stream, const std::string &Address) = 0;
 
 		inline void incRef() { ++_kref; }
 		inline void decRef() { _kref > 0 ? --_kref : _kref; }
@@ -104,7 +108,7 @@ namespace Kite{
 		bool _kisInite;
 		bool _kcomposite;
 		U32 _kref;
-		std::string _kname;
+		KStringID _kname;
 		std::string _kaddress;
 		std::vector<KResource *> _kclist;
 	};

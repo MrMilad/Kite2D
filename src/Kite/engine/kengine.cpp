@@ -21,7 +21,6 @@ USA
 #include "kmeta.khgen.h"
 #include <algorithm>
 #include "src/Kite/window/sdlcall.h"
-#include "src/Kite/graphic/glcall.h"
 #include "Kite/serialization/kserialization.h"
 #include "Kite/serialization/types/kstdstring.h"
 #include <luaintf\LuaIntf.h>
@@ -97,6 +96,8 @@ namespace Kite {
 		for (auto it = _ksys.begin(); it != _ksys.end(); ++it) {
 			if ((*it)->getClassName() == "KInputSys") {
 				std::iter_swap(it, _ksys.begin());
+			} else if ((*it)->getClassName() == "KRenderSys") {
+				std::iter_swap(it, --_ksys.end());
 			}
 		}
 
@@ -116,7 +117,7 @@ namespace Kite {
 		// load dictionary
 		if (!_kconfig.dictionary.empty()) {
 			KFIStream stream;
-			if (!_krman->loadDictionary(&stream, _kconfig.dictionary)) {
+			if (!_krman->loadDictionary(stream, _kconfig.dictionary)) {
 				return false;
 			}
 		}
@@ -154,23 +155,25 @@ namespace Kite {
 					KD_FPRINT("updating systems failed. sname: %s", (*it)->getClassName().c_str());
 					return;
 				}
-
-
-				// clear trash list
-				_ksman->getActiveScene()->getEManager()->postWork();
 			}
+
+			// clear trash list
+			_ksman->getActiveScene()->getEManager()->postWork();
+
+			// display render output
+			_kwindow->display();
 		}
 	}
 
 	void KEngine::shutdown() {
 		lua_close(_klstate);
 
-		if (_kwindow->isOpen()) {
-			_kwindow->close();
+		// destroy systems
+		// graphic sustem must destroy before closing window
+		for (auto it = _ksys.begin(); it != _ksys.end(); ++it) {
+			it->get()->destroy();
 		}
-
-		delete _kwindow;
-		_kwindow = nullptr;
+		_ksys.clear();
 
 		delete _ksman;
 		_ksman = nullptr;
@@ -181,7 +184,12 @@ namespace Kite {
 		delete _krman;
 		_krman = nullptr;
 
-		_ksys.clear();
+		if (_kwindow->isOpen()) {
+			_kwindow->close();
+		}
+
+		delete _kwindow;
+		_kwindow = nullptr;
 
 		Internal::destroySDL();
 	}

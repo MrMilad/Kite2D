@@ -33,9 +33,11 @@ namespace Kite {
 	class KITE_FUNC_EXPORT KTransformSys: public KSystem {
 		KMETA_KTRANSFORMSYS_BODY();
 	public:
-		bool update(F32 Delta, KEntityManager *EManager, KResourceManager *RManager);
+		bool update(F32 Delta, KEntityManager *EManager, KResourceManager *RManager) override;
 
-		bool inite(void *Data);
+		bool inite(void *Data) override;
+
+		void destroy() override;
 
 		KM_FUN()
 		void computeMatrix(KTransformCom *Component);

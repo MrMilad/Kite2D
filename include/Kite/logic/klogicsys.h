@@ -32,9 +32,11 @@ namespace Kite {
 	class KITE_FUNC_EXPORT KLogicSys : public KSystem {
 		KMETA_KLOGICSYS_BODY();
 	public:
-		bool update(F32 Delta, KEntityManager *EManager, KResourceManager *RManager);
+		bool update(F32 Delta, KEntityManager *EManager, KResourceManager *RManager) override;
 
-		bool inite(void *Data);
+		bool inite(void *Data) override;
+
+		void destroy() override;
 
 	private:
 		bool catchAndRegist(KLogicCom *Component, KResourceManager *RManager);

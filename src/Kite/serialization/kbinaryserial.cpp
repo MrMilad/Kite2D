@@ -34,37 +34,37 @@ namespace Kite {
 		_kdata.reserve(KBSERIAL_CHUNK_SIZE);
 	}
 
-	bool KBinarySerial::loadStream(KIStream *Stream, const std::string &Address) {
+	bool KBinarySerial::loadStream(KIStream &Stream, const std::string &Address) {
 		_kpos = 0;
 		_kdata.clear();
-		Stream->close();
+		Stream.close();
 
 		// open stream
-		if (!Stream->open(Address, IOMode::BIN)) {
+		if (!Stream.open(Address, IOMode::BIN)) {
 			KD_FPRINT("can't open stream. saddress: %s", Address.c_str());
 			return false;
 		}
 
 		// read header
 		char format[8];
-		if (!Stream->read((void *)&format[0], sizeof(format))) {
+		if (!Stream.read((void *)&format[0], sizeof(format))) {
 			KD_PRINT("can't read data from stream.");
-			Stream->close();
+			Stream.close();
 			return false;
 		}
 
 		if (std::strcmp(format, "kserial") != 0) {
 			KD_PRINT("incorrect file format.");
-			Stream->close();
+			Stream.close();
 			return false;
 		}
 
 		// read data
 		const SIZE headerSize = sizeof(format);
-		_kdata.resize(Stream->getSize() - headerSize);
-		if (!Stream->read((void *)&_kdata[0], _kdata.size())) {
+		_kdata.resize(Stream.getSize() - headerSize);
+		if (!Stream.read((void *)&_kdata[0], _kdata.size())) {
 			KD_PRINT("can't read data from stream");
-			Stream->close();
+			Stream.close();
 			return false;
 		}
 
@@ -73,15 +73,15 @@ namespace Kite {
 		readPOD(&ver, sizeof(U32), false);
 		setVersion(ver);
 
-		Stream->close();
+		Stream.close();
 		return true;
 	}
 
-	bool KBinarySerial::saveStream(KOStream *Stream, const std::string &Address, U32 Version) {
-		Stream->close();
+	bool KBinarySerial::saveStream(KOStream &Stream, const std::string &Address, U32 Version) {
+		Stream.close();
 
 		// open stream
-		if (!Stream->open(Address, IOMode::BIN)) {
+		if (!Stream.open(Address, IOMode::BIN)) {
 			KD_FPRINT("can't open stream. saddress: %s", Address.c_str());
 			return false;
 		}
@@ -89,9 +89,9 @@ namespace Kite {
 		// write header
 		// format
 		char format[] = "kserial";
-		if (!Stream->write((void *)&format[0], sizeof(format))) {
+		if (!Stream.write((void *)&format[0], sizeof(format))) {
 			KD_PRINT("can't write data to stream");
-			Stream->close();
+			Stream.close();
 			return false;
 		}
 
@@ -107,21 +107,21 @@ namespace Kite {
 			}
 			fin = buf;
 		}
-		if (!Stream->write((const void *)&fin[0], sizeof(U32))) {
+		if (!Stream.write((const void *)&fin[0], sizeof(U32))) {
 			KD_PRINT("can't write data to stream");
-			Stream->close();
+			Stream.close();
 			return false;
 		}
 		setVersion(Version);
 
 		// write data
-		if (!Stream->write((void *)&_kdata[0], _kdata.size())) {
+		if (!Stream.write((void *)&_kdata[0], _kdata.size())) {
 			KD_PRINT("can't write data to stream");
-			Stream->close();
+			Stream.close();
 			return false;
 		}
 
-		Stream->close();
+		Stream.close();
 		return true;
 	}
 

@@ -43,8 +43,8 @@ namespace priv {
 
 	class KProp : public QFrame {
 	public:
-		KProp(QWidget *Parent):
-			QFrame(Parent){}
+		KProp(QWidget *Parent) :
+			QFrame(Parent) {}
 		virtual void reset(Kite::KComponent *Comp) = 0;
 	};
 
@@ -52,7 +52,7 @@ namespace priv {
 	class KENUM : public KProp {
 		Q_OBJECT
 	public:
-		KENUM (Kite::KComponent *Comp, const QString &PName, QWidget *Parent,
+		KENUM(Kite::KComponent *Comp, const QString &PName, QWidget *Parent,
 			  const QStringList &Items, bool ROnly = false) :
 			KProp(Parent), pname(PName) {
 			ctype = Comp->getType().c_str();
@@ -107,7 +107,7 @@ signals:
 		Q_OBJECT
 	public:
 		KCOLOR(Kite::KComponent *Comp, const QString &PName, QWidget *Parent,
-			  bool ROnly = false) :
+			   bool ROnly = false) :
 			KProp(Parent), pname(PName) {
 			ctype = Comp->getType().c_str();
 			ronly = ROnly;
@@ -187,7 +187,7 @@ signals:
 		Q_OBJECT
 	public:
 		KBOOL(Kite::KComponent *Comp, const QString &PName, QWidget *Parent,
-			 bool ROnly = false) :
+			  bool ROnly = false) :
 			KProp(Parent), pname(PName) {
 			ctype = Comp->getType().c_str();
 			auto hlayout = new QHBoxLayout(this);
@@ -251,7 +251,7 @@ signals:
 		Q_OBJECT
 	public:
 		KSTRID(Kite::KComponent *Comp, const QString &PName, QWidget *Parent,
-			 bool ROnly = false, const QString &ResType = "", bool IsRes = false) :
+			   bool ROnly = false, const QString &ResType = "", bool IsRes = false) :
 			KProp(Parent), pname(PName), isRes(IsRes) {
 			ptype = Comp->getType().c_str();
 			auto hlayout = new QHBoxLayout(this);
@@ -353,7 +353,7 @@ signals:
 	public:
 		KSTR(Kite::KComponent *Comp, const QString &PName, QWidget *Parent,
 			 bool ROnly = false) :
-			KProp(Parent), pname(PName){
+			KProp(Parent), pname(PName) {
 			ptype = Comp->getType().c_str();
 			auto hlayout = new QHBoxLayout(this);
 			hlayout->setMargin(0);
@@ -366,7 +366,7 @@ signals:
 			ledit->setReadOnly(ROnly);
 			if (ROnly) {
 				ledit->setStyleSheet("color: orange;"
-										"border: none;");
+									 "border: none;");
 			}
 			connect(ledit, &QLineEdit::textChanged, this, &KSTR::valueChanged);
 			connect(ledit, &QLineEdit::textChanged, ledit, &QLineEdit::setToolTip);
@@ -379,7 +379,7 @@ signals:
 				hlayout->addSpacing(2);
 				hlayout->addWidget(lblROnly);
 			}
-			
+
 		}
 
 		void reset(Kite::KComponent *Comp) override {
@@ -432,9 +432,7 @@ signals:
 			spin->setValue(initeVal.asFreeCast<int>());
 			spin->setReadOnly(ROnly);
 			connect(spin, static_cast<void(QSpinBox::*)(int)>(&QSpinBox::valueChanged), this, &KI32::valueChanged);
-			hlayout->addWidget(spin);
-
-			hlayout->addStretch(1);
+			hlayout->addWidget(spin, 1);
 
 			if (ROnly) {
 				auto lblROnly = new QLabel(this);
@@ -450,10 +448,10 @@ signals:
 			spin->setValue(val.asFreeCast<int>());
 		}
 
-	signals:
+signals:
 		void propertyEdited(const QString &PType, const QString &PName, QVariant &Val);
 
-	private slots :
+		private slots :
 		void valueChanged(int Val) {
 			Kite::KAny pval(Val, true);
 			QVariant v = qVariantFromValue((void *)&pval);
@@ -471,14 +469,13 @@ signals:
 		Q_OBJECT
 	public:
 		KF32(Kite::KComponent *Comp, const QString &PName, const QString &Label, QWidget *Parent,
-			 bool ROnly = false, int Min = 0, int Max = 0):
-			KProp(Parent),pname(PName), slider(nullptr)
-		{
+			 bool ROnly = false, int Min = 0, int Max = 0) :
+			KProp(Parent), pname(PName), slider(nullptr) {
 			ptype = Comp->getType().c_str();
 			auto hlayout = new QHBoxLayout(this);
 			hlayout->setMargin(0);
 			hlayout->setSpacing(0);
-			
+
 			if (!Label.isEmpty()) {
 				auto label = new QLabel(this);
 				label->setText(Label);
@@ -504,15 +501,15 @@ signals:
 
 			// slider
 			if (Min != Max) {
-				hlayout->addSpacing(10);
+				hlayout->addSpacing(5);
 				slider = new QSlider();
 				slider->setRange(Min * 100, Max * 100);
 				slider->setOrientation(Qt::Orientation::Horizontal);
 				slider->setValue((initeVal.as<float>() * 100));
 				connect(slider, &QSlider::valueChanged, this, &KF32::floatSlider);
 				hlayout->addWidget(slider, 1);
-			} 
-			
+			}
+
 			if (ROnly) {
 				auto lblROnly = new QLabel(this);
 				lblROnly->setText("<img src=\":/icons/lock\" height=\"12\" width=\"12\" >");
@@ -530,10 +527,10 @@ signals:
 			}
 		}
 
-	signals:
+signals:
 		void propertyEdited(const QString &PType, const QString &PName, QVariant &Val);
 
-	private slots :
+		private slots :
 		void valueChanged(double Val) {
 			if (slider != nullptr) {
 				slider->setValue(Val * 100);
@@ -558,12 +555,107 @@ signals:
 		QString ptype;
 	};
 
+	// KVector2U32
+	class KV2U32 : public KProp {
+		Q_OBJECT
+	public:
+		KV2U32(Kite::KComponent *Comp, const QString &PName, QWidget *Parent,
+			   bool ROnly = false, unsigned int Min = 0, unsigned int Max = 0) :
+			KProp(Parent), pname(PName) {
+			ptype = Comp->getType().c_str();
+			auto hlayout = new QHBoxLayout(this);
+			hlayout->setMargin(0);
+			hlayout->setSpacing(0);
+
+			// X
+			auto xlabel = new QLabel(this);
+			xlabel->setText("X");
+			xlabel->setStyleSheet("QLabel {background-color: green; color: white;"
+								  "border-top-left-radius: 4px;"
+								  "border-bottom-left-radius: 4px;"
+								  "border-bottom-right-radius: 0px;"
+								  "margin-left: 2px;}");
+			hlayout->addWidget(xlabel);
+
+			auto initeVal = Comp->getProperty(PName.toStdString());
+			value = initeVal.as<Kite::KVector2U32>();
+			xspin = singleSpin<QSpinBox>(Min, Max);
+			xspin->setValue(initeVal.as<Kite::KVector2U32>().x);
+			xspin->setReadOnly(ROnly);
+			xspin->setSingleStep(1);
+			xspin->setMinimum(0);
+			connect(xspin, static_cast<void(QSpinBox::*)(int)>(&QSpinBox::valueChanged), this, &KV2U32::valueXChanged);
+			hlayout->addWidget(xspin, 1);
+
+			hlayout->addSpacing(5);
+
+			// Y
+			auto ylabel = new QLabel(this);
+			ylabel->setText("Y");
+			ylabel->setStyleSheet("QLabel {background-color: red; color: white;"
+								  "border-top-left-radius: 4px;"
+								  "border-bottom-left-radius: 4px;"
+								  "border-bottom-right-radius: 0px;"
+								  "margin-left: 2px;}");
+			hlayout->addWidget(ylabel);
+
+			yspin = singleSpin<QSpinBox>(Min, Max);
+			yspin->setValue(initeVal.as<Kite::KVector2U32>().y);
+			yspin->setReadOnly(ROnly);
+			yspin->setSingleStep(1);
+			yspin->setMinimum(0);
+			connect(yspin, static_cast<void(QSpinBox::*)(int)>(&QSpinBox::valueChanged), this, &KV2U32::valueYChanged);
+			hlayout->addWidget(yspin, 1);
+
+			if (ROnly) {
+				auto lblROnly = new QLabel(this);
+				lblROnly->setText("<img src=\":/icons/lock\" height=\"12\" width=\"12\" >");
+				lblROnly->setToolTip("Read-Only Property");
+				hlayout->addSpacing(2);
+				hlayout->addWidget(lblROnly);
+			}
+			//hlayout->addStretch(1);
+		}
+
+		void reset(Kite::KComponent *Comp) override {
+			auto val = Comp->getProperty(pname.toStdString());
+			value = val.as<Kite::KVector2U32>();
+			xspin->setValue(val.as<Kite::KVector2U32>().x);
+			yspin->setValue(val.as<Kite::KVector2U32>().y);
+		}
+
+signals:
+		void propertyEdited(const QString &PType, const QString &PName, QVariant &Val);
+
+		private slots :
+		void valueXChanged(int Val) {
+			value.x = Val;
+			Kite::KAny pval(value);
+			QVariant v = qVariantFromValue((void *)&pval);
+			emit(propertyEdited(ptype, pname, v));
+		}
+
+		void valueYChanged(int Val) {
+			value.y = Val;
+			Kite::KAny pval(value);
+			QVariant v = qVariantFromValue((void *)&pval);
+			emit(propertyEdited(ptype, pname, v));
+		}
+
+	private:
+		QSpinBox *xspin;
+		QSpinBox *yspin;
+		Kite::KVector2U32 value;
+		QString pname;
+		QString ptype;
+	};
+
 	// KVector2F32
 	class KV2F32 : public KProp {
 		Q_OBJECT
 	public:
 		KV2F32(Kite::KComponent *Comp, const QString &PName, QWidget *Parent,
-			 bool ROnly = false, float Min = 0, float Max = 0) :
+			   bool ROnly = false, float Min = 0, float Max = 0) :
 			KProp(Parent), pname(PName) {
 			ptype = Comp->getType().c_str();
 			auto hlayout = new QHBoxLayout(this);
@@ -590,7 +682,7 @@ signals:
 			connect(xspin, static_cast<void(QDoubleSpinBox::*)(double)>(&QDoubleSpinBox::valueChanged), this, &KV2F32::valueXChanged);
 			hlayout->addWidget(xspin, 1);
 
-			hlayout->addSpacing(10);
+			hlayout->addSpacing(5);
 
 			// Y
 			auto ylabel = new QLabel(this);
@@ -649,6 +741,161 @@ signals:
 		QDoubleSpinBox *xspin;
 		QDoubleSpinBox *yspin;
 		Kite::KVector2F32 value;
+		QString pname;
+		QString ptype;
+	};
+
+	// KRectF32
+	class KRF32 : public KProp {
+		Q_OBJECT
+	public:
+		KRF32(Kite::KComponent *Comp, const QString &PName, QWidget *Parent,
+			   bool ROnly = false) :
+			KProp(Parent), pname(PName) {
+			ptype = Comp->getType().c_str();
+
+			auto vlayout = new QVBoxLayout();
+			vlayout->setMargin(0);
+			vlayout->setSpacing(0);
+
+			// left right
+			auto lrlayout = new QHBoxLayout();
+			lrlayout->setMargin(0);
+			lrlayout->setSpacing(0);
+
+			// bottom top
+			auto btlayout = new QHBoxLayout();
+			btlayout->setMargin(0);
+			btlayout->setSpacing(0);
+
+			// left
+			auto leftlbl = new QLabel(this);
+			leftlbl->setText("L");
+			leftlbl->setStyleSheet("QLabel {background-color: #7e7e7e; color: white;"
+								  "border-top-left-radius: 4px;"
+								  "border-bottom-left-radius: 4px;"
+								  "border-bottom-right-radius: 0px;"
+								  "margin-left: 2px;}");
+			lrlayout->addWidget(leftlbl);
+
+			auto initeVal = Comp->getProperty(PName.toStdString());
+			value = initeVal.as<Kite::KRectF32>();
+			leftspin = singleSpin<QDoubleSpinBox>();
+			leftspin->setValue(value.left);
+			leftspin->setReadOnly(ROnly);
+			leftspin->setDecimals(2);
+			leftspin->setSingleStep(0.1);
+			leftspin->setToolTip("Left");
+			connect(leftspin, static_cast<void(QDoubleSpinBox::*)(double)>(&QDoubleSpinBox::valueChanged), this, &KRF32::valueChanged);
+			lrlayout->addWidget(leftspin, 1);
+			lrlayout->addSpacing(5);
+
+			// bottom
+			auto botlbl = new QLabel(this);
+			botlbl->setText("B");
+			botlbl->setStyleSheet("QLabel {background-color: #7e7e7e; color: white;"
+								  "border-top-left-radius: 4px;"
+								  "border-bottom-left-radius: 4px;"
+								  "border-bottom-right-radius: 0px;"
+								  "margin-left: 2px;}");
+			btlayout->addWidget(botlbl);
+
+			botspin = singleSpin<QDoubleSpinBox>();
+			botspin->setValue(value.bottom);
+			botspin->setReadOnly(ROnly);
+			botspin->setDecimals(2);
+			botspin->setSingleStep(0.1);
+			botspin->setToolTip("Bottom");
+			connect(botspin, static_cast<void(QDoubleSpinBox::*)(double)>(&QDoubleSpinBox::valueChanged), this, &KRF32::valueChanged);
+			btlayout->addWidget(botspin, 1);
+			btlayout->addSpacing(5);
+
+			// right
+			auto rightlbl = new QLabel(this);
+			rightlbl->setText("R");
+			rightlbl->setStyleSheet("QLabel {background-color: #7e7e7e; color: white;"
+								  "border-top-left-radius: 4px;"
+								  "border-bottom-left-radius: 4px;"
+								  "border-bottom-right-radius: 0px;"
+								  "margin-left: 2px;}");
+			lrlayout->addWidget(rightlbl);
+
+			rightspin = singleSpin<QDoubleSpinBox>();
+			rightspin->setValue(value.left);
+			rightspin->setReadOnly(ROnly);
+			rightspin->setDecimals(2);
+			rightspin->setSingleStep(0.1);
+			rightspin->setToolTip("Right");
+			connect(rightspin, static_cast<void(QDoubleSpinBox::*)(double)>(&QDoubleSpinBox::valueChanged), this, &KRF32::valueChanged);
+			lrlayout->addWidget(rightspin, 1);
+
+			// top
+			auto toplbl = new QLabel();
+			toplbl->setText("T");
+			toplbl->setStyleSheet("QLabel {background-color: #7e7e7e; color: white;"
+								  "border-top-left-radius: 4px;"
+								  "border-bottom-left-radius: 4px;"
+								  "border-bottom-right-radius: 0px;"
+								  "margin-left: 2px;}");
+			btlayout->addWidget(toplbl);
+
+			topspin = singleSpin<QDoubleSpinBox>();
+			topspin->setValue(value.right);
+			topspin->setReadOnly(ROnly);
+			topspin->setDecimals(2);
+			topspin->setSingleStep(0.1);
+			topspin->setToolTip("Top");
+			connect(topspin, static_cast<void(QDoubleSpinBox::*)(double)>(&QDoubleSpinBox::valueChanged), this, &KRF32::valueChanged);
+			btlayout->addWidget(topspin, 1);
+
+			vlayout->addLayout(lrlayout);
+			vlayout->addLayout(btlayout);
+
+			auto mainlayout = new QHBoxLayout(this);
+			mainlayout->setSpacing(0);
+			mainlayout->setMargin(0);
+			mainlayout->addLayout(vlayout, 1);
+
+			if (ROnly) {
+				auto lblROnly = new QLabel(this);
+				lblROnly->setText("<img src=\":/icons/lock\" height=\"12\" width=\"12\" >");
+				lblROnly->setToolTip("Read-Only Property");
+				mainlayout->addSpacing(2);
+				mainlayout->addWidget(lblROnly);
+			}
+
+			//hlayout->addStretch(1);
+		}
+
+		void reset(Kite::KComponent *Comp) override {
+			auto val = Comp->getProperty(pname.toStdString());
+			value = val.as<Kite::KRectF32>();
+			topspin->setValue(val.as<Kite::KRectF32>().top);
+			botspin->setValue(val.as<Kite::KRectF32>().bottom);
+			leftspin->setValue(val.as<Kite::KRectF32>().left);
+			rightspin->setValue(val.as<Kite::KRectF32>().right);
+		}
+
+signals:
+		void propertyEdited(const QString &PType, const QString &PName, QVariant &Val);
+
+		private slots :
+		void valueChanged(double Val) {
+			value.top = topspin->value();
+			value.bottom = botspin->value();
+			value.left = leftspin->value();
+			value.right = rightspin->value();
+			Kite::KAny pval(value);
+			QVariant v = qVariantFromValue((void *)&pval);
+			emit(propertyEdited(ptype, pname, v));
+		}
+
+	private:
+		QDoubleSpinBox *topspin;
+		QDoubleSpinBox *botspin;
+		QDoubleSpinBox *leftspin;
+		QDoubleSpinBox *rightspin;
+		Kite::KRectF32 value;
 		QString pname;
 		QString ptype;
 	};

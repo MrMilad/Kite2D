@@ -18,6 +18,7 @@ set(GFX_SRC
     ${SRCROOT}/krendersys.cpp
     ${SRCROOT}/krendercom.cpp
     ${SRCROOT}/kcameracom.cpp
+    ${SRCROOT}/kquadcom.cpp
     PARENT_SCOPE
 )
 
@@ -27,6 +28,7 @@ set(GFX_INC
     ${SRCROOT}/imageio.h
     ${INCROOT}/kframebuffer.h
     ${INCROOT}/kgraphicstructs.h
+    ${INCROOT}/kgraphicdef.h
     ${INCROOT}/kgraphictypes.h
     ${INCROOT}/kimage.h
     ${INCROOT}/kshader.h
@@ -36,7 +38,9 @@ set(GFX_INC
     ${INCROOT}/kvertexbuffer.h
     ${INCROOT}/krendersys.h
     ${INCROOT}/krendercom.h
+    ${INCROOT}/krenderable.h
     ${INCROOT}/kcameracom.h
+    ${INCROOT}/kquadcom.h
     PARENT_SCOPE
 )
 

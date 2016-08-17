@@ -56,9 +56,9 @@ namespace Kite {
 		inline auto endResource() { return _kres.end(); }
 
 	private:
-		bool _saveStream(KOStream *Stream, const std::string &Address) override;
+		bool _saveStream(KOStream &Stream, const std::string &Address) override;
 
-		bool _loadStream(KIStream *Stream, const std::string &Address) override;
+		bool _loadStream(KIStream &Stream, const std::string &Address) override;
 
 		std::unordered_map<std::string, std::string> _kres; // <name, <type, flag>>
 		KEntityManager _keman;

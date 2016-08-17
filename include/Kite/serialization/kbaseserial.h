@@ -37,10 +37,10 @@ namespace Kite {
 		virtual ~KBaseSerial();
 
 		KM_FUN()
-		virtual bool loadStream(KIStream *Stream, const std::string &Address) = 0;
+		virtual bool loadStream(KIStream &Stream, const std::string &Address) = 0;
 
 		KM_FUN()
-		virtual bool saveStream(KOStream *Stream, const std::string &Address, U32 Version) = 0;
+		virtual bool saveStream(KOStream &Stream, const std::string &Address, U32 Version) = 0;
 
 		virtual void writePOD(const void *Value, SIZE Size, bool Str) = 0;
 		virtual void readPOD(void *Value, SIZE Size, bool Str) = 0;

@@ -72,11 +72,11 @@ namespace Kite{
         }
     }
 
-	bool KImage::loadStream(KIStream *Stream, const std::string& Address) {
+	bool KImage::loadStream(KIStream &Stream, const std::string& Address) {
 		return Internal::ImageIO::readFromStream(Stream, Address, _kpixels, _ksize);
 	}
 
-    bool KImage::saveStream(KOStream *Stream, const std::string& Address){
+    bool KImage::saveStream(KOStream &Stream, const std::string& Address){
 		return Internal::ImageIO::writeToStream(Stream, Address, _kpixels, _ksize);
     }
 

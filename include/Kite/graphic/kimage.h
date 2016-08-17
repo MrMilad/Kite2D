@@ -74,7 +74,7 @@ namespace Kite{
 
 			\return True if loading was successful
 		*/
-		bool loadStream(KIStream *Stream, const std::string& Address);
+		bool loadStream(KIStream &Stream, const std::string& Address);
 
 		//! Encode and write pixels to output stream.
 		/*!
@@ -85,7 +85,7 @@ namespace Kite{
 
 			\return True if saving was successful
 		*/
-        bool saveStream(KOStream *Stream, const std::string& Address);
+        bool saveStream(KOStream &Stream, const std::string& Address);
 
 		//! Create a transparency mask from a specified color - key
 		/*!

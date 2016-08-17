@@ -71,7 +71,8 @@ void ComponentDock::setupTree() {
 	comTree->setAnimated(true);
 	comTree->setFocusPolicy(Qt::FocusPolicy::NoFocus);
 	comTree->setStyleSheet("QTreeView {background-color: rgb(88,88,88);"
-						   "padding: 3px;"
+						   "padding-right: 3px;"
+						   "padding-left: 3px;"
 						   "selection-background-color: transparent;}");
 
 	connect(comTree, &QTreeWidget::expanded, this, &ComponentDock::onExpand);
@@ -436,7 +437,17 @@ void ComponentDock::entityEdit(Kite::KEntityManager *Eman, Kite::KEntity *Entity
 	actionsControl(AS_ON_LOAD);
 	QString name(Entity->getName().c_str());
 	hlabel->setText("Components Editor (" + name + ")");
+	// lua table
 	llabel->setText(QString("Lua Table: <font color = \"orange\">") + Entity->getLuaTName().c_str() + "</font>");
+
+	// layers
+	cmbLayer->clear();
+	auto layers = eman->getLayersInfo();
+	for (auto it = layers.cbegin(); it != layers.cend(); ++it) {
+		cmbLayer->addItem(it->name.str.c_str());
+	}
+	cmbLayer->setCurrentText(Entity->getLayerName().c_str());
+
 	actSearch(ledit->text());
 }
 
@@ -507,6 +518,13 @@ void ComponentDock::actRemove(Kite::KHandle CHandle, const QString &CType) {
 	auto obj = (Expander *)sender();
 	auto ent = eman->getEntity(currEntity);
 	auto cptr = ent->getComponent(CType.toStdString(), CHandle);
+	if (cptr->getDepCounter() > 0) {
+		QMessageBox msg;
+		msg.setWindowTitle("Message");
+		msg.setText("some components required this component. remove them first!");
+		msg.exec();
+		return;
+	}
 	emit(componentDelete(ent, cptr));
 	putIntoPool(obj);
 	ent->removeComponent(CType.toStdString(), cptr->getName());

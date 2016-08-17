@@ -194,6 +194,8 @@ namespace Kite {
 		auto hndl = _kestorage.add(KEntity(ename));
 		auto ent = _kestorage.get(hndl);
 		ent->setHandle(hndl);
+		ent->_kzorder = _kzorder; /// order will increased by 5
+		_kzorder += 5;
 
 		// set storages
 		ent->_kcstorage = &_kcstorage;
@@ -379,7 +381,9 @@ namespace Kite {
 								  "(ent:addComponent(\"" + (*it)->getType() + "\", \"" + (*it)->getName() + "\"))\n");
 
 			// transform data not saved with prefab
-			if ((*it)->getType() == "Transform") continue;
+			if (!CopyPrefab) {
+				if ((*it)->getType() == "Transform") continue;
+			}
 
 			Prefab->_kcode.append("comp:deserial(ser, false)\n");
 			(*it)->serial(Prefab->_kdata, false);
@@ -484,6 +488,7 @@ namespace Kite {
 #endif
 
 	void KEntityManager::serial(KBaseSerial &Out) const {
+		Out << _kzorder;
 		Out << _knum;
 		Out << _kroot;
 		Out << _kestorage;
@@ -496,6 +501,7 @@ namespace Kite {
 	}
 
 	void KEntityManager::deserial(KBaseSerial &In) {
+		In >> _kzorder;
 		In >> _knum;
 		In >> _kroot;
 		In >> _kestorage;

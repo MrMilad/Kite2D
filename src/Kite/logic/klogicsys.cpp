@@ -86,6 +86,8 @@ namespace Kite {
 		return isInite();
 	}
 
+	void KLogicSys::destroy() { setInite(false); }
+
 	bool KLogicSys::updateComp(F32 Delta, KEntity *Self, KLogicCom *Comp) {
 		std::string address(Comp->getTName() + "." + Comp->getName() + ".update");
 

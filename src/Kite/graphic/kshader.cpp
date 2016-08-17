@@ -73,7 +73,7 @@ namespace Kite{
 		return true;
 	}
 
-	bool KShader::_loadStream(KIStream *Stream, const std::string &Address) {
+	bool KShader::_loadStream(KIStream &Stream, const std::string &Address) {
 		setModified(true);
         // first make sure that we can use shaders
 //        if(!isShaderAvailable()){
@@ -116,12 +116,12 @@ namespace Kite{
 		}
 
 		// check stream
-		if (!Stream->isOpen()) {
-			Stream->close();
+		if (!Stream.isOpen()) {
+			Stream.close();
 		}
 
 		// open stream in text mode
-		if (!Stream->open(Address, IOMode::TEXT)) {
+		if (!Stream.open(Address, IOMode::TEXT)) {
 			KD_FPRINT("can't open stream. address: %s", Address.c_str());
 			return false;
 		}
@@ -129,38 +129,38 @@ namespace Kite{
 		// create buffer
 		SIZE rsize = 0;
 		char *buffer = (char*)malloc(sizeof(char) * KTEXT_BUFF_SIZE);
-		_kcode.reserve(Stream->getSize());
+		_kcode.reserve(Stream.getSize());
 
 		// reading content
-		while (!Stream->eof()) {
-			rsize = Stream->read(buffer, sizeof(char) * KTEXT_BUFF_SIZE);
+		while (!Stream.eof()) {
+			rsize = Stream.read(buffer, sizeof(char) * KTEXT_BUFF_SIZE);
 			buffer[rsize] = 0;
 			_kcode.append(buffer);
 		}
 
 		// cleanup buffer and stream
 		free(buffer);
-		Stream->close();
+		Stream.close();
 		return true;
     }
 
-	bool KShader::_saveStream(KOStream *Stream, const std::string &Address) {
-		if (!Stream->isOpen()) {
-			Stream->close();
+	bool KShader::_saveStream(KOStream &Stream, const std::string &Address) {
+		if (!Stream.isOpen()) {
+			Stream.close();
 		}
 
-		if (!Stream->open(Address, IOMode::TEXT)) {
+		if (!Stream.open(Address, IOMode::TEXT)) {
 			KD_FPRINT("can't open stream. address: %s", Address.c_str());
 			return false;
 		}
 
-		if (Stream->write(_kcode.data(), _kcode.size()) != _kcode.size()) {
+		if (Stream.write(_kcode.data(), _kcode.size()) != _kcode.size()) {
 			KD_FPRINT("can't write data to stream. address: %s", Address.c_str());
-			Stream->close();
+			Stream.close();
 			return false;
 		}
 
-		Stream->close();
+		Stream.close();
 		return true;
 	}
 

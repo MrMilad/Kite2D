@@ -174,7 +174,7 @@ namespace Kite {
 #define KD_PRINT(exp) sprintf(buffer, "%s(): %s", __func__, exp);\
 (Kite::pcallback)(std::string(Kite::buffer), Kite::msgType::MSG_DEBUG)
 
-#define KD_ASSERT(expr) if (!(expr)) {sprintf(buffer, "%s()", __func__);\
+#define KD_ASSERT(expr) if (!(expr)) {sprintf(buffer, "%s:%d:%s()", __FILE__, __LINE__, __func__);\
 (Kite::pcallback)(std::string(Kite::buffer), Kite::msgType::MSG_ASSERT);}
 
 	#else
@@ -207,8 +207,8 @@ namespace Kite {
 /// max audio buffer (ogg vorbis)
 #define KOGG_BUFF_SIZE 4096
 #define KTEXT_BUFF_SIZE 4096
-#define KBSERIAL_CHUNK_SIZE 262144	// (256kb)
-#define KCFSTORAGE_CHUNK_SIZE 256	// 256 item 
+#define KBSERIAL_CHUNK_SIZE 262144	// byte (total = 256kb)
+#define KCFSTORAGE_CHUNK_SIZE 256	// item (KHandle && KEntity)
 
 /// Kite2D hash seed
 #define KHASH_SEED 13711010

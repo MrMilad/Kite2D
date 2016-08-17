@@ -43,10 +43,12 @@ namespace Kite {
 
 		// load and inite scene resources
 		for (auto it = scene->beginResource(); it != scene->endResource(); ++it) {
-			auto res = _krman->load("KFIStream", it->first, it->second);
-			if (res != nullptr) {
-				res->inite();
+			auto res = _krman->load("KFIStream", it->second, it->first);
+			if (res == nullptr) {
+				KD_FPRINT("cant load scene resources. sname: %s", scene->getName().c_str());
+				return false;
 			}
+			//res->inite(); // resources will inite in their systems
 		}
 		return true;
 	}

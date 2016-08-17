@@ -65,9 +65,8 @@ namespace Kite{
 		*/
 		void bindAttribute(U16 Index, const std::string &Name);
 
-		// note: We MUST have a valid rendering context before link
+		// note: We MUST have a valid rendering context before calling inite
 		// the program or it causes a segfault!
-		// note call inite befor calling this function
 		bool inite() override;
 
 		//! Link the shader program
@@ -79,6 +78,8 @@ namespace Kite{
 		\return True if linking was successful
 		*/
 		bool link();
+
+		inline bool isLinked() const { return _klinked; }
 
 		//! Get location of the uniform in the shader
 		/*!
@@ -158,9 +159,10 @@ namespace Kite{
 		inline U32 getGLID() const { return _kprogId; }
 
 	private:
-		bool _saveStream(KOStream *Stream, const std::string &Address) override;
-		bool _loadStream(KIStream *Stream, const std::string &Address) override;
+		bool _saveStream(KOStream &Stream, const std::string &Address) override;
+		bool _loadStream(KIStream &Stream, const std::string &Address) override;
 
+		bool _klinked;
 		U32 _kprogId;				//!< ID of shader program
 		static U32 _klastProgId;	//!< Last id of shader program 
 		std::vector<std::pair<U16, std::string>> _kattribList;		//!< shader attribute list

@@ -48,9 +48,9 @@ namespace Kite {
 
 		inline bool isEmpty() const { return _kisempty; }
 	private:
-		bool _saveStream(KOStream *Stream, const std::string &Address) override;
+		bool _saveStream(KOStream &Stream, const std::string &Address) override;
 
-		bool _loadStream(KIStream *Stream, const std::string &Address) override;
+		bool _loadStream(KIStream &Stream, const std::string &Address) override;
 
 		void initeLoad();
 		bool _kisempty;

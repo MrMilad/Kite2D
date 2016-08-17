@@ -17,24 +17,143 @@
     Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
     USA
 */
+#include "Kite/math/ktransformcom.h"
 #include "Kite/graphic/krendersys.h"
+#include "Kite/graphic/kshaderprogram.h"
+#include "Kite/graphic/kgraphicdef.h"
+#include "Kite/graphic/krenderable.h"
+#include "Kite/graphic/krendercom.h"
+#include "Kite/graphic/kquadcom.h"
 #include "Kite/meta/kmetamanager.h"
 #include "Kite/meta/kmetaclass.h"
 #include "Kite/meta/kmetatypes.h"
 #include "Kite/graphic/kcameracom.h"
+#include "src/Kite/graphic/glcall.h"
 #include <luaintf/LuaIntf.h>
 
 namespace Kite{
 	bool KRenderSys::update(F32 Delta, KEntityManager *EManager, KResourceManager *RManager) {
-		// update all active camera
-		if (EManager->isRegisteredComponent("Camera")) {
-			auto continer = EManager->getComponentStorage<KCameraCom>("Camera"); // avoid hash lookup in every turn of for-loop
+		static const bool isregist = (EManager->isRegisteredComponent("Camera") && EManager->isRegisteredComponent("Render"));
+		
+		if (isregist) {
+			// update all active camera
+			auto continer = EManager->getComponentStorage<KCameraCom>("Camera");
 			for (auto it = continer->begin(); it != continer->end(); ++it) {
+				_kupdata.clear();
 				auto ehandle = it->getOwnerHandle();
 				auto entity = EManager->getEntity(ehandle);
 				if (entity->isActive()) {
+
+					// update camera
 					if (it->getNeedUpdate()) {
 						this->_computeCamera(&(*it));
+
+						// update viewport
+						if (_klastState.lastViewport != (*it)._ksize) {
+							DGL_CALL(glViewport(0, 0, (*it)._ksize.x, (*it)._ksize.y));
+							_klastState.lastViewport = (*it)._ksize;
+						}
+
+						// update clear color
+						if ((*it)._kclear != _klastState.lastColor) {
+							DGL_CALL(glClearColor((GLclampf)((*it)._kclear.getGLR()),
+												  (GLclampf)((*it)._kclear.getGLG()),
+												  (GLclampf)((*it)._kclear.getGLB()),
+												  (GLclampf)((*it)._kclear.getGLA())));
+							_klastState.lastColor = (*it)._kclear;
+						}
+					}
+
+					// clear scene 
+					DGL_CALL(glClear(GL_COLOR_BUFFER_BIT));
+
+					// update and draw renderables
+					auto render = EManager->getComponentStorage<KRenderCom>("Render");
+					U32 indSize = 0;
+					U32 verSize = 0;
+
+					KRenderCom *material = nullptr;
+					for (auto rit = render->begin(); rit != render->end(); ++rit) {
+						// check visibility
+						if (!rit->_isvisible) {
+							continue;
+						}
+
+						auto ent = EManager->getEntity(rit->getOwnerHandle());
+
+						// inite materials
+						if (rit->getNeedUpdate()) {
+							if (!_initeMaterials(RManager, &(*rit))) {
+								KD_FPRINT("cant init material. entity name: %s", ent->getName().c_str());
+								return false;
+							}
+						}
+
+						// catch renderable components
+						KRenderable *object = nullptr;
+						if (auto quadcom = (KQuadCom *)ent->getComponentByName("Quad", "")) {
+							object = quadcom;
+
+						// } else if (catch another renderable ...){
+						} else {
+							// there is no renderable object
+							continue;
+						}
+
+						// inite state
+						if (rit == render->begin()) {
+							_checkState(&(*rit), object);
+						}
+
+						// check material (render shared materials in a single batch)
+						if (_checkState(&(*rit), object)) {
+
+							// check available buffer size
+							if ((indSize + object->getIndexSize()) < KRENDER_IBUFF_SIZE) {
+
+								// compute (parent * child * camera) matrix
+								// catch object with its matrix
+								_kupdata.matrix.push_back((*it).getMatrix());
+								_computeParentsTransform(EManager, ent, &_kupdata.matrix.back());
+								_kupdata.objects.push_back(object);
+								material = &(*rit);
+
+								// increase buffers size
+								indSize += object->getIndexSize();
+								verSize += object->getVertex()->size();
+
+								// check next object if any
+								if (rit != --render->end()) {
+									continue;
+								}
+							} 
+						} else {
+							--rit;
+						}
+
+						// render catched list
+						if (!_kupdata.objects.empty()) {
+							// update vetex
+							_kvboVer->update(0, sizeof(Internal::KGLVertex) * verSize, false, (void *)&_kupdata);
+
+							// bind quad vao
+							_kvao->bind();
+
+							// bind materials
+							material->_kshprogptr->bind();
+							if (material->_ktextureptr) {
+								material->_ktextureptr->bind();
+							}
+
+							// draw 
+							DGL_CALL(glDrawElements(GL_TRIANGLES, indSize, GL_UNSIGNED_SHORT, (U16 *)0));
+
+							// clear list after render
+							_kupdata.clear();
+							indSize = 0;
+							verSize = 0;
+						}
+						
 					}
 				}
 			}
@@ -43,61 +162,155 @@ namespace Kite{
 	}
 
 	bool KRenderSys::inite(void *Data) {
+		if (!Internal::initeGLEW()) {
+			return false;
+		}
+
+		DGL_CALL(glDisable(GL_DEPTH_TEST));
+
+		// enable blend
+		DGL_CALL(glEnable(GL_BLEND));
+		DGL_CALL(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
+
+		// update list
+		_kupdata.objects.reserve(KRENDER_BUFF_SIZE);
+		_kupdata.matrix.reserve(KRENDER_BUFF_SIZE);
+
+		// set color to black (gl default)
+		_klastState.lastColor = KColor::fromName(Colors::BLACK);
+
+		// inite vao
+		_kvao = new KVertexArray();
+
 		// inite index
-		/*std::vector<U16> ind(_kisize, 0);
+		_kvboInd = new KVertexBuffer(BufferTarget::INDEX);
+		std::vector<U16> ind(KRENDER_IBUFF_SIZE, 0);
+		_initeQuadIndex(&ind);
 
 		// inite vertex
-		std::vector<KVertex> vert(_kvsize, KVertex());
+		_kvboVer = new KVertexBuffer(BufferTarget::VERTEX);
+		std::vector<Internal::KGLVertex> vert(KRENDER_VBUFF_SIZE, Internal::KGLVertex());
 
 		// inite point
-		std::vector<KPointSprite> po;
+		_kvboPnt = nullptr;
+		/*std::vector<KPointSprite> po;
 		if (_kpsprite) {
 			po.resize(_kvsize, KPointSprite());
 			_updatePar(&po[0], 0, 0, this);
-		}
+		}*/
 
 		// bind vao then inite buffers
-		_kvao.bind();
+		_kvao->bind();
 
 		// index buffer
-		if (_kisize > 0) {
-			_kvboInd.bind();
-			_kvboInd.fill(&ind[0], sizeof(U16)* _kisize, (KVertexBufferTypes)_kconfig.index);
-			_kvboInd.setUpdateHandle(_updateInd);
-		}
+		_kvboInd->bind();
+		_kvboInd->fill(&ind[0], sizeof(U16) * KRENDER_IBUFF_SIZE, VBufferType::STREAM);
+		//_kvboInd->setUpdateHandle(_updateInd);
 
 		// vertex buffer
-		_kvboVer.bind();
-		_kvboVer.fill(&vert[0], sizeof(KVertex)* _kvsize, (KVertexBufferTypes)_kconfig.vertex);
+		_kvboVer->bind();
+		_kvboVer->fill(&vert[0], sizeof(Internal::KGLVertex) * KRENDER_VBUFF_SIZE, VBufferType::STREAM);
 
 		// pos
-		_kvao.enableAttribute(0);
-		_kvao.setAttribute(0, KAC_2COMPONENT, KAT_FLOAT, false, sizeof(KVertex), KBUFFER_OFFSET(0));
+		_kvao->enableAttribute(0);
+		_kvao->setAttribute(0, AttributeCount::COMPONENT_2, AttributeType::FLOAT, false, sizeof(Internal::KGLVertex), KBUFFER_OFFSET(0));
 
 		// uv
-		_kvao.enableAttribute(1);
-		_kvao.setAttribute(1, KAC_2COMPONENT, KAT_FLOAT, false, sizeof(KVertex), KBUFFER_OFFSET(sizeof(KVector2F32)));
+		_kvao->enableAttribute(1);
+		_kvao->setAttribute(1, AttributeCount::COMPONENT_2, AttributeType::FLOAT,
+							false, sizeof(Internal::KGLVertex), KBUFFER_OFFSET(sizeof(KVector2F32)));
 
 		// color
-		_kvao.enableAttribute(2);
-		_kvao.setAttribute(2, KAC_4COMPONENT, KAT_FLOAT, false, sizeof(KVertex), KBUFFER_OFFSET(sizeof(KVector2F32) * 2));
-		_kvboVer.setUpdateHandle(_updateVer);
+		_kvao->enableAttribute(2);
+		_kvao->setAttribute(2, AttributeCount::COMPONENT_4, AttributeType::FLOAT,
+							false, sizeof(Internal::KGLVertex), KBUFFER_OFFSET(sizeof(F32) * 4));
+		_kvboVer->setUpdateHandle(_updateVer);
 
 		// point sprite buffer
-		if (_kpsprite) {
+		/*if (_kpsprite) {
 			_kvboPnt.bind();
 			_kvboPnt.fill(&po[0], sizeof(KPointSprite)* _kvsize, (KVertexBufferTypes)_kconfig.point);
 			// point sprite
 			_kvao.enableAttribute(3);
 			_kvao.setAttribute(3, KAC_3COMPONENT, KAT_FLOAT, false, sizeof(KPointSprite), KBUFFER_OFFSET(0));
 			_kvboPnt.setUpdateHandle(_updatePar);
-		}
+		}*/
 
 		// finish. unbind vao.
-		_kvao.unbindVertexArray();*/
+		_kvao->unbindVertexArray();
 
 		setInite(true);
 		return true;
+	}
+
+	void KRenderSys::destroy() {
+		delete _kvboVer;
+		delete _kvboInd;
+		delete _kvboPnt;
+		delete _kvao;
+		setInite(false);
+	}
+
+	bool KRenderSys::_checkState(KRenderCom *Com, KRenderable *Rendeable){
+		U32 textId = 0;
+		if (Com->_ktextureptr) {
+			textId = Com->_ktextureptr->getGLID();
+		}
+		if (Com->_kshprogptr->getGLID() != _klastState.lastShdId ||
+			Rendeable->getGeoType() != _klastState.lastGeo ||
+			textId != _klastState.lastTexId)
+		{
+			// reset last state
+			_klastState.lastShdId = Com->_kshprogptr->getGLID();
+			_klastState.lastShdId = Com->_kshprogptr->getGLID();
+			_klastState.lastTexId = textId;
+			_klastState.lastGeo = Rendeable->getGeoType();
+			return false;
+		}
+
+		return true;
+	}
+
+	bool KRenderSys::_initeMaterials(KResourceManager*RMan, KRenderCom *Com) {
+		// fetch resources to the component
+		Com->_kshprogptr = (KShaderProgram *)RMan->get(Com->_kshprog.str);
+
+		// all renderables must have shader program
+		if (!Com->_kshprogptr) {
+			return false;
+		}
+
+		Com->_ktextureptr = (KTexture *)RMan->get(Com->_ktexture.str);
+
+		if (!Com->_kshprogptr->isInite()) {
+			Com->_kshprogptr->bindAttribute(KVATTRIB_XY, "in_pos");
+			Com->_kshprogptr->bindAttribute(KVATTRIB_UV, "in_uv");
+			Com->_kshprogptr->bindAttribute(KVATTRIB_RGBA, "in_col");
+
+			// inite resources
+			if (Com->_ktextureptr) {
+				Com->_ktextureptr->inite();
+			}
+			Com->_kshprogptr->inite();
+			Com->_kshprogptr->link();
+		}
+
+		Com->setNeedUpdate(false);
+		return true;
+	}
+
+	void KRenderSys::_initeQuadIndex(std::vector<U16> *Buffer) {
+		auto trueSize = Buffer->size() / 6;
+		for (auto i = 0; i < trueSize; ++i) {
+			auto offset = i * 6;
+			auto value = i * 4;
+			(*Buffer)[offset] = value;
+			(*Buffer)[offset + 1] = value + 1;
+			(*Buffer)[offset + 2] = value + 2;
+			(*Buffer)[offset + 3] = value + 2;
+			(*Buffer)[offset + 4] = value + 1;
+			(*Buffer)[offset + 5] = value + 3;
+		}
 	}
 
 	void KRenderSys::_computeCamera(KCameraCom *Camera) {
@@ -132,158 +345,102 @@ namespace Kite{
 		Camera->setNeedUpdate(false);
 	}
 
+	void KRenderSys::_computeParentsTransform(KEntityManager *Eman, KEntity *Entity, KMatrix3 *Matrix) {
+		auto trcom = (KTransformCom *)Entity->getComponentByName("Transform", "");
+		if (Entity->getParentHandle() != Eman->getRoot()) {
+			_computeParentsTransform(Eman, Eman->getEntity(Entity->getParentHandle()), Matrix);
+		}
+		if (trcom) {
+			(*Matrix) *= trcom->getMatrix();
+		}
+
+
+		/*auto trcom = (KTransformCom *)Entity->getComponentByName("Transform", "");
+		KHandle phndl = Entity->getParentHandle();
+
+		std::vector<KHandle> hlist;
+		hlist.reserve(7);
+
+		// collect parrents matrix
+		while (true) {
+			if (phndl != Eman->getRoot()) {
+				hlist.push_back(phndl);
+				phndl = Eman->getEntity(phndl)->getParentHandle();
+			} else {
+				break;
+			}
+		}
+
+		// compute matrixes in reverse order 
+		for (auto it = hlist.rbegin(); it != hlist.rend(); ++it) {
+			auto com = (KTransformCom *)Eman->getEntity((*it))->getComponentByName("Transform", "");
+			if (com) {
+				(*Matrix) *= com->getMatrix();
+			}
+		}
+
+		(*Matrix) *= trcom->getMatrix();*/
+	}
+
+	/*void KRenderSys::_updateInd(void *Data, U32 Offset, U32 DataSize, void *Sender) {
+		updateData *udata = (updateData *)Sender;
+		U16 *ind = (U16 *)Data;
+		U32 offset = 0;
+
+		for (auto it = udata->objects.begin(); it < udata->objects.end(); ++it) {
+			memcpy(&ind[offset], &(*(*it)->getIndex())[0], sizeof(U16) * (*it)->getIndex()->size());
+			offset += (*it)->getIndex()->size();
+		}
+	}*/
+
+	void KRenderSys::_updateVer(void *Data, U32 Offset, U32 DataSize, void *Sender) {
+		updateData *udata = (updateData *)Sender;
+		Internal::KGLVertex *ver = (Internal::KGLVertex *)Data;
+		U32 matIndex = 0;
+		U32 offset = 0;
+
+		for (auto it = udata->objects.begin(); it != udata->objects.end(); ++it) {
+			U16 vindex = 0;
+
+			// reverse render
+			if ((*it)->isReverse()) {
+				for (auto vit = (*it)->getVertex()->rbegin(); vit != (*it)->getVertex()->rend(); ++vit) {
+					ver[offset + vindex].pos = KTransform::transformPoint(udata->matrix[matIndex], (*vit).pos);
+					ver[offset + vindex].r = (*vit).color.r;
+					ver[offset + vindex].g = (*vit).color.g;
+					ver[offset + vindex].b = (*vit).color.b;
+					ver[offset + vindex].a = (*vit).color.a;
+
+					// update uv
+					//ver[ofst + j].uv = vtmp->uv;
+
+					++vindex;
+				}
+
+			// normal render
+			} else {
+				for (auto vit = (*it)->getVertex()->begin(); vit != (*it)->getVertex()->end(); ++vit) {
+					ver[offset + vindex].pos = KTransform::transformPoint(udata->matrix[matIndex], (*vit).pos);
+					ver[offset + vindex].r = (*vit).color.r;
+					ver[offset + vindex].g = (*vit).color.g;
+					ver[offset + vindex].b = (*vit).color.b;
+					ver[offset + vindex].a = (*vit).color.a;
+
+					// update uv
+					//ver[ofst + j].uv = vtmp->uv;
+
+					++vindex;
+				}
+			}
+
+			offset += (*it)->getVertex()->size();
+			++matIndex;
+		}
+	}
+
 	KMETA_KRENDERSYS_SOURCE();
-	/*KBatch::KBatch(const std::vector<KBatchObject *> &Objects,
-		const KBatchConfig Config, bool PointSprite) :
-		_kcam(&_kdefcam),
-		_kvboInd(KBT_INDEX),
-		_kvboVer(KBT_VERTEX),
-		_kvboPnt(KBT_VERTEX),
-		_kconfig(Config),
-		_kvsize(0),
-		_kisize(0),
-		_kpsprite(PointSprite)
-	{
 
-		KDEBUG_ASSERT_T(!Objects.empty());
-
-		// store vertex and index offset of all objects
-		for (size_t i = 0; i < Objects.size(); i++){
-			_kvsize += Objects[i]->getVertexSize();
-			_kisize += Objects[i]->getIndexSize();
-		}
-
-		// inite internal vector
-		_kobj.reserve(Objects.size());
-
-		// update pre buffers
-		_ksender.arraySize = Objects.size();
-		_ksender.firstObject = (const void *)&Objects[0];
-
-		// inite index
-		std::vector<U16> ind(_kisize, 0);
-		if (_kisize > 0) {
-			_updateInd(&ind[0], 0, 0, this);
-		}
-
-		// inite vertex
-		std::vector<KVertex> vert(_kvsize, KVertex());
-		_updateVer(&vert[0], 0, 0, this);
-
-		// inite point
-		std::vector<KPointSprite> po;
-		if (_kpsprite) {
-			po.resize(_kvsize, KPointSprite());
-			_updatePar(&po[0], 0, 0, this);
-		}
-
-		// bind vao then inite buffers
-		_kvao.bind();
-
-		// index buffer
-		if (_kisize > 0) {
-			_kvboInd.bind();
-			_kvboInd.fill(&ind[0], sizeof(U16)* _kisize, (KVertexBufferTypes)_kconfig.index);
-			_kvboInd.setUpdateHandle(_updateInd);
-		}
-
-		// vertex buffer
-		_kvboVer.bind();
-		_kvboVer.fill(&vert[0], sizeof(KVertex)* _kvsize, (KVertexBufferTypes)_kconfig.vertex);
-
-		// pos
-		_kvao.enableAttribute(0);
-		_kvao.setAttribute(0, KAC_2COMPONENT, KAT_FLOAT, false, sizeof(KVertex), KBUFFER_OFFSET(0));
-
-		// uv
-		_kvao.enableAttribute(1);
-		_kvao.setAttribute(1, KAC_2COMPONENT, KAT_FLOAT, false, sizeof(KVertex), KBUFFER_OFFSET(sizeof(KVector2F32)));
-
-		// color
-		_kvao.enableAttribute(2);
-		_kvao.setAttribute(2, KAC_4COMPONENT, KAT_FLOAT, false, sizeof(KVertex), KBUFFER_OFFSET(sizeof(KVector2F32)* 2));
-		_kvboVer.setUpdateHandle(_updateVer);
-
-		// point sprite buffer
-		if (_kpsprite) {
-			_kvboPnt.bind();
-			_kvboPnt.fill(&po[0], sizeof(KPointSprite)* _kvsize, (KVertexBufferTypes)_kconfig.point);
-			// point sprite
-			_kvao.enableAttribute(3);
-			_kvao.setAttribute(3, KAC_3COMPONENT, KAT_FLOAT, false, sizeof(KPointSprite), KBUFFER_OFFSET(0));
-			_kvboPnt.setUpdateHandle(_updatePar);
-		}
-
-		// finish. unbind vao.
-		_kvao.unbindVertexArray();
-	}
-
-	KBatch::KBatch(U32 VertexSize, U32 IndexSize, const KBatchConfig Config, bool PointSprite) :
-		_kcam(&_kdefcam),
-		_kvboInd(KBT_INDEX),
-		_kvboVer(KBT_VERTEX),
-		_kvboPnt(KBT_VERTEX),
-		_kconfig(Config),
-		_kvsize(VertexSize),
-		_kisize(IndexSize),
-		_kpsprite(PointSprite)
-	{
-
-		// inite index
-		std::vector<U16> ind(_kisize, 0);
-
-		// inite vertex
-		std::vector<KVertex> vert(_kvsize, KVertex());
-
-		// inite point
-		std::vector<KPointSprite> po;
-		if (_kpsprite) {
-			po.resize(_kvsize, KPointSprite());
-			_updatePar(&po[0], 0, 0, this);
-		}
-
-		// bind vao then inite buffers
-		_kvao.bind();
-
-		// index buffer
-		if (_kisize > 0) {
-			_kvboInd.bind();
-			_kvboInd.fill(&ind[0], sizeof(U16)* _kisize, (KVertexBufferTypes)_kconfig.index);
-			_kvboInd.setUpdateHandle(_updateInd);
-		}
-
-		// vertex buffer
-		_kvboVer.bind();
-		_kvboVer.fill(&vert[0], sizeof(KVertex)* _kvsize, (KVertexBufferTypes)_kconfig.vertex);
-
-		// pos
-		_kvao.enableAttribute(0);
-		_kvao.setAttribute(0, KAC_2COMPONENT, KAT_FLOAT, false, sizeof(KVertex), KBUFFER_OFFSET(0));
-
-		// uv
-		_kvao.enableAttribute(1);
-		_kvao.setAttribute(1, KAC_2COMPONENT, KAT_FLOAT, false, sizeof(KVertex), KBUFFER_OFFSET(sizeof(KVector2F32)));
-
-		// color
-		_kvao.enableAttribute(2);
-		_kvao.setAttribute(2, KAC_4COMPONENT, KAT_FLOAT, false, sizeof(KVertex), KBUFFER_OFFSET(sizeof(KVector2F32)* 2));
-		_kvboVer.setUpdateHandle(_updateVer);
-
-		// point sprite buffer
-		if (_kpsprite) {
-			_kvboPnt.bind();
-			_kvboPnt.fill(&po[0], sizeof(KPointSprite)* _kvsize, (KVertexBufferTypes)_kconfig.point);
-			// point sprite
-			_kvao.enableAttribute(3);
-			_kvao.setAttribute(3, KAC_3COMPONENT, KAT_FLOAT, false, sizeof(KPointSprite), KBUFFER_OFFSET(0));
-			_kvboPnt.setUpdateHandle(_updatePar);
-		}
-
-		// finish. unbind vao.
-		_kvao.unbindVertexArray();
-	}
-
-	void KBatch::draw(const KBatchObject *Object, const KBatchUpdate &Update) {
+	/*void KBatch::draw(const KBatchObject *Object, const KBatchUpdate &Update) {
 		if (!Object)
 			return;
 
@@ -485,79 +642,8 @@ namespace Kite{
 			if (iter >= Objects.size())
 				completed = true;
 		}
-	}
-
-	void KBatch::_updateInd(void *Data, U32 Offset, U32 DataSize, void *Sender) {
-		KBatch *clObject = (KBatch *)Sender;
-		const KBatchObject **obj = (const KBatchObject **)clObject->_ksender.firstObject;
-		U32 size = clObject->_ksender.arraySize;
-		U16 *ind = (U16 *)Data;
-		const KBatchObject *otmp;
-		U16 itmp;
-
-		// retrieve index, size and offset
-		U32 iofst = 0;
-		U32 vofst = 0;
-
-		for (U32 i = 0; i < size; i++) {
-			otmp = obj[i];
-			for (U32 j = 0; j < otmp->getIndexSize(); j++) {
-				itmp = otmp->getIndex()[j];
-
-				// update color
-				ind[iofst + j] = itmp + vofst;
-			}
-
-			// move offset to next object
-			iofst += otmp->getIndexSize();
-			vofst += otmp->getVertexSize();
-		}
-	}
-
-	void KBatch::_updateVer(void *Data, U32 Offset, U32 DataSize, void *Sender) {
-		KBatch *clObject = (KBatch *)Sender;
-		const KBatchObject **obj = (const KBatchObject **)clObject->_ksender.firstObject;
-		U32 size = clObject->_ksender.arraySize;
-		const KTransform *pmat;
-		const KTransform *mmat;
-		KVertex *ver = (KVertex *)Data;
-		const KBatchObject *otmp;
-		const KVertex *vtmp;
-
-		// projection matrix
-		pmat = clObject->getCamera().getTransform();
-
-		U32 ofst = 0;
-		for (U32 i = 0; i < size; i++){
-			otmp = obj[i];
-			mmat = &otmp->getModelViewTransform();
-			for (U32 j = 0; j < otmp->getVertexSize(); j++){
-				// reverse render
-				if (otmp->getReverseRender()) {
-					vtmp = &otmp->getVertex()[(otmp->getVertexSize() - 1) - j];
-				} else {
-					vtmp = &otmp->getVertex()[j];
-				}
-
-				// multiply model-matrix (object) with projection-matrix (camera)
-				// then update position
-				if (otmp->getRelativeTransform()) {
-					ver[ofst + j].pos = pmat->transformPoint(mmat->transformPoint(vtmp->pos));
-				} else {
-					ver[ofst + j].pos = pmat->transformPoint(vtmp->pos);
-				}
-
-				// update uv
-				ver[ofst + j].uv = vtmp->uv;
-
-				// update color
-				ver[ofst + j].color = vtmp->color;
-			}
-
-			// move offset to next object
-			ofst += otmp->getVertexSize();
-		}
 	}*/
+
 
 	/*void KRenderSys::_updatePar(void *Data, U32 Offset, U32 DataSize, void *Sender) {
 		KRenderSys *clObject = (KRenderSys *)Sender;

@@ -27,4 +27,5 @@ USA
 
 namespace Kite {
 	KMETA_KCOLOR_SOURCE();
+	KMETA_KVERTEX_SOURCE();
 }

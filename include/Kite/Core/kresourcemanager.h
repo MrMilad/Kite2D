@@ -44,6 +44,10 @@ namespace Kite{
 		KM_FUN()
 		KResource *create(const std::string &RType, const std::string &Name);
 
+		/// create and register resource on rhe fly
+		KM_FUN()
+		KResource *createAndRegist(const std::string &RType, const std::string &Name);
+
 		/// R: resource type
 		/// S: stream type
 		/// this function can use same as get function but will increment ref counter of source with each call
@@ -66,9 +70,9 @@ namespace Kite{
 		KM_FUN()
 		void unload(const std::string &Address, bool Immediately = false);
 
-		bool saveDictionary(KOStream *Stream, const std::string &Address);
+		bool saveDictionary(KOStream &Stream, const std::string &Address);
 
-		bool loadDictionary(KIStream *Stream, const std::string &Address);
+		bool loadDictionary(KIStream &Stream, const std::string &Address);
 
 		inline const auto getDictionary() const { return &_kdict; }
 
@@ -89,7 +93,7 @@ namespace Kite{
 
 	private:
 		
-		bool loadCompositeList(KResource *Res, KIStream *Stream, const std::string &Address, U32 Flag = 0);
+		bool loadCompositeList(KResource *Res, KIStream &Stream, const std::string &Address);
 
 		std::unordered_map<std::string, std::string> _kdict;
 		std::unordered_map<std::string, std::pair<KResource *, KIStream *>> _kmap;

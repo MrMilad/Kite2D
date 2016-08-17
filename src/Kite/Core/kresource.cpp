@@ -36,7 +36,7 @@ namespace Kite {
 
 	KResource::~KResource() {};
 
-	bool KResource::saveStream(KOStream *Stream, const std::string &Address, bool SaveDependency) {
+	bool KResource::saveStream(KOStream &Stream, const std::string &Address, bool SaveDependency) {
 		if (!_saveStream(Stream, Address)) {
 			return false;
 		}
@@ -50,11 +50,11 @@ namespace Kite {
 		return true;
 	}
 
-	bool KResource::saveCompositeList(KOStream *Stream, const std::string &Address, bool SaveDependency) {
+	bool KResource::saveCompositeList(KOStream &Stream, const std::string &Address, bool SaveDependency) {
 		if (!_kclist.empty()) {
 			// address info
 			KFileInfo finfo;
-			Stream->getFileInfoStr(Address, finfo);
+			Stream.getFileInfoStr(Address, finfo);
 
 			// save composite infomations (name and type)
 			std::vector<std::pair<std::string, std::string>> plist;

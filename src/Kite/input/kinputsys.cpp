@@ -56,5 +56,7 @@ namespace Kite {
 		return true;
 	}
 
+	void KInputSys::destroy() { setInite(false); }
+
 	KMETA_KINPUTSYS_SOURCE();
 }

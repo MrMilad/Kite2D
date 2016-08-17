@@ -34,6 +34,7 @@ namespace Kite{
 
 	KShaderProgram::KShaderProgram(const std::string &Name) :
 		KResource(Name, true),
+		_klinked(false),
 		_kprogId(0),
 		_kvert(nullptr),
 		_kfrag(nullptr),
@@ -65,19 +66,65 @@ namespace Kite{
 			return false;
 		}
 
+		// Attach the shaders to the program
+		// vertex
+		if (_kvert) {
+			_kvert->inite();
+			if (_kvert->compile()) {
+				DGL_CALL(glAttachShader(_kprogId, _kvert->getGLID()));
+			} else {
+				KD_PRINT("vertex shader compilation failed.");
+				return false;
+			}
+		} else {
+			KD_PRINT("there is no attached vertex shader.");
+			return false;
+		}
+
+		// fragment
+		if (_kfrag) {
+			_kfrag->inite();
+			if (_kfrag->compile()) {
+				DGL_CALL(glAttachShader(_kprogId, _kfrag->getGLID()));
+			} else {
+				KD_PRINT("fragment shader compilation failed.");
+				return false;
+			}
+		} else {
+			KD_PRINT("there is no attached fragment shader.");
+			return false;
+		}
+
+		// geometry (optional)
+		if (_kgeom) {
+			_kgeom->inite();
+			if (_kgeom->compile()) {
+				DGL_CALL(glAttachShader(_kprogId, _kgeom->getGLID()));
+			} else {
+				KD_PRINT("geometry shader compilation failed.");
+				return false;
+			}
+		}
+
+
+		// bind attributes
+		for (auto it = _kattribList.begin(); it != _kattribList.end(); ++it) {
+			DGL_CALL(glBindAttribLocation(_kprogId, (GLuint)it->first, it->second.c_str()));
+		}
+
 		setInite(true);
 		return true;
 	}
 
-	bool KShaderProgram::_loadStream(KIStream *Stream, const std::string &Address) {
+	bool KShaderProgram::_loadStream(KIStream &Stream, const std::string &Address) {
 		setModified(true);
 		setInite(false);
 
-		if (!Stream->isOpen()) {
-			Stream->close();
+		if (!Stream.isOpen()) {
+			Stream.close();
 		}
 
-		if (!Stream->open(Address, IOMode::BIN)) {
+		if (!Stream.open(Address, IOMode::BIN)) {
 			KD_FPRINT("can't open stream. address: %s", Address.c_str());
 			return false;
 		}
@@ -85,7 +132,7 @@ namespace Kite{
 		KBinarySerial bserial;
 		if (!bserial.loadStream(Stream, Address)) {
 			KD_PRINT("can't load stream");
-			Stream->close();
+			Stream.close();
 			return false;
 		}
 		std::string format;
@@ -94,7 +141,7 @@ namespace Kite{
 
 		if (format != "KSHProg") {
 			KD_PRINT("incorrect file format.");
-			Stream->close();
+			Stream.close();
 			return false;
 		}
 
@@ -113,22 +160,22 @@ namespace Kite{
 			}
 		}
 
-		Stream->close();
+		Stream.close();
 		return true;
 	}
 
-	bool KShaderProgram::_saveStream(KOStream *Stream, const std::string &Address) {
+	bool KShaderProgram::_saveStream(KOStream &Stream, const std::string &Address) {
 		KBinarySerial bserial;
 		bserial << std::string("KSHProg");
 		bserial << _kattribList;
 
 		if (!bserial.saveStream(Stream, Address, 0)) {
 			KD_PRINT("can't save stream.");
-			Stream->close();
+			Stream.close();
 			return false;
 		}
 
-		Stream->close();
+		Stream.close();
 
 		// save composite list (shaders)
 		std::vector<KResource *> composite;
@@ -175,6 +222,10 @@ namespace Kite{
 	}
 
 	void KShaderProgram::bindAttribute(U16 Index, const std::string &Name){
+		if (isInite()) {
+			KD_FPRINT("rebinding attribute is not allowed. rname: %s", getName().c_str());
+			return;
+		}
 		setModified(true);
 		_kattribList.push_back({ Index, Name });
 	}
@@ -185,47 +236,8 @@ namespace Kite{
 			return false;
 		}
 
-		// Attach the shaders to the program
-		// vertex
-		if (_kvert) {
-			if (_kvert->compile()) {
-				DGL_CALL(glAttachShader(_kprogId, _kvert->getGLID()));
-			} else {
-				KD_PRINT("vertex shader compilation failed.");
-				return false;
-			}
-		} else {
-			KD_PRINT("there is no attached vertex shader.");
-			return false;
-		}
-
-		// fragment
-		if (_kfrag) {
-			if (_kfrag->compile()) {
-				DGL_CALL(glAttachShader(_kprogId, _kfrag->getGLID()));
-			} else {
-				KD_PRINT("fragment shader compilation failed.");
-				return false;
-			}
-		} else {
-			KD_PRINT("there is no attached fragment shader.");
-			return false;
-		}
-
-		// geometry (optional)
-		if (_kgeom) {
-			if (_kgeom->compile()) {
-				DGL_CALL(glAttachShader(_kprogId, _kgeom->getGLID()));
-			} else {
-				KD_PRINT("geometry shader compilation failed.");
-				return false;
-			}
-		} 
-		
-
-		// bind attributes
-		for (auto it = _kattribList.begin(); it != _kattribList.end(); ++it) {
-			DGL_CALL(glBindAttribLocation(_kprogId, (GLuint)it->first, it->second.c_str()));
+		if (_klinked) {
+			return true;
 		}
 
 		// link the program
@@ -240,6 +252,7 @@ namespace Kite{
 			return false;
 		}
 
+		_klinked = true;
 		return true;
 	}
 

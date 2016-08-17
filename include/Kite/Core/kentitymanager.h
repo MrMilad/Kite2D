@@ -171,6 +171,7 @@ namespace Kite {
 		std::vector<KHandle> _ktrash;
 		static lua_State *_klstate;
 		U32 _knum;
+		U32 _kzorder;
 	};
 }
 

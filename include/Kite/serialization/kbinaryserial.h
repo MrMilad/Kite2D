@@ -72,10 +72,10 @@ namespace Kite {
 		KBinarySerial();
 
 		KM_FUN()
-		bool loadStream(KIStream *Stream, const std::string &Address) final;
+		bool loadStream(KIStream &Stream, const std::string &Address) final;
 
 		KM_FUN()
-		bool saveStream(KOStream *Stream, const std::string &Address, U32 Version) final;
+		bool saveStream(KOStream &Stream, const std::string &Address, U32 Version) final;
 
 		void writePOD(const void *Value, SIZE Size, bool Str) final;
 

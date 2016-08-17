@@ -85,6 +85,9 @@ namespace Kite {
 		KM_FUN()
 		inline const std::vector<std::string> &getDependency() const { return _kdeplist; }
 
+		KM_FUN()
+		inline U16 getDepCounter() const { return _krefcounter; }
+
 		KMETA_KCOMPONENT_BODY();
 
 	protected:
@@ -99,6 +102,7 @@ namespace Kite {
 	private:
 		bool _kneedup;
 		std::vector<std::string> _kdeplist;
+		KM_VAR() U16 _krefcounter; // dependency ref counter
 		KM_VAR() std::string _kname;
 		KM_VAR() KHandle _khandle;
 		KM_VAR() KHandle _kohandle;

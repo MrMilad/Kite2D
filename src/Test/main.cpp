@@ -3,6 +3,10 @@
 #include <Kite/graphic/ktexture.h>
 #include <time.h>
 #include <Kite/graphic/kimage.h>
+#include <Kite/graphic/kcameracom.h>
+#include <Kite/graphic/kgraphicdef.h>
+#include <Kite/graphic/kquadcom.h>
+#include <Kite/graphic/krendercom.h>
 #include <Kite/memory/kpoolstorage.h>
 
 using namespace Kite;
@@ -15,38 +19,56 @@ int main() {
 
 
 	int a = 0;
+
+	auto b = --a;
 	KFOStream stream;
 	KFIStream istream;
-	KResourceManager rman;
-	registerRTypes(&rman);
+
+	auto v = sizeof(Internal::KGLVertex);
+	auto c = sizeof(KVector2F32);
 
 	auto sc = new KConfig();
-	auto engine = KEngine::createEngine();
+	sc->window.width = 800;
+	sc->window.height = 600;
+	sc->dictionary = "C:\\Users\\_M1L4D_\\Desktop\\jj\\dict.kdict";
+	sc->startUpScene = "rrr.sce";
 
+	auto engine = KEngine::createEngine();
 	engine->inite(sc, false);
 
-	//engine->getSceneManager()->loadScene("e:\\test.sce");
-	//auto eman = engine->getSceneManager()->getScene("e:\\test.sce")->getEManager();
+	/*auto rman = engine->getResourceManager();
+
+	auto vert = (KShader *)rman->load("KFIStream", "KShader", "F:\\KEngineLab\\Lab\\develop\\shader\\vert.vert");
+	auto frag = (KShader *)rman->load("KFIStream", "KShader", "F:\\KEngineLab\\Lab\\develop\\shader\\frag.frag");
+	auto shprog = (KShaderProgram *)rman->createAndRegist("KShaderProgram", "shprog");
+	shprog->setShader(vert, ShaderType::VERTEX);
+	shprog->setShader(frag, ShaderType::FRAGMENT);
+
 	auto eman = engine->getSceneManager()->getActiveScene()->getEManager();
-	eman->createLayer("lay1");
-	eman->createLayer("lay2");
 
-	for (auto i = 0; i < 250; ++i) {
-		eman->createEntity();
-	}
+	auto cam = (KCameraCom *)eman->createEntity("ent1")->addComponent("Camera");
+	cam->setClearColor(KColor(10, 30, 50, 255));
+	cam->setSize(KVector2U32(800, 600));
+	//cam->rotate(10);
+	//cam->setPosition(KVector2F32(-10, -100));
+	//cam->setCenter(KVector2F32(400, 300));
 
-	auto ent1 = eman->createEntity("ent1")->getHandle();
-	auto ent2 = eman->createEntity("ent2")->getHandle();
-	eman->addEntityToLayer(ent1, "");
-	eman->addEntityToLayer(ent1, "lay1");
-	eman->addEntityToLayer(ent2, "lay1");
-	eman->addEntityToLayer(ent1, "lay2");
+	//auto pt = KTransform::transformPoint(cam->getMatrix(), KVector2F32(1.0f, 1.0f));
 
-	eman->removeLayer("lay1");
+	auto ent2 = eman->createEntity("ent2"); 
+	auto quad = (KQuadCom *)ent2->addComponent("Quad");
+	quad->setWidth(100);
+	quad->setHeight(100);
+	quad->setColor(KColor::fromName(Colors::CADETBLUE));
+	//quad->setBorder(2);
+	quad->setBorderColor(KColor::fromName(Colors::RED));
 
-	engine->getSceneManager()->getActiveScene()->saveStream(&stream, "e:\\test.sce");
+	auto render = (KRenderCom *)ent2->getComponentByName("Render", "");
+	render->setShader(shprog->getNameID());
 
-	auto scene = (KScene *)rman.load("KFIStream", "KScene", "e:\\test.sce");
+	auto tr = (KTransformCom *)ent2->getComponentByName("Transform", "");
+	//tr->setRotation(45);
+	//tr->setPosition(KVector2F32(100, 100));*/
 
 	engine->start();
 	engine->shutdown();

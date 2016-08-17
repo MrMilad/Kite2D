@@ -43,6 +43,7 @@ namespace Kite{
 	*/
 	KM_CLASS(POD)
 	struct KColor{
+		friend class KRenderSys;
 		KMETA_KCOLOR_BODY();
 	//! Construct the color from its 4 RGBA components.
 	/*!
@@ -108,6 +109,26 @@ namespace Kite{
 			return KColor(HexCode);
 		}
 
+		//! Equal operator
+		inline bool operator==(const KColor& rhs) {
+			if (rhs.r == r && rhs.g == g &&
+				rhs.b == b && rhs.a == a) {
+				return true;
+			}
+
+			return false;
+		}
+
+		//! unequal operator
+		inline bool operator!=(const KColor& rhs) {
+			if (rhs.r != r || rhs.g != g ||
+				rhs.b != b || rhs.a != a) {
+				return true;
+			}
+
+			return false;
+		}
+
 	private:
 		KM_VAR(UNBIND) F32 r;	//!< Red component
 		KM_VAR(UNBIND) F32 g;	//!< Green component
@@ -121,13 +142,17 @@ namespace Kite{
 		KVertex is a struct to store the vertex attributes in RAM
 		in order to prepare for graphics memory
 	*/
+	KM_CLASS(POD)
     struct KVertex{
-		KVector2F32 pos;	//!< Position
-		KVector2F32 uv;		//!< Texture UV
-		KColor color;		//!< Color
+		KMETA_KVERTEX_BODY();
+
+		KM_VAR() KVector2F32 pos;	//!< Position
+		KM_VAR() KVector2F32 uv;	//!< Texture UV
+		KM_VAR() KColor color;		//!< Color
 
 
 		//! Default constructors
+		KM_CON()
         KVertex():
             pos(), uv(), color()
         {}
@@ -401,6 +426,20 @@ namespace Kite{
 	*/
     namespace Internal{
 
+		struct KGLVertex {
+			KVector2F32 pos;
+			KVector2F32 uv;
+			F32 r;
+			F32 g;
+			F32 b;
+			F32 a;
+
+			KGLVertex() :
+				pos(0.0f, 0.0f), uv(0.0f),
+				r(1.0f), g(1.0f), b(1.0f), a(1.0f) {}
+
+		};
+
 		struct KUpdateSender {
 			U32 arraySize;
 			const void *firstObject;
@@ -410,33 +449,33 @@ namespace Kite{
 		};
 
 		//! Catch last OpenGL state. (internally use)
-		struct KCatchDraw{
-			U32 objIndex;	//!< Index of current object
-			U32 lastTexId;	//!< Last used texture id
-			U32 lastShdId;	//!< Last used shader id
+		struct KGLState{
+			KColor lastColor;
+			KVector2U32 lastViewport;
+			U32 lastTexId;			//!< Last used texture id
+			U32 lastShdId;			//!< Last used shader id
 			GLPrimitive lastGeo;	//!< Last used geometric type
 
 			//! Default constructors
-			KCatchDraw(U32 ObjectIndex = 0, U32 LastTextureID = 0, U32 LastSeaderID = 0,
+			KGLState(U32 ObjectIndex = 0, U32 LastTextureID = 0, U32 LastSeaderID = 0,
 					   GLPrimitive GeoType = GLPrimitive::TRIANGLES) :
-				objIndex(ObjectIndex),
 				lastTexId(LastTextureID),
 				lastShdId(LastSeaderID),
 				lastGeo(GeoType)
 			{}
 			
 			//! Equal operator
-			inline bool operator==(const KCatchDraw& rhs){
+			inline bool operator==(const KGLState& rhs){
 				if (rhs.lastTexId == lastTexId &&
 					rhs.lastShdId == lastShdId &&
-					rhs.lastGeo == lastGeo)
+					rhs.lastGeo == lastGeo) {
 					return true;
-
+				}
 				return false;
 			}
 
 			//! Not equal operator
-			inline bool operator!=(const KCatchDraw& rhs){ return !(*this == rhs); }
+			inline bool operator!=(const KGLState& rhs){ return !(*this == rhs); }
 		};
     }
 }

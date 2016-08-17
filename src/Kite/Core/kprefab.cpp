@@ -42,7 +42,7 @@ namespace Kite {
 		return true;
 	}
 
-	bool KPrefab::_loadStream(KIStream *Stream, const std::string &Address) {
+	bool KPrefab::_loadStream(KIStream &Stream, const std::string &Address) {
 		setModified(true);
 		clear();
 		KBinarySerial bserial;
@@ -53,7 +53,7 @@ namespace Kite {
 		return ret;
 	}
 
-	bool KPrefab::_saveStream(KOStream *Stream, const std::string &Address) {
+	bool KPrefab::_saveStream(KOStream &Stream, const std::string &Address) {
 		KBinarySerial bserial;
 		bserial << _kcode;
 		bserial << _kdata;

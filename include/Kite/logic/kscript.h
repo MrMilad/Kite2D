@@ -41,9 +41,9 @@ namespace Kite {
 		inline const std::string &getCode() const { return _kcode; }
 
 	private:
-		bool _saveStream(KOStream *Stream, const std::string &Address) override;
+		bool _saveStream(KOStream &Stream, const std::string &Address) override;
 
-		bool _loadStream(KIStream *Stream, const std::string &Address) override;
+		bool _loadStream(KIStream &Stream, const std::string &Address) override;
 
 		std::string _kcode;
 	};

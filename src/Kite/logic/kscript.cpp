@@ -34,15 +34,15 @@ namespace Kite {
 		return true;
 	}
 
-	bool KScript::_loadStream(KIStream *Stream, const std::string &Address) {
+	bool KScript::_loadStream(KIStream &Stream, const std::string &Address) {
 		setModified(true);
 		_kcode.clear();
 
-		if (!Stream->isOpen()) {
-			Stream->close();
+		if (!Stream.isOpen()) {
+			Stream.close();
 		}
 
-		if (!Stream->open(Address, IOMode::TEXT)) {
+		if (!Stream.open(Address, IOMode::TEXT)) {
 			KD_FPRINT("can't open stream. address: %s", Address.c_str());
 			return false;
 		}
@@ -52,35 +52,35 @@ namespace Kite {
 		char *buffer = (char*)malloc(sizeof(char) * KTEXT_BUFF_SIZE);
 
 		// reading content
-		while (!Stream->eof()) {
-			rsize = Stream->read(buffer, sizeof(char) * KTEXT_BUFF_SIZE);
+		while (!Stream.eof()) {
+			rsize = Stream.read(buffer, sizeof(char) * KTEXT_BUFF_SIZE);
 			buffer[rsize] = 0;
 			_kcode.append(buffer);
 		}
 
 		// cleanup
 		free(buffer);
-		Stream->close();
+		Stream.close();
 		return true;
 	}
 
-	bool KScript::_saveStream(KOStream *Stream, const std::string &Address) {
-		if (!Stream->isOpen()) {
-			Stream->close();
+	bool KScript::_saveStream(KOStream &Stream, const std::string &Address) {
+		if (!Stream.isOpen()) {
+			Stream.close();
 		}
 
-		if (!Stream->open(Address, IOMode::TEXT)) {
+		if (!Stream.open(Address, IOMode::TEXT)) {
 			KD_FPRINT("can't open stream. address: %s", Address.c_str());
 			return false;
 		}
 
-		if (Stream->write(_kcode.data(), _kcode.size()) != _kcode.size()) {
+		if (Stream.write(_kcode.data(), _kcode.size()) != _kcode.size()) {
 			KD_FPRINT("can't write data to stream. address: %s", Address.c_str());
-			Stream->close();
+			Stream.close();
 			return false;
 		}
 
-		Stream->close();
+		Stream.close();
 		return true;
 	}
 

@@ -373,7 +373,7 @@ void MainWindow::saveXML(QIODevice *device, const QString &Address){
 		dict.insert({ (*it)->getName(), Address.toStdString() + "/resources/" + (*it)->getName() });
 
 		if ((*it)->isModified()) {
-			(*it)->saveStream(&fstream, Address.toStdString() + "/resources/" + (*it)->getName());
+			(*it)->saveStream(fstream, Address.toStdString() + "/resources/" + (*it)->getName());
 		}
 
 		stream.writeStartElement("item");
@@ -395,7 +395,7 @@ void MainWindow::saveXML(QIODevice *device, const QString &Address){
 	// save dictinary
 	Kite::KBinarySerial bserial;
 	bserial << dict;
-	bserial.saveStream(&fstream, Address.toStdString() + "/dict.kdict", 0);
+	bserial.saveStream(fstream, Address.toStdString() + "/dict.kdict", 0);
 	curProject->config.dictionary = Address.toStdString() + "/dict.kdict";
 }
 
@@ -461,7 +461,7 @@ bool MainWindow::loadXML(QIODevice *device, const QString &Address) {
 					xml.readNext();
 					if (xml.isStartElement() && xml.name() == "item") {
 						if (!resDock->openResource(curProject->resPath + "/" + xml.attributes().value("name").toString(),
-												  xml.attributes().value("type").toString())) {
+												  xml.attributes().value("type").toString(), false)) {
 							return false;
 						}
 

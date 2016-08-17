@@ -48,6 +48,8 @@ namespace Kite {
 		return true;
 	}
 
+	void KTransformSys::destroy() { setInite(false); }
+
 	void KTransformSys::computeMatrix(KTransformCom *Component) {
 		F32 angle = -Component->_krotation * KMATH_PIsub180; // 3.14 \ 180;
 		F32 skewX = Component->_kskew.x * KMATH_PIsub180;

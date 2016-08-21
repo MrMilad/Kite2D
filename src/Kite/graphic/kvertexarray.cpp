@@ -54,7 +54,9 @@ namespace Kite{
     }
 
     KVertexArray::~KVertexArray(){
-        DGL_CALL(glDeleteVertexArrays(1, &_karrayId));
+		if (_karrayId > 0) {
+			DGL_CALL(glDeleteVertexArrays(1, &_karrayId));
+		}
         if (_klastArrayId == _karrayId){
             _klastArrayId = 0;
         }

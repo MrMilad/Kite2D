@@ -30,7 +30,9 @@ namespace Kite{
     }
 
     KFrameBuffer::~KFrameBuffer(){
-        DGL_CALL(glDeleteFramebuffers(1, &_kbufId));
+		if (_kbufId > 0) {
+			DGL_CALL(glDeleteFramebuffers(1, &_kbufId));
+		}
         if (_klastBufId == _kbufId){
             _klastBufId = 0;
         }

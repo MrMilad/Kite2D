@@ -194,8 +194,8 @@ namespace Kite {
 		auto hndl = _kestorage.add(KEntity(ename));
 		auto ent = _kestorage.get(hndl);
 		ent->setHandle(hndl);
-		ent->_kzorder = _kzorder; /// order will increased by 5
-		_kzorder += 5;
+		ent->_kzorder = _kzorder; /// order will increased by 1
+		++_kzorder;
 
 		// set storages
 		ent->_kcstorage = &_kcstorage;

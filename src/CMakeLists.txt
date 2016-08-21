@@ -99,8 +99,7 @@ endif()
 
 # add external lib
 if (WINDOWS)
-     target_link_libraries (Kite2D "lua_dll.lib")
-     target_link_libraries (Kite2D "luac.lib")
+     target_link_libraries (Kite2D "lua.lib")
      target_link_libraries (Kite2D "SDL2.lib")
      target_link_libraries (Kite2D "SDL2main.lib")
      target_link_libraries (Kite2D "opengl32.lib")
@@ -136,11 +135,14 @@ if (WINDOWS AND BUILD_SHARED_LIBS)
     # copy debug version of kite2D dll
     COMMAND ${CMAKE_COMMAND} -E copy ${LIBRARY_OUTPUT_PATH}/debug/Kite2Dd.dll ${PROJECT_BINARY_DIR}/src/Debug
 
+    # copy debug version PDB of kite2D dll
+    COMMAND ${CMAKE_COMMAND} -E copy ${LIBRARY_OUTPUT_PATH}/debug/Kite2Dd.pdb ${PROJECT_BINARY_DIR}/src/Debug
+
     # copy SDL2.dll
     COMMAND ${CMAKE_COMMAND} -E copy ${PROJECT_SOURCE_DIR}/extlibs/bin/win32/SDL2.dll ${PROJECT_BINARY_DIR}/src/Debug
 
     # copy Lua.dll
-    COMMAND ${CMAKE_COMMAND} -E copy ${PROJECT_SOURCE_DIR}/extlibs/bin/win32/lua5.3.0.dll ${PROJECT_BINARY_DIR}/src/Debug
+    COMMAND ${CMAKE_COMMAND} -E copy ${PROJECT_SOURCE_DIR}/extlibs/bin/win32/lua.dll ${PROJECT_BINARY_DIR}/src/Debug
 
     # copy openal.dll
     COMMAND ${CMAKE_COMMAND} -E copy ${PROJECT_SOURCE_DIR}/extlibs/bin/win32/OpenAL32.dll ${PROJECT_BINARY_DIR}/src/Debug
@@ -158,7 +160,6 @@ add_executable(Test ${PROJECT_SOURCE_DIR}/src/Test/main.cpp)
 if (WINDOWS)
     #TARGET_LINK_LIBRARIES(Test "${PROJECT_BINARY_DIR}/lib/debug/Kite2Dd.lib")
      target_link_libraries (Test "${PROJECT_BINARY_DIR}/lib/debug/Kite2Dd.lib")
-     target_link_libraries (Test "lua_dll.lib")
-     target_link_libraries (Test "luac.lib")
+     target_link_libraries (Test "lua.lib")
      target_link_libraries (Test  $<$<CONFIG:Debug>:debug/foonathan_memory>)
 endif()

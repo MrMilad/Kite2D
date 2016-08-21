@@ -30,8 +30,10 @@ USA
 
 namespace Kite {
 	bool KLogicSys::update(F32 Delta, KEntityManager *EManager, KResourceManager *RManager) {
+		static const bool isregist = EManager->isRegisteredComponent("Logic");
+
 		// check component registration
-		if (EManager->isRegisteredComponent("Logic")) {
+		if (isregist) {
 			// iterate over objects
 			auto econtiner = EManager->getEntityStorage();
 			for (auto i = 0; i < econtiner->size(); ++i) {
@@ -68,6 +70,10 @@ namespace Kite {
 
 						// update component (calling update, per frame)
 						if (!updateComp(Delta, ent, lcomp)) return false;
+
+						// performs a full garbage-collection cycle. 
+						// lua garbage collection will eat memory so we shuld use lua_gc() in a period
+						lua_gc(_klvm, LUA_GCCOLLECT, 0);
 					}
 				}
 			}
@@ -102,7 +108,7 @@ namespace Kite {
 		if (ctable.isFunction()) {
 #ifdef KITE_DEV_DEBUG
 			try {
-				ctable(Self->getHandle(), Delta);
+				ctable(Self->getHandle(), Delta); 
 			} catch (std::exception& e) {
 				KD_FPRINT("update function failed. ename: %s. cname: %s. %s", ename.c_str(), tname.c_str(), e.what());
 				return false;
@@ -136,15 +142,23 @@ namespace Kite {
 			// there isn't a table for entity
 			// we create it
 			if (!etable.isTable()) {
-				etable = LuaIntf::LuaRef(_klvm, "_G");
-				etable.set(Component->getTName().c_str(), LuaIntf::LuaRef::createTable(_klvm));
+				etable = LuaIntf::LuaRef::createTable(_klvm);
+				LuaIntf::LuaRef(_klvm, "_G").set(Component->getTName().c_str(), etable);
 			}
 
 			// create a table for its component
 			code.clear();
 			code = "_G." + Component->getTName();
-			etable = LuaIntf::LuaRef(_klvm, code.c_str());
-			etable.set(Component->getName(), LuaIntf::LuaRef::createTable(_klvm));
+			auto ctable = LuaIntf::LuaRef::createTable(_klvm);
+			LuaIntf::LuaRef(_klvm, code.c_str()).set(Component->getName(), ctable);
+
+			// set envirunmet values
+			ctable["global"] = LuaIntf::LuaRef::globals(_klvm);
+			ctable["kite"] = LuaIntf::LuaRef(_klvm, "_G.kite");
+			//code.insert(0, "_ENV = " + address + " \n");
+			//code.insert(0, address + ".global = _G \n");
+			//code.insert(0, address + ".kite = _G.kite \n");
+			//code.insert(0, address + ".print = print \n");
 
 			// load chunk and set its environment
 			code.clear();
@@ -152,16 +166,29 @@ namespace Kite {
 			code = script->getCode();
 
 			std::string address(Component->getTName() + "." + Component->getName());
-			code.insert(0, "_ENV = " + address + " \n");
-			code.insert(0, address + ".global = _G \n");
-			code.insert(0, address + ".kite = _G.kite \n");
-			code.insert(0, address + ".print = print \n");
 
-			int ret = luaL_dostring(_klvm, code.c_str());
-			if (ret != 0) {
+			if (luaL_loadstring(_klvm, code.c_str()) != 0) {
 				const char *out = lua_tostring(_klvm, -1);
 				lua_pop(_klvm, 1);
 				KD_FPRINT("lua load string error. cname: %s. %s", Component->getTName().c_str(), out);
+				return false;
+			}
+
+			// set chunk envirounment
+			auto chunk = lua_gettop(_klvm);
+			LuaIntf::Lua::pushGlobal(_klvm, address.c_str());
+			if (lua_setfenv(_klvm, chunk) == 0) {
+				const char *out = lua_tostring(_klvm, -1);
+				lua_pop(_klvm, 1);
+				KD_FPRINT("lua set envirounment error. cname: %s. %s", Component->getTName().c_str(), out);
+				return false;
+			}
+
+			// execute and register chunk
+			if (lua_pcall(_klvm, 0, 0, 0)) {
+				const char *out = lua_tostring(_klvm, -1);
+				lua_pop(_klvm, 1);
+				KD_FPRINT("lua set envirounment error. cname: %s. %s", Component->getTName().c_str(), out);
 				return false;
 			}
 

@@ -47,25 +47,29 @@ namespace Kite{
 					// update camera
 					if (it->getNeedUpdate()) {
 						this->_computeCamera(&(*it));
+					}
 
-						// update viewport
-						if (_klastState.lastViewport != (*it)._ksize) {
-							DGL_CALL(glViewport(0, 0, (*it)._ksize.x, (*it)._ksize.y));
-							_klastState.lastViewport = (*it)._ksize;
-						}
+					// update viewport and scissor
+					if (_klastState.lastViewport != (*it)._ksize) {
+						DGL_CALL(glViewport((*it)._kposition.x, (*it)._kposition.y, (*it)._ksize.x, (*it)._ksize.y));
+						_klastState.lastViewport = (*it)._ksize;
 
-						// update clear color
-						if ((*it)._kclear != _klastState.lastColor) {
-							DGL_CALL(glClearColor((GLclampf)((*it)._kclear.getGLR()),
-												  (GLclampf)((*it)._kclear.getGLG()),
-												  (GLclampf)((*it)._kclear.getGLB()),
-												  (GLclampf)((*it)._kclear.getGLA())));
-							_klastState.lastColor = (*it)._kclear;
-						}
+						DGL_CALL(glScissor((*it)._kposition.x, (*it)._kposition.y, (*it)._ksize.x, (*it)._ksize.y));
+					}
+
+					// update clear color
+					if ((*it)._kclearCol != _klastState.lastColor) {
+						DGL_CALL(glClearColor((GLclampf)((*it)._kclearCol.getGLR()),
+											  (GLclampf)((*it)._kclearCol.getGLG()),
+											  (GLclampf)((*it)._kclearCol.getGLB()),
+											  (GLclampf)((*it)._kclearCol.getGLA())));
+						_klastState.lastColor = (*it)._kclearCol;
 					}
 
 					// clear scene 
-					DGL_CALL(glClear(GL_COLOR_BUFFER_BIT));
+					if (it->_kclearView) {
+						DGL_CALL(glClear(GL_COLOR_BUFFER_BIT));
+					}
 
 					// update and draw renderables
 					auto render = EManager->getComponentStorage<KRenderCom>("Render");
@@ -73,12 +77,11 @@ namespace Kite{
 					U32 verSize = 0;
 
 					KRenderCom *material = nullptr;
-					for (auto rit = render->begin(); rit != render->end(); ++rit) {
-						// check visibility
-						if (!rit->_isvisible) {
-							continue;
-						}
+					static std::vector<std::pair<KRenderCom *, KRenderable *>> objList(KRENDER_BUFF_SIZE);
+					objList.resize(0);
 
+					// inite objects list
+					for (auto rit = render->begin(); rit != render->end(); ++rit) {
 						auto ent = EManager->getEntity(rit->getOwnerHandle());
 
 						// inite materials
@@ -90,48 +93,50 @@ namespace Kite{
 						}
 
 						// catch renderable components
-						KRenderable *object = nullptr;
-						if (auto quadcom = (KQuadCom *)ent->getComponentByName("Quad", "")) {
-							object = quadcom;
+						if (rit->_isvisible && EManager->getEntity(rit->getOwnerHandle())->isActive()) {
+							if (auto quadcom = (KQuadCom *)ent->getComponentByName("Quad", "")) {
+								objList.push_back({ &(*rit), quadcom });
 
-						// } else if (catch another renderable ...){
-						} else {
-							// there is no renderable object
-							continue;
+								// } else if (catch another renderable ...){
+							}
 						}
-
+					}
+						
+					// render objects list
+					for (auto oit = objList.begin(); oit != objList.end(); ++oit){
+						auto ent = EManager->getEntity(oit->first->getOwnerHandle());
 						// inite state
-						if (rit == render->begin()) {
-							_checkState(&(*rit), object);
+						if (oit == objList.begin()) {
+							_checkState(oit->first, oit->second);
 						}
 
 						// check material (render shared materials in a single batch)
-						if (_checkState(&(*rit), object)) {
+						if (_checkState(oit->first, oit->second)) {
 
 							// check available buffer size
-							if ((indSize + object->getIndexSize()) < KRENDER_IBUFF_SIZE) {
+							if ((indSize + oit->second->getIndexSize()) < KRENDER_IBUFF_SIZE) {
 
 								// compute (parent * child * camera) matrix
 								// catch object with its matrix
 								_kupdata.matrix.push_back((*it).getMatrix());
 								_computeParentsTransform(EManager, ent, &_kupdata.matrix.back());
-								_kupdata.objects.push_back(object);
-								material = &(*rit);
+								_kupdata.objects.push_back(oit->second);
+								material = oit->first;
 
 								// increase buffers size
-								indSize += object->getIndexSize();
-								verSize += object->getVertex()->size();
+								indSize += oit->second->getIndexSize();
+								verSize += oit->second->getVertex()->size();
 
 								// check next object if any
-								if (rit != --render->end()) {
+								if (oit != --objList.end()) {
 									continue;
 								}
 							} 
 						} else {
-							--rit;
+							--oit;
 						}
 
-						// render catched list
+						// render 
 						if (!_kupdata.objects.empty()) {
 							// update vetex
 							_kvboVer->update(0, sizeof(Internal::KGLVertex) * verSize, false, (void *)&_kupdata);
@@ -166,7 +171,11 @@ namespace Kite{
 			return false;
 		}
 
+		// we dont need depth test (objects are always in a sorted order)
 		DGL_CALL(glDisable(GL_DEPTH_TEST));
+
+		// we need scissor for camera clear only part of screen (camera viewport)
+		DGL_CALL(glEnable(GL_SCISSOR_TEST));
 
 		// enable blend
 		DGL_CALL(glEnable(GL_BLEND));
@@ -238,7 +247,7 @@ namespace Kite{
 
 		// finish. unbind vao.
 		_kvao->unbindVertexArray();
-
+		
 		setInite(true);
 		return true;
 	}
@@ -301,7 +310,7 @@ namespace Kite{
 
 	void KRenderSys::_initeQuadIndex(std::vector<U16> *Buffer) {
 		auto trueSize = Buffer->size() / 6;
-		for (auto i = 0; i < trueSize; ++i) {
+		for (U32 i = 0; i < trueSize; ++i) {
 			auto offset = i * 6;
 			auto value = i * 4;
 			(*Buffer)[offset] = value;

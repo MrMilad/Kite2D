@@ -68,7 +68,9 @@ namespace Kite {
 	}
 
 	void KStackStorage::deallocate(void *Pointer) {
+#if _DEBUG
 		KD_ASSERT(Pointer == _kprevPos);
+#endif
 
 		//Access the AllocationHeader in the bytes before Pointer
 		AllocationHeader* header = (AllocationHeader*)(Internal::subtract(Pointer, sizeof(AllocationHeader)));

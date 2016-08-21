@@ -29,10 +29,12 @@
 namespace Kite{
 	KCameraCom::KCameraCom(const std::string &Name) :
 		KComponent(Name),
+		_kdepth(0),
+		_kclearView(true),
 		_kflipx(false),
 		_kflipy(false),
 		_kcenter(0.0f, 0.0f),
-		_kposition(0.0f, 0.0f),
+		_kposition(0, 0),
         _krotation(0.0f),
         _kzoom(1.0f)
     {}
@@ -48,23 +50,26 @@ namespace Kite{
 	void KCameraCom::setSize(const KVector2U32 &Size) {
 		if (Size != _ksize) {
 			_ksize = Size;
-			_kcenter.x = Size.x / 2.0f;
-			_kcenter.y = Size.y / 2.0f;
 			setNeedUpdate(true);
 		}
 	}
 
-	void KCameraCom::setPosition(const KVector2F32 &Position) {
+	void KCameraCom::setPosition(const KVector2I32 &Position) {
 		if (Position != _kposition) {
 			_kposition = Position;
-			_kcenter += Position;
+			setNeedUpdate(true);
+		}
+	}
+
+	void KCameraCom::setCenter(const KVector2F32 &Center) {
+		if (Center != _kcenter) {
+			_kcenter = Center;
 			setNeedUpdate(true);
 		}
 	}
 
 	void KCameraCom::move(const KVector2F32 &Move) {
 		if (Move != KVector2F32(0, 0)) {
-			_kposition += Move;
 			_kcenter += Move;
 			setNeedUpdate(true);
 		}

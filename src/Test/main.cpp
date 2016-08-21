@@ -30,13 +30,16 @@ int main() {
 	auto sc = new KConfig();
 	sc->window.width = 800;
 	sc->window.height = 600;
-	sc->dictionary = "C:\\Users\\_M1L4D_\\Desktop\\jj\\dict.kdict";
-	sc->startUpScene = "rrr.sce";
+	sc->dictionary = "C:\\Users\\_M1L4D_\\Desktop\\ff\\dict.kdict";
+	sc->startUpScene = "iii.sce";
 
 	auto engine = KEngine::createEngine();
 	engine->inite(sc, false);
 
 	/*auto rman = engine->getResourceManager();
+	auto eman = engine->getSceneManager()->getActiveScene()->getEManager();
+	auto ent2 = eman->createEntity("ent2");
+
 
 	auto vert = (KShader *)rman->load("KFIStream", "KShader", "F:\\KEngineLab\\Lab\\develop\\shader\\vert.vert");
 	auto frag = (KShader *)rman->load("KFIStream", "KShader", "F:\\KEngineLab\\Lab\\develop\\shader\\frag.frag");

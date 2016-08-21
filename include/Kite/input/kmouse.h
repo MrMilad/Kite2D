@@ -46,7 +46,7 @@ namespace Kite{
         /// retrieves the last reported cursor position,
         /// relative to the client area of the window
 		KM_FUN()
-        static KVector2I32 getPosition();
+        static KVector2F32 getPosition();
 
 		/// x: the amount scrolled horizontally, positive to the right and negative to the left
 		/// y: the amount scrolled vertically, positive away from the user and negative toward the user

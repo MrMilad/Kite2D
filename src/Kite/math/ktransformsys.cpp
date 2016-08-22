@@ -28,8 +28,9 @@ USA
 namespace Kite {
 
 	bool KTransformSys::update(F32 Delta, KEntityManager *EManager, KResourceManager *RManager) {
-		if (EManager->isRegisteredComponent("Transform")) {
-			auto continer = EManager->getComponentStorage<KTransformCom>("Transform"); // avoid hash lookup in every turn of for-loop
+		STATIC_OUT_EDITOR const bool isregist = EManager->isRegisteredComponent("Transform");
+		if (isregist) {
+			STATIC_OUT_EDITOR auto continer = EManager->getComponentStorage<KTransformCom>("Transform"); // avoid hash lookup in every frame
 			for (auto it = continer->begin(); it != continer->end(); ++it) {
 				auto ehandle = it->getOwnerHandle();
 				auto entity = EManager->getEntity(ehandle);

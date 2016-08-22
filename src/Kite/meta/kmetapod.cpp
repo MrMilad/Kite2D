@@ -27,7 +27,7 @@ namespace Kite {
 
 	namespace Internal {
 		void registerMetaPOD(KMetaManager *MMan) {
-			static KMetaPOD instances[] =
+			const static KMetaPOD instances[] =
 			{
 				KMetaPOD("I8", 0, (U32)sizeof(I8), Primitive::I8),
 				KMetaPOD("I16", 0, (U32)sizeof(I16), Primitive::I16),

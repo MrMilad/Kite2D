@@ -17,36 +17,25 @@ License along with this library; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 USA
 */
-#include "Kite/core/kcoredef.h"
+#include "Kite/logic/klogicinstancecom.h"
+#include "Kite/meta/kmetamanager.h"
+#include "Kite/meta/kmetaclass.h"
+#include "Kite/meta/kmetatypes.h"
+#include <luaintf/LuaIntf.h>
 
 namespace Kite {
-#if defined(KITE_EDITOR) && defined(KITE_DEV_DEBUG)
-	printCallback pcallback = &defaultPrint;
-	char buffer[500];
-
-	void defaultPrint(const std::string &Text, msgType MType) {
-		switch (MType) {
-		case Kite::msgType::MSG_DEBUG:
-			printf("DEBUG: %s\n", Text.c_str());
-			break;
-		case Kite::msgType::MSG_ASSERT:
-			printf("ASSERT: %s\n", Text.c_str());
-			break;
-		case Kite::msgType::MSG_BREAK:
-			printf("BREAK: %s\n", Text.c_str());
-			break;
-		case Kite::msgType::MSG_LUA:
-			printf("LUA: %s\n", Text.c_str());
-			break;
-		default:
-			printf("%s\n", Text.c_str());
-			break;
-		}
-		
+	KLogicInstanceCom::KLogicInstanceCom(const std::string &Name) :
+		KComponent(Name) 
+	{
+		setRemoveOnDepZero(true);
 	}
 
-	void setEditorPrintCallback(printCallback Callback) {
-		pcallback = Callback;
+	void KLogicInstanceCom::attached(KEntity *Entity) {}
+
+	void KLogicInstanceCom::deattached(KEntity *Entity) {}
+
+	RecieveTypes KLogicInstanceCom::onMessage(KMessage *Message, MessageScope Scope) {
+		return RecieveTypes::IGNORED;
 	}
-#endif
+	KMETA_KLOGICINSTANCECOM_SOURCE();
 }

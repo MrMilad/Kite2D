@@ -31,7 +31,9 @@ namespace Kite {
 	KEntity::KEntity(const std::string &Name):
 #ifdef KITE_EDITOR
 		 _kaddCallb(nullptr),
-		_kopaqPtr(nullptr),
+		_kremCallb(nullptr),
+		_kaddOpaque(nullptr),
+		_kremOpaque(nullptr),
 #endif
 		_kplistid(0),
 		_kname(Name),
@@ -216,7 +218,7 @@ namespace Kite {
 		// call editor callback
 #ifdef KITE_EDITOR
 		if (_kaddCallb) {
-			(*_kaddCallb)(com, _kopaqPtr);
+			(*_kaddCallb)(com, _kaddOpaque);
 		}
 #endif
 
@@ -311,11 +313,19 @@ namespace Kite {
 		// deattach component from entity and call deattach function
 		comPtr->setOwnerHandle(getHandle());
 		comPtr->deattached(this);
+
+		// call editor callback (we must call editor callback befor removing dependency to avoid poniter dangling)
+#ifdef KITE_EDITOR
+		if (_kremCallb) {
+			(*_kremCallb)(comPtr, _kremOpaque);
+		}
+#endif
 		
 		// remove components id from entity
 		if (CType == "Logic") {
 			_klogicComp.erase(Name);
-			// linear search
+
+			// remove from logic order list (linear search)
 			for (auto it = _klogicOrder.begin(); it != _klogicOrder.end(); ++it) {
 				if ((*it) == hndl) {
 					_klogicOrder.erase(it);
@@ -323,16 +333,21 @@ namespace Kite {
 				}
 			}
 		} else {
-			// dec ref counter
-			auto depList = comPtr->getDependency();
-			for (auto it = depList.begin(); it != depList.end(); ++it) {
-				auto dep = getComponentByName((*it), "");
-				if (dep) {
-					--dep->_krefcounter;
+			_kfixedComp.erase(CType);
+		}
+
+		// dec ref counter
+		auto depList = comPtr->getDependency();
+		for (auto it = depList.begin(); it != depList.end(); ++it) {
+			auto dep = getComponentByName((*it), "");
+			if (dep) {
+				--dep->_krefcounter;
+
+				// remove if on zero dep (only removable zero dep components)
+				if (dep->_kremoveNoDep && dep->_krefcounter == 0) {
+					removeComponent(dep->getType(), dep->getName());
 				}
 			}
-
-			_kfixedComp.erase(CType);
 		}
 
 		// and remove component itself from storage

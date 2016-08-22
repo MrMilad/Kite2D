@@ -32,6 +32,7 @@ namespace Kite{
 		_ktextureptr(nullptr)
 	{
 		addDependency("Transform");
+		setRemoveOnDepZero(true);
 	}
 
 	void KRenderCom::attached(KEntity *Entity) {}

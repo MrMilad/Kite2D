@@ -193,6 +193,8 @@ namespace Kite {
 				Value.deserial(In); return In;
 			}
 
+			virtual ~BaseCHolder() {}
+
 			//virtual void serial(KBaseSerial &Serializer, KSerialStateTypes State) = 0;
 			virtual KHandle add(const std::string &Name = "") = 0;
 			virtual void remove(const KHandle &Handle) = 0;
@@ -207,6 +209,9 @@ namespace Kite {
 
 		template <class T, class Y>
 		struct CHolder : public BaseCHolder<Y> {
+			virtual ~CHolder() {
+				_kstorage.clear();
+			}
 			KHandle add(const std::string &Name) override {
 				return _kstorage.add(T(Name));
 			}

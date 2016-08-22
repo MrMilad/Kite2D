@@ -31,7 +31,9 @@ namespace Kite {
 	KLogicCom::KLogicCom(const std::string &Name) :
 		KComponent(Name),
 		_kinite(false), _kstart(false), _klstate(nullptr)
-		{}
+	{
+		addDependency("LogicInstance");
+	}
 
 	void KLogicCom::attached(KEntity *Entity) {
 		_ktname = Entity->getLuaTName();

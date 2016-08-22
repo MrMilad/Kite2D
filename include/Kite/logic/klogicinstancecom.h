@@ -17,36 +17,38 @@ License along with this library; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 USA
 */
+#ifndef KLOGICINSTANCECOM_H
+#define KLOGICINSTANCECOM_H
+
 #include "Kite/core/kcoredef.h"
+#include "Kite/core/kcomponent.h"
+#include "Kite/meta/kmetadef.h"
+#include "Kite/logic/kscript.h"
+#include "Kite/core/kentity.h"
+#include <string>
+#include "klogicinstancecom.khgen.h"
 
+KMETA
 namespace Kite {
-#if defined(KITE_EDITOR) && defined(KITE_DEV_DEBUG)
-	printCallback pcallback = &defaultPrint;
-	char buffer[500];
+	KM_CLASS(COMPONENT)
+	class KITE_FUNC_EXPORT KLogicInstanceCom : public KComponent {
+		friend class KLogicSys;
+		KM_INFO(KI_SHOW = "false");
+		KM_INFO(KI_CTYPE = "LogicInstance");
+		KMETA_KLOGICINSTANCECOM_BODY();
 
-	void defaultPrint(const std::string &Text, msgType MType) {
-		switch (MType) {
-		case Kite::msgType::MSG_DEBUG:
-			printf("DEBUG: %s\n", Text.c_str());
-			break;
-		case Kite::msgType::MSG_ASSERT:
-			printf("ASSERT: %s\n", Text.c_str());
-			break;
-		case Kite::msgType::MSG_BREAK:
-			printf("BREAK: %s\n", Text.c_str());
-			break;
-		case Kite::msgType::MSG_LUA:
-			printf("LUA: %s\n", Text.c_str());
-			break;
-		default:
-			printf("%s\n", Text.c_str());
-			break;
-		}
-		
-	}
+	public:
+		KLogicInstanceCom(const std::string &Name = "");
 
-	void setEditorPrintCallback(printCallback Callback) {
-		pcallback = Callback;
-	}
-#endif
+		void attached(KEntity *Entity) override;
+
+		/// remove this script from entity
+		void deattached(KEntity *Entity) override;
+
+		KM_FUN()
+			RecieveTypes onMessage(KMessage *Message, MessageScope Scope) override;
+	};
 }
+
+
+#endif // KLOGICINSTANCECOM_H

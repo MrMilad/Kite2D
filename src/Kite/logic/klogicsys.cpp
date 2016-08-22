@@ -22,6 +22,7 @@ USA
 #include "Kite/meta/kmetamanager.h"
 #include "Kite/meta/kmetaclass.h"
 #include "Kite/meta/kmetatypes.h"
+#include "Kite/logic/klogicinstancecom.h"
 #include "Kite/logic/klogiccom.h"
 #include <luaintf/LuaIntf.h>
 #ifdef KITE_DEV_DEBUG
@@ -30,14 +31,16 @@ USA
 
 namespace Kite {
 	bool KLogicSys::update(F32 Delta, KEntityManager *EManager, KResourceManager *RManager) {
-		static const bool isregist = EManager->isRegisteredComponent("Logic");
+		STATIC_OUT_EDITOR const bool isregist = EManager->isRegisteredComponent("LogicInstance");
 
 		// check component registration
 		if (isregist) {
-			// iterate over objects
-			auto econtiner = EManager->getEntityStorage();
-			for (auto i = 0; i < econtiner->size(); ++i) {
-				auto ent = &econtiner->at(i);
+
+			// iterate over objects with at least 1 Logic component
+			STATIC_OUT_EDITOR auto continer = EManager->getComponentStorage<KLogicInstanceCom>("LogicInstance");
+			for (auto it = continer->begin(); it != continer->end(); ++it) {
+
+				auto ent = EManager->getEntity(it->getOwnerHandle());
 				if (ent->isActive()) {
 
 					// retrive all script components from entity
@@ -46,8 +49,7 @@ namespace Kite {
 
 					// iterate over all logic components and inite/update them
 					for (auto comp = components.begin(); comp != components.end(); ++comp) {
-						ent = &econtiner->at(i);
-						auto lcomp = static_cast<KLogicCom *>(ent->getComponent("Logic", (*comp)));
+						auto lcomp = (KLogicCom *)ent->getComponent("Logic", (*comp));
 
 						// inite component and bind it to lua vm (only one time when current script changed with a new script)
 						if (lcomp->getNeedUpdate()) {
@@ -155,10 +157,6 @@ namespace Kite {
 			// set envirunmet values
 			ctable["global"] = LuaIntf::LuaRef::globals(_klvm);
 			ctable["kite"] = LuaIntf::LuaRef(_klvm, "_G.kite");
-			//code.insert(0, "_ENV = " + address + " \n");
-			//code.insert(0, address + ".global = _G \n");
-			//code.insert(0, address + ".kite = _G.kite \n");
-			//code.insert(0, address + ".print = print \n");
 
 			// load chunk and set its environment
 			code.clear();

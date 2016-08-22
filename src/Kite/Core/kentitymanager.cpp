@@ -57,7 +57,8 @@ namespace Kite {
 	}
 
 	KEntityManager::KEntityManager() :
-		_knum(0)
+		_knum(0),
+		_kzorder(0)
 		{
 		KD_ASSERT(initeLua());
 		_kentmap.reserve(KCFSTORAGE_CHUNK_SIZE);
@@ -67,10 +68,11 @@ namespace Kite {
 
 	KEntityManager::~KEntityManager() {
 		for (auto it = _kcstorage.begin(); it != _kcstorage.end(); ++it) {
-			it->second->clear();
+			//it->second->clear();
 			delete it->second;
 		}
 		_kcstorage.clear();
+		_kestorage.clear();
 	}
 
 	void KEntityManager::initeRoot() {

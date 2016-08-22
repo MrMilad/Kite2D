@@ -82,6 +82,9 @@ namespace Kite {
 		KM_PRO_GET(KP_NAME = "lsitener", KP_TYPE = KListener, KP_CM = "cmponent message listener")
 		inline KListener &getListener() { return *(KListener *)this; }
 
+		KM_PRO_GET(KP_NAME = "removeOnZeroDep", KP_TYPE = bool, KP_CM = "cmponent will removed whene there is no dependency")
+		inline bool getRemoveOnZeroDep() { return _kremoveNoDep; }
+
 		KM_FUN()
 		inline const std::vector<std::string> &getDependency() const { return _kdeplist; }
 
@@ -94,13 +97,19 @@ namespace Kite {
 		/// add component dependency.
 		/// use this function in constructure.
 		/// circular-dependency is allowed but not recommended. (bad design)
-		/// dont add Logic component as dependency
+		/// dont add 'Logic' component as dependency.
 		inline void addDependency(const std::string &ComponentName) { _kdeplist.push_back(ComponentName); }
+
+		/// automatic remove this component when there is no dependency on it.
+		/// false by default.
+		/// use this function in constructure.
+		inline void setRemoveOnDepZero(bool Remove) { _kremoveNoDep = Remove; }
 		inline void setNeedUpdate(bool NeedUpdate) { _kneedup = NeedUpdate; }
 		inline void setOwnerHandle(const KHandle &Handle) { _kohandle = Handle; }
 
 	private:
 		bool _kneedup;
+		bool _kremoveNoDep; // component will removed if refcounter = 0
 		std::vector<std::string> _kdeplist;
 		KM_VAR() U16 _krefcounter; // dependency ref counter
 		KM_VAR() std::string _kname;

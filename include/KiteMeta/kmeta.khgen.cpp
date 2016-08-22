@@ -13,6 +13,7 @@
 #include "Kite/math/ktransformcom.h"
 #include "Kite/math/ktransformsys.h"
 #include "Kite/logic/klogiccom.h"
+#include "Kite/logic/klogicinstancecom.h"
 #include "Kite/logic/klogicsys.h"
 #include "Kite/logic/kscript.h"
 #include "Kite/input/kinputcom.h"
@@ -70,6 +71,7 @@ KTransform::registerMeta(MMan, Lua);
 KTransformCom::registerMeta(MMan, Lua);
 KTransformSys::registerMeta(MMan, Lua);
 KLogicCom::registerMeta(MMan, Lua);
+KLogicInstanceCom::registerMeta(MMan, Lua);
 KLogicSys::registerMeta(MMan, Lua);
 KScript::registerMeta(MMan, Lua);
 KInputCom::registerMeta(MMan, Lua);
@@ -133,6 +135,7 @@ Internal::RegisterMessageScope::registerMeta(MMan, Lua);
 void registerCTypes(KEntityManager *EMan){
 EMan->registerComponent<KTransformCom>("Transform");
 EMan->registerComponent<KLogicCom>("Logic");
+EMan->registerComponent<KLogicInstanceCom>("LogicInstance");
 EMan->registerComponent<KInputCom>("Input");
 EMan->registerComponent<KCameraCom>("Camera");
 EMan->registerComponent<KQuadCom>("Quad");

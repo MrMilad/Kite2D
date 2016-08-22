@@ -53,6 +53,7 @@ USA
 
 // info tags
 #define KI_CTYPE // component name
+#define KI_SHOW // show component in editor (true by default if not defined)
 
 // variable modifiers
 #define UNBIND  // add this flag for unbindable pod's variables. eg: arrays or private variables

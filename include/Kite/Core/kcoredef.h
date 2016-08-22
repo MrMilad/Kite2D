@@ -151,6 +151,7 @@
 /// debug macros
 #if defined(KITE_DEV_DEBUG)
 	#if defined (KITE_EDITOR)
+#define STATIC_OUT_EDITOR 
 namespace Kite {
 	enum class msgType : short{
 		MSG_DEBUG = 0,
@@ -160,7 +161,7 @@ namespace Kite {
 	};
 	typedef void(*printCallback)(const std::string &, msgType);
 	extern printCallback pcallback;
-	extern char *buffer;
+	extern char buffer[500];
 	extern KITE_FUNC_EXPORT void defaultPrint(const std::string &Text, msgType MType);
 	extern KITE_FUNC_EXPORT void setEditorPrintCallback(printCallback Callback);
 }
@@ -178,6 +179,7 @@ namespace Kite {
 (Kite::pcallback)(std::string(Kite::buffer), Kite::msgType::MSG_ASSERT);}
 
 	#else
+		#define STATIC_OUT_EDITOR static
 		#include <assert.h>
 		#define KD_BREAK() fprintf(stderr, "BREAK: %s:%d:%s()\n", __FILE__, __LINE__, __func__); assert(0)
 		#define KD_FPRINT(fmt, ...) fprintf(stderr, "DEBUG: %s:%d:%s(): " fmt "\n", __FILE__, __LINE__, __func__, __VA_ARGS__)
@@ -186,6 +188,7 @@ namespace Kite {
 	#endif
 
 #else /// release state. (without debug output and break)
+	#define STATIC_OUT_EDITOR static
     #define KD_BREAK()
     #define KD_FPRINT(fmt, ...)
     #define KD_PRINT(exp)

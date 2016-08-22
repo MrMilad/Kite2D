@@ -33,12 +33,28 @@
 
 namespace Kite{
 	bool KRenderSys::update(F32 Delta, KEntityManager *EManager, KResourceManager *RManager) {
-		static const bool isregist = (EManager->isRegisteredComponent("Camera") && EManager->isRegisteredComponent("Render"));
+		STATIC_OUT_EDITOR const bool isregist = (EManager->isRegisteredComponent("Camera") && EManager->isRegisteredComponent("Render"));
 		
 		if (isregist) {
-			// update all active camera
-			auto continer = EManager->getComponentStorage<KCameraCom>("Camera");
-			for (auto it = continer->begin(); it != continer->end(); ++it) {
+			// sort camera(s) (based depth)
+			STATIC_OUT_EDITOR auto continer = EManager->getComponentStorage<KCameraCom>("Camera");
+			STATIC_OUT_EDITOR std::vector<std::pair<U32, U32>> sortedIndex(KRENDER_CAMERA_SIZE); // reserve 10 pre-defined camera
+			sortedIndex.clear();
+
+			// collect depth of all camera(s)
+			for (auto i = 0; i < continer->size(); ++i) {
+				sortedIndex.push_back({ i, continer->at(i)._kdepth });
+			}
+
+			// sort depth list
+			std::sort(sortedIndex.begin(), sortedIndex.end(),
+					  [](const std::pair<U32, U32> &left, const std::pair<U32, U32> &right) {
+				return left.second < right.second;
+			});
+
+			// update all active camera(s) (sorted)
+			for (auto sit = sortedIndex.begin(); sit != sortedIndex.end(); ++sit) {
+				auto it = &continer->at(sit->first);
 				_kupdata.clear();
 				auto ehandle = it->getOwnerHandle();
 				auto entity = EManager->getEntity(ehandle);
@@ -50,20 +66,21 @@ namespace Kite{
 					}
 
 					// update viewport and scissor
-					if (_klastState.lastViewport != (*it)._ksize) {
-						DGL_CALL(glViewport((*it)._kposition.x, (*it)._kposition.y, (*it)._ksize.x, (*it)._ksize.y));
-						_klastState.lastViewport = (*it)._ksize;
+					if (_klastState.lastViewSize != it->_ksize || _klastState.lastViewPos != it->_kposition) {
+						DGL_CALL(glViewport(it->_kposition.x, it->_kposition.y, it->_ksize.x, it->_ksize.y));
+						_klastState.lastViewSize = it->_ksize;
+						_klastState.lastViewPos = it->_kposition;
 
-						DGL_CALL(glScissor((*it)._kposition.x, (*it)._kposition.y, (*it)._ksize.x, (*it)._ksize.y));
+						DGL_CALL(glScissor(it->_kposition.x, it->_kposition.y, it->_ksize.x, it->_ksize.y));
 					}
 
 					// update clear color
-					if ((*it)._kclearCol != _klastState.lastColor) {
-						DGL_CALL(glClearColor((GLclampf)((*it)._kclearCol.getGLR()),
-											  (GLclampf)((*it)._kclearCol.getGLG()),
-											  (GLclampf)((*it)._kclearCol.getGLB()),
-											  (GLclampf)((*it)._kclearCol.getGLA())));
-						_klastState.lastColor = (*it)._kclearCol;
+					if (it->_kclearCol != _klastState.lastColor) {
+						DGL_CALL(glClearColor((GLclampf)(it->_kclearCol.getGLR()),
+											  (GLclampf)(it->_kclearCol.getGLG()),
+											  (GLclampf)(it->_kclearCol.getGLB()),
+											  (GLclampf)(it->_kclearCol.getGLA())));
+						_klastState.lastColor = it->_kclearCol;
 					}
 
 					// clear scene 
@@ -72,7 +89,7 @@ namespace Kite{
 					}
 
 					// update and draw renderables
-					auto render = EManager->getComponentStorage<KRenderCom>("Render");
+					STATIC_OUT_EDITOR auto render = EManager->getComponentStorage<KRenderCom>("Render");
 					U32 indSize = 0;
 					U32 verSize = 0;
 
@@ -174,14 +191,14 @@ namespace Kite{
 		// we dont need depth test (objects are always in a sorted order)
 		DGL_CALL(glDisable(GL_DEPTH_TEST));
 
-		// we need scissor for camera clear only part of screen (camera viewport)
+		// we need scissor for clear only part of the screen (camera viewport)
 		DGL_CALL(glEnable(GL_SCISSOR_TEST));
 
 		// enable blend
 		DGL_CALL(glEnable(GL_BLEND));
 		DGL_CALL(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
 
-		// update list
+		// update lists
 		_kupdata.objects.reserve(KRENDER_BUFF_SIZE);
 		_kupdata.matrix.reserve(KRENDER_BUFF_SIZE);
 
@@ -191,12 +208,12 @@ namespace Kite{
 		// inite vao
 		_kvao = new KVertexArray();
 
-		// inite index
+		// inite index buffer
 		_kvboInd = new KVertexBuffer(BufferTarget::INDEX);
 		std::vector<U16> ind(KRENDER_IBUFF_SIZE, 0);
 		_initeQuadIndex(&ind);
 
-		// inite vertex
+		// inite vertex buffer
 		_kvboVer = new KVertexBuffer(BufferTarget::VERTEX);
 		std::vector<Internal::KGLVertex> vert(KRENDER_VBUFF_SIZE, Internal::KGLVertex());
 
@@ -211,25 +228,25 @@ namespace Kite{
 		// bind vao then inite buffers
 		_kvao->bind();
 
-		// index buffer
+		// fill index buffer
 		_kvboInd->bind();
 		_kvboInd->fill(&ind[0], sizeof(U16) * KRENDER_IBUFF_SIZE, VBufferType::STREAM);
 		//_kvboInd->setUpdateHandle(_updateInd);
 
-		// vertex buffer
+		// fill vertex buffer
 		_kvboVer->bind();
 		_kvboVer->fill(&vert[0], sizeof(Internal::KGLVertex) * KRENDER_VBUFF_SIZE, VBufferType::STREAM);
 
-		// pos
+		// set pos attr
 		_kvao->enableAttribute(0);
 		_kvao->setAttribute(0, AttributeCount::COMPONENT_2, AttributeType::FLOAT, false, sizeof(Internal::KGLVertex), KBUFFER_OFFSET(0));
 
-		// uv
+		// set uv attr
 		_kvao->enableAttribute(1);
 		_kvao->setAttribute(1, AttributeCount::COMPONENT_2, AttributeType::FLOAT,
 							false, sizeof(Internal::KGLVertex), KBUFFER_OFFSET(sizeof(KVector2F32)));
 
-		// color
+		// set color attr
 		_kvao->enableAttribute(2);
 		_kvao->setAttribute(2, AttributeCount::COMPONENT_4, AttributeType::FLOAT,
 							false, sizeof(Internal::KGLVertex), KBUFFER_OFFSET(sizeof(F32) * 4));
@@ -253,6 +270,7 @@ namespace Kite{
 	}
 
 	void KRenderSys::destroy() {
+		// delete buffers
 		delete _kvboVer;
 		delete _kvboInd;
 		delete _kvboPnt;

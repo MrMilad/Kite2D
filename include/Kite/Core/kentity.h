@@ -40,7 +40,7 @@ USA
 KMETA
 namespace Kite {
 #ifdef KITE_EDITOR
-	typedef void(*AddCallback)(KComponent *, void *);
+	typedef void(*ComCallback)(KComponent *, void *);
 #endif
 	class KEntityManager;
 	KM_CLASS(ENTITY, SCRIPTABLE)
@@ -141,7 +141,8 @@ namespace Kite {
 		inline const auto childList() const { return &_kchilds; }
 
 #ifdef KITE_EDITOR
-		inline void setAddComCallback(AddCallback Callback, void *OpaqPtr) { _kaddCallb = Callback; _kopaqPtr = OpaqPtr; }
+		inline void setAddComCallback(ComCallback Callback, void *OpaqPtr) { _kaddCallb = Callback; _kaddOpaque = OpaqPtr; }
+		inline void setRemoveComCallback(ComCallback Callback, void *OpaqPtr) { _kremCallb = Callback; _kremOpaque = OpaqPtr; }
 #endif
 
 	private:
@@ -156,7 +157,7 @@ namespace Kite {
 			inline void setPrefabName(const std::string &Name) { _kprefabName = Name; _kisPrefab = true; }
 		
 		KM_VAR() bool _kactive;											// entity actitvity state
-		KM_VAR() bool _kisPrefab;
+		KM_VAR() bool _kisPrefab;										// is prefab instance
 		KM_VAR() KHandle _khandle;										// entity handle in the entity manager
 		KM_VAR() KHandle _kphandle;										// entity parent handle
 		KM_VAR() U32 _kplistid;											// entity self id in the parent list
@@ -177,8 +178,10 @@ namespace Kite {
 
 		// editor only
 #ifdef KITE_EDITOR
-		AddCallback _kaddCallb;
-		void *_kopaqPtr;
+		ComCallback _kaddCallb;
+		ComCallback _kremCallb;
+		void *_kaddOpaque;
+		void *_kremOpaque;
 #endif
 	};
 }

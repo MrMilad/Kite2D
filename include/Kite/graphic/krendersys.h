@@ -31,6 +31,7 @@
 #define KRENDER_VBUFF_SIZE 40000	// item (KGLVertext)
 #define KRENDER_IBUFF_SIZE 60000	// item (U16)
 #define KRENDER_BUFF_SIZE 10000		// item (KRenderable)
+#define KRENDER_CAMERA_SIZE 10		// item (size of pre-defined camera)
 
 KMETA
 namespace Kite{

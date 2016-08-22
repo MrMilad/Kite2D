@@ -451,7 +451,8 @@ namespace Kite{
 		//! Catch last OpenGL state. (internally use)
 		struct KGLState{
 			KColor lastColor;
-			KVector2U32 lastViewport;
+			KVector2U32 lastViewSize;
+			KVector2I32 lastViewPos;
 			U32 lastTexId;			//!< Last used texture id
 			U32 lastShdId;			//!< Last used shader id
 			GLPrimitive lastGeo;	//!< Last used geometric type

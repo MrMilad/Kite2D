@@ -26,6 +26,7 @@ USA
 
 namespace Kite {
 	KComponent::KComponent(const std::string &Name) :
+		_kremoveNoDep(false),
 		_krefcounter(0),
 		_kname(Name),
 		_kneedup(true)

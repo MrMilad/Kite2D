@@ -9,7 +9,7 @@
 
 KiteInfo::KiteInfo():
 	model(new QStandardItemModel),
-	resources(new QStringList), components(new QStringList)
+	resources(new QStringList), components(new QVector<QPair<Kite::KCTypes, bool>>)
 {
 	// register kiet meta system
 	Kite::KMetaManager kmman;
@@ -40,47 +40,58 @@ KiteInfo::KiteInfo():
 			auto infoList = (*it)->getInfo();
 			auto propList = comp->getProperties();
 			auto funList = comp->getFunctions();
+			bool visible = true;
+			QString name;
+
+			// component info
 			for (auto ilit = infoList->begin(); ilit != infoList->end(); ++ilit) {
-				if (ilit->first == "KI_CTYPE") {
-					components->push_back(ilit->second.c_str());
-					auto item = new QStandardItem(QIcon(":/icons/comp16"), ilit->second.c_str());
-					item->setToolTip("<font color = \"orange\">component</font><br>" + QString::number(propList->size()) + " properties");
-					kroot->appendRow(item);
-
-					// component properties
-					for (auto piit = propList->begin(); piit != propList->end(); ++piit) {
-						auto pitem = new QStandardItem();
-						pitem->setText(piit->name.c_str());
-						QString tip("<font color = \"orange\">property</font><br>"
-									"<font color = \"green\">comment: </font>");
-						tip += piit->comment.c_str();
-						if (piit->type == Kite::KMetaPropertyTypes::KMP_BOTH) {
-							pitem->setIcon(QIcon(":/icons/prop16"));
-							tip += "<br><font color = \"red\">access type: </font>read/write<br><font color = \"#00a4f0\">type: </font>";
-						} else {
-							tip += "<br><font color = \"red\">access type: </font>read-only<br><font color = \"#00a4f0\">type: </font>";
-							pitem->setIcon(QIcon(":/icons/propro16"));
-						}
-						pitem->setToolTip(tip + QString(piit->typeName.c_str()));
-						item->appendRow(pitem);
-
-						// is resource field
-						if (!piit->resType.empty()) {
-							resComponents[ilit->second.c_str()].push_back(*piit);
-						}
-					}
-
-					// component functions
-					for (auto fit = funList->begin(); fit != funList->end(); ++fit) {
-						auto fitem = new QStandardItem();
-						fitem->setText(fit->name.c_str());
-						fitem->setToolTip("<font color = \"orange\">function</font>");
-						fitem->setIcon(QIcon(":/icons/fun16"));
-						item->appendRow(fitem);
-					}
-
-					break;
+				if (ilit->first == "KI_SHOW" && ilit->second == "false") {
+					visible = false;
 				}
+				if (ilit->first == "KI_CTYPE") {
+					name = ilit->second.c_str();
+				}
+			}
+			if (name.isEmpty()) {
+				continue;
+			}
+
+			components->push_back({ Kite::getCTypesByName(name.toStdString()), visible });
+
+			auto item = new QStandardItem(QIcon(":/icons/comp16"), name);
+			item->setToolTip("<font color = \"orange\">component</font><br>" + QString::number(propList->size()) + " properties");
+			kroot->appendRow(item);
+
+			// component properties
+			for (auto piit = propList->begin(); piit != propList->end(); ++piit) {
+				auto pitem = new QStandardItem();
+				pitem->setText(piit->name.c_str());
+				QString tip("<font color = \"orange\">property</font><br>"
+							"<font color = \"green\">comment: </font>");
+				tip += piit->comment.c_str();
+				if (piit->type == Kite::KMetaPropertyTypes::KMP_BOTH) {
+					pitem->setIcon(QIcon(":/icons/prop16"));
+					tip += "<br><font color = \"red\">access type: </font>read/write<br><font color = \"#00a4f0\">type: </font>";
+				} else {
+					tip += "<br><font color = \"red\">access type: </font>read-only<br><font color = \"#00a4f0\">type: </font>";
+					pitem->setIcon(QIcon(":/icons/propro16"));
+				}
+				pitem->setToolTip(tip + QString(piit->typeName.c_str()));
+				item->appendRow(pitem);
+
+				// is resource field
+				if (!piit->resType.empty()) {
+					resComponents[(size_t)Kite::getCTypesByName(name.toStdString())].push_back(*piit);
+				}
+			}
+
+			// component functions
+			for (auto fit = funList->begin(); fit != funList->end(); ++fit) {
+				auto fitem = new QStandardItem();
+				fitem->setText(fit->name.c_str());
+				fitem->setToolTip("<font color = \"orange\">function</font>");
+				fitem->setIcon(QIcon(":/icons/fun16"));
+				item->appendRow(fitem);
 			}
 		}
 

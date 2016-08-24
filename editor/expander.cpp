@@ -6,9 +6,9 @@ Expander::Expander(Kite::KComponent *Comp, QTreeWidget *Parent):
 	QObject(Parent), expandable(true)
 {
 	chandle = Comp->getHandle();
-	ctype = Comp->getType().c_str();
-	QString name = Comp->getType().c_str();
-	if (name == "Logic") {
+	ctype = Comp->getType();
+	QString name = Comp->getTypeName().c_str();
+	if (ctype == Kite::KCTypes::Logic) {
 		name.append(" ");
 		name.append(Comp->getName().c_str());
 	}
@@ -50,10 +50,20 @@ Expander::Expander(Kite::KComponent *Comp, QTreeWidget *Parent):
 		QString tooltip("<font color=\"orange\">Dependency List:</font>");
 		auto depList = Comp->getDependency();
 		for (auto it = depList.begin(); it != depList.end(); ++it) {
-			tooltip += "\n" + QString((*it).c_str());
+			tooltip += "\n" + QString(Kite::getCTypesName((*it)).c_str());
 		}
 		lblDep->setToolTip(tooltip);
 		hlayout->addWidget(lblDep);
+		hlayout->addSpacing(2);
+	}
+
+	// remove on zero dependency label
+	if (Comp->getRemoveOnZeroDep()) {
+		auto lblZeroDep = new QLabel(btnExpand);
+		lblZeroDep->setText("<img src=\":/icons/remzdep\" height=\"16\" width=\"16\" >");
+		lblZeroDep->setStyleSheet("QToolTip { border: 1px solid #2c2c2c; background-color: #242424; color: white;}");
+		lblZeroDep->setToolTip("<font color=\"orange\">will be removed if there is no dependency on it</font>");
+		hlayout->addWidget(lblZeroDep);
 		hlayout->addSpacing(2);
 	}
 
@@ -88,7 +98,7 @@ Expander::Expander(Kite::KComponent *Comp, QTreeWidget *Parent):
 
 void Expander::reset(Kite::KComponent *Comp) {
 	chandle = Comp->getHandle();
-	QString name = Comp->getType().c_str();
+	QString name = Comp->getTypeName().c_str();
 	if (name == "Logic") {
 		name.append(" ");
 		name.append(Comp->getName().c_str());
@@ -106,10 +116,10 @@ void Expander::highlight(bool Selected) {
 void Expander::expClicked() {
 	if (expandable) {
 		head->setExpanded(!head->isExpanded());
-		emit(expandClicked(chandle, ctype));
+		emit(expandClicked(chandle));
 	}
 }
 
 void Expander::clsClicked() {
-	emit(closeClicked(chandle, ctype));
+	emit(closeClicked(chandle));
 }

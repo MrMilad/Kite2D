@@ -1,7 +1,9 @@
 
 // ----[auto generated source file]----
+#include "Kite/meta/kmetaenum.h"
 #include "Kite/meta/kmetapod.h"
 #include "KiteMeta/kmeta.khgen.h"
+#include "KiteMeta/ktypes.khgen.h"
 #include "Kite/window/kglwindow.h"
 #include "Kite/window/kwindowstructs.h"
 #include "Kite/serialization/kbaseserial.h"
@@ -21,6 +23,7 @@
 #include "Kite/input/kinputtypes.h"
 #include "Kite/input/kkeyboard.h"
 #include "Kite/input/kmouse.h"
+#include "Kite/graphic/katlastexture.h"
 #include "Kite/graphic/kcameracom.h"
 #include "Kite/graphic/kgraphicstructs.h"
 #include "Kite/graphic/kgraphictypes.h"
@@ -78,9 +81,11 @@ KInputCom::registerMeta(MMan, Lua);
 KInputSys::registerMeta(MMan, Lua);
 KKeyboard::registerMeta(MMan, Lua);
 KMouse::registerMeta(MMan, Lua);
+KAtlasTexture::registerMeta(MMan, Lua);
 KCameraCom::registerMeta(MMan, Lua);
 KColor::registerMeta(MMan, Lua);
 KVertex::registerMeta(MMan, Lua);
+KAtlasItem::registerMeta(MMan, Lua);
 KQuadCom::registerMeta(MMan, Lua);
 KRenderCom::registerMeta(MMan, Lua);
 KRenderSys::registerMeta(MMan, Lua);
@@ -131,18 +136,20 @@ Internal::RegisterIOMode::registerMeta(MMan, Lua);
 Internal::RegisterPrimitive::registerMeta(MMan, Lua);
 Internal::RegisterRecieveTypes::registerMeta(MMan, Lua);
 Internal::RegisterMessageScope::registerMeta(MMan, Lua);
+Internal::RegisterKCTypes::registerMeta(MMan, Lua);
 }
 void registerCTypes(KEntityManager *EMan){
-EMan->registerComponent<KTransformCom>("Transform");
-EMan->registerComponent<KLogicCom>("Logic");
-EMan->registerComponent<KLogicInstanceCom>("LogicInstance");
-EMan->registerComponent<KInputCom>("Input");
-EMan->registerComponent<KCameraCom>("Camera");
-EMan->registerComponent<KQuadCom>("Quad");
-EMan->registerComponent<KRenderCom>("Render");
+EMan->registerComponent<KTransformCom>(KCTypes::Transform);
+EMan->registerComponent<KLogicCom>(KCTypes::Logic);
+EMan->registerComponent<KLogicInstanceCom>(KCTypes::LogicInstance);
+EMan->registerComponent<KInputCom>(KCTypes::Input);
+EMan->registerComponent<KCameraCom>(KCTypes::Camera);
+EMan->registerComponent<KQuadCom>(KCTypes::Quad);
+EMan->registerComponent<KRenderCom>(KCTypes::Render);
 }
 void registerRTypes(KResourceManager *RMan){
 RMan->registerResource("KScript", KScript::factory, false);
+RMan->registerResource("KAtlasTexture", KAtlasTexture::factory, false);
 RMan->registerResource("KShader", KShader::factory, false);
 RMan->registerResource("KShaderProgram", KShaderProgram::factory, false);
 RMan->registerResource("KTexture", KTexture::factory, false);
@@ -156,4 +163,5 @@ Systems.push_back(std::unique_ptr<KSystem>(new KTransformSys));
 Systems.push_back(std::unique_ptr<KSystem>(new KLogicSys));
 Systems.push_back(std::unique_ptr<KSystem>(new KInputSys));
 Systems.push_back(std::unique_ptr<KSystem>(new KRenderSys));
-}}
+}
+}

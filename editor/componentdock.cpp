@@ -3,6 +3,7 @@
 #include <qinputdialog.h>
 #include "expander.h"
 #include "frmexeorder.h"
+#include "Kite/meta/kmetaclass.h"
 #include "kmeta.khgen.h"
 
 ComponentDock::ComponentDock(QWidget *Par) :
@@ -26,6 +27,18 @@ void ComponentDock::addComCallb(Kite::KComponent *NewComp, void *Ptr) {
 	auto cls = (ComponentDock *)Ptr;
 	cls->fetchFromPool(NewComp);
 	emit(cls->componentAdded(cls->eman->getEntity(cls->currEntity), NewComp));
+}
+
+void ComponentDock::remComCallb(Kite::KComponent *RemovedComp, void *Ptr) {
+	auto cls = (ComponentDock *)Ptr;
+	for (auto it = cls->treeList.begin(); it != cls->treeList.end(); ++it) {
+		if (RemovedComp->getType() == (*it)->getCType() &&
+			RemovedComp->getHandle() == (*it)->getCHndle()) {
+			cls->putIntoPool((*it));
+			break;
+		}
+	}
+	emit(cls->componentDelete(cls->eman->getEntity(cls->currEntity), RemovedComp));
 }
 
 void ComponentDock::onExpand(const QModelIndex &Index) {
@@ -238,15 +251,17 @@ void ComponentDock::actionsControl(ActionsState State) {
 	}
 }
 
-void ComponentDock::inite(const QStringList &TypeList) {
+void ComponentDock::inite(const QVector<QPair<Kite::KCTypes, bool>> &TypeList) {
 	types = TypeList;
-	
 	mtypes->clear();
 	for (auto it = types.begin(); it != types.end(); ++it) {
-		auto comtype = new QAction(QIcon(":/icons/comp32"), (*it), mtypes);
-		mtypes->addAction(comtype);
+		// is visible
+		if (it->second) {
+			auto comtype = new QAction(QIcon(":/icons/comp32"), Kite::getCTypesName(it->first).c_str(), mtypes);
+			comtype->setData((size_t)it->first);
+			mtypes->addAction(comtype);
+		}
 	}
-
 
 	initePool(TypeList);
 }
@@ -274,7 +289,7 @@ QString ComponentDock::getAvailName(Kite::KEntity *Entity) {
 		}
 
 		// available name
-		auto isExist = Entity->hasComponent("Logic", text.toStdString());
+		auto isExist = Entity->hasComponent(Kite::KCTypes::Logic, text.toStdString());
 		if (isExist) {
 			QMessageBox msg;
 			msg.setWindowTitle("Message");
@@ -292,10 +307,10 @@ QString ComponentDock::getAvailName(Kite::KEntity *Entity) {
 	return text;
 }
 
-Expander *ComponentDock::createCom(const QString &CType) {
+Expander *ComponentDock::createCom(Kite::KCTypes Type) {
 	auto fakeEman = Kite::KEntityManager();
 	auto fakeEnt = fakeEman.createEntity("fake");
-	auto Comp = fakeEnt->addComponent(CType.toStdString(), "");
+	auto Comp = fakeEnt->addComponent(Type, "");
 	
 	auto header = new Expander(Comp, comTree);
 	connect(header, &Expander::closeClicked, this, &ComponentDock::actRemove);
@@ -310,27 +325,30 @@ void ComponentDock::addLogicToPool(int Count) {
 		treePool.logicPool.reserve(treePool.logicPool.size() + Count);
 	}
 	while (Count > 0) {
-		auto head = createCom("Logic");
+		auto head = createCom(Kite::KCTypes::Logic);
 		treePool.logicPool.push_back(head);
 		--Count;
 	}
 }
 
-void ComponentDock::initePool(const QStringList &TypeList, unsigned int LogicCount) {
+void ComponentDock::initePool(const QVector<QPair<Kite::KCTypes, bool>> &TypeList, unsigned int LogicCount) {
 	for (auto it = TypeList.begin(); it != TypeList.end(); ++it) {
-		auto head = createCom((*it));
+		// is visible
+		if (it->second) {
+			auto head = createCom(it->first);
 
-		if ((*it) == "Logic") {
-			addLogicToPool(LogicCount);
-			continue;
+			if (it->first == Kite::KCTypes::Logic) {
+				addLogicToPool(LogicCount);
+				continue;
+			}
+			treePool.fixedPool.insert((size_t)it->first, head);
 		}
-		treePool.fixedPool.insert((*it), head);
 	}
 }
 
 void ComponentDock::fetchFromPool(Kite::KComponent *Comp) {
 	Expander *expand = nullptr;
-	if (Comp->getType() == "Logic") {
+	if (Comp->getType() == Kite::KCTypes::Logic) {
 		if (treePool.logicPool.empty()) {
 			addLogicToPool(5); 
 		}
@@ -338,7 +356,13 @@ void ComponentDock::fetchFromPool(Kite::KComponent *Comp) {
 		expand->getTreeItem()->setExpanded(false);
 		treePool.logicPool.pop_back();
 	} else {
-		expand = treePool.fixedPool[Comp->getType().c_str()];
+		// invisible components
+		if (treePool.fixedPool.find((size_t)Comp->getType()) == treePool.fixedPool.end()) {
+			return;
+		}
+
+		// visible components
+		expand = treePool.fixedPool[(size_t)Comp->getType()];
 	}
 	
 	expand->reset(Comp);
@@ -349,7 +373,7 @@ void ComponentDock::fetchFromPool(Kite::KComponent *Comp) {
 void ComponentDock::putIntoPool(Expander *Exp) {
 	for (auto it = treeList.begin(); it != treeList.end(); it) {
 		if ((*it) == Exp || Exp == nullptr) {
-			if ((*it)->getCType() == "Logic") {
+			if ((*it)->getCType() == Kite::KCTypes::Logic) {
 				treePool.logicPool.push_back((*it));
 			}
 			(*it)->getTreeItem()->setHidden(true);
@@ -407,22 +431,25 @@ void ComponentDock::entityEdit(Kite::KEntityManager *Eman, Kite::KEntity *Entity
 	// entity info
 	currEntity = Entity->getHandle();
 
-	// set callback
+	// set callbacks
 	Entity->setAddComCallback(addComCallb, this);
-
+	Entity->setRemoveComCallback(remComCallb, this);
 	// prefab frame
 	showFrame(Entity, isPrefab);
 
 	// components
 	for (auto it = types.begin(); it != types.end(); ++it) {
-		if ((*it) == "Logic") {
+		if (it->first == Kite::KCTypes::Logic) {
 			// load logic components at the end
 			continue;
 		} else {
-			auto has = Entity->hasComponent(it->toStdString(), it->toStdString());
-			if (has) {
-				auto comp = Entity->getComponentByName(it->toStdString(), it->toStdString());
-				fetchFromPool(comp);
+			// is visible
+			if (it->second) {
+				auto has = Entity->hasComponent(it->first);
+				if (has) {
+					auto comp = Entity->getComponentByName(it->first);
+					fetchFromPool(comp);
+				}
 			}
 		}
 	}
@@ -430,7 +457,7 @@ void ComponentDock::entityEdit(Kite::KEntityManager *Eman, Kite::KEntity *Entity
 	std::vector<Kite::KHandle> compList;
 	Entity->getScriptComponents(compList);
 	for (auto it = compList.begin(); it != compList.end(); ++it) {
-		auto comp = Entity->getComponent("Logic", (*it));
+		auto comp = Entity->getComponent((*it));
 		fetchFromPool(comp);
 	}
 
@@ -487,11 +514,11 @@ void ComponentDock::actAdd(QAction *Action) {
 			return;
 		}
 
-		ent->addComponent("Logic", text.toStdString());
+		ent->addComponent(Kite::KCTypes::Logic, text.toStdString());
 		// fixed components
 	} else {
 		// available name
-		auto isExist = ent->hasComponentType(Action->text().toStdString());
+		auto isExist = ent->hasComponentType((Kite::KCTypes)Action->data().toUInt());
 		if (isExist) {
 			QMessageBox msg;
 			msg.setWindowTitle("Message");
@@ -499,7 +526,7 @@ void ComponentDock::actAdd(QAction *Action) {
 			msg.exec();
 			return;
 		}
-		ent->addComponent(Action->text().toStdString(), Action->text().toStdString());
+		ent->addComponent((Kite::KCTypes)Action->data().toUInt(), Action->text().toStdString());
 	}
 
 }
@@ -511,13 +538,13 @@ void ComponentDock::actAddDef() {
 		return;
 	}
 
-	ent->addComponent("Logic", text.toStdString());
+	ent->addComponent(Kite::KCTypes::Logic, text.toStdString());
 }
 
-void ComponentDock::actRemove(Kite::KHandle CHandle, const QString &CType) {
-	auto obj = (Expander *)sender();
+void ComponentDock::actRemove(Kite::KHandle CHandle) {
+	//auto obj = (Expander *)sender();
 	auto ent = eman->getEntity(currEntity);
-	auto cptr = ent->getComponent(CType.toStdString(), CHandle);
+	auto cptr = ent->getComponent(CHandle);
 	if (cptr->getDepCounter() > 0) {
 		QMessageBox msg;
 		msg.setWindowTitle("Message");
@@ -525,14 +552,12 @@ void ComponentDock::actRemove(Kite::KHandle CHandle, const QString &CType) {
 		msg.exec();
 		return;
 	}
-	emit(componentDelete(ent, cptr));
-	putIntoPool(obj);
-	ent->removeComponent(CType.toStdString(), cptr->getName());
+	ent->removeComponent((Kite::KCTypes) CHandle.type, cptr->getName());
 }
 
-void ComponentDock::actEdit(Kite::KHandle Chandle, const QString &CType, const QString &Pname, QVariant &Value) {
+void ComponentDock::actEdit(Kite::KHandle Chandle, const QString &Pname, QVariant &Value) {
 	Kite::KAny *vptr = (Kite::KAny *)Value.value<void *>();
-	eman->getEntity(currEntity)->getComponent(CType.toStdString(), Chandle)->setProperty(Pname.toStdString(), *vptr);
+	eman->getEntity(currEntity)->getComponent(Chandle)->setProperty(Pname.toStdString(), *vptr);
 	//emit(componentEdited(currEntity, Chandle, Pname));
 }
 

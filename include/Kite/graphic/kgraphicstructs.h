@@ -182,22 +182,26 @@ namespace Kite{
 	/*!
 		KAtlas is a simple and compact struct for managing objects in atlas textures.
 	*/
+	KM_CLASS(POD)
 	struct KAtlasItem{
-		U32 id;		//!< Unique ID
-		F32 blu;	//!< Bottom-left U texture position with range [0, 1]
-		F32 blv;	//!< Bottom-left V texture position with range [0, 1]
-		F32 tru;	//!< Top-right U texture position with range [0, 1]
-		F32 trv;	//!< Top-right V texture position with range [0, 1]
-		F32 w;		//!< Width in pixel
-		F32 h;		//!< Height in pixel
+		KMETA_KATLASITEM_BODY()
+
+		KM_VAR() F32 blu;	//!< Bottom-left U texture position with range [0, 1]
+		KM_VAR() F32 blv;	//!< Bottom-left V texture position with range [0, 1]
+		KM_VAR() F32 tru;	//!< Top-right U texture position with range [0, 1]
+		KM_VAR() F32 trv;	//!< Top-right V texture position with range [0, 1]
+		KM_VAR() U32 width;	//!< Width in pixel
+		KM_VAR() U32 height;//!< Height in pixel
+		KM_VAR() U32 xpos;	//!< Width in pixel
+		KM_VAR() U32 ypos;	//!< Height in pixel
 
 		//! Construct the atlas object from its attributes.
-		KAtlasItem(U32 ID = 0, F32 BLU = 0, F32 BLV = 0,
-			F32 TRU = 0, F32 TRV = 0, F32 W = 0, F32 H = 0) :
-			id(ID),
-			blu(BLU), blv(BLV),
-			tru(TRU), trv(TRV),
-			w(W), h(H)
+		KM_CON()
+		KAtlasItem() :
+			blu(0), blv(0),
+			tru(1), trv(1),
+			width(0), height(0),
+			xpos(0), ypos(0)
 		{}
 	};
 

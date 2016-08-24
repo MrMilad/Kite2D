@@ -33,6 +33,7 @@ USA
 #include <string>
 #include <unordered_map>
 #include <vector>
+#include "ktypes.khgen.h"
 #include "kentitymanager.khgen.h"
 
 KMETA
@@ -52,30 +53,28 @@ namespace Kite {
 		KEntityManager();
 		~KEntityManager();
 
-		KM_FUN()
-			bool isModified() const;
-
 		template <typename T>
-		bool registerComponent(const std::string &CType) {
+		bool registerComponent(KCTypes Type) {
 			// check base of T
-			static_assert(std::is_base_of<KComponent, T>::value, "T must be derived from KComponents");
+			static_assert(std::is_base_of<KComponent, T>::value, "T must be derived from KComponent");
+			auto tindex = (SIZE)Type;
 
 			// check type
-			if (_kcstorage.find(CType) != _kcstorage.end()) {
-				KD_FPRINT("this type has already been registered. ctype: %s", CType.c_str());
+			if (_kcstorage[tindex] != nullptr) {
+				KD_FPRINT("this type has already been registered. ctype: %s", getCTypesName(Type).c_str());
 				return false;
 			}
 
 			// register type
-			_kcstorage[CType] = new Internal::CHolder<T, KComponent>;
-			_kcstorage[CType]->type = typeid(T).hash_code();
+			_kcstorage[tindex] = new Internal::CHolder<T, KComponent>;
+			_kcstorage[tindex]->type = typeid(T).hash_code();
 			return true;
 		}
 
-		void unregisterComponent(const std::string &CType);
+		//void unregisterComponent(KCTypes Type);
 
 		KM_FUN()
-		bool isRegisteredComponent(const std::string &CType);
+		bool isRegisteredComponent(KCTypes Type);
 
 		KM_FUN()
 		bool createLayer(const std::string &Name);
@@ -140,10 +139,8 @@ namespace Kite {
 		inline const auto getEntityStorage() { return _kestorage.getContiner(); }
 
 		template<typename T>
-		auto getComponentStorage(const std::string &CType){
-			auto found = _kcstorage.find(CType);
-			KD_ASSERT(found != _kcstorage.end());
-			Internal::CHolder<T, KComponent> *drived = static_cast<Internal::CHolder<T, KComponent> *>(found->second);
+		auto getComponentStorage(KCTypes Type){
+			Internal::CHolder<T, KComponent> *drived = static_cast<Internal::CHolder<T, KComponent> *>(_kcstorage[(SIZE)Type]);
 			return drived->getStorage()->getContiner();
 		}
 
@@ -153,6 +150,7 @@ namespace Kite {
 #endif
 
 	private:
+		void initeCStorages();
 		KHandle loadPrefabRaw(KPrefab *Prefab, bool isPaste);
 		void serial(KBaseSerial &Out) const;
 		void deserial(KBaseSerial &In);
@@ -163,8 +161,8 @@ namespace Kite {
 		static bool initeLua();
 
 		KHandle _kroot;
-		KCFStorage<KEntity> _kestorage; // entity storage
-		std::unordered_map<std::string, Internal::BaseCHolder<KComponent> *> _kcstorage; // map of component storages
+		KCFStorage<KEntity> _kestorage;											// entity storage
+		Internal::BaseCHolder<KComponent> *_kcstorage[(SIZE)KCTypes::maxSize];	// component storages (array)
 		std::unordered_map<std::string, KHandle> _kentmap; 
 		std::unordered_map<std::string, std::pair<KLayerInfo, std::vector<KHandle>>> _klayermap;
 

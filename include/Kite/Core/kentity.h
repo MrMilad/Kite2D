@@ -35,7 +35,7 @@ USA
 #include <string>
 #include <vector>
 #include "kentity.khgen.h"
-
+#include "ktypes.khgen.h"
 
 KMETA
 namespace Kite {
@@ -96,16 +96,16 @@ namespace Kite {
 		inline const std::string &getLayerName() const { return _klayerName.str; }
 
 		KM_FUN()
-		KComponent *addComponent(const std::string &CType, const std::string &CName = "");
+		KComponent *addComponent(KCTypes Type, const std::string &CName = "");
 
 		KM_FUN()
-		KComponent *getComponent(const std::string &CType, const KHandle &CHandle);
+		KComponent *getComponent(const KHandle &CHandle);
 
 		KM_FUN()
-		KComponent *getComponentByName(const std::string &CType, const std::string &CName);
+		KComponent *getComponentByName(KCTypes Type, const std::string &CName = "");
 
 		KM_FUN()
-		void getFixedComponents(std::vector<KComponent *> &Output);
+		void getFixedComponents(std::vector<KHandle> &Output);
 
 		/// return vector of KHandle to avoiding pointer dangling during update
 		KM_FUN()
@@ -118,16 +118,16 @@ namespace Kite {
 		void reorderScriptComponentByName(const std::string &CName, U32 NewOrder);
 
 		KM_FUN()
-		bool hasComponent(const std::string &CType, const std::string &Name);
+		bool hasComponent(KCTypes Type, const std::string &Name = "");
 
 		KM_FUN()
-		bool hasComponentType(const std::string &CType);
+		bool hasComponentType(KCTypes Type);
 
 		KM_FUN()
-		KHandle getComponentHandle(const std::string &CType, const std::string &Name);
+		KHandle getComponentHandle(KCTypes Type, const std::string &Name = "");
 
 		KM_FUN()
-		void removeComponent(const std::string &CType, const std::string &ComponentName = "");
+		void removeComponent(KCTypes Type, const std::string &ComponentName = "");
 
 		KM_FUN()
 		void clearComponents();
@@ -148,7 +148,7 @@ namespace Kite {
 	private:
 
 		// internal use 
-		void setComponent(const std::string &CType, const std::string &Name, KComponent *Comp);
+		void setComponent(KComponent *Comp);
 		void remChildIndex(U32 ID);
 		void setHandle(const KHandle Handle);
 
@@ -167,13 +167,13 @@ namespace Kite {
 		KM_VAR() KStringID _klayerName;									// entity layer name (empty = no layer)
 		KM_VAR() U32 _klayerid;
 		KM_VAR() U32 _kzorder;
-		KM_VAR() std::unordered_map<std::string, KHandle> _kfixedComp;	// fixed components slots (built-in components)
+		KM_VAR() std::unordered_map<KCTypes, KHandle> _kfixedComp;		// fixed components slots (built-in components)
 		KM_VAR() std::unordered_map<std::string, KHandle> _klogicComp;	// dynamic components (logic components)
 		KM_VAR() std::vector<KHandle> _klogicOrder;						// logic components queue by order
 		KM_VAR() std::vector<KHandle> _kchilds;							// children list
 
 		// runtime variables (
-		std::unordered_map<std::string, Internal::BaseCHolder<KComponent> *> *_kcstorage;
+		Internal::BaseCHolder<KComponent> **_kcstorage;
 		KCFStorage<KEntity> *_kestorage;
 
 		// editor only

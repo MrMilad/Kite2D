@@ -55,7 +55,6 @@ namespace priv {
 		KENUM(Kite::KComponent *Comp, const QString &PName, QWidget *Parent,
 			  const QStringList &Items, bool ROnly = false) :
 			KProp(Parent), pname(PName) {
-			ctype = Comp->getType().c_str();
 			auto hlayout = new QHBoxLayout(this);
 			hlayout->setMargin(0);
 			hlayout->setSpacing(0);
@@ -87,19 +86,18 @@ namespace priv {
 		}
 
 signals:
-		void propertyEdited(const QString &CType, const QString &PName, QVariant &Val);
+		void propertyEdited(const QString &PName, QVariant &Val);
 
 		private slots :
 		void valueChanged(int Val) {
 			Kite::KAny pval(Val, true);
 			QVariant v = qVariantFromValue((void *)&pval);
-			emit(propertyEdited(ctype, pname, v));
+			emit(propertyEdited(pname, v));
 		}
 
 	private:
 		QComboBox *combo;
 		QString pname;
-		QString ctype;
 	};
 
 	// color
@@ -109,7 +107,6 @@ signals:
 		KCOLOR(Kite::KComponent *Comp, const QString &PName, QWidget *Parent,
 			   bool ROnly = false) :
 			KProp(Parent), pname(PName) {
-			ctype = Comp->getType().c_str();
 			ronly = ROnly;
 			auto hlayout = new QHBoxLayout(this);
 			hlayout->setMargin(0);
@@ -153,7 +150,7 @@ signals:
 		}
 
 signals:
-		void propertyEdited(const QString &CType, const QString &PName, QVariant &Val);
+		void propertyEdited(const QString &PName, QVariant &Val);
 
 		private slots :
 		void valueChanged() {
@@ -169,7 +166,7 @@ signals:
 											 + QString::number(color.green()) + ", "
 											 + QString::number(color.blue()) + "); }");
 
-					emit(propertyEdited(ctype, pname, v));
+					emit(propertyEdited(pname, v));
 				}
 			}
 		}
@@ -179,7 +176,6 @@ signals:
 		QToolButton *btnBrowse;
 		QColor color;
 		QString pname;
-		QString ctype;
 	};
 
 	// bool
@@ -189,7 +185,6 @@ signals:
 		KBOOL(Kite::KComponent *Comp, const QString &PName, QWidget *Parent,
 			  bool ROnly = false) :
 			KProp(Parent), pname(PName) {
-			ctype = Comp->getType().c_str();
 			auto hlayout = new QHBoxLayout(this);
 			hlayout->setMargin(0);
 			hlayout->setSpacing(0);
@@ -226,7 +221,7 @@ signals:
 		}
 
 signals:
-		void propertyEdited(const QString &CType, const QString &PName, QVariant &Val);
+		void propertyEdited(const QString &PName, QVariant &Val);
 
 		private slots :
 		void valueChanged(bool Val) {
@@ -237,13 +232,12 @@ signals:
 			}
 			Kite::KAny pval(Val);
 			QVariant v = qVariantFromValue((void *)&pval);
-			emit(propertyEdited(ctype, pname, v));
+			emit(propertyEdited(pname, v));
 		}
 
 	private:
 		QCheckBox *check;
 		QString pname;
-		QString ctype;
 	};
 
 	// string id
@@ -253,7 +247,7 @@ signals:
 		KSTRID(Kite::KComponent *Comp, const QString &PName, QWidget *Parent,
 			   bool ROnly = false, const QString &ResType = "", bool IsRes = false) :
 			KProp(Parent), pname(PName), isRes(IsRes) {
-			ptype = Comp->getType().c_str();
+
 			auto hlayout = new QHBoxLayout(this);
 			hlayout->setMargin(0);
 			hlayout->setSpacing(0);
@@ -313,14 +307,14 @@ signals:
 		}
 
 signals:
-		void propertyEdited(const QString &PType, const QString &PName, QVariant &Val);
+		void propertyEdited(const QString &PName, QVariant &Val);
 		void updateResList(const QString &Type, QStringList &List);
 
 		private slots :
 		void valueChanged(const QString &Val) {
 			Kite::KAny pval(Kite::KStringID(Val.toStdString()));
 			QVariant v = qVariantFromValue((void *)&pval);
-			emit(propertyEdited(ptype, pname, v));
+			emit(propertyEdited(pname, v));
 		}
 
 	protected:
@@ -344,7 +338,6 @@ signals:
 		QLineEdit *ledit;
 		QComboBox *combo;
 		QString pname;
-		QString ptype;
 	};
 
 	// string
@@ -354,7 +347,6 @@ signals:
 		KSTR(Kite::KComponent *Comp, const QString &PName, QWidget *Parent,
 			 bool ROnly = false) :
 			KProp(Parent), pname(PName) {
-			ptype = Comp->getType().c_str();
 			auto hlayout = new QHBoxLayout(this);
 			hlayout->setMargin(0);
 			hlayout->setSpacing(0);
@@ -388,19 +380,18 @@ signals:
 		}
 
 signals:
-		void propertyEdited(const QString &PType, const QString &PName, QVariant &Val);
+		void propertyEdited(const QString &PName, QVariant &Val);
 
 		private slots :
 		void valueChanged(const QString &Val) {
 			Kite::KAny pval(Val.toStdString());
 			QVariant v = qVariantFromValue((void *)&pval);
-			emit(propertyEdited(ptype, pname, v));
+			emit(propertyEdited(pname, v));
 		}
 
 	private:
 		QLineEdit *ledit;
 		QString pname;
-		QString ptype;
 	};
 
 	// I32
@@ -410,7 +401,6 @@ signals:
 		KI32(Kite::KComponent *Comp, const QString &PName, const QString &Label, QWidget *Parent,
 			 bool ROnly = false, int Min = 0, int Max = 0) :
 			KProp(Parent), pname(PName) {
-			ptype = Comp->getType().c_str();
 			auto hlayout = new QHBoxLayout(this);
 			hlayout->setMargin(0);
 			hlayout->setSpacing(0);
@@ -449,19 +439,18 @@ signals:
 		}
 
 signals:
-		void propertyEdited(const QString &PType, const QString &PName, QVariant &Val);
+		void propertyEdited(const QString &PName, QVariant &Val);
 
 		private slots :
 		void valueChanged(int Val) {
 			Kite::KAny pval(Val, true);
 			QVariant v = qVariantFromValue((void *)&pval);
-			emit(propertyEdited(ptype, pname, v));
+			emit(propertyEdited(pname, v));
 		}
 
 	private:
 		QSpinBox *spin;
 		QString pname;
-		QString ptype;
 	};
 
 	// F32
@@ -471,7 +460,6 @@ signals:
 		KF32(Kite::KComponent *Comp, const QString &PName, const QString &Label, QWidget *Parent,
 			 bool ROnly = false, int Min = 0, int Max = 0) :
 			KProp(Parent), pname(PName), slider(nullptr) {
-			ptype = Comp->getType().c_str();
 			auto hlayout = new QHBoxLayout(this);
 			hlayout->setMargin(0);
 			hlayout->setSpacing(0);
@@ -528,7 +516,7 @@ signals:
 		}
 
 signals:
-		void propertyEdited(const QString &PType, const QString &PName, QVariant &Val);
+		void propertyEdited(const QString &PName, QVariant &Val);
 
 		private slots :
 		void valueChanged(double Val) {
@@ -537,7 +525,7 @@ signals:
 			}
 			Kite::KAny pval((float)Val, true);
 			QVariant v = qVariantFromValue((void *)&pval);
-			emit(propertyEdited(ptype, pname, v));
+			emit(propertyEdited(pname, v));
 		}
 
 		void floatSlider(int Val) {
@@ -545,14 +533,112 @@ signals:
 			spin->setValue(tf);
 			Kite::KAny pval(tf);
 			QVariant v = qVariantFromValue((void *)&pval);
-			emit(propertyEdited(ptype, pname, v));
+			emit(propertyEdited(pname, v));
 		}
 
 	private:
 		QSlider *slider;
 		QDoubleSpinBox *spin;
 		QString pname;
-		QString ptype;
+	};
+
+	// KVector2I32
+	class KV2I32 : public KProp {
+		Q_OBJECT
+	public:
+		KV2I32(Kite::KComponent *Comp, const QString &PName, QWidget *Parent,
+			   bool ROnly = false, int Min = 0, int Max = 0) :
+			KProp(Parent), pname(PName) {
+			auto hlayout = new QHBoxLayout(this);
+			hlayout->setMargin(0);
+			hlayout->setSpacing(0);
+
+			// X
+			auto xlabel = new QLabel(this);
+			xlabel->setText("X");
+			xlabel->setStyleSheet("QLabel {background-color: green; color: white;"
+								  "border-top-left-radius: 4px;"
+								  "border-bottom-left-radius: 4px;"
+								  "border-bottom-right-radius: 0px;"
+								  "margin-left: 2px;}");
+			hlayout->addWidget(xlabel);
+
+			auto initeVal = Comp->getProperty(PName.toStdString());
+			value = initeVal.as<Kite::KVector2I32>();
+			xspin = singleSpin<QSpinBox>(Min, Max);
+			xspin->setValue(initeVal.as<Kite::KVector2I32>().x);
+			xspin->setReadOnly(ROnly);
+			xspin->setSingleStep(1);
+			if (Min != Max){
+				xspin->setMinimum(Min);
+				xspin->setMaximum(Max);
+			}
+			connect(xspin, static_cast<void(QSpinBox::*)(int)>(&QSpinBox::valueChanged), this, &KV2I32::valueXChanged);
+			hlayout->addWidget(xspin, 1);
+
+			hlayout->addSpacing(5);
+
+			// Y
+			auto ylabel = new QLabel(this);
+			ylabel->setText("Y");
+			ylabel->setStyleSheet("QLabel {background-color: red; color: white;"
+								  "border-top-left-radius: 4px;"
+								  "border-bottom-left-radius: 4px;"
+								  "border-bottom-right-radius: 0px;"
+								  "margin-left: 2px;}");
+			hlayout->addWidget(ylabel);
+
+			yspin = singleSpin<QSpinBox>(Min, Max);
+			yspin->setValue(initeVal.as<Kite::KVector2I32>().y);
+			yspin->setReadOnly(ROnly);
+			yspin->setSingleStep(1);
+			if (Min != Max) {
+				yspin->setMinimum(Min);
+				yspin->setMaximum(Max);
+			}
+			connect(yspin, static_cast<void(QSpinBox::*)(int)>(&QSpinBox::valueChanged), this, &KV2I32::valueYChanged);
+			hlayout->addWidget(yspin, 1);
+
+			if (ROnly) {
+				auto lblROnly = new QLabel(this);
+				lblROnly->setText("<img src=\":/icons/lock\" height=\"12\" width=\"12\" >");
+				lblROnly->setToolTip("Read-Only Property");
+				hlayout->addSpacing(2);
+				hlayout->addWidget(lblROnly);
+			}
+			//hlayout->addStretch(1);
+		}
+
+		void reset(Kite::KComponent *Comp) override {
+			auto val = Comp->getProperty(pname.toStdString());
+			value = val.as<Kite::KVector2I32>();
+			xspin->setValue(val.as<Kite::KVector2I32>().x);
+			yspin->setValue(val.as<Kite::KVector2I32>().y);
+		}
+
+signals:
+		void propertyEdited(const QString &PName, QVariant &Val);
+
+		private slots :
+		void valueXChanged(int Val) {
+			value.x = Val;
+			Kite::KAny pval(value);
+			QVariant v = qVariantFromValue((void *)&pval);
+			emit(propertyEdited(pname, v));
+		}
+
+		void valueYChanged(int Val) {
+			value.y = Val;
+			Kite::KAny pval(value);
+			QVariant v = qVariantFromValue((void *)&pval);
+			emit(propertyEdited(pname, v));
+		}
+
+	private:
+		QSpinBox *xspin;
+		QSpinBox *yspin;
+		Kite::KVector2I32 value;
+		QString pname;
 	};
 
 	// KVector2U32
@@ -562,7 +648,6 @@ signals:
 		KV2U32(Kite::KComponent *Comp, const QString &PName, QWidget *Parent,
 			   bool ROnly = false, unsigned int Min = 0, unsigned int Max = 0) :
 			KProp(Parent), pname(PName) {
-			ptype = Comp->getType().c_str();
 			auto hlayout = new QHBoxLayout(this);
 			hlayout->setMargin(0);
 			hlayout->setSpacing(0);
@@ -625,21 +710,21 @@ signals:
 		}
 
 signals:
-		void propertyEdited(const QString &PType, const QString &PName, QVariant &Val);
+		void propertyEdited(const QString &PName, QVariant &Val);
 
 		private slots :
 		void valueXChanged(int Val) {
 			value.x = Val;
 			Kite::KAny pval(value);
 			QVariant v = qVariantFromValue((void *)&pval);
-			emit(propertyEdited(ptype, pname, v));
+			emit(propertyEdited(pname, v));
 		}
 
 		void valueYChanged(int Val) {
 			value.y = Val;
 			Kite::KAny pval(value);
 			QVariant v = qVariantFromValue((void *)&pval);
-			emit(propertyEdited(ptype, pname, v));
+			emit(propertyEdited(pname, v));
 		}
 
 	private:
@@ -647,7 +732,6 @@ signals:
 		QSpinBox *yspin;
 		Kite::KVector2U32 value;
 		QString pname;
-		QString ptype;
 	};
 
 	// KVector2F32
@@ -657,7 +741,6 @@ signals:
 		KV2F32(Kite::KComponent *Comp, const QString &PName, QWidget *Parent,
 			   bool ROnly = false, float Min = 0, float Max = 0) :
 			KProp(Parent), pname(PName) {
-			ptype = Comp->getType().c_str();
 			auto hlayout = new QHBoxLayout(this);
 			hlayout->setMargin(0);
 			hlayout->setSpacing(0);
@@ -720,21 +803,21 @@ signals:
 		}
 
 signals:
-		void propertyEdited(const QString &PType, const QString &PName, QVariant &Val);
+		void propertyEdited(const QString &PName, QVariant &Val);
 
 		private slots :
 		void valueXChanged(double Val) {
 			value.x = Val;
 			Kite::KAny pval(value);
 			QVariant v = qVariantFromValue((void *)&pval);
-			emit(propertyEdited(ptype, pname, v));
+			emit(propertyEdited(pname, v));
 		}
 
 		void valueYChanged(double Val) {
 			value.y = Val;
 			Kite::KAny pval(value);
 			QVariant v = qVariantFromValue((void *)&pval);
-			emit(propertyEdited(ptype, pname, v));
+			emit(propertyEdited(pname, v));
 		}
 
 	private:
@@ -742,7 +825,6 @@ signals:
 		QDoubleSpinBox *yspin;
 		Kite::KVector2F32 value;
 		QString pname;
-		QString ptype;
 	};
 
 	// KRectF32
@@ -752,7 +834,6 @@ signals:
 		KRF32(Kite::KComponent *Comp, const QString &PName, QWidget *Parent,
 			   bool ROnly = false) :
 			KProp(Parent), pname(PName) {
-			ptype = Comp->getType().c_str();
 
 			auto vlayout = new QVBoxLayout();
 			vlayout->setMargin(0);
@@ -877,7 +958,7 @@ signals:
 		}
 
 signals:
-		void propertyEdited(const QString &PType, const QString &PName, QVariant &Val);
+		void propertyEdited(const QString &PName, QVariant &Val);
 
 		private slots :
 		void valueChanged(double Val) {
@@ -887,7 +968,7 @@ signals:
 			value.right = rightspin->value();
 			Kite::KAny pval(value);
 			QVariant v = qVariantFromValue((void *)&pval);
-			emit(propertyEdited(ptype, pname, v));
+			emit(propertyEdited(pname, v));
 		}
 
 	private:
@@ -897,7 +978,6 @@ signals:
 		QDoubleSpinBox *rightspin;
 		Kite::KRectF32 value;
 		QString pname;
-		QString ptype;
 	};
 }
 
@@ -908,7 +988,7 @@ public:
 	ComponentView(Kite::KComponent *Component, QWidget *Parent);
 
 Q_SIGNALS:
-	void componentEdited(Kite::KHandle Chandle, const QString &CType, const QString &Pname, QVariant &Value);
+	void componentEdited(Kite::KHandle CHandle, const QString &Pname, QVariant &Value);
 	void resetSig(Kite::KComponent *Comp);
 	void updateResList(const QString &Type, QStringList &List);
 
@@ -916,7 +996,7 @@ public slots:
 void reset(Kite::KComponent *Comp);
 
 private slots:
-void propChanged(const QString &CType, const QString &Pname, QVariant &Value);
+void propChanged(const QString &Pname, QVariant &Value);
 
 private:
 	static Kite::KMetaManager *getKMeta() {

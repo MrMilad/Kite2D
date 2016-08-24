@@ -25,6 +25,8 @@ int main() {
 	auto c = sizeof(KVector2F32);
 
 	auto sc = new KConfig();
+
+	auto ff = getCTypesByName("Transform");
 	/*sc->window.width = 800;
 	sc->window.height = 600;
 	sc->dictionary = "C:\\Users\\_M1L4D_\\Desktop\\kite2d\\ff\\dict.kdict";
@@ -37,12 +39,14 @@ int main() {
 	auto eman = engine->getSceneManager()->getActiveScene()->getEManager();
 	auto ent2 = eman->createEntity("ent2");
 
-	ent2->addComponent("Logic", "l1");
-	ent2->addComponent("Logic", "l2");
-	ent2->addComponent("Logic", "l3");
+	ent2->addComponent(KCTypes::Logic, "l1");
+	auto l2 = ent2->addComponent(KCTypes::Logic, "l2")->getHandle();
+	ent2->addComponent(KCTypes::Logic, "l3");
 
-	ent2->removeComponent("Logic", "l2");
-	ent2->removeComponent("Logic", "l1");
+	auto com = ent2->getComponent(l2);
+
+	ent2->removeComponent(KCTypes::Logic, "l2");
+	ent2->removeComponent(KCTypes::Logic, "l1");
 
 	engine->start();
 	engine->shutdown();

@@ -31,7 +31,7 @@ Kite::RecieveTypes ResourceDock::onMessage(Kite::KMessage *Message, Kite::Messag
 		auto res = (Kite::KResource *)Message->getData();
 
 		// add it to tree
-			auto icons = formats.values(res->getType().c_str());
+		auto icons = formats.values(res->getType().c_str());
 		auto pitem = resTree->findItems(res->getType().c_str(), Qt::MatchFlag::MatchRecursive).first();
 		auto item = new QTreeWidgetItem(pitem);
 		item->setText(0, res->getName().c_str());
@@ -312,7 +312,7 @@ void ResourceDock::selectResource(const QString &Name) {
 	}
 }
 
-void ResourceDock::manageUsedResource(const QHash<QString, QVector<Kite::KMetaProperty>> *ResComponents) {
+void ResourceDock::manageUsedResource(const QHash<size_t, QVector<Kite::KMetaProperty>> *ResComponents) {
 	if (ResComponents->empty()) {
 		return;
 	}
@@ -332,7 +332,7 @@ void ResourceDock::manageUsedResource(const QHash<QString, QVector<Kite::KMetaPr
 				std::vector<Kite::KHandle> lcomps;
 				eit->getScriptComponents(lcomps);
 				for (auto sit = lcomps.begin(); sit != lcomps.end(); ++sit) {
-					auto script = (Kite::KLogicCom *)eit->getComponent("Logic", (*sit));
+					auto script = (Kite::KLogicCom *)eit->getComponent((*sit));
 					if (!script->getScript().str.empty()) {
 						scene->addResource(script->getScript().str, "KScript");
 					}
@@ -340,13 +340,13 @@ void ResourceDock::manageUsedResource(const QHash<QString, QVector<Kite::KMetaPr
 
 				// then we collect resources from other components
 				for (auto cit = ResComponents->begin(); cit != ResComponents->end(); ++cit) {
-					if (cit.key() == "Logic") {
+					if (cit.key() == (size_t)Kite::KCTypes::Logic) {
 						continue;
 					}
 
-					if (eit->hasComponent(cit.key().toStdString(), "")) {
+					if (eit->hasComponent((Kite::KCTypes)cit.key())) {
 						for (auto pit = cit->begin(); pit != cit->end(); ++pit) {
-							auto com = eit->getComponentByName(cit.key().toStdString(), "");
+							auto com = eit->getComponentByName((Kite::KCTypes)cit.key());
 							auto res = com->getProperty(pit->name);
 							std::string resName;
 							if (pit->typeName == "std::string") {

@@ -57,6 +57,7 @@
         <file alias="lock">res/ico/locked.png</file>
         <file alias="col">res/ico/collapse2.png</file>
         <file alias="exp">res/ico/expand2.png</file>
+        <file alias="remzdep">res/ico/removeondep.png</file>
     </qresource>
     <qresource prefix="/back">
         <file alias="dense">res/dense.png</file>

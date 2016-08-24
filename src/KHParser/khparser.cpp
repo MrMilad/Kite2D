@@ -35,6 +35,7 @@ std::unordered_map<std::string, std::string> strmap;
 #define CLS_ATTRIB 6
 #define FUNC_ATTRIB 6
 #define VAR_ATTRIB 6
+#define CTYPE_ENUM_NAME std::string("KCTypes")
 
 enum ParsState {
 	PS_WORD = 0,	// all names (ex: class, void, myName, ...)
@@ -2042,7 +2043,8 @@ void createMacros(const std::vector<MClass> &Cls, const std::vector<MEnum> &Enms
 			std::string compHash = std::to_string(getHash32(cname.c_str(), cname.length()));
 
 			Output.append("public:\\\n" +
-						  exstate + "inline std::string getType() const override { return \"" + cname + "\"; }\\\n" +
+						  exstate + "inline KCTypes getType() const override { return KCTypes::" + cname + "; }\\\n" +
+						  exstate + "inline std::string getTypeName() const override { return \"" + cname + "\"; }\\\n" +
 						  exstate + "inline U32 getHashType() const override { return " + compHash + "; }\\\n" +
 						  "private:\\\n" +
 						  exstate + "static " + Cls[i].name + " *to" + cname + "(KComponent *Base) {\\\n" +
@@ -2339,28 +2341,125 @@ void createMacros(const std::vector<MClass> &Cls, const std::vector<MEnum> &Enms
 	}
 }
 
+void createEnumTypesHead(std::string &Output, const std::vector<MClass> &Cls) {
+	// component types (enum)
+	Output.append("#ifndef KTYPES_H\n"
+				  "#define KTYPES_H\n\n"
+				  "// ----[auto generated components types]----\n"
+				  "#include <string>\n"
+				  "#include \"Kite/core/kcoredef.h\"\n"
+				  "#include \"Kite/meta/kmetadef.h\"\n\n"
+				  "KM_IGNORED\n"
+				  "KMETA\n"
+				  "namespace Kite{\n"
+				  "enum class " + CTYPE_ENUM_NAME + " : SIZE{\n");
+
+	// components
+	auto ecounter = 0;
+	for (size_t i = 0; i < Cls.size(); i++) {
+		if (Cls[i].type & CT_COMPONENT && !(Cls[i].type & CT_ABSTRACT)) {
+			for (size_t count = 0; count < Cls[i].infos.size(); ++count) {
+				if (Cls[i].infos[count].key == "KI_CTYPE") {
+					Output.append(Cls[i].infos[count].info + " = " + std::to_string(ecounter) + ",\n");
+					++ecounter;
+					break;
+				}
+			}
+		}
+	}
+	Output.append("maxSize = " + std::to_string(ecounter) + "};\n");
+
+	Output.append("namespace Internal{\n"
+				  "struct Register" + CTYPE_ENUM_NAME + "{\n"
+				  "static void registerMeta(KMetaManager *MMan = nullptr, lua_State *Lua = nullptr);};}\n");
+
+	Output.append("KITE_FUNC_EXPORT extern const std::string &getCTypesName(" + CTYPE_ENUM_NAME + " Type);\n"
+				  "KITE_FUNC_EXPORT extern KCTypes getCTypesByName(const std::string &Name);\n"
+				  "}\n#endif // KMETATYPES_H");
+}
+
+void createEnumTypesSource(std::string &Output, const std::vector<MClass> &Cls) {
+	Output.clear();
+	Output.append("\n// ----[auto generated source file]----\n"
+				  "#include \"Kite/meta/kmetaenum.h\"\n"
+				  "#include \"Kite/meta/kmetamanager.h\"\n"
+				  "#include <luaintf/LuaIntf.h>\n"
+				  "#include \"KiteMeta/ktypes.khgen.h\"\n"
+				  "namespace Kite {\n");
+
+	// create component list
+	std::vector<std::pair<std::string, std::string>> comList;
+	for (size_t i = 0; i < Cls.size(); i++) {
+		if (Cls[i].type & CT_COMPONENT && !(Cls[i].type & CT_ABSTRACT)) {
+			for (size_t count = 0; count < Cls[i].infos.size(); ++count) {
+				if (Cls[i].infos[count].key == "KI_CTYPE") {
+					comList.push_back({ Cls[i].name , Cls[i].infos[count].info });
+					break;
+				}
+			}
+		}
+	}
+
+	// register component enum types
+	Output.append("void Internal::Register" + CTYPE_ENUM_NAME +"::registerMeta(KMetaManager *MMan, lua_State *Lua){\n"
+		"static KMetaEnum instance(\"" + CTYPE_ENUM_NAME + "\", 0, sizeof(" + CTYPE_ENUM_NAME + "));\n"
+				  "static bool initeMeta = false;\n"
+				  "if (MMan != nullptr) { MMan->setMeta((KMetaBase *)&instance); }\n"
+				  "if (!initeMeta) {");
+	for (size_t i = 0; i < comList.size(); ++i) {
+		Output.append("instance.addMember(KMetaEnumMember(\"" + comList[i].second + "\", "
+					  + std::to_string(i) + ", " + std::to_string(i) + "));\n");
+	}
+	Output.append("initeMeta = true;}\n"
+				  "if (Lua != nullptr) {\n"
+				  "LuaIntf::LuaBinding(Lua).beginModule(\"kite\")\n"
+				  ".beginModule(\"kctypes\")\n");
+	for (size_t i = 0; i < comList.size(); ++i) {
+		Output.append(".addConstant(\"" + comList[i].second + "\", "
+					  + CTYPE_ENUM_NAME + "::" + comList[i].second + ")\n");
+	}
+	Output.append(".endModule().endModule();}}\n");
+
+	// getCTypesName()
+	Output.append("const std::string &getCTypesName(" + CTYPE_ENUM_NAME + " Type){\n"
+				  "static const std::string names[(SIZE)" + CTYPE_ENUM_NAME + "::maxSize] = {\n");
+	for (auto it = comList.begin(); it != comList.end(); ++it) {
+		Output.append("\"" + it->second + "\"");
+		if (it != comList.end()) Output.append(" ,\n");
+	}
+	Output.append("};\n return names[(SIZE)Type];\n}\n");
+
+	// getCTypes
+	Output.append("KCTypes getCTypesByName(const std::string &Name){\n");
+	for (auto it = comList.begin(); it != comList.end(); ++it) {
+		Output.append("if (Name == \"" + it->second + "\") return " + CTYPE_ENUM_NAME + "::" + it->second + ";\n");
+	}
+
+	Output.append("return " + CTYPE_ENUM_NAME + "::maxSize;\n"
+				  "}\n}\n");
+}
+
 void createHead(std::string &Output) {
 	Output.clear();
 
 	Output.append("\n// ----[auto generated header file]----\n");
-	Output.append("#ifndef KITEMETA_H\n"
-				  "#define KITEMETA_H\n\n"
+	Output.append("#ifndef KMETA_H\n"
+				  "#define KMETA_H\n\n"
 				  "#include \"Kite/core/kcoredef.h\"\n"
 				  "#include \"Kite/core/ksystem.h\"\n"
-				  "#include \"Kite/core/kentitymanager.h\"\n"
 				  "#include \"Kite/meta/kmetadef.h\"\n\n"
-				  "#include \"Kite/meta/kmetamanager.h\"\n"
 				  "#include <vector>\n"
 				  "#include <memory>\n"
-				  "KM_IGNORED\n"
 				  "KMETA\n"
 				  "namespace Kite{\n"
+				  "class KMetaManager;\n"
+				  "class KEntityManager;\n"
+				  "class KResourceManager;\n"
 				  "KITE_FUNC_EXPORT extern void registerKiteMeta(KMetaManager *MMan = nullptr, lua_State *Lua = nullptr);\n"
 				  "KITE_FUNC_EXPORT extern void registerCTypes(KEntityManager *EMan);\n"
 				  "KITE_FUNC_EXPORT extern void registerRTypes(KResourceManager *RMan);\n"
-				  "KITE_FUNC_EXPORT extern void createSystems(std::vector<std::unique_ptr<KSystem>> &Systems);\n"
-				  "}\n"
-				  "#endif // KITEMETA_H");
+				  "KITE_FUNC_EXPORT extern void createSystems(std::vector<std::unique_ptr<KSystem>> &Systems);\n");
+	Output.append("}\n#endif // KITEMETA_H");
 }
 
 void createSource(const std::vector<std::string> &Files, const std::vector<MClass> &Cls,
@@ -2370,9 +2469,10 @@ void createSource(const std::vector<std::string> &Files, const std::vector<MClas
 	Output.clear();
 	Output.append("\n// ----[auto generated source file]----\n");
 
-	// POD header file
-	Output.append("#include \"Kite/meta/kmetapod.h\"\n");
-	Output.append("#include \"KiteMeta/kmeta.khgen.h\"\n");
+	Output.append("#include \"Kite/meta/kmetaenum.h\"\n"
+				  "#include \"Kite/meta/kmetapod.h\"\n"
+				  "#include \"KiteMeta/kmeta.khgen.h\"\n"
+				  "#include \"KiteMeta/ktypes.khgen.h\"\n");
 
 	// add headers
 	for (size_t i = 0; i < Files.size(); i++) {
@@ -2398,22 +2498,29 @@ void createSource(const std::vector<std::string> &Files, const std::vector<MClas
 	for (size_t i = 0; i < Ens.size(); i++) {
 		Output.append("Internal::Register" + Ens[i].name + "::registerMeta(MMan, Lua);\n");
 	}
+	Output.append("Internal::Register" + CTYPE_ENUM_NAME + "::registerMeta(MMan, Lua);\n");
 
 	// end of meta
 	Output.append("}\n");
 
-	// register component types
-	Output.append("void registerCTypes(KEntityManager *EMan){\n");
-
+	// create component list
+	std::vector<std::pair<std::string, std::string>> comList;
 	for (size_t i = 0; i < Cls.size(); i++) {
 		if (Cls[i].type & CT_COMPONENT && !(Cls[i].type & CT_ABSTRACT)) {
 			for (size_t count = 0; count < Cls[i].infos.size(); ++count) {
 				if (Cls[i].infos[count].key == "KI_CTYPE") {
-					Output.append("EMan->registerComponent<" + Cls[i].name + ">(\"" + Cls[i].infos[count].info + "\");\n");
+					comList.push_back({ Cls[i].name , Cls[i].infos[count].info });
 					break;
 				}
 			}
 		}
+	}
+
+	// register component types
+	Output.append("void registerCTypes(KEntityManager *EMan){\n");
+
+	for (auto it = comList.begin(); it != comList.end(); ++it){
+		Output.append("EMan->registerComponent<" + it->first + ">(" + CTYPE_ENUM_NAME + "::" + it->second + ");\n");
 	}
 
 	// end of ctypes
@@ -2454,9 +2561,10 @@ void createSource(const std::vector<std::string> &Files, const std::vector<MClas
 			Output.append("Systems.push_back(std::unique_ptr<KSystem>(new " + Cls[i].name + "));\n");
 		}
 	}
+	Output.append("}\n");
 
 	// end of namespace
-	Output.append("}}\n");
+	Output.append("}\n");
 
 }
 
@@ -2611,15 +2719,33 @@ int main(int argc, char* argv[]) {
 
 	tinydir_close(&dir);
 
-	// create register function
+
 	std::string header;
 	std::string source;
+
+	// create enums (types)
+	if (!cls.empty()) {
+		createEnumTypesHead(header, cls);
+		createEnumTypesSource(source, cls);
+	}
+
+	std::ofstream out(outadr + "/ktypes.khgen.h");
+	out << header;
+	out.close();
+	header.clear();
+
+	out.open(outadr + "/ktypes.khgen.cpp");
+	out << source;
+	out.close();
+	source.clear();
+
+	// create register function
 	if (!cls.empty() || !ens.empty()) {
 		createHead(header);
 		createSource(hadrs, cls, ens, source);
 	}
 
-	std::ofstream out(outadr + "/kmeta.khgen.h");
+	out.open(outadr + "/kmeta.khgen.h");
 	out << header;
 	out.close();
 

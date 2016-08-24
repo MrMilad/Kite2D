@@ -12,6 +12,8 @@
 #include <Kite/meta/kmetamanager.h>
 #include <Kite/core/kentitymanager.h>
 #include <Kite/core/kentity.h>
+#include <kmeta.khgen.h>
+#include <ktypes.khgen.h>
 #include "shared.h"
 
 class QMenu;
@@ -21,7 +23,7 @@ class QComboBox;
 
 namespace priv {
 	struct TreeItemPool {
-		QHash<QString, Expander *> fixedPool;
+		QHash<size_t, Expander *> fixedPool;
 		QVector<Expander *> logicPool;
 	};
 }
@@ -33,7 +35,7 @@ public:
 	explicit ComponentDock(QWidget *parent = 0);
 	~ComponentDock();
 
-	void inite(const QStringList &TypeList);
+	void inite(const QVector<QPair<Kite::KCTypes, bool>> &TypeList);
 
 public slots:
 	void entityEdit(Kite::KEntityManager *Eman, Kite::KEntity *Entity, bool isPrefab);
@@ -54,8 +56,8 @@ void updateResList(const QString &Type, QStringList &List);
 	void actCollAll();
 	void actAdd(QAction *Action);
 	void actAddDef();
-	void actRemove(Kite::KHandle CHandle, const QString &CType);
-	void actEdit(Kite::KHandle Chandle, const QString &CType, const QString &Pname, QVariant &Value);
+	void actRemove(Kite::KHandle CHandle);
+	void actEdit(Kite::KHandle Chandle, const QString &Pname, QVariant &Value);
 	void actClear();
 	void actSearch(const QString &Pharase);
 	void actSelectPrefab();
@@ -66,14 +68,25 @@ void updateResList(const QString &Type, QStringList &List);
 
 private:
 	static void addComCallb(Kite::KComponent *NewComp, void *Ptr);
+	static void remComCallb(Kite::KComponent *RemovedComp, void *Ptr);
+	static Kite::KMetaManager *getKMeta() {
+		static Kite::KMetaManager kmeta;
+		static bool inite = false;
+		if (!inite) {
+			Kite::registerKiteMeta(&kmeta);
+			inite = true;
+		}
+		return &kmeta;
+	}
+
 	void setupTree();
 	void setupActions();
 	void setupHTools();
 	void actionsControl(ActionsState State);
 	QString getAvailName(Kite::KEntity *Entity);
-	Expander *createCom(const QString &CType);
+	Expander *createCom(Kite::KCTypes Type);
 	void addLogicToPool(int Count);
-	void initePool(const QStringList &TypeList, unsigned int LogicCount = 15);
+	void initePool(const QVector<QPair<Kite::KCTypes, bool>> &, unsigned int LogicCount = 15);
 	void fetchFromPool(Kite::KComponent *Comp);
 	void putIntoPool(Expander *Exp);
 	void showFrame(Kite::KEntity *Entity, bool isPrefab);
@@ -93,7 +106,7 @@ private:
 	QLabel *llabel;
 	QMenu *mtypes;
 	Kite::KHandle currEntity;
-	QStringList types;
+	QVector<QPair<Kite::KCTypes, bool>> types;
 	Kite::KMetaManager mman;
 	Kite::KEntityManager *eman;
 	priv::TreeItemPool treePool;

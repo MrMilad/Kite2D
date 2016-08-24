@@ -20,7 +20,7 @@ frmexeorder::frmexeorder(Kite::KEntity *Entity, QWidget *parent) :
 	Entity->getScriptComponents(list);
 
 	for (auto it = list.begin(); it != list.end(); ++it) {
-		auto comp = Entity->getComponent("Logic", (*it));
+		auto comp = Entity->getComponent((*it));
 		ui->lstScripts->addItem(comp->getName().c_str());
 	}
 
@@ -36,6 +36,6 @@ void frmexeorder::reorder(const QModelIndex &sourceParent, int sourceStart, int 
 						  const QModelIndex &destinationParent, int destinationRow) {
 	
 	if (sourceStart < destinationRow) --destinationRow;
-	auto comp = currEnt->getComponentByName("Logic", ui->lstScripts->item(sourceStart)->text().toStdString());
+	auto comp = currEnt->getComponentByName(Kite::KCTypes::Logic, ui->lstScripts->item(sourceStart)->text().toStdString());
 	currEnt->reorderScriptComponent(comp->getHandle(), destinationRow);
 }

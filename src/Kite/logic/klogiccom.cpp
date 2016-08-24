@@ -32,7 +32,7 @@ namespace Kite {
 		KComponent(Name),
 		_kinite(false), _kstart(false), _klstate(nullptr)
 	{
-		addDependency("LogicInstance");
+		addDependency(KCTypes::LogicInstance);
 	}
 
 	void KLogicCom::attached(KEntity *Entity) {

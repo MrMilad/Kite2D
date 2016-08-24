@@ -4,6 +4,7 @@
 #include "glsleditor.h"
 #include "shprogeditor.h"
 #include "textureeditor.h"
+#include "atlaseditor.h"
 #include <qpropertyanimation.h>
 #include <kmeta.khgen.h>
 
@@ -51,6 +52,7 @@ void MainTab::registerTabs() {
 	tabFactory.insert("KShader", GLSLEditor::factory);
 	tabFactory.insert("KShaderProgram", ShProgEditor::factory);
 	tabFactory.insert("KTexture", TextureEditor::factory);
+	tabFactory.insert("KAtlasTexture", AtlasEditor::factory);
 }
 
 int MainTab::createTab(QWidget *Widget, Kite::KResource *ResPtr) {

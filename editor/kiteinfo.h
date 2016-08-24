@@ -6,6 +6,7 @@
 #include <qhash.h>
 #include <qvector.h>
 #include <Kite/meta/kmetaclass.h>
+#include <ktypes.khgen.h>
 
 class KiteInfo {
 public:
@@ -20,8 +21,8 @@ public:
 private:
 	QStandardItemModel *model;
 	QStringList *resources;
-	QStringList *components;
-	QHash<QString, QVector<Kite::KMetaProperty>> resComponents; // <component name, resource properti>
+	QVector<QPair<Kite::KCTypes, bool>> *components; // <type, visible>
+	QHash<size_t, QVector<Kite::KMetaProperty>> resComponents; // <component name, resource properti>
 };
 
 #endif // KITEINFO_H

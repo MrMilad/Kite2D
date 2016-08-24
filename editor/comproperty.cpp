@@ -52,8 +52,8 @@ void ComponentView::reset(Kite::KComponent *Comp) {
 	emit(resetSig(Comp));
 }
 
-void ComponentView::propChanged(const QString &CType, const QString &Pname, QVariant &Value) {
-	emit(componentEdited(compHandle, CType, Pname, Value));
+void ComponentView::propChanged(const QString &Pname, QVariant &Value) {
+	emit(componentEdited(compHandle, Pname, Value));
 }
 
 void ComponentView::createPOD(Kite::KComponent *Comp, const Kite::KMetaProperty *Meta, QFormLayout *Layout) {
@@ -142,6 +142,17 @@ void ComponentView::createPOD(Kite::KComponent *Comp, const Kite::KMetaProperty 
 		auto pgui = new priv::KV2U32(Comp, Meta->name.c_str(), this, ronly, Meta->min, Meta->max);
 		connect(pgui, &priv::KV2U32::propertyEdited, this, &ComponentView::propChanged);
 		connect(this, &ComponentView::resetSig, pgui, &priv::KV2U32::reset);
+
+		Layout->addRow(Meta->name.c_str(), pgui);
+
+	// KVector2I32
+	} else if (Meta->typeName == "KVector2I32") {
+		// create an appropriate widgte and bind property to it
+		bool ronly = false;
+		if (Meta->type == Kite::KMetaPropertyTypes::KMP_GETTER) ronly = true;
+		auto pgui = new priv::KV2I32(Comp, Meta->name.c_str(), this, ronly, Meta->min, Meta->max);
+		connect(pgui, &priv::KV2I32::propertyEdited, this, &ComponentView::propChanged);
+		connect(this, &ComponentView::resetSig, pgui, &priv::KV2I32::reset);
 
 		Layout->addRow(Meta->name.c_str(), pgui);
 

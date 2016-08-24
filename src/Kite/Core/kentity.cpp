@@ -51,13 +51,10 @@ namespace Kite {
 		// to self
 		if (Scope == MessageScope::SELF) {
 			if (_kcstorage != nullptr) {
-				auto found = _kcstorage->find("Logic");
-				if (found != _kcstorage->end()) {
-					for (auto it = _klogicOrder.begin(); it != _klogicOrder.end(); ++it) {
-						auto comp = found->second->get((*it));
-						if (comp != nullptr) {
-							comp->onMessage(Message, Scope);
-						}
+				for (auto it = _klogicOrder.begin(); it != _klogicOrder.end(); ++it) {
+					auto comp = _kcstorage[(SIZE)KCTypes::Logic]->get((*it));
+					if (comp != nullptr) {
+						comp->onMessage(Message, Scope);
 					}
 				}
 			}
@@ -74,13 +71,10 @@ namespace Kite {
 		// all
 		} else if (Scope == MessageScope::ALL) {
 			if (_kcstorage != nullptr) {
-				auto found = _kcstorage->find("Logic");
-				if (found != _kcstorage->end()) {
-					for (auto it = _klogicOrder.begin(); it != _klogicOrder.end(); ++it) {
-						auto comp = found->second->get((*it));
-						if (comp != nullptr) {
-							comp->onMessage(Message, Scope);
-						}
+				for (auto it = _klogicOrder.begin(); it != _klogicOrder.end(); ++it) {
+					auto comp = _kcstorage[(SIZE)KCTypes::Logic]->get((*it));
+					if (comp != nullptr) {
+						comp->onMessage(Message, Scope);
 					}
 				}
 			}
@@ -106,12 +100,12 @@ namespace Kite {
 		}
 	}
 
-	void KEntity::setComponent(const std::string &CType, const std::string &Name, KComponent *Comp) {
-		if (CType == "Logic") {
+	void KEntity::setComponent(KComponent *Comp) {
+		if (Comp->getType() == KCTypes::Logic) {
 			_klogicOrder.push_back(Comp->getHandle());
-			_klogicComp[Name] = Comp->getHandle();
+			_klogicComp[Comp->getName()] = Comp->getHandle();
 		} else {
-			_kfixedComp[CType] = Comp->getHandle();
+			_kfixedComp[Comp->getType()] = Comp->getHandle();
 		}
 	}
 
@@ -171,7 +165,7 @@ namespace Kite {
 		return true;
 	}
 
-	KComponent *KEntity::addComponent(const std::string &CType, const std::string &CName) {
+	KComponent *KEntity::addComponent(KCTypes Type, const std::string &CName) {
 		// cehck storage
 		if (_kcstorage == nullptr) {
 			KD_PRINT("set component storage at first");
@@ -180,26 +174,22 @@ namespace Kite {
 		// check component type
 		}
 		
-		auto found = _kcstorage->find(CType);
-		if (found == _kcstorage->end()) {
-			KD_FPRINT("unregistered component types. ctype: %s   cname: %s", CType.c_str(), CName.c_str());
-			return nullptr;
-
 		// this component is already exist
 		// we just return it
-		} else if (hasComponent(CType, CName)) {
-			return getComponentByName(CType, CName);
+		if (hasComponent(Type, CName)) {
+			return getComponentByName(Type, CName);
 		}
 
 		// create component
-		auto handle = found->second->add(CName);
+		auto handle = _kcstorage[(SIZE)Type]->add(CName);
+		handle.type = (SIZE)Type;
 
 		// set its handle
-		auto com = found->second->get(handle);
+		auto com = _kcstorage[(SIZE)Type]->get(handle);
 		com->_khandle = handle;
 
 		// attach the created component to the entity
-		setComponent(CType, CName, com);
+		setComponent(com);
 		com->setOwnerHandle(getHandle());
 
 		// call attach functon
@@ -225,7 +215,7 @@ namespace Kite {
 		return com;
 	}
 
-	KComponent *KEntity::getComponent(const std::string &CType, const KHandle &Handle) {
+	KComponent *KEntity::getComponent(const KHandle &Handle) {
 		// cehck storage
 		if (_kcstorage == nullptr) {
 			KD_PRINT("set component storage at first");
@@ -233,24 +223,20 @@ namespace Kite {
 
 		}
 		
-		auto found = _kcstorage->find(CType);
-		if (found == _kcstorage->end()) {
-			KD_FPRINT("unregistered component types. ctype: %s", CType.c_str());
-			return nullptr;
-
-		} else if (!hasComponentType(CType)) {
-			KD_FPRINT("there is no component of this type in the given entity. ctype: %s", CType.c_str());
+		auto type = (KCTypes)Handle.type;
+		if (!hasComponentType(type)) {
+			KD_FPRINT("there is no component of this type in the given entity. ctype: %s", getCTypesName(type).c_str());
 			return nullptr;
 		}
 
-		return found->second->get(Handle);
+		return _kcstorage[Handle.type]->get(Handle);
 	}
 
-	KComponent *KEntity::getComponentByName(const std::string &CType, const std::string &CName) {
-		return getComponent(CType, getComponentHandle(CType, CName));
+	KComponent *KEntity::getComponentByName(KCTypes Type, const std::string &CName) {
+		return getComponent(getComponentHandle(Type, CName));
 	}
 
-	void KEntity::getFixedComponents(std::vector<KComponent *> &Output) {
+	void KEntity::getFixedComponents(std::vector<KHandle> &Output) {
 		Output.clear();
 		// cehck storage
 		if (_kcstorage == nullptr) {
@@ -260,8 +246,7 @@ namespace Kite {
 
 		Output.reserve(_kfixedComp.size());
 		for (auto it = _kfixedComp.begin(); it != _kfixedComp.end(); ++it) {
-			auto ptr = _kcstorage->find(it->first)->second->get(it->second);
-			Output.push_back(ptr);
+			Output.push_back(it->second);
 		}
 	}
 
@@ -273,40 +258,29 @@ namespace Kite {
 			return;
 		}
 		
-		auto found = _kcstorage->find("Logic");
-		if (found == _kcstorage->end()) {
-			KD_PRINT("unregistered component types. ctype: Logic");
-			return;
-		}
-
 		Output.reserve(_klogicComp.size());
 		for (auto it = _klogicOrder.begin(); it != _klogicOrder.end(); ++it) {
 			Output.push_back((*it));
 		}
 	}
 
-	void KEntity::removeComponent(const std::string &CType, const std::string &Name) {
+	void KEntity::removeComponent(KCTypes Type, const std::string &Name) {
 		// cehck storage
 		if (_kcstorage == nullptr) {
 			KD_PRINT("set component storage at first");
 			return;
 		}
 		
-		// check component type
-		auto found = _kcstorage->find(CType);
-		if (found == _kcstorage->end()) {
-			KD_FPRINT("unregistered component types. ctype: %s   cname: %s", CType.c_str(), Name.c_str());
-			return;
-
-		} else if (!hasComponent(CType, Name)) {
+		if (!hasComponent(Type, Name)) {
 			return;
 		}
 
 		// check ref counter
-		auto hndl = getComponentHandle(CType, Name);
-		auto comPtr = found->second->get(hndl);
+		auto hndl = getComponentHandle(Type, Name);
+		auto comPtr = _kcstorage[(SIZE)Type]->get(hndl);
 		if (comPtr->_krefcounter > 0) {
-			KD_FPRINT("this component is required by another component. you shuld remove them first. ctype: %s   cname: %s", CType.c_str(), Name.c_str());
+			KD_FPRINT("this component is required by another component. you shuld remove them first. ctype: %s"
+					  , getCTypesName(Type).c_str());
 			return;
 		}
 
@@ -322,7 +296,7 @@ namespace Kite {
 #endif
 		
 		// remove components id from entity
-		if (CType == "Logic") {
+		if (Type == KCTypes::Logic) {
 			_klogicComp.erase(Name);
 
 			// remove from logic order list (linear search)
@@ -333,7 +307,7 @@ namespace Kite {
 				}
 			}
 		} else {
-			_kfixedComp.erase(CType);
+			_kfixedComp.erase(Type);
 		}
 
 		// dec ref counter
@@ -351,45 +325,43 @@ namespace Kite {
 		}
 
 		// and remove component itself from storage
-		found->second->remove(hndl);
+		_kcstorage[(SIZE)Type]->remove(hndl);
 	}
 
 	void KEntity::clearComponents() {
 		// cehck storage
 		if (_kcstorage != nullptr) {
 			// first remove all script components
-			auto found = _kcstorage->find("Logic");
-			if (found != _kcstorage->end()) {
-				for (auto it = _klogicOrder.begin(); it != _klogicOrder.end(); ++it) {
+			for (auto it = _klogicOrder.begin(); it != _klogicOrder.end(); ++it) {
 
-					// call deattach on all components
-					auto comPtr = found->second->get((*it));
-					comPtr->deattached(this);
+				// call deattach on all components
+				auto comPtr = _kcstorage[(SIZE)KCTypes::Logic]->get((*it));
+				comPtr->deattached(this);
 
-					found->second->remove((*it));
-				}
+				_kcstorage[(SIZE)KCTypes::Logic]->remove((*it));
 			}
 			_klogicComp.clear();
 			_klogicOrder.clear();
 
+			// fixed components
 			for (auto it = _kfixedComp.begin(); it != _kfixedComp.end(); ++it) {
-				auto storage = _kcstorage->find(it->first);
+				auto storage = _kcstorage[(SIZE)it->first];
 
 				// call deattach on all components
-				auto comPtr = storage->second->get(it->second);
+				auto comPtr = storage->get(it->second);
 				comPtr->deattached(this);
 
 				// remove from storage
-				storage->second->remove(it->second);
+				storage->remove(it->second);
 			}
 			_kfixedComp.clear();
 		}
 
 	}
 
-	KHandle KEntity::getComponentHandle(const std::string &CType, const std::string &Name) {
+	KHandle KEntity::getComponentHandle(KCTypes Type, const std::string &Name) {
 		// script component
-		if (CType == "Logic") {
+		if (Type == KCTypes::Logic) {
 			auto found = _klogicComp.find(Name);
 			if (found != _klogicComp.end()) {
 				return found->second;
@@ -397,17 +369,22 @@ namespace Kite {
 
 		// non-script component
 		} else {
-			auto found = _kfixedComp.find(CType);
+			auto found = _kfixedComp.find(Type);
 			if (found != _kfixedComp.end()) {
 				return found->second;
 			}
 		}
 
+		KD_FPRINT("there is no component of this type in the given entity. ctype: %s", getCTypesName(Type).c_str());
 		return KHandle();
 	}
 
 	void KEntity::reorderScriptComponent(const KHandle &CHandle, U32 NewOrder) {
-		auto comp = getComponent("Logic", CHandle);
+		if (CHandle.type != (SIZE)KCTypes::Logic) {
+			KD_FPRINT("invalid handle type. handle type is: %s", getCTypesName((KCTypes) CHandle.type).c_str());
+			return;
+		}
+		auto comp = getComponent(CHandle);
 		if (comp == nullptr) {
 			KD_PRINT("there is no logic component with the given handle.");
 			return;
@@ -431,23 +408,21 @@ namespace Kite {
 	}
 
 	void KEntity::reorderScriptComponentByName(const std::string &CName, U32 NewOrder) {
-		if (!hasComponent("Logic", CName)) {
+		if (!hasComponent(KCTypes::Logic, CName)) {
 			KD_FPRINT("there is no logic component with the given name. cname: %s", CName.c_str());
 			return;
 		}
 		
-		reorderScriptComponent(getComponentHandle("Logic", CName), NewOrder);
+		reorderScriptComponent(getComponentHandle(KCTypes::Logic, CName), NewOrder);
 	}
 	
-	bool KEntity::hasComponent(const std::string &CType, const std::string &Name) {
-		if (CType == "Logic") {
-			auto found = _klogicComp.find(Name);
-			if (found != _klogicComp.end()) {
+	bool KEntity::hasComponent(KCTypes Type, const std::string &Name) {
+		if (Type == KCTypes::Logic) {
+			if (_klogicComp.find(Name) != _klogicComp.end()) {
 				return true;
 			}
 		} else {
-			auto found = _kfixedComp.find(CType);
-			if (found != _kfixedComp.end()) {
+			if (_kfixedComp.find(Type) != _kfixedComp.end()) {
 				return true;
 			}
 		}
@@ -455,11 +430,11 @@ namespace Kite {
 		return false;
 	}
 
-	bool KEntity::hasComponentType(const std::string &CType) {
-		if (CType == "Logic" && !_klogicComp.empty()) {
+	bool KEntity::hasComponentType(KCTypes Type) {
+		if (Type == KCTypes::Logic && !_klogicComp.empty()) {
 			return true;
 		} else {
-			if (_kfixedComp.find(CType) != _kfixedComp.end()) {
+			if (_kfixedComp.find(Type) != _kfixedComp.end()) {
 				return true;
 			}
 		}

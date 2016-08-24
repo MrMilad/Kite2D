@@ -27,10 +27,10 @@ USA
 
 namespace Kite {
 	bool KInputSys::update(F32 Delta, KEntityManager *EManager, KResourceManager *RManager) {
-		STATIC_OUT_EDITOR const bool isregist = EManager->isRegisteredComponent("Input");
+		STATIC_OUT_EDITOR const bool isregist = EManager->isRegisteredComponent(KCTypes::Input);
 
 		if (isregist) {
-			STATIC_OUT_EDITOR auto continer = EManager->getComponentStorage<KInputCom>("Input"); // avoid hash lookup in every frame
+			STATIC_OUT_EDITOR auto continer = EManager->getComponentStorage<KInputCom>(KCTypes::Input); // avoid hash lookup in every frame
 			for (auto it = continer->begin(); it != continer->end(); ++it) {
 				auto EHandle = it->getOwnerHandle();
 				auto entity = EManager->getEntity(EHandle);

@@ -106,16 +106,17 @@ namespace Kite{
 
 		KM_VAR() U16 signature;
 		KM_VAR() U32 index;
+		KM_VAR() SIZE type; // KCTypes
 
 		KHandle() :
-			signature(0), index(0) {} // 0 reserved for invalid handles
+			signature(0), index(0), type(0) {} // 0 reserved for invalid handles
 
 		inline bool operator==(const KHandle& right) const {
-			return (signature == right.signature) && (index == right.index);
+			return (signature == right.signature) && (index == right.index) && type == right.type;
 		}
 
 		inline bool operator!=(const KHandle& right) const  {
-			return (signature != right.signature) || (index != right.index);
+			return !((*this) == right);
 		}
 
 	};

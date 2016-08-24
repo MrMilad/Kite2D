@@ -16,15 +16,16 @@ class Expander : public QObject {
 public:
 	Expander(Kite::KComponent *Comp, QTreeWidget* Parent);
 
-	inline const QString &getCType() const { return ctype; }
+	inline Kite::KCTypes getCType() const { return ctype; }
+	inline const Kite::KHandle &getCHndle() const { return chandle; }
 	inline auto getTreeItem() const { return head; }
 	void reset(Kite::KComponent *Comp);
 	void highlight(bool Selected);
 	
 signals:
-	void expandClicked(Kite::KHandle CHandle, const QString &CType);
-	void closeClicked(Kite::KHandle CHandle, const QString &CType);
-	void componentEdited(Kite::KHandle Chandle, const QString &CType, const QString &Pname, QVariant &Value);
+	void expandClicked(Kite::KHandle CHandle);
+	void closeClicked(Kite::KHandle CHandle);
+	void componentEdited(Kite::KHandle Chandle, const QString &Pname, QVariant &Value);
 	void updateResList(const QString &Type, QStringList &List);
 
 private slots:
@@ -37,7 +38,7 @@ private:
 	ComponentView *content;
 	QPushButton *btnExpand;
 	Kite::KHandle chandle;
-	QString ctype;
+	Kite::KCTypes ctype;
 };
 
 #endif // EXPANDER_H

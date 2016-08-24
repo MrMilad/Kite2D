@@ -84,8 +84,6 @@ void MainWindow::exitApp() {
 	}
 }
 
-
-
 void MainWindow::setupDocks(){
     // resource dock
 	resDock = new ResourceDock(this);
@@ -118,16 +116,16 @@ void MainWindow::setupDocks(){
 	connect(prpDock, &ComponentDock::revertPrefab, objDock, &ObjectDock::revertPrefab);
 	connect(prpDock, &ComponentDock::applyPrefab, objDock, &ObjectDock::applyPrefab);
 
-	// kite object browser
-	expDock = new QDockWidget(tr("Object Browser"), this);
+	// kite class browser
+	/*expDock = new QDockWidget(tr("Object Browser"), this);
 	expDock->setAllowedAreas(Qt::LeftDockWidgetArea | Qt::RightDockWidgetArea);
 	addDockWidget(Qt::LeftDockWidgetArea, expDock);
-	tabifyDockWidget(objDock, expDock);
+	tabifyDockWidget(objDock, expDock);*/
 
 	auto tview = new QTreeView();
 	tview->setModel(kinfo->getModel());
 	tview->setHeaderHidden(true);
-	expDock->setWidget(tview);
+	//expDock->setWidget(tview);
 }
 
 void MainWindow::setupScene(){

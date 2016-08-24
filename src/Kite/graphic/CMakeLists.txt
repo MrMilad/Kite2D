@@ -19,6 +19,7 @@ set(GFX_SRC
     ${SRCROOT}/krendercom.cpp
     ${SRCROOT}/kcameracom.cpp
     ${SRCROOT}/kquadcom.cpp
+    ${SRCROOT}/katlastexture.cpp
     PARENT_SCOPE
 )
 
@@ -41,6 +42,7 @@ set(GFX_INC
     ${INCROOT}/krenderable.h
     ${INCROOT}/kcameracom.h
     ${INCROOT}/kquadcom.h
+    ${INCROOT}/katlastexture.h
     PARENT_SCOPE
 )
 

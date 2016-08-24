@@ -10,7 +10,7 @@ greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
 TARGET = K2DEditor
 TEMPLATE = app
-CONFIG += console
+#CONFIG += console
 
 DEFINES += KITE_DEV_DEBUG
 DEFINES += KITE_EDITOR
@@ -21,10 +21,10 @@ INCLUDEPATH += F:/KEngineLab/Lab/CMakeBase/include/KiteMeta
 
 
 win32:LIBS += opengl32.lib
-win32:LIBS += F:/KEngineLab/Lab/CMakeBase/extlibs/lib-vc/win32/lua_dll.lib
+win32:LIBS += F:/KEngineLab/Lab/CMakeBase/extlibs/lib-vc/win32/lua.lib
 win32:LIBS += F:/KEngineLab/Lab/CMakeBase/extlibs/lib-vc/win32/SDL2.lib
 win32:LIBS += F:/KEngineLab/Lab/CMakeBase/extlibs/lib-vc/win32/SDL2main.lib
-win32:LIBS += C:/Users/_M1L4D_/Desktop/cmtest/lib/Debug/Kite2Dd.lib
+win32:LIBS += C:/Users/_M1L4D_/Desktop/cmtest/lib/debug/Kite2Dd.lib
 
 SOURCES += main.cpp\
     mainwindow.cpp \
@@ -92,3 +92,4 @@ FORMS += \
     frmaddobj.ui \
     frmnewres.ui \
     frmabout.ui
+

@@ -27,7 +27,7 @@ public:
 	void filterByType(const QString &Type, QStringList &List);
 	void filterByTypeRes(const QString &Type, QList<const Kite::KResource *> &List);
 	void selectResource(const QString &Name);
-	void manageUsedResource(const QHash<QString, QVector<Kite::KMetaProperty>> *ResComponents);
+	void manageUsedResource(const QHash<size_t, QVector<Kite::KMetaProperty>> *ResComponents);
 	void clearResources();
 	const std::vector<Kite::KResource *> &dumpResource();
 	inline void setCurrentDirectory(const QString &Directory) { currDirectory = Directory; }

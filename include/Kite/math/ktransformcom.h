@@ -32,7 +32,7 @@ namespace Kite{
 	KM_CLASS(COMPONENT)
     class KITE_FUNC_EXPORT KTransformCom: public KComponent{
 		friend class KTransformSys;
-		KM_INFO(KI_CTYPE = "Transform");
+		KM_INFO(KI_NAME = "Transform");
 		KMETA_KTRANSFORMCOM_BODY();
     public:
 		/// construct a transform (unit matrix)

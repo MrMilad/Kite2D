@@ -27,7 +27,7 @@ USA
 
 namespace Kite {
 	KAtlasTexture::KAtlasTexture(const std::string &Name) :
-		KResource(Name, true),
+		KResource(Name, false, true),
 		_ktexture(nullptr)
 	{}
 

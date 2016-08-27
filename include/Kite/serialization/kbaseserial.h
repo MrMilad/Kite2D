@@ -48,16 +48,6 @@ namespace Kite {
 		KM_FUN()
 		inline U32 getVersion() const { return _kversion; }
 
-		/// will be implemented by KHParser
-		/// usage: access base class in lua
-		virtual KBaseSerial *getBase() = 0;
-
-		/// will be implemented by KHParser
-		virtual inline std::string getType() const = 0;
-
-		/// will be implemented by KHParser
-		virtual inline U32 getHashType() const = 0;
-
 	protected:
 		inline void setVersion(U32 Version) { _kversion = Version; }
 		U32 _kversion;

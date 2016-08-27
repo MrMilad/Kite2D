@@ -45,6 +45,7 @@ namespace Kite{
 	*/
 	KM_CLASS(RESOURCE)
     class KITE_FUNC_EXPORT KTexture : public KResource{
+		KM_INFO(KI_NAME = "Texture");
 		KMETA_KTEXTURE_BODY();
     public:
 

@@ -35,7 +35,10 @@ std::unordered_map<std::string, std::string> strmap;
 #define CLS_ATTRIB 6
 #define FUNC_ATTRIB 6
 #define VAR_ATTRIB 6
-#define CTYPE_ENUM_NAME std::string("KCTypes")
+#define COM_ENUM_NAME std::string("CTypes")
+#define RES_ENUM_NAME std::string("RTypes")
+#define OSTREAM_ENUM_NAME std::string("OStreamTypes")
+#define ISTREAM_ENUM_NAME std::string("IStreamTypes")
 
 enum ParsState {
 	PS_WORD = 0,	// all names (ex: class, void, myName, ...)
@@ -120,6 +123,7 @@ struct MProperty {
 	std::string resType;
 	std::string min;
 	std::string max;
+	std::string show;
 };
 
 struct MOperator {
@@ -663,7 +667,7 @@ void splitParamRaw(const std::string &Content, std::vector<std::pair<std::string
 		if ((pos = it->find("=")) != std::string::npos) {
 			OutList.push_back({ it->substr(0, pos), it->substr(pos + 1, it->size()) });
 		} else {
-			OutList.push_back({ (*it), "" });
+			OutList.push_back({ (*it), std::string() });
 		}
 	}
 }
@@ -831,7 +835,7 @@ bool procProp(const std::vector<MFunction> &AllGet, const std::vector<MFunction>
 
 		}
 
-		std::string name, type, cm, min = "0", max = "0", res;
+		std::string name, type, cm, show, min = "0", max = "0", res;
 
 		for (auto it = param.begin(); it != param.end(); ++it) {
 			if (it->first == "KP_NAME") {
@@ -852,6 +856,12 @@ bool procProp(const std::vector<MFunction> &AllGet, const std::vector<MFunction>
 					return false;
 				}
 				cm = it->second;
+			} else if (it->first == "KP_SHOW") {
+				if (it->second.empty()) {
+					printf("error: tag without any value detected ==> function name: %s  TAG: KP_CM\n", AllGet[i].name.c_str());
+					return false;
+				}
+				show = it->second;
 			} else if (it->first == "KP_MIN") {
 				if (it->second.empty()) {
 					printf("error: tag without any value detected ==> function name: %s  TAG: KP_MIN\n", AllGet[i].name.c_str());
@@ -891,13 +901,14 @@ bool procProp(const std::vector<MFunction> &AllGet, const std::vector<MFunction>
 			cm = strmap[cm];
 		}
 
-		// extract comment from string map
-		if (!res.empty()) {
-			if (strmap.find(res) == strmap.end()) {
-				printf("error: could not extract prperty resource from string map ==> function name: %s\n", AllGet[i].name.c_str());
-				return false;
-			}
-			res = strmap[res];
+		// set maxSize as default for KP_RES (mean there is no resource)
+		if (res.empty()) {
+			res = RES_ENUM_NAME + "::maxSize";
+		}
+
+		// set true as defult for KP_SHOW
+		if (show.empty() || show != "false") {
+			show = "true";
 		}
 
 		// register property to map
@@ -916,6 +927,7 @@ bool procProp(const std::vector<MFunction> &AllGet, const std::vector<MFunction>
 		map[name].min = min;
 		map[name].max = max;
 		map[name].resType = res;
+		map[name].show = show;
 	}
 
 	// then register all setters
@@ -1338,9 +1350,14 @@ bool procClass(const std::string &Content, MClass &Cls, unsigned int Pos) {
 			Cls.type = Cls.type | CT_RESOURCE;
 		}
 
-		// is resource
+		// is istream
 		if (it->first == "ISTREAM") {
 			Cls.type = Cls.type | CT_ISTREAM;
+		}
+
+		// is ostream
+		if (it->first == "OSTREAM") {
+			Cls.type = Cls.type | CT_OSTREAM;
 		}
 	}
 
@@ -1968,12 +1985,11 @@ void createMacros(const std::vector<MClass> &Cls, const std::vector<MEnum> &Enms
 			continue;
 		}
 
-		// ctype
-		std::string comName = Cls[i].name;
+		// ctype, rtype
+		std::string shortName = Cls[i].name;
 		for (auto it = Cls[i].infos.begin(); it != Cls[i].infos.end(); ++it) {
-			if (it->key == "KI_CTYPE") {
-				comName = it->info;
-				break;
+			if (it->key == "KI_NAME") {
+				shortName = it->info;
 			}
 		}
 
@@ -2032,44 +2048,33 @@ void createMacros(const std::vector<MClass> &Cls, const std::vector<MEnum> &Enms
 		}
 
 		// component lua cast and base access
-		if (isComponent && !isAbstract) {
-			std::string cname = Cls[i].name;
-			for (auto it = Cls[i].infos.begin(); it != Cls[i].infos.end(); ++it) {
-				if (it->key == "KI_CTYPE") {
-					cname = it->info;
-					break;
-				}
-			}
-			std::string compHash = std::to_string(getHash32(cname.c_str(), cname.length()));
-
-			Output.append("public:\\\n" +
-						  exstate + "inline KCTypes getType() const override { return KCTypes::" + cname + "; }\\\n" +
-						  exstate + "inline std::string getTypeName() const override { return \"" + cname + "\"; }\\\n" +
-						  exstate + "inline U32 getHashType() const override { return " + compHash + "; }\\\n" +
-						  "private:\\\n" +
-						  exstate + "static " + Cls[i].name + " *to" + cname + "(KComponent *Base) {\\\n" +
-						  "if (Base != nullptr){\\\n"
-						  "if (Base->getHashType() == " + compHash + ") {\\\n"
-						  "return (" + Cls[i].name + " *)Base; }};\\\n" +
-						  "return nullptr; }\\\n" +
-						  exstate + "inline KComponent *getBase() override { return this; }\\\n");
+		std::string hash = std::to_string(getHash32(shortName.c_str(), shortName.length()));;
+		std::string enumType;
+		std::string baseName;
+		if (isResource && !isAbstract) {
+			enumType = RES_ENUM_NAME;
+			baseName = "KResource";
+		}else if (isComponent && !isAbstract) {
+			enumType = COM_ENUM_NAME;
+			baseName = "KComponent";
+		} else if (isOStream && !isAbstract) {
+			enumType = OSTREAM_ENUM_NAME;
+			baseName = "KOStream";
+		} else if (isIStream && !isAbstract) {
+			enumType = ISTREAM_ENUM_NAME;
+			baseName = "KIStream";
 		}
 
 		// (base, lua cast, type)
-		if ((isIStream || isOStream || isSerializer || isResource) && !isAbstract) {
-			std::string hashCode = std::to_string(getHash32(Cls[i].name.c_str(), Cls[i].name.length()));
-			std::string baseName;
-			if (isIStream) baseName = "KIStream";
-			if (isOStream) baseName = "KOStream";
-			if (isSerializer) baseName = "KBaseSerial";
-			if (isResource) baseName = "KResource";
-
+		if ((isIStream || isOStream || isComponent || isResource) && !isAbstract) {
 			Output.append("public:\\\n" +
-						  exstate + "inline std::string getType() const override { return \"" + Cls[i].name + "\"; }\\\n" +
-						  exstate + "inline U32 getHashType() const override { return " + hashCode + "; }\\\n" +
-						  exstate + "static " + Cls[i].name + " *to" + Cls[i].name + "(" + baseName + " *Base) {\\\n" +
+						  exstate + "inline " + enumType + " getType() const override { return " + enumType + "::" + shortName + "; }\\\n" +
+						  exstate + "inline std::string getTypeName() const override { return \"" + shortName + "\"; }\\\n" +
+						  exstate + "inline U32 getHashType() const override { return " + hash + "; }\\\n" +
+						  "private:\\\n" +
+						  exstate + "static " + Cls[i].name + " *to" + shortName + "(" + baseName + " *Base) {\\\n" +
 						  "if (Base != nullptr){\\\n"
-						  "if (Base->getHashType() == " + hashCode + ") {\\\n"
+						  "if (Base->getHashType() == " + hash + ") {\\\n"
 						  "return (" + Cls[i].name + " *)Base; }};\\\n" +
 						  "return nullptr; }\\\n" +
 						  exstate + "inline " + baseName + " *getBase() override { return this; }\\\n");
@@ -2143,16 +2148,23 @@ void createMacros(const std::vector<MClass> &Cls, const std::vector<MEnum> &Enms
 			} else {
 				prpType = "KMP_BOTH";
 			}
-			Output.append("instance.addProperty(KMetaProperty(\"" + Cls[i].props[count].name + "\", \""
-						  + Cls[i].props[count].type + "\", \"" + Cls[i].props[count].comment + "\", "
+			Output.append("instance.addProperty(KMetaProperty(\"" + Cls[i].props[count].name + "\", "
+						  + "\"" + Cls[i].props[count].type + "\", \"" + Cls[i].props[count].comment + "\", "
+						  + Cls[i].props[count].show + ", "
 						  + prpType + ", " + Cls[i].props[count].min + ", " + Cls[i].props[count].max + ", " 
-						  + "\"" + Cls[i].props[count].resType + "\"));\\\n");
+						  + Cls[i].props[count].resType + "));\\\n");
 		}
 
 		
-		// predefined functions
-		if (isComponent && !isAbstract) {
-			Output.append("instance.addFunction(KMetaFunction(\"to" + comName + "\", true));\\\n");
+		// predefined functions and props
+		if ((isOStream || isIStream || isResource || isComponent) && !isAbstract) {
+			Output.append("instance.addFunction(KMetaFunction(\"to" + shortName + "\", true));\\\n");
+			Output.append("instance.addProperty(KMetaProperty(\"type\", \"" 
+						  + enumType + "\", \"type of the object\", false, KMP_GETTER, 0, 0, " + RES_ENUM_NAME + "::maxSize ));\\\n");
+			Output.append("instance.addProperty(KMetaProperty(\"typeName\", \"std::string\", \"name of the object type\", false, KMP_GETTER, 0, 0, " 
+						  + RES_ENUM_NAME + "::maxSize ));\\\n");
+			Output.append("instance.addProperty(KMetaProperty(\"hashType\", \"U32\", \"hash of the object type\", false, KMP_GETTER, 0, 0, "
+						  + RES_ENUM_NAME + "::maxSize ));\\\n");
 		}
 
 		// functions
@@ -2177,7 +2189,7 @@ void createMacros(const std::vector<MClass> &Cls, const std::vector<MEnum> &Enms
 
 			Output.append("if (Lua != nullptr) { \\\n"
 						  "LuaIntf::LuaBinding(Lua).beginModule(\"kite\").beginClass<"
-						  + Cls[i].name + ">(\"" + comName + "\")\\\n");
+						  + Cls[i].name + ">(\"" + shortName + "\")\\\n");
 
 			// constructure
 			std::string param;
@@ -2195,20 +2207,13 @@ void createMacros(const std::vector<MClass> &Cls, const std::vector<MEnum> &Enms
 				Output.append(".addConstructor(LUA_ARGS(" + param + "))\\\n");
 			}
 
-			// predefined component functions (base, lua cast)
-			if (isComponent && !isAbstract) {
+			// predefined functions (base, lua cast)
+			if ((isIStream || isOStream || isResource || isComponent) && !isAbstract) {
 				Output.append(".addProperty(\"hashType\", &" + Cls[i].name + "::getHashType)\\\n");
 				Output.append(".addProperty(\"type\", &" + Cls[i].name + "::getType)\\\n");
+				Output.append(".addProperty(\"typeName\", &" + Cls[i].name + "::getTypeName)\\\n");
 				Output.append(".addProperty(\"base\", &" + Cls[i].name + "::getBase)\\\n");
-				Output.append(".addStaticFunction(\"to" + comName + "\", &" + Cls[i].name + "::to" + comName + ")\\\n");
-			}
-
-			// predefined serializer functions (base, lua cast)
-			if ((isIStream || isOStream || isSerializer || isResource) && !isAbstract) {
-				Output.append(".addProperty(\"hashType\", &" + Cls[i].name + "::getHashType)\\\n");
-				Output.append(".addProperty(\"type\", &" + Cls[i].name + "::getType)\\\n");
-				Output.append(".addProperty(\"base\", &" + Cls[i].name + "::getBase)\\\n");
-				Output.append(".addStaticFunction(\"to" + Cls[i].name + "\", &" + Cls[i].name + "::to" + Cls[i].name + ")\\\n");
+				Output.append(".addStaticFunction(\"to" + shortName + "\", &" + Cls[i].name + "::to" + shortName + ")\\\n");
 			}
 
 			// serializer functions
@@ -2341,41 +2346,135 @@ void createMacros(const std::vector<MClass> &Cls, const std::vector<MEnum> &Enms
 	}
 }
 
+void defEnum(std::string &Output, std::vector<std::string> &Types, const std::string &EnumName) {
+	Output.append("enum class " + EnumName + " : SIZE{\n");
+
+	auto ecounter = 0;
+	for (size_t i = 0; i < Types.size(); i++) {
+		Output.append(Types[i] + " = " + std::to_string(ecounter) + ",\n");
+		++ecounter;
+	}
+	Output.append("maxSize = " + std::to_string(ecounter) + "};\n");
+
+	Output.append("namespace Internal{\n"
+				  "struct Register" + EnumName + "{\n"
+				  "static void registerMeta(KMetaManager *MMan = nullptr, lua_State *Lua = nullptr);};}\n");
+
+	Output.append("KITE_FUNC_EXPORT extern const std::string &get" + EnumName + "Name(" + EnumName + " Type);\n"
+				  "KITE_FUNC_EXPORT extern " + EnumName + " get" + EnumName + "ByName(const std::string &Name);\n");
+}
+
+void implEnum(std::string &Output, std::vector<std::pair<std::string, std::string>> &Types, const std::string &EnumName) {
+	// register component enum types
+	Output.append("void Internal::Register" + EnumName + "::registerMeta(KMetaManager *MMan, lua_State *Lua){\n"
+				  "static KMetaEnum instance(\"" + EnumName + "\", 0, sizeof(" + EnumName + "));\n"
+				  "static bool initeMeta = false;\n"
+				  "if (MMan != nullptr) { MMan->setMeta((KMetaBase *)&instance); }\n"
+				  "if (!initeMeta) {");
+	for (size_t i = 0; i < Types.size(); ++i) {
+		Output.append("instance.addMember(KMetaEnumMember(\"" + Types[i].second + "\", "
+					  + std::to_string(i) + ", " + std::to_string(i) + "));\n");
+	}
+	Output.append("initeMeta = true;}\n"
+				  "if (Lua != nullptr) {\n"
+				  "LuaIntf::LuaBinding(Lua).beginModule(\"kite\")\n"
+				  ".beginModule(\"" + EnumName + "\")\n");
+	for (size_t i = 0; i < Types.size(); ++i) {
+		Output.append(".addConstant(\"" + Types[i].second + "\", "
+					  + EnumName + "::" + Types[i].second + ")\n");
+	}
+	Output.append(".endModule().endModule();}}\n");
+
+	// get type name
+	Output.append("const std::string &get" + EnumName + "Name(" + EnumName + " Type){\n"
+				  "static const std::string names[(SIZE)" + EnumName + "::maxSize] = {\n");
+	for (auto it = Types.begin(); it != Types.end(); ++it) {
+		Output.append("\"" + it->second + "\"");
+		if (it != Types.end()) Output.append(" ,\n");
+	}
+	Output.append("};\n return names[(SIZE)Type];\n}\n");
+
+	// get type by name
+	Output.append(EnumName + " get"+ EnumName + "ByName(const std::string &Name){\n");
+	for (auto it = Types.begin(); it != Types.end(); ++it) {
+		Output.append("if (Name == \"" + it->second + "\") return " + EnumName + "::" + it->second + ";\n");
+	}
+
+	Output.append("return " + EnumName + "::maxSize;\n"
+				  "}\n");
+}
+
 void createEnumTypesHead(std::string &Output, const std::vector<MClass> &Cls) {
+	Output.clear();
 	// component types (enum)
 	Output.append("#ifndef KTYPES_H\n"
 				  "#define KTYPES_H\n\n"
-				  "// ----[auto generated components types]----\n"
+				  "// ----[auto generated types]----\n"
 				  "#include <string>\n"
 				  "#include \"Kite/core/kcoredef.h\"\n"
 				  "#include \"Kite/meta/kmetadef.h\"\n\n"
 				  "KM_IGNORED\n"
 				  "KMETA\n"
-				  "namespace Kite{\n"
-				  "enum class " + CTYPE_ENUM_NAME + " : SIZE{\n");
+				  "namespace Kite{\n");
 
-	// components
-	auto ecounter = 0;
+	
+	std::vector<std::string> comlist; // components
+	std::vector<std::string> reslist; // resources
+	std::vector<std::string> istreamlist;
+	std::vector<std::string> ostreamlist;
 	for (size_t i = 0; i < Cls.size(); i++) {
 		if (Cls[i].type & CT_COMPONENT && !(Cls[i].type & CT_ABSTRACT)) {
 			for (size_t count = 0; count < Cls[i].infos.size(); ++count) {
-				if (Cls[i].infos[count].key == "KI_CTYPE") {
-					Output.append(Cls[i].infos[count].info + " = " + std::to_string(ecounter) + ",\n");
-					++ecounter;
-					break;
+				if (Cls[i].infos[count].key == "KI_NAME") {
+					comlist.push_back(Cls[i].infos[count].info);
 				}
 			}
+			continue;
+		}
+
+		if (Cls[i].type & CT_RESOURCE && !(Cls[i].type & CT_ABSTRACT)) {
+			for (size_t count = 0; count < Cls[i].infos.size(); ++count) {
+				if (Cls[i].infos[count].key == "KI_NAME") {
+					reslist.push_back(Cls[i].infos[count].info);
+				}
+			}
+			continue;
+		}
+
+		if (Cls[i].type & CT_ISTREAM && !(Cls[i].type & CT_ABSTRACT)) {
+			for (size_t count = 0; count < Cls[i].infos.size(); ++count) {
+				if (Cls[i].infos[count].key == "KI_NAME") {
+					istreamlist.push_back(Cls[i].infos[count].info );
+				}
+			}
+			continue;
+		}
+
+		if (Cls[i].type & CT_OSTREAM && !(Cls[i].type & CT_ABSTRACT)) {
+			for (size_t count = 0; count < Cls[i].infos.size(); ++count) {
+				if (Cls[i].infos[count].key == "KI_NAME") {
+					ostreamlist.push_back(Cls[i].infos[count].info );
+				}
+			}
+			continue;
 		}
 	}
-	Output.append("maxSize = " + std::to_string(ecounter) + "};\n");
 
-	Output.append("namespace Internal{\n"
-				  "struct Register" + CTYPE_ENUM_NAME + "{\n"
-				  "static void registerMeta(KMetaManager *MMan = nullptr, lua_State *Lua = nullptr);};}\n");
+	if (!comlist.empty()) {
+		defEnum(Output, comlist, COM_ENUM_NAME);
+	}
+	if (!reslist.empty()) {
+		defEnum(Output, reslist, RES_ENUM_NAME);
+	}
+	if (!istreamlist.empty()) {
+		defEnum(Output, istreamlist, ISTREAM_ENUM_NAME);
+	}
+	if (!ostreamlist.empty()) {
+		defEnum(Output, ostreamlist, OSTREAM_ENUM_NAME);
+	}
 
-	Output.append("KITE_FUNC_EXPORT extern const std::string &getCTypesName(" + CTYPE_ENUM_NAME + " Type);\n"
-				  "KITE_FUNC_EXPORT extern KCTypes getCTypesByName(const std::string &Name);\n"
-				  "}\n#endif // KMETATYPES_H");
+	Output.append("}\n#endif // KMETATYPES_H");
+
 }
 
 void createEnumTypesSource(std::string &Output, const std::vector<MClass> &Cls) {
@@ -2388,55 +2487,65 @@ void createEnumTypesSource(std::string &Output, const std::vector<MClass> &Cls) 
 				  "namespace Kite {\n");
 
 	// create component list
-	std::vector<std::pair<std::string, std::string>> comList;
+	std::vector<std::pair<std::string, std::string>> comlist;
+	std::vector<std::pair<std::string, std::string>> reslist;
+	std::vector<std::pair<std::string, std::string>> istreamlist;
+	std::vector<std::pair<std::string, std::string>> ostreamlist;
 	for (size_t i = 0; i < Cls.size(); i++) {
 		if (Cls[i].type & CT_COMPONENT && !(Cls[i].type & CT_ABSTRACT)) {
 			for (size_t count = 0; count < Cls[i].infos.size(); ++count) {
-				if (Cls[i].infos[count].key == "KI_CTYPE") {
-					comList.push_back({ Cls[i].name , Cls[i].infos[count].info });
-					break;
+				if (Cls[i].infos[count].key == "KI_NAME") {
+					comlist.push_back({ Cls[i].name , Cls[i].infos[count].info });
 				}
 			}
+			continue;
+		}
+
+		if (Cls[i].type & CT_RESOURCE && !(Cls[i].type & CT_ABSTRACT)) {
+			for (size_t count = 0; count < Cls[i].infos.size(); ++count) {
+				if (Cls[i].infos[count].key == "KI_NAME") {
+					reslist.push_back({ Cls[i].name ,Cls[i].infos[count].info });
+				}
+			}
+			continue;
+		}
+
+		if (Cls[i].type & CT_ISTREAM && !(Cls[i].type & CT_ABSTRACT)) {
+			for (size_t count = 0; count < Cls[i].infos.size(); ++count) {
+				if (Cls[i].infos[count].key == "KI_NAME") {
+					istreamlist.push_back({ Cls[i].name ,Cls[i].infos[count].info });
+				}
+			}
+			continue;
+		}
+
+		if (Cls[i].type & CT_OSTREAM && !(Cls[i].type & CT_ABSTRACT)) {
+			for (size_t count = 0; count < Cls[i].infos.size(); ++count) {
+				if (Cls[i].infos[count].key == "KI_NAME") {
+					ostreamlist.push_back({ Cls[i].name ,Cls[i].infos[count].info });
+				}
+			}
+			continue;
 		}
 	}
 
-	// register component enum types
-	Output.append("void Internal::Register" + CTYPE_ENUM_NAME +"::registerMeta(KMetaManager *MMan, lua_State *Lua){\n"
-		"static KMetaEnum instance(\"" + CTYPE_ENUM_NAME + "\", 0, sizeof(" + CTYPE_ENUM_NAME + "));\n"
-				  "static bool initeMeta = false;\n"
-				  "if (MMan != nullptr) { MMan->setMeta((KMetaBase *)&instance); }\n"
-				  "if (!initeMeta) {");
-	for (size_t i = 0; i < comList.size(); ++i) {
-		Output.append("instance.addMember(KMetaEnumMember(\"" + comList[i].second + "\", "
-					  + std::to_string(i) + ", " + std::to_string(i) + "));\n");
-	}
-	Output.append("initeMeta = true;}\n"
-				  "if (Lua != nullptr) {\n"
-				  "LuaIntf::LuaBinding(Lua).beginModule(\"kite\")\n"
-				  ".beginModule(\"kctypes\")\n");
-	for (size_t i = 0; i < comList.size(); ++i) {
-		Output.append(".addConstant(\"" + comList[i].second + "\", "
-					  + CTYPE_ENUM_NAME + "::" + comList[i].second + ")\n");
-	}
-	Output.append(".endModule().endModule();}}\n");
-
-	// getCTypesName()
-	Output.append("const std::string &getCTypesName(" + CTYPE_ENUM_NAME + " Type){\n"
-				  "static const std::string names[(SIZE)" + CTYPE_ENUM_NAME + "::maxSize] = {\n");
-	for (auto it = comList.begin(); it != comList.end(); ++it) {
-		Output.append("\"" + it->second + "\"");
-		if (it != comList.end()) Output.append(" ,\n");
-	}
-	Output.append("};\n return names[(SIZE)Type];\n}\n");
-
-	// getCTypes
-	Output.append("KCTypes getCTypesByName(const std::string &Name){\n");
-	for (auto it = comList.begin(); it != comList.end(); ++it) {
-		Output.append("if (Name == \"" + it->second + "\") return " + CTYPE_ENUM_NAME + "::" + it->second + ";\n");
+	if (!comlist.empty()) {
+		implEnum(Output, comlist, COM_ENUM_NAME);
 	}
 
-	Output.append("return " + CTYPE_ENUM_NAME + "::maxSize;\n"
-				  "}\n}\n");
+	if (!reslist.empty()) {
+		implEnum(Output, reslist, RES_ENUM_NAME);
+	}
+
+	if (!istreamlist.empty()) {
+		implEnum(Output, istreamlist, ISTREAM_ENUM_NAME);
+	}
+
+	if (!ostreamlist.empty()) {
+		implEnum(Output, ostreamlist, OSTREAM_ENUM_NAME);
+	}
+
+	Output.append("}\n");
 }
 
 void createHead(std::string &Output) {
@@ -2498,18 +2607,40 @@ void createSource(const std::vector<std::string> &Files, const std::vector<MClas
 	for (size_t i = 0; i < Ens.size(); i++) {
 		Output.append("Internal::Register" + Ens[i].name + "::registerMeta(MMan, Lua);\n");
 	}
-	Output.append("Internal::Register" + CTYPE_ENUM_NAME + "::registerMeta(MMan, Lua);\n");
+	Output.append("Internal::Register" + COM_ENUM_NAME + "::registerMeta(MMan, Lua);\n");
+	Output.append("Internal::Register" + RES_ENUM_NAME + "::registerMeta(MMan, Lua);\n");
 
 	// end of meta
 	Output.append("}\n");
 
-	// create component list
-	std::vector<std::pair<std::string, std::string>> comList;
+	// res/components list
+	std::vector<std::pair<std::string, std::string>> comList; // <name, cname>
+	std::vector<std::pair<std::string, std::string>> resList; // <name, cname>
+	std::vector<std::pair<std::string, std::string>> istreamList; // <name, cname>
 	for (size_t i = 0; i < Cls.size(); i++) {
+
 		if (Cls[i].type & CT_COMPONENT && !(Cls[i].type & CT_ABSTRACT)) {
 			for (size_t count = 0; count < Cls[i].infos.size(); ++count) {
-				if (Cls[i].infos[count].key == "KI_CTYPE") {
+				if (Cls[i].infos[count].key == "KI_NAME") {
 					comList.push_back({ Cls[i].name , Cls[i].infos[count].info });
+					break;
+				}
+			}
+		}
+
+		if (Cls[i].type & CT_RESOURCE && !(Cls[i].type & CT_ABSTRACT)) {
+			for (size_t count = 0; count < Cls[i].infos.size(); ++count) {
+				if (Cls[i].infos[count].key == "KI_NAME") {
+					resList.push_back({ Cls[i].name , Cls[i].infos[count].info });
+					break;
+				}
+			}
+		}
+
+		if (Cls[i].type & CT_ISTREAM && !(Cls[i].type & CT_ABSTRACT)) {
+			for (size_t count = 0; count < Cls[i].infos.size(); ++count) {
+				if (Cls[i].infos[count].key == "KI_NAME") {
+					istreamList.push_back({ Cls[i].name , Cls[i].infos[count].info });
 					break;
 				}
 			}
@@ -2520,7 +2651,7 @@ void createSource(const std::vector<std::string> &Files, const std::vector<MClas
 	Output.append("void registerCTypes(KEntityManager *EMan){\n");
 
 	for (auto it = comList.begin(); it != comList.end(); ++it){
-		Output.append("EMan->registerComponent<" + it->first + ">(" + CTYPE_ENUM_NAME + "::" + it->second + ");\n");
+		Output.append("EMan->registerComponent<" + it->first + ">(" + COM_ENUM_NAME + "::" + it->second + ");\n");
 	}
 
 	// end of ctypes
@@ -2529,25 +2660,14 @@ void createSource(const std::vector<std::string> &Files, const std::vector<MClas
 	// register resource types
 	Output.append("void registerRTypes(KResourceManager *RMan){\n");
 
-	for (size_t i = 0; i < Cls.size(); i++) {
-		// resource factory
-		if (Cls[i].type & CT_RESOURCE && !(Cls[i].type & CT_ABSTRACT)) {
-			std::string cstream("false");
-			for (size_t count = 0; count < Cls[i].infos.size(); ++count) {
-				if (Cls[i].infos[count].key == "CatchStream") {
-					cstream = Cls[i].infos[count].info;
-					continue;
-				}
-			}
-		Output.append("RMan->registerResource(\"" + Cls[i].name + "\", " + Cls[i].name + "::factory, " 
-						+ cstream + ");\n");
+	// resource factory
+	for (auto it = resList.begin(); it != resList.end(); ++it){
+		Output.append("RMan->registerResource(" + RES_ENUM_NAME + "::" + it->second + ", " + it->first + "::factory);\n");
+	}
 
-		}
-
-		// stream factory
-		if (Cls[i].type & CT_ISTREAM && !(Cls[i].type & CT_ABSTRACT)) {
-			Output.append("RMan->registerIStream(\"" + Cls[i].name + "\", " + Cls[i].name + "::factory);\n");
-		}
+	// stream factory
+	for (auto it = istreamList.begin(); it != istreamList.end(); ++it) {
+		Output.append("RMan->registerIStream(" + ISTREAM_ENUM_NAME + "::" + it->second + ", " + it->first + "::factory);\n");
 	}
 
 	// end of rtypes

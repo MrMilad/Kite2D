@@ -33,7 +33,7 @@ namespace Kite{
 	U32 KShaderProgram::_klastProgId = 0;
 
 	KShaderProgram::KShaderProgram(const std::string &Name) :
-		KResource(Name, true),
+		KResource(Name, false, true),
 		_klinked(false),
 		_kprogId(0),
 		_kvert(nullptr),

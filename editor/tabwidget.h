@@ -18,8 +18,9 @@ public:
     inline const auto getResource() const { return res; }
 
 signals:
-	void requestResList(const QString &Type, QList<const Kite::KResource *> &List);
+	void requestResList(Kite::RTypes Type, QList<const Kite::KResource *> &List);
 	Kite::KResource *requestRes(const QString &Name);
+	Kite::KResource *requestAddRes(Kite::RTypes Type);
 
 private:
     Kite::KResource *res;

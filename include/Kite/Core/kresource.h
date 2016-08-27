@@ -29,6 +29,7 @@
 #include "Kite/meta/kmetadef.h"
 #include <cstring>
 #include <vector>
+#include "ktypes.khgen.h"
 #include "kresource.khgen.h"
 
 KMETA
@@ -36,10 +37,9 @@ namespace Kite{
 	KM_CLASS(RESOURCE, ABSTRACT)
 	class KITE_FUNC_EXPORT KResource : KNonCopyable{
 	friend class KResourceManager;
-
 	KMETA_KRESOURCE_BODY();
 	public:
-		KResource(const std::string &Name, bool IsComposite);
+		KResource(const std::string &Name, bool CatchStream, bool IsComposite);
 
 		virtual ~KResource();
 
@@ -53,8 +53,12 @@ namespace Kite{
 		inline U32 getReferencesCount() const { return _kref; }
 
 		/// will be implemented by KHParser
-		KM_PRO_GET(KP_NAME = "type", KP_TYPE = std::string)
-			virtual inline std::string getType() const = 0;
+		KM_PRO_GET(KP_NAME = "type", KP_TYPE = RTypes)
+			virtual inline RTypes getType() const = 0;
+
+		/// will be implemented by KHParser
+		KM_PRO_GET(KP_NAME = "typeName", KP_TYPE = std::string)
+			virtual inline std::string getTypeName() const = 0;
 
 		/// will be implemented by KHParser
 		KM_PRO_GET(KP_NAME = "hashType", KP_TYPE = std::string)
@@ -78,6 +82,9 @@ namespace Kite{
 
 		KM_PRO_GET(KP_NAME = "isInite", KP_TYPE = bool)
 		inline bool isInite() const { return _kisInite; }
+
+		KM_PRO_GET(KP_NAME = "catchStream", KP_TYPE = bool)
+		inline bool getCatchStream() const { return _kcatchStream; }
 
 		/// main usage: for saving modified resource in editor
 		KM_PRO_GET(KP_NAME = "isModified", KP_TYPE = bool, KP_CM = "is scene modified")
@@ -104,6 +111,7 @@ namespace Kite{
 		inline void incRef() { ++_kref; }
 		inline void decRef() { _kref > 0 ? --_kref : _kref; }
 
+		bool _kcatchStream;
 		bool _kisModified;
 		bool _kisInite;
 		bool _kcomposite;

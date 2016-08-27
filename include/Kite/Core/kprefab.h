@@ -32,6 +32,7 @@ namespace Kite {
 	KM_CLASS(RESOURCE, SCRIPTABLE)
 	class KITE_FUNC_EXPORT KPrefab : public KResource {
 		friend class KEntityManager;
+		KM_INFO(KI_NAME = "Prefab");
 		KMETA_KPREFAB_BODY();
 	public:
 		KM_CON(std::string)

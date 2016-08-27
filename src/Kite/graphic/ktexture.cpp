@@ -29,7 +29,7 @@
 namespace Kite{
     U32 Kite::KTexture::_klastTexId = 0;
 	KTexture::KTexture(const std::string &Name) :
-		KResource(Name, false),
+		KResource(Name, false, false),
         _ktexId(0),
         _kfilter(TextureFilter::LINEAR),
         _kwrap(TextureWrap::CLAMP_TO_EDGE),

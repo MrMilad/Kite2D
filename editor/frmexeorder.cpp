@@ -36,6 +36,6 @@ void frmexeorder::reorder(const QModelIndex &sourceParent, int sourceStart, int 
 						  const QModelIndex &destinationParent, int destinationRow) {
 	
 	if (sourceStart < destinationRow) --destinationRow;
-	auto comp = currEnt->getComponentByName(Kite::KCTypes::Logic, ui->lstScripts->item(sourceStart)->text().toStdString());
+	auto comp = currEnt->getComponentByName(Kite::CTypes::Logic, ui->lstScripts->item(sourceStart)->text().toStdString());
 	currEnt->reorderScriptComponent(comp->getHandle(), destinationRow);
 }

@@ -1,5 +1,6 @@
 #include "executer.h"
 #include <Kite/core/kcoredef.h>
+#include "qapplication.h"
 
 WorkerThread::WorkerThread() :
 	engine(nullptr), config(nullptr)
@@ -50,12 +51,18 @@ void Executer::unpause() {
 	if (engine != nullptr) {
 		engine->setPauseFlag(false);
 		emit(unpaused());
+		engine->cv.notify_all();
 	}
 }
 
 void Executer::pause() {
 	if (engine != nullptr) {
 		engine->setPauseFlag(true);
+		while (std::try_lock(engine->mx) != -1) {
+			QApplication::processEvents();
+		}
+		engine->mx.unlock();
+		QApplication::processEvents();
 		emit(paused());
 	}
 }
@@ -63,6 +70,7 @@ void Executer::pause() {
 void Executer::stop() {
 	if (engine != nullptr) {
 		engine->setExitFlag(true);
+		engine->cv.notify_all();
 	}
 }
 

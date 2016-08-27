@@ -31,13 +31,13 @@ USA
 
 namespace Kite {
 	bool KLogicSys::update(F32 Delta, KEntityManager *EManager, KResourceManager *RManager) {
-		STATIC_OUT_EDITOR const bool isregist = EManager->isRegisteredComponent(KCTypes::LogicInstance);
+		STATIC_OUT_EDITOR const bool isregist = EManager->isRegisteredComponent(CTypes::LogicInstance);
 
 		// check component registration
 		if (isregist) {
 
 			// iterate over objects with at least 1 Logic component
-			STATIC_OUT_EDITOR auto continer = EManager->getComponentStorage<KLogicInstanceCom>(KCTypes::LogicInstance);
+			STATIC_OUT_EDITOR auto continer = EManager->getComponentStorage<KLogicInstanceCom>(CTypes::LogicInstance);
 			for (auto it = continer->begin(); it != continer->end(); ++it) {
 
 				auto ent = EManager->getEntity(it->getOwnerHandle());

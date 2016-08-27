@@ -30,7 +30,7 @@ USA
 
 namespace Kite {
 	KScene::KScene(const std::string &Name) :
-		KResource(Name, false)
+		KResource(Name, false, false)
 	{
 		// dont need initialize
 		setInite(true);
@@ -92,7 +92,7 @@ namespace Kite {
 		return true;
 	}
 
-	bool KScene::addResource(const std::string &RName, const std::string &RType) {
+	bool KScene::addResource(const std::string &RName, RTypes Type) {
 		setModified(true);
 		auto found = _kres.find(RName);
 		if (found != _kres.end()) {
@@ -100,7 +100,7 @@ namespace Kite {
 			return false;
 		}
 
-		_kres.insert({ RName, RType});
+		_kres.insert({ RName, Type });
 		return true;
 	}
 

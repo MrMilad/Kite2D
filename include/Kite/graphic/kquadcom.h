@@ -35,7 +35,7 @@ namespace Kite{
 	KM_CLASS(COMPONENT)
     class KITE_FUNC_EXPORT KQuadCom : public KComponent, public KRenderable{
 		friend class KRenderSys;
-		KM_INFO(KI_CTYPE = "Quad");
+		KM_INFO(KI_NAME = "Quad");
 		KMETA_KQUADCOM_BODY();
     public:
 		KQuadCom(const std::string &Name = "");

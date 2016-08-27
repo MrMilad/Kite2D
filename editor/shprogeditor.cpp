@@ -12,7 +12,7 @@ ShProgEditor::ShProgEditor(Kite::KResource *Res, KiteInfo *KInfo, QWidget *Paren
 void ShProgEditor::inite() {
 	// request shaders
 	QList<const Kite::KResource *> rlist;
-	emit(TabWidget::requestResList("KShader", rlist));
+	emit(TabWidget::requestResList(Kite::RTypes::Shader, rlist));
 
 	// splite shader types
 	QStringList vshader;
@@ -74,7 +74,7 @@ bool ShProgEditor::eventFilter(QObject *Obj, QEvent *Event) {
 
 		// request shaders
 		QList<const Kite::KResource *> rlist;
-		emit(TabWidget::requestResList("KShader", rlist));
+		emit(TabWidget::requestResList(Kite::RTypes::Shader, rlist));
 
 		QStringList slist;
 		slist.push_back("");

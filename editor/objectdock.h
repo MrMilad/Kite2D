@@ -42,8 +42,8 @@ signals:
 	void objectSelected(Kite::KEntityManager *EMan, Kite::KEntity *Entity, bool isPrefab);
 	void objectDelete(Kite::KEntityManager *EMan, Kite::KEntity *Entity);
 	void objectRenamed(Kite::KEntityManager *EMan, Kite::KEntity *Entity);
-	Kite::KResource *requestCreateResource(const QString &Type);
-	void requestResName(const QString &Type, QStringList &List);
+	Kite::KResource *requestCreateResource(Kite::RTypes Type);
+	void requestResName(Kite::RTypes Type, QStringList &List);
 	Kite::KResource *requestGetResource(const QString &Name);
 
 private slots:

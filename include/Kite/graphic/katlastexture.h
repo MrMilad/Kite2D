@@ -37,6 +37,7 @@ namespace Kite {
 
 	KM_CLASS(RESOURCE)
 	class KITE_FUNC_EXPORT KAtlasTexture : public KResource {
+		KM_INFO(KI_NAME = "AtlasTexture");
 		KMETA_KATLASTEXTURE_BODY();
 	public:
 		KAtlasTexture(const std::string &Name);

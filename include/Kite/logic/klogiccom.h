@@ -33,7 +33,7 @@ namespace Kite {
 	KM_CLASS(COMPONENT)
 	class KITE_FUNC_EXPORT KLogicCom : public KComponent {
 		friend class KLogicSys;
-		KM_INFO(KI_CTYPE = "Logic");
+		KM_INFO(KI_NAME = "Logic");
 		KMETA_KLOGICCOM_BODY();
 
 	public:
@@ -50,7 +50,7 @@ namespace Kite {
 		KM_PRO_SET(KP_NAME = "script")
 		void setScript(const KStringID &ResName);
 		
-		KM_PRO_GET(KP_NAME = "script", KP_TYPE = KStringID, KP_CM = "name of the lua script resource", KP_RES = "KScript")
+		KM_PRO_GET(KP_NAME = "script", KP_TYPE = KStringID, KP_CM = "name of the lua script resource", KP_RES = RTypes::Script)
 		inline const KStringID &getScript() const { return _kscriptName; }
 
 	private:

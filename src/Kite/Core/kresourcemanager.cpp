@@ -27,51 +27,43 @@ USA
 #include <luaintf\LuaIntf.h>
 
 namespace Kite {
-	KResourceManager::KResourceManager(){}
+	KResourceManager::KResourceManager(){
+		initeRFactory();
+	}
 
 	KResourceManager::~KResourceManager(){
 		clear();
 	}
 
-	bool KResourceManager::registerIStream(const std::string &SType, KIStream *(*Func)()) {
-		auto found = _ksfactory.find(SType);
-		if (found != _ksfactory.end()) {
-			KD_FPRINT("this type has already been registered. stype: %s", SType.c_str());
-			return false;
+	void KResourceManager::initeRFactory() {
+		for (SIZE i = 0; i < (SIZE)RTypes::maxSize; ++i) {
+			_krfactory[i].first = nullptr;
+			_krfactory[i].second = false;
 		}
-
-		_ksfactory.insert({ SType, Func });
-		return true;
 	}
 
-	bool KResourceManager::registerResource(const std::string &RType, KResource *(*Func)(const std::string &), bool CatchStream) {
-		auto found = _krfactory.find(RType);
-		if (found != _krfactory.end()) {
-			KD_FPRINT("this type has already been registered. rtype: %s", RType.c_str());
-			return false;
-		}
-
-		_krfactory.insert({ RType, {Func, CatchStream}});
-		return true;
+	void KResourceManager::registerIStream(IStreamTypes SType, KIStream *(*Func)()) {
+		auto index = (SIZE)SType;
+		_ksfactory[index] = Func;
 	}
 
-	KResource *KResourceManager::create(const std::string &RType, const std::string &Name) {
-		auto factory = _krfactory.find(RType);
-		if (factory == _krfactory.end()) {
-			KD_FPRINT("unregistered resource type. rtype: %s", RType.c_str());
-			return nullptr;
-		}
+	void KResourceManager::registerResource(RTypes RType, KResource *(*Func)(const std::string &)) {
+		auto index = (SIZE)RType;
+		// create dummy for checking catch stream
+		auto dummyRes = Func("dummy");
+		_krfactory[index] = std::make_pair(Func, dummyRes->getCatchStream());
 
+		delete dummyRes;
+	}
+
+	KResource *KResourceManager::create(RTypes Type, const std::string &Name) {
 		// create new resource and return it
-		return factory->second.first(Name);
+		auto index = (SIZE)Type;
+		return _krfactory[index].first(Name);
 	}
 
-	KResource *KResourceManager::createAndRegist(const std::string &RType, const std::string &Name) {
-		auto factory = _krfactory.find(RType);
-		if (factory == _krfactory.end()) {
-			KD_FPRINT("unregistered resource type. rtype: %s", RType.c_str());
-			return nullptr;
-		}
+	KResource *KResourceManager::createAndRegist(RTypes Type, const std::string &Name) {
+		auto index = (SIZE)Type;
 
 		if (get(Name)) {
 			KD_FPRINT("this name is already exixst. rname: %s", Name.c_str());
@@ -79,7 +71,7 @@ namespace Kite {
 		}
 
 		// create new resource and return it
-		auto newRes = factory->second.first(Name);
+		auto newRes = _krfactory[index].first(Name);
 
 		// increment refrence count
 		newRes->incRef();
@@ -100,23 +92,12 @@ namespace Kite {
 		return newRes;
 	}
 
-	KResource *KResourceManager::load(const std::string &SType, const std::string &RType,
+	KResource *KResourceManager::load(IStreamTypes SType, RTypes RType,
 									  const std::string &Address){
-		// check for stream factory methode
-		auto sfactory = _ksfactory.find(SType);
-		if (sfactory == _ksfactory.end()) {
-			KD_FPRINT("unregistered stream type. rtype: %s", RType.c_str());
-			return nullptr;
-		}
-
-		// check for resource factory methode
-		auto rfactory = _krfactory.find(RType);
-		if (rfactory == _krfactory.end()) {
-			KD_FPRINT("unregistered resource type. rtype: %s", RType.c_str());
-			return nullptr;
-		}
-
-		bool CatchStream = rfactory->second.second;
+		
+		auto sindex = (SIZE)SType;
+		auto rindex = (SIZE)RType;
+		bool CatchStream = _krfactory[rindex].second;
 
 		// checking file name
 		if (Address.empty()) {
@@ -148,9 +129,9 @@ namespace Kite {
 		}
 
 		// create stream
-		auto stream = sfactory->second();
+		auto stream = _ksfactory[sindex]();
 		if (stream == nullptr) {
-			KD_FPRINT("can't create stream. stream type: %s", SType.c_str());
+			KD_FPRINT("can't create stream. stream type: %s", getIStreamTypesName(SType).c_str());
 			return nullptr;
 		}
 
@@ -159,7 +140,7 @@ namespace Kite {
 		stream->getFileInfoStr(ResName, finfo);
 
 		// create new resource and assocated input stream
-		KResource *resource = rfactory->second.first(finfo.name);
+		KResource *resource = _krfactory[rindex].first(finfo.name);
 		resource->setModified(true);
 
 		// loading composite resources (recursive)
@@ -362,25 +343,6 @@ namespace Kite {
 		return true;
 	}
 
-	const std::vector<std::string> &KResourceManager::getRegisteredTypes() {
-		static std::vector<std::string> rlist;
-		rlist.clear();
-		rlist.reserve(_krfactory.size());
-
-		for (auto it = _krfactory.begin(); it != _krfactory.end(); ++it) {
-			rlist.push_back(it->first);
-		}
-
-		return rlist;
-	}
-
-	bool KResourceManager::isRegiteredType(const std::string &Type) {
-		if (_krfactory.find(Type) != _krfactory.end()) {
-			return true;
-		}
-		return false;
-	}
-
 	void KResourceManager::clear() {
 		for (auto it = _kmap.begin(); it != _kmap.end(); ++it) {
 			// post a message about unloaded resource
@@ -405,7 +367,7 @@ namespace Kite {
 	}
 
 	bool KResourceManager::loadCompositeList(KResource *Res, KIStream &Stream, const std::string &Address) {
-		std::vector<std::pair<std::string, std::string>> plist;
+		std::vector<std::pair<std::string, RTypes>> plist;
 		KBinarySerial serializer;
 		if (!serializer.loadStream(Stream, Address + ".dep")) {
 			KD_FPRINT("cant load resource composite list. rname: %s", Res->getName().c_str());

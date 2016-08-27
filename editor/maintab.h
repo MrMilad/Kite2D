@@ -22,11 +22,13 @@ public:
 	~MainTab();
 
 signals:
-	void requestResList(const QString &Type, QList<const Kite::KResource *> &List);
+	void requestResList(Kite::RTypes Type, QList<const Kite::KResource *> &List);
 	Kite::KResource *requestRes(const QString &Name);
+	Kite::KResource *requestAddRes(Kite::RTypes Type);
 
 public slots:
 	void saveAll();
+	void saveRes(Kite::KResource *Res);
 	void openTabs(Kite::KResource *Res);
 	void selectResource(Kite::KResource *Res);
 	void closeResource(Kite::KResource *Res);
@@ -51,7 +53,7 @@ private:
 	QWidget *scene;
 	KiteInfo *kinfo;
 	QVector<QShortcut *> shortcuts;
-	QHash<QString, TabWidget *(*)(Kite::KResource *, KiteInfo *, QWidget *)> tabFactory;
+	QHash<size_t, TabWidget *(*)(Kite::KResource *, KiteInfo *, QWidget *)> tabFactory;
 	QHash<Kite::KResource *, QPair<TabWidget *, QDockWidget *>> resMap;
 };
 

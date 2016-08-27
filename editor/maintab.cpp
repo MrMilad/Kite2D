@@ -48,11 +48,11 @@ void MainTab::focusOutEvent(QFocusEvent *Event) {
 
 void MainTab::registerTabs() {
 	tabFactory.clear();
-	tabFactory.insert("KScript", LuaEditor::factory);
-	tabFactory.insert("KShader", GLSLEditor::factory);
-	tabFactory.insert("KShaderProgram", ShProgEditor::factory);
-	tabFactory.insert("KTexture", TextureEditor::factory);
-	tabFactory.insert("KAtlasTexture", AtlasEditor::factory);
+	tabFactory.insert((size_t)Kite::RTypes::Script, LuaEditor::factory);
+	tabFactory.insert((size_t)Kite::RTypes::Shader, GLSLEditor::factory);
+	tabFactory.insert((size_t)Kite::RTypes::ShaderProgram, ShProgEditor::factory);
+	tabFactory.insert((size_t)Kite::RTypes::Texture, TextureEditor::factory);
+	tabFactory.insert((size_t)Kite::RTypes::AtlasTexture, AtlasEditor::factory);
 }
 
 int MainTab::createTab(QWidget *Widget, Kite::KResource *ResPtr) {
@@ -117,7 +117,7 @@ void MainTab::selectResource(Kite::KResource *Res) {
 	auto found = resMap.find(Res);
 
 	if (found == resMap.end()) {
-		if (Res->getType() == "KScene") {
+		if (Res->getType() == Kite::RTypes::Scene) {
 			auto ind = indexOf(scene);
 			setTabText(ind, Res->getName().c_str());
 			setCurrentIndex(ind);
@@ -148,12 +148,19 @@ void MainTab::saveAll() {
 	}
 }
 
+void MainTab::saveRes(Kite::KResource *Res) {
+	auto found = resMap.find(Res);
+	if (found != resMap.end()) {
+		found->first->saveChanges();
+	}
+}
+
 void MainTab::openTabs(Kite::KResource *Res) {
 	auto found = resMap.find(Res);
 
 	if (found == resMap.end()) {
 		// scene 
-		if (Res->getType() == "KScene") {
+		if (Res->getType() == Kite::RTypes::Scene) {
 			auto ind = indexOf(scene);
 			setTabText(ind, Res->getName().c_str());
 			setCurrentIndex(ind);
@@ -161,7 +168,7 @@ void MainTab::openTabs(Kite::KResource *Res) {
 		// other resources
 		} else {
 			// serach tab factory
-			auto tab = tabFactory.find(Res->getType().c_str());
+			auto tab = tabFactory.find((size_t)Res->getType());
 			if (tab != tabFactory.end()) {
 
 				// create prefred widget
@@ -177,7 +184,7 @@ void MainTab::openTabs(Kite::KResource *Res) {
 	} else {
 		// pined (tab)
 		if ((*found).second == nullptr) {
-			if (Res->getType() == "KScript") {
+			if (Res->getType() == Kite::RTypes::Scene) { 
 				setCurrentIndex(indexOf((*found).first));
 			}
 
@@ -195,7 +202,7 @@ void MainTab::openTabs(Kite::KResource *Res) {
 }
 
 void MainTab::closeResource(Kite::KResource *Res) {
-	if (Res->getType() == "KScene") {
+	if (Res->getType() == Kite::RTypes::Scene) {
 		auto ind = indexOf(scene);
 		setTabText(ind, "Scene");
 		return;

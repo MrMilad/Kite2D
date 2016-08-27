@@ -42,6 +42,7 @@ namespace Kite{
 	*/
 	KM_CLASS(RESOURCE)
 	class KITE_FUNC_EXPORT KShaderProgram : public KResource{
+		KM_INFO(KI_NAME = "ShaderProgram");
 		KMETA_KSHADERPROGRAM_BODY();
 	public:
 		//! Default constructors

@@ -231,7 +231,7 @@ void ObjectDock::recursiveLoad(Kite::KEntity *Root) {
 }
 
 void ObjectDock::installEntityCallback(Kite::KResource *Res) {
-	if (Res->getType() == "KScene") {
+	if (Res->getType() == Kite::RTypes::Scene) {
 		auto scene = (Kite::KScene *)Res;
 		scene->getEManager()->subscribe(*this, "ENTITY_CREATED");
 		scene->getEManager()->subscribe(*this, "ENTITY_REMOVED");
@@ -246,7 +246,7 @@ void ObjectDock::resEdit(Kite::KResource *Res) {
 	Kite::KEntity *root = nullptr;
 
 	// scene
-	if (Res->getType() == "KScene") {
+	if (Res->getType() == Kite::RTypes::Scene) {
 		auto scene = (Kite::KScene *)Res;
 		hlabel->setText("Hierarchy (KScene: " + QString(scene->getName().c_str()) + ")");
 		currEman = scene->getEManager();
@@ -257,7 +257,7 @@ void ObjectDock::resEdit(Kite::KResource *Res) {
 		}
 
 	// prefab
-	} else if (Res->getType() == "KPrefab") {
+	} else if (Res->getType() == Kite::RTypes::Prefab) {
 		auto pre = (Kite::KPrefab *)Res;
 		hlabel->setText("Hierarchy (KPrefab: " + QString(pre->getName().c_str()) + ")");
 		delete preEman;
@@ -303,7 +303,7 @@ void ObjectDock::revertPrefab(Kite::KEntity *Entity) {
 		return;
 	}
 
-	if (res->getType() != "KPrefab") {
+	if (res->getType() != Kite::RTypes::Prefab) {
 		QMessageBox msg;
 		msg.setWindowTitle("Message");
 		msg.setText("there is no prefab with this name.");
@@ -342,7 +342,7 @@ void ObjectDock::revertPrefab(Kite::KEntity *Entity) {
 
 void ObjectDock::applyPrefab(Kite::KEntity *Entity) {
 	if (currRes != nullptr) {
-		if (currRes->getType() == "KPrefab") {
+		if (currRes->getType() == Kite::RTypes::Prefab) {
 			auto pre = (Kite::KPrefab *)currRes;
 			auto ent = currEman->getEntity(currEman->getRoot())->childList()->front();
 			if (!currEman->createPrefab(ent, pre)) {
@@ -374,9 +374,9 @@ void ObjectDock::actClicked() {
 		std::string str = item->text(0).toStdString();
 		auto entity = currEman->getEntityByName(item->text(0).toStdString());
 		bool isPrefab = false;
-		if (currRes->getType() == "KScene") {
+		if (currRes->getType() == Kite::RTypes::Scene) {
 			actionsControl(AS_ON_ITEM);
-		} else if (currRes->getType() == "KPrefab") {
+		} else if (currRes->getType() == Kite::RTypes::Prefab) {
 			isPrefab = true;
 			actionsControl(AS_ON_PREFAB);
 			if (entity->getParentHandle() == currEman->getRoot()) {
@@ -404,7 +404,7 @@ void ObjectDock::actRClicked(const QPoint & pos) {
 		addRootObj->setText("Add New Entity");
 		cmenu.addAction(addRootObj);
 		cmenu.addSeparator();
-		if (currRes->getType() != "KPrefab") {
+		if (currRes->getType() != Kite::RTypes::Prefab) {
 			paste->setData(true);
 			cmenu.addAction(paste);
 		}
@@ -428,7 +428,7 @@ void ObjectDock::actRClicked(const QPoint & pos) {
 
 Kite::KHandle ObjectDock::createObject(bool Prefab) {
 	QStringList prefabList;
-	emit(requestResName("KPrefab", prefabList));
+	emit(requestResName(Kite::RTypes::Prefab, prefabList));
 	auto newObjFrm = new frmAddObj(prefabList, Prefab, this);
 	do {
 		newObjFrm->exec();
@@ -483,7 +483,7 @@ void ObjectDock::actAddChild() {
 		return;
 	}
 	bool pre = true;
-	if (currRes->getType() == "KPrefab") {
+	if (currRes->getType() == Kite::RTypes::Prefab) {
 		pre = false;
 	}
 	auto handle = createObject(pre);
@@ -497,7 +497,7 @@ void ObjectDock::actAddChild() {
 		currEman->getEntity(phndl)->addChild(handle);
 
 		// update prefab
-		if (currRes->getType() == "KPrefab") {
+		if (currRes->getType() == Kite::RTypes::Prefab) {
 			auto ent = currEman->getEntity(currEman->getRoot())->childList()->at(0);
 			currEman->createPrefab(ent, (Kite::KPrefab *)currRes);
 		}
@@ -538,7 +538,7 @@ void ObjectDock::actRemove(){
 		delete item;
 
 		// update prefab
-		if (currRes->getType() == "KPrefab") {
+		if (currRes->getType() == Kite::RTypes::Prefab) {
 			auto ent = currEman->getEntity(currEman->getRoot())->childList()->at(0);
 			currEman->createPrefab(ent, (Kite::KPrefab *)currRes);
 		}
@@ -602,7 +602,7 @@ void ObjectDock::actPrefab() {
 
 	if (item != nullptr) {
 		auto entity = currEman->getEntityByName(item->text(0).toStdString());
-		auto pre = (Kite::KPrefab *)emit(requestCreateResource("KPrefab"));
+		auto pre = (Kite::KPrefab *)emit(requestCreateResource(Kite::RTypes::Prefab));
 		if (pre != nullptr) {
 			currEman->createPrefab(entity->getHandle(), pre);
 		}

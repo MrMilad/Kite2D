@@ -26,7 +26,7 @@
 namespace Kite{
 
 	KShader::KShader(const std::string &Name) :
-		KResource(Name, false),
+		KResource(Name, false, false),
 		_kshtype(ShaderType::UNKNOWN),
 		_kglid(0)
 	{}

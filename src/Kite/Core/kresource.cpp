@@ -27,7 +27,8 @@ USA
 #include <luaintf\LuaIntf.h>
 
 namespace Kite {
-	KResource::KResource(const std::string &Name, bool IsComposite) :
+	KResource::KResource(const std::string &Name, bool CatchStream, bool IsComposite) :
+		_kcatchStream(CatchStream),
 		_kisModified(false),
 		_kisInite(false),
 		_kcomposite(IsComposite),
@@ -57,7 +58,7 @@ namespace Kite {
 			Stream.getFileInfoStr(Address, finfo);
 
 			// save composite infomations (name and type)
-			std::vector<std::pair<std::string, std::string>> plist;
+			std::vector<std::pair<std::string, RTypes>> plist;
 			for (auto it = _kclist.cbegin(); it != _kclist.cend(); ++it) {
 				if ((*it) != nullptr) {
 

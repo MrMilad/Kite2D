@@ -30,6 +30,7 @@ KMETA
 namespace Kite {
 	KM_CLASS(OSTREAM, SCRIPTABLE)
 	class KITE_FUNC_EXPORT KFOStream : public KOStream {
+		KM_INFO(KI_NAME = "FOStream");
 		KMETA_KFOSTREAM_BODY();
 	public:
 		KM_CON()

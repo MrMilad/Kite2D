@@ -133,6 +133,7 @@ void MainWindow::setupScene(){
 	connect(resDock, &ResourceDock::resourceSelected, mainTab, &MainTab::selectResource);
 	connect(resDock, &ResourceDock::resourceEdit, mainTab, &MainTab::openTabs);
 	connect(resDock, &ResourceDock::resourceDelete, mainTab, &MainTab::closeResource);
+	connect(resDock, &ResourceDock::resourceSave, mainTab, &MainTab::saveRes);
 	connect(mainTab, &MainTab::requestResList, resDock, &ResourceDock::filterByTypeRes);
 	connect(mainTab, &MainTab::requestRes, resDock, &ResourceDock::getResource);
 
@@ -376,7 +377,7 @@ void MainWindow::saveXML(QIODevice *device, const QString &Address){
 
 		stream.writeStartElement("item");
 		stream.writeAttribute("name", (*it)->getName().c_str());
-		stream.writeAttribute("type", (*it)->getType().c_str());
+		stream.writeAttribute("type", (*it)->getTypeName().c_str());
 		if (mainTab->isOpen((*it))) {
 			stream.writeAttribute("open", "true");
 		} else {
@@ -459,7 +460,7 @@ bool MainWindow::loadXML(QIODevice *device, const QString &Address) {
 					xml.readNext();
 					if (xml.isStartElement() && xml.name() == "item") {
 						if (!resDock->openResource(curProject->resPath + "/" + xml.attributes().value("name").toString(),
-												  xml.attributes().value("type").toString(), false)) {
+												  Kite::getRTypesByName(xml.attributes().value("type").toString().toStdString()), false)) {
 							return false;
 						}
 
@@ -522,7 +523,8 @@ void MainWindow::engineStarted() {
 }
 
 void MainWindow::enginePaused() {
-	outDock->getEditor()->appendHtml("<font color = \"Aqua\">---- Engine Paused ----</font>");
+	//outDock->getEditor()->appendHtml("<font color = \"Aqua\">---- Engine Paused ----</font>");
+	outDock->getEditor()->appendPlainText("----[ Engine Paused ]----");
 	playScene->setDisabled(false);
 	pauseScene->setDisabled(true);
 	stopScene->setDisabled(false);
@@ -531,7 +533,8 @@ void MainWindow::enginePaused() {
 }
 
 void MainWindow::engineUnpaused() {
-	outDock->getEditor()->appendHtml("<font color = \"Aqua\">---- Engine Unpaused ----</font>");
+	//outDock->getEditor()->appendHtml("<font color = \"Aqua\">---- Engine Unpaused ----</font>");
+	outDock->getEditor()->appendPlainText("----[ Engine Unpaused ]----");
 	playScene->setDisabled(true);
 	pauseScene->setDisabled(false);
 	stopScene->setDisabled(false);
@@ -540,8 +543,9 @@ void MainWindow::engineUnpaused() {
 }
 
 void MainWindow::engineStoped() {
-	outDock->getEditor()->appendHtml("<font color = \"Aqua\">---- Engine Stoped ----</font>");
 	disconnect(exec, &Executer::engineOutput, this, &MainWindow::getEngineOutput);
+	//outDock->getEditor()->appendHtml("<font color = \"Aqua\">---- Engine Stoped ----</font>");
+	outDock->getEditor()->appendPlainText("----[ Engine Stoped ]----");
 	outDock->autoHide();
 	playScene->setDisabled(false);
 	pauseScene->setDisabled(true);
@@ -647,7 +651,7 @@ void MainWindow::closeProject() {
 
 void MainWindow::openProjSetting() {
 	QStringList list;
-	resDock->filterByType("KScene", list);
+	resDock->filterByType(Kite::RTypes::Scene, list);
 	list.push_front("<default>"); // default scene
 	frmProjSettings frm(this, &curProject->config, list);
 	frm.exec();

@@ -44,16 +44,17 @@ USA
 #define KO_DIV
 
 // property tags
-#define KP_NAME
-#define KP_TYPE
-#define KP_CM
-#define KP_MIN
-#define KP_MAX
-#define KP_RES
+#define KP_NAME // name of the property
+#define KP_TYPE // type of the property
+#define KP_CM	// comment of the property (optional)
+#define KP_MIN	// minimum value of the property (optional)
+#define KP_MAX	// maximum value of the property (optional)
+#define KP_RES	// resource type (need only property is a resource holder)
+#define KP_SHOW // show in components editor (optional, true by default)
 
 // info tags
-#define KI_CTYPE // component name
-#define KI_SHOW // show component in editor (true by default if not defined)
+#define KI_NAME		// component name
+#define KI_SHOW		// show component in editor (true by default if not defined)
 
 // variable modifiers
 #define UNBIND  // add this flag for unbindable pod's variables. eg: arrays or private variables

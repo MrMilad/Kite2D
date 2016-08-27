@@ -136,26 +136,27 @@ Internal::RegisterIOMode::registerMeta(MMan, Lua);
 Internal::RegisterPrimitive::registerMeta(MMan, Lua);
 Internal::RegisterRecieveTypes::registerMeta(MMan, Lua);
 Internal::RegisterMessageScope::registerMeta(MMan, Lua);
-Internal::RegisterKCTypes::registerMeta(MMan, Lua);
+Internal::RegisterCTypes::registerMeta(MMan, Lua);
+Internal::RegisterRTypes::registerMeta(MMan, Lua);
 }
 void registerCTypes(KEntityManager *EMan){
-EMan->registerComponent<KTransformCom>(KCTypes::Transform);
-EMan->registerComponent<KLogicCom>(KCTypes::Logic);
-EMan->registerComponent<KLogicInstanceCom>(KCTypes::LogicInstance);
-EMan->registerComponent<KInputCom>(KCTypes::Input);
-EMan->registerComponent<KCameraCom>(KCTypes::Camera);
-EMan->registerComponent<KQuadCom>(KCTypes::Quad);
-EMan->registerComponent<KRenderCom>(KCTypes::Render);
+EMan->registerComponent<KTransformCom>(CTypes::Transform);
+EMan->registerComponent<KLogicCom>(CTypes::Logic);
+EMan->registerComponent<KLogicInstanceCom>(CTypes::LogicInstance);
+EMan->registerComponent<KInputCom>(CTypes::Input);
+EMan->registerComponent<KCameraCom>(CTypes::Camera);
+EMan->registerComponent<KQuadCom>(CTypes::Quad);
+EMan->registerComponent<KRenderCom>(CTypes::Render);
 }
 void registerRTypes(KResourceManager *RMan){
-RMan->registerResource("KScript", KScript::factory, false);
-RMan->registerResource("KAtlasTexture", KAtlasTexture::factory, false);
-RMan->registerResource("KShader", KShader::factory, false);
-RMan->registerResource("KShaderProgram", KShaderProgram::factory, false);
-RMan->registerResource("KTexture", KTexture::factory, false);
-RMan->registerIStream("KFIStream", KFIStream::factory);
-RMan->registerResource("KPrefab", KPrefab::factory, false);
-RMan->registerResource("KScene", KScene::factory, false);
+RMan->registerResource(RTypes::Script, KScript::factory);
+RMan->registerResource(RTypes::AtlasTexture, KAtlasTexture::factory);
+RMan->registerResource(RTypes::Shader, KShader::factory);
+RMan->registerResource(RTypes::ShaderProgram, KShaderProgram::factory);
+RMan->registerResource(RTypes::Texture, KTexture::factory);
+RMan->registerResource(RTypes::Prefab, KPrefab::factory);
+RMan->registerResource(RTypes::Scene, KScene::factory);
+RMan->registerIStream(IStreamTypes::FIStream, KFIStream::factory);
 }
 void createSystems(std::vector<std::unique_ptr<KSystem>> &Systems){
 Systems.clear();

@@ -34,7 +34,7 @@ namespace Kite {
 	class KITE_FUNC_EXPORT KLogicInstanceCom : public KComponent {
 		friend class KLogicSys;
 		KM_INFO(KI_SHOW = "false");
-		KM_INFO(KI_CTYPE = "LogicInstance");
+		KM_INFO(KI_NAME = "LogicInstance");
 		KMETA_KLOGICINSTANCECOM_BODY();
 
 	public:

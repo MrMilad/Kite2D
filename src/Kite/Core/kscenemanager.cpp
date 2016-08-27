@@ -20,6 +20,7 @@ USA
 #include "Kite/core/kscenemanager.h"
 #include "Kite/meta/kmetamanager.h"
 #include "Kite/meta/kmetaclass.h"
+#include "ktypes.khgen.h"
 #include <luaintf\LuaIntf.h>
 
 namespace Kite {
@@ -35,7 +36,7 @@ namespace Kite {
 			return true;
 		}
 
-		scene = (KScene *)_krman->load("KFIStream", "KScene", Name);
+		scene = (KScene *)_krman->load(IStreamTypes::FIStream, RTypes::Scene, Name);
 		if (scene == nullptr) {
 			KD_FPRINT("can't load scene. sname: %s", Name.c_str());
 			return false;
@@ -43,7 +44,7 @@ namespace Kite {
 
 		// load and inite scene resources
 		for (auto it = scene->beginResource(); it != scene->endResource(); ++it) {
-			auto res = _krman->load("KFIStream", it->second, it->first);
+			auto res = _krman->load(IStreamTypes::FIStream, it->second, it->first);
 			if (res == nullptr) {
 				KD_FPRINT("cant load scene resources. sname: %s", scene->getName().c_str());
 				return false;

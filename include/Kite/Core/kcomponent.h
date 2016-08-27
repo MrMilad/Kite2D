@@ -62,7 +62,7 @@ namespace Kite {
 
 		/// will be implemented by KHParser
 		KM_PRO_GET(KP_NAME = "type", KP_TYPE = KCTypes, KP_CM = "type of the component")
-		virtual inline KCTypes getType() const = 0;
+		virtual inline CTypes getType() const = 0;
 
 		/// will be implemented by KHParser
 		KM_PRO_GET(KP_NAME = "typeName", KP_TYPE = std::string, KP_CM = "name of the cmponent's type")
@@ -91,7 +91,7 @@ namespace Kite {
 		inline bool getRemoveOnZeroDep() { return _kremoveNoDep; }
 
 		KM_FUN()
-		inline const std::vector<KCTypes> &getDependency() const { return _kdeplist; }
+		inline const std::vector<CTypes> &getDependency() const { return _kdeplist; }
 
 		KM_FUN()
 		inline U16 getDepCounter() const { return _krefcounter; }
@@ -103,7 +103,7 @@ namespace Kite {
 		/// use this function in constructure.
 		/// circular-dependency is allowed but not recommended. (bad design)
 		/// dont add 'Logic' component as dependency.
-		inline void addDependency(KCTypes ComponentName) { _kdeplist.push_back(ComponentName); }
+		inline void addDependency(CTypes ComponentName) { _kdeplist.push_back(ComponentName); }
 
 		/// automatic remove this component when there is no dependency on it.
 		/// false by default.
@@ -115,7 +115,7 @@ namespace Kite {
 	private:
 		bool _kneedup;
 		bool _kremoveNoDep; // component will removed if refcounter = 0
-		std::vector<KCTypes> _kdeplist;
+		std::vector<CTypes> _kdeplist;
 		KM_VAR() U16 _krefcounter; // dependency ref counter
 		KM_VAR() std::string _kname;
 		KM_VAR() KHandle _khandle;

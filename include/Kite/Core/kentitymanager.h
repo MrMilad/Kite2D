@@ -54,7 +54,7 @@ namespace Kite {
 		~KEntityManager();
 
 		template <typename T>
-		bool registerComponent(KCTypes Type) {
+		bool registerComponent(CTypes Type) {
 			// check base of T
 			static_assert(std::is_base_of<KComponent, T>::value, "T must be derived from KComponent");
 			auto tindex = (SIZE)Type;
@@ -74,7 +74,7 @@ namespace Kite {
 		//void unregisterComponent(KCTypes Type);
 
 		KM_FUN()
-		bool isRegisteredComponent(KCTypes Type);
+		bool isRegisteredComponent(CTypes Type);
 
 		KM_FUN()
 		bool createLayer(const std::string &Name);
@@ -139,7 +139,7 @@ namespace Kite {
 		inline const auto getEntityStorage() { return _kestorage.getContiner(); }
 
 		template<typename T>
-		auto getComponentStorage(KCTypes Type){
+		auto getComponentStorage(CTypes Type){
 			Internal::CHolder<T, KComponent> *drived = static_cast<Internal::CHolder<T, KComponent> *>(_kcstorage[(SIZE)Type]);
 			return drived->getStorage()->getContiner();
 		}
@@ -162,7 +162,7 @@ namespace Kite {
 
 		KHandle _kroot;
 		KCFStorage<KEntity> _kestorage;											// entity storage
-		Internal::BaseCHolder<KComponent> *_kcstorage[(SIZE)KCTypes::maxSize];	// component storages (array)
+		Internal::BaseCHolder<KComponent> *_kcstorage[(SIZE)CTypes::maxSize];	// component storages (array)
 		std::unordered_map<std::string, KHandle> _kentmap; 
 		std::unordered_map<std::string, std::pair<KLayerInfo, std::vector<KHandle>>> _klayermap;
 

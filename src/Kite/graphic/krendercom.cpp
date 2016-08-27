@@ -31,7 +31,7 @@ namespace Kite{
 		_kshprogptr(nullptr),
 		_ktextureptr(nullptr)
 	{
-		addDependency(KCTypes::Transform);
+		addDependency(CTypes::Transform);
 		setRemoveOnDepZero(true);
 	}
 

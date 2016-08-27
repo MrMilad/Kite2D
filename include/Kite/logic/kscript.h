@@ -30,6 +30,7 @@ KMETA
 namespace Kite {
 	KM_CLASS(RESOURCE)
 	class KITE_FUNC_EXPORT KScript : public KResource {
+		KM_INFO(KI_NAME = "Script");
 		KMETA_KSCRIPT_BODY();
 	public:
 		KScript(const std::string &Name);

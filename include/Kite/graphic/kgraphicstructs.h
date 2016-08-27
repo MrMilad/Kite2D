@@ -462,7 +462,7 @@ namespace Kite{
 			GLPrimitive lastGeo;	//!< Last used geometric type
 
 			//! Default constructors
-			KGLState(U32 ObjectIndex = 0, U32 LastTextureID = 0, U32 LastSeaderID = 0,
+			KGLState(U32 LastTextureID = 0, U32 LastSeaderID = 0,
 					   GLPrimitive GeoType = GLPrimitive::TRIANGLES) :
 				lastTexId(LastTextureID),
 				lastShdId(LastSeaderID),

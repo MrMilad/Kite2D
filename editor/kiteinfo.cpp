@@ -9,7 +9,7 @@
 
 KiteInfo::KiteInfo():
 	model(new QStandardItemModel),
-	resources(new QStringList), components(new QVector<QPair<Kite::KCTypes, bool>>)
+	resources(new QStringList), components(new QVector<QPair<Kite::CTypes, bool>>)
 {
 	// register kiet meta system
 	Kite::KMetaManager kmman;
@@ -48,7 +48,7 @@ KiteInfo::KiteInfo():
 				if (ilit->first == "KI_SHOW" && ilit->second == "false") {
 					visible = false;
 				}
-				if (ilit->first == "KI_CTYPE") {
+				if (ilit->first == "KI_NAME") {
 					name = ilit->second.c_str();
 				}
 			}
@@ -80,7 +80,7 @@ KiteInfo::KiteInfo():
 				item->appendRow(pitem);
 
 				// is resource field
-				if (!piit->resType.empty()) {
+				if (piit->resType != Kite::RTypes::maxSize) {
 					resComponents[(size_t)Kite::getCTypesByName(name.toStdString())].push_back(*piit);
 				}
 			}

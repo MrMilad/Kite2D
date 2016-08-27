@@ -39,14 +39,19 @@ int main() {
 	auto eman = engine->getSceneManager()->getActiveScene()->getEManager();
 	auto ent2 = eman->createEntity("ent2");
 
-	ent2->addComponent(KCTypes::Logic, "l1");
-	auto l2 = ent2->addComponent(KCTypes::Logic, "l2")->getHandle();
-	ent2->addComponent(KCTypes::Logic, "l3");
+	ent2->addComponent(CTypes::Logic, "l1");
+	auto l2 = ent2->addComponent(CTypes::Logic, "l2")->getHandle();
+	ent2->addComponent(CTypes::Logic, "l3");
 
 	auto com = ent2->getComponent(l2);
 
-	ent2->removeComponent(KCTypes::Logic, "l2");
-	ent2->removeComponent(KCTypes::Logic, "l1");
+	KPrefab pre("dfdf");
+	eman->createPrefab(ent2->getHandle(), &pre);
+
+	eman->loadPrefab(&pre);
+
+	ent2->removeComponent(CTypes::Logic, "l2");
+	ent2->removeComponent(CTypes::Logic, "l1");
 
 	engine->start();
 	engine->shutdown();

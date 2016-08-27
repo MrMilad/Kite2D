@@ -145,8 +145,10 @@ namespace Kite {
 		while (_kwindow->update()) {
 
 #if defined(KITE_EDITOR) && defined (KITE_DEV_DEBUG)
+			std::unique_lock<std::mutex> lk(mx);
+			if (pauseFlag.load()) { cv.wait(lk); }
 			if (exitFlag.load()) { break; }
-			if (pauseFlag.load()) { continue; }
+			std::this_thread::sleep_for(std::chrono::milliseconds(1)); // just for sync with editor
 #endif
 			for (auto it = _ksys.begin(); it != _ksys.end(); ++it) {
 				_keman = _ksman->getActiveScene()->getEManager();

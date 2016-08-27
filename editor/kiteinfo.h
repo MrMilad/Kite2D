@@ -21,7 +21,7 @@ public:
 private:
 	QStandardItemModel *model;
 	QStringList *resources;
-	QVector<QPair<Kite::KCTypes, bool>> *components; // <type, visible>
+	QVector<QPair<Kite::CTypes, bool>> *components; // <type, visible>
 	QHash<size_t, QVector<Kite::KMetaProperty>> resComponents; // <component name, resource properti>
 };
 

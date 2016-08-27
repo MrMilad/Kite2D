@@ -35,7 +35,7 @@ namespace Kite{
 	KM_CLASS(COMPONENT)
 	class KITE_FUNC_EXPORT KRenderCom : public KComponent{
 		friend class KRenderSys;
-		KM_INFO(KI_CTYPE = "Render");
+		KM_INFO(KI_NAME = "Render");
 		KMETA_KRENDERCOM_BODY();
     public:
 		// array rendering (without index)
@@ -50,13 +50,13 @@ namespace Kite{
 		KM_PRO_SET(KP_NAME = "shaderProgram")
 		void setShader(const KStringID &ShaderProgram);
 
-		KM_PRO_GET(KP_NAME = "shaderProgram", KP_TYPE = KStringID, KP_CM = "name of the shader program", KP_RES = "KShaderProgram")
+		KM_PRO_GET(KP_NAME = "shaderProgram", KP_TYPE = KStringID, KP_CM = "name of the shader program", KP_RES = RTypes::ShaderProgram)
 		inline const KStringID &getShader() const { return _kshprog; }
 
 		KM_PRO_SET(KP_NAME = "texture")
 		void setTexture(const KStringID &Texture);
 
-		KM_PRO_GET(KP_NAME = "texture", KP_TYPE = KStringID, KP_CM = "name of the texture", KP_RES = "KTexture")
+		KM_PRO_GET(KP_NAME = "texture", KP_TYPE = KStringID, KP_CM = "name of the texture", KP_RES = RTypes::Texture)
 		inline const KStringID &getTexture() const { return _ktexture; }
 
 		KM_PRO_SET(KP_NAME = "visible")

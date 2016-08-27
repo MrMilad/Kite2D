@@ -24,7 +24,7 @@ USA
 
 namespace Kite {
 	KScript::KScript(const std::string &Name) :
-		KResource(Name, false) 
+		KResource(Name, false, false) 
 	{
 		// dont need initialize
 		setInite(true);

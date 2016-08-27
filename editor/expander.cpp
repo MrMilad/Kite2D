@@ -8,7 +8,7 @@ Expander::Expander(Kite::KComponent *Comp, QTreeWidget *Parent):
 	chandle = Comp->getHandle();
 	ctype = Comp->getType();
 	QString name = Comp->getTypeName().c_str();
-	if (ctype == Kite::KCTypes::Logic) {
+	if (ctype == Kite::CTypes::Logic) {
 		name.append(" ");
 		name.append(Comp->getName().c_str());
 	}

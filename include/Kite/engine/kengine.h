@@ -33,7 +33,10 @@ USA
 #include "kengine.khgen.h"
 
 #ifdef KITE_EDITOR
+	#include <condition_variable>
+	#include <mutex>
 	#include <atomic>
+	#include <thread>
 #endif
 
 KMETA
@@ -65,8 +68,8 @@ namespace Kite {
 		void shutdown();
 
 #if defined(KITE_EDITOR) && defined (KITE_DEV_DEBUG) // editor hooks	
-		inline void setExitFlag(bool Value) { exitFlag = Value; }
-		inline void setPauseFlag(bool Value) { pauseFlag = Value; }
+		inline void setExitFlag(bool Value) { exitFlag.store(Value); }
+		inline void setPauseFlag(bool Value) { pauseFlag.store(Value); }
 #endif
 		KM_FUN()
 		inline auto getWindow() { return _kwindow; }
@@ -104,8 +107,10 @@ namespace Kite {
 #if defined(KITE_EDITOR) && defined (KITE_DEV_DEBUG) // editor hooks
 		std::atomic<bool> exitFlag;
 		std::atomic<bool> pauseFlag;
-
 		static int luaCustomPrint(lua_State* L);
+	public:
+		std::mutex mx;
+		std::condition_variable cv;
 #endif
 	};
 }

@@ -33,11 +33,12 @@
 
 namespace Kite{
 	bool KRenderSys::update(F32 Delta, KEntityManager *EManager, KResourceManager *RManager) {
-		STATIC_OUT_EDITOR const bool isregist = (EManager->isRegisteredComponent(KCTypes::Camera) && EManager->isRegisteredComponent(KCTypes::Render));
+		STATIC_OUT_EDITOR const bool isregist = (EManager->isRegisteredComponent(CTypes::Camera) 
+												 && EManager->isRegisteredComponent(CTypes::Render));
 		
 		if (isregist) {
 			// sort camera(s) (based depth)
-			STATIC_OUT_EDITOR auto continer = EManager->getComponentStorage<KCameraCom>(KCTypes::Camera);
+			STATIC_OUT_EDITOR auto continer = EManager->getComponentStorage<KCameraCom>(CTypes::Camera);
 			STATIC_OUT_EDITOR std::vector<std::pair<U32, U32>> sortedIndex(KRENDER_CAMERA_SIZE); // reserve 10 pre-defined camera
 			sortedIndex.clear();
 
@@ -89,7 +90,7 @@ namespace Kite{
 					}
 
 					// update and draw renderables
-					STATIC_OUT_EDITOR auto render = EManager->getComponentStorage<KRenderCom>(KCTypes::Render);
+					STATIC_OUT_EDITOR auto render = EManager->getComponentStorage<KRenderCom>(CTypes::Render);
 					U32 indSize = 0;
 					U32 verSize = 0;
 
@@ -111,7 +112,7 @@ namespace Kite{
 
 						// catch renderable components
 						if (rit->_isvisible && EManager->getEntity(rit->getOwnerHandle())->isActive()) {
-							if (auto quadcom = (KQuadCom *)ent->getComponentByName(KCTypes::Quad, "")) {
+							if (auto quadcom = (KQuadCom *)ent->getComponentByName(CTypes::Quad, "")) {
 								objList.push_back({ &(*rit), quadcom });
 
 								// } else if (catch another renderable ...){
@@ -373,7 +374,7 @@ namespace Kite{
 	}
 
 	void KRenderSys::_computeParentsTransform(KEntityManager *Eman, KEntity *Entity, KMatrix3 *Matrix) {
-		auto trcom = (KTransformCom *)Entity->getComponentByName(KCTypes::Transform, "");
+		auto trcom = (KTransformCom *)Entity->getComponentByName(CTypes::Transform, "");
 		if (Entity->getParentHandle() != Eman->getRoot()) {
 			_computeParentsTransform(Eman, Eman->getEntity(Entity->getParentHandle()), Matrix);
 		}

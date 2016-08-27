@@ -35,7 +35,8 @@ namespace Kite {
 	class KITE_FUNC_EXPORT KScene : public KResource {
 		friend class KSceneManager;
 
-		// KM_INFO("CatchStream", "false"); // false by default
+		// KM_INFO(KI_SCATCH = "fasle); // false by default
+		KM_INFO(KI_NAME = "Scene");
 		KMETA_KSCENE_BODY();
 	public:
 		KScene(const std::string &Name);
@@ -46,7 +47,7 @@ namespace Kite {
 		KM_PRO_GET(KP_NAME = "entityManager", KP_TYPE = KEntityManager, KP_CM = "getting scene entity manager")
 		inline auto *getEManager() { return &_keman; }
 
-		bool addResource(const std::string &RName, const std::string &RType);
+		bool addResource(const std::string &RName, RTypes Type);
 
 		void removeResource(const std::string &RName);
 
@@ -60,7 +61,7 @@ namespace Kite {
 
 		bool _loadStream(KIStream &Stream, const std::string &Address) override;
 
-		std::unordered_map<std::string, std::string> _kres; // <name, <type, flag>>
+		std::unordered_map<std::string, RTypes> _kres; // <name, type>
 		KEntityManager _keman;
 	};
 }

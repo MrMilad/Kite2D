@@ -35,7 +35,7 @@ public:
 	explicit ComponentDock(QWidget *parent = 0);
 	~ComponentDock();
 
-	void inite(const QVector<QPair<Kite::KCTypes, bool>> &TypeList);
+	void inite(const QVector<QPair<Kite::CTypes, bool>> &TypeList);
 
 public slots:
 	void entityEdit(Kite::KEntityManager *Eman, Kite::KEntity *Entity, bool isPrefab);
@@ -48,10 +48,10 @@ signals:
 	void resSelected(const QString &Name);
 	void revertPrefab(Kite::KEntity *Entity);
 	void applyPrefab(Kite::KEntity *Entity);
-	void requestResNames(const QString &Type, QStringList &List);
+	void requestResNames(Kite::RTypes Type, QStringList &List);
 
 private slots:
-void updateResList(const QString &Type, QStringList &List);
+void updateResList(Kite::RTypes Type, QStringList &List);
 	void actExeOrder();
 	void actCollAll();
 	void actAdd(QAction *Action);
@@ -84,9 +84,9 @@ private:
 	void setupHTools();
 	void actionsControl(ActionsState State);
 	QString getAvailName(Kite::KEntity *Entity);
-	Expander *createCom(Kite::KCTypes Type);
+	Expander *createCom(Kite::CTypes Type);
 	void addLogicToPool(int Count);
-	void initePool(const QVector<QPair<Kite::KCTypes, bool>> &, unsigned int LogicCount = 15);
+	void initePool(const QVector<QPair<Kite::CTypes, bool>> &, unsigned int LogicCount = 15);
 	void fetchFromPool(Kite::KComponent *Comp);
 	void putIntoPool(Expander *Exp);
 	void showFrame(Kite::KEntity *Entity, bool isPrefab);
@@ -106,7 +106,7 @@ private:
 	QLabel *llabel;
 	QMenu *mtypes;
 	Kite::KHandle currEntity;
-	QVector<QPair<Kite::KCTypes, bool>> types;
+	QVector<QPair<Kite::CTypes, bool>> types;
 	Kite::KMetaManager mman;
 	Kite::KEntityManager *eman;
 	priv::TreeItemPool treePool;

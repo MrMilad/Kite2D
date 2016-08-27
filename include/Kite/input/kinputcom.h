@@ -29,7 +29,7 @@ KMETA
 namespace Kite {
 	KM_CLASS(COMPONENT)
 	class KITE_FUNC_EXPORT KInputCom : public KComponent {
-		KM_INFO(KI_CTYPE = "Input");
+		KM_INFO(KI_NAME = "Input");
 		KMETA_KINPUTCOM_BODY();
 	public:
 		KInputCom(const std::string &Name = "");

@@ -68,14 +68,14 @@ namespace Kite {
 	}
 
 	KEntityManager::~KEntityManager() {
-		for (auto i = 0; i < (SIZE)KCTypes::maxSize; ++i) {
+		for (auto i = 0; i < (SIZE)CTypes::maxSize; ++i) {
 			delete _kcstorage[i];
 		}
 		_kestorage.clear();
 	}
 
 	void KEntityManager::initeCStorages() {
-		for (U16 i = 0; i < (U16)KCTypes::maxSize; ++i) {
+		for (U16 i = 0; i < (U16)CTypes::maxSize; ++i) {
 			_kcstorage[i] = nullptr;
 		}
 	}
@@ -313,7 +313,7 @@ namespace Kite {
 		_kcstorage[(SIZE)Type] = nullptr;
 	}*/
 
-	bool KEntityManager::isRegisteredComponent(KCTypes Type) {
+	bool KEntityManager::isRegisteredComponent(CTypes Type) {
 		if (_kcstorage[(SIZE)Type] != nullptr){
 			return true;
 		}
@@ -356,7 +356,7 @@ namespace Kite {
 		for (auto it = lclist.begin(); it != lclist.end(); ++it) {
 			auto lcomp = Entity->getComponent((*it));
 			// components
-			Prefab->_kcode.append("local comp = kite.Logic.toLogic(ent:addComponent(kctypes.Logic, \"" + lcomp->getName() + "\"))\n");
+			Prefab->_kcode.append("local comp = kite.Logic.toLogic(ent:addComponent(kite.CTypes.Logic, \"" + lcomp->getName() + "\"))\n");
 			Prefab->_kcode.append("comp:deserial(ser, false)\n");
 			lcomp->serial(Prefab->_kdata, false);
 		}
@@ -368,11 +368,11 @@ namespace Kite {
 			auto com = _kcstorage[it->type]->get((*it));
 			// components
 			Prefab->_kcode.append("comp = kite." + com->getTypeName() + ".to" + com->getTypeName() +
-								  "(ent:addComponent(\"" + com->getTypeName() + "\", \"" + com->getName() + "\"))\n");
+								  "(ent:addComponent(kite.CTypes." + com->getTypeName() + ", \"" + com->getName() + "\"))\n");
 
 			// transform data not saved with prefab
 			if (!CopyPrefab) {
-				if (com->getType() == KCTypes::Transform) continue;
+				if (com->getType() == CTypes::Transform) continue;
 			}
 
 			Prefab->_kcode.append("comp:deserial(ser, false)\n");
@@ -419,11 +419,16 @@ namespace Kite {
 		Prefab->initeLoad();
 
 		// setup script with entity name
-		luaL_dostring(_klstate, Prefab->_kcode.c_str());
+		if (luaL_dostring(_klstate, Prefab->_kcode.c_str())) {
+			const char *out = lua_tostring(_klstate, -1);
+			lua_pop(_klstate, 1);
+			KD_FPRINT("prefab script error on load. %s", out);
+			return KHandle();
+		}
 		LuaIntf::LuaRef lref(_klstate, "_G.execute");
 		KHandle handle;
 		if (lref.isFunction()) {
-#if defined(KITE_DEV_DEBU)
+#if defined(KITE_DEV_DEBUG)
 			try {
 				handle = lref.call<KHandle>(this, (KBaseSerial *)&Prefab->_kdata);
 			} catch (std::exception& e) {
@@ -483,7 +488,7 @@ namespace Kite {
 		Out << _kroot;
 		Out << _kestorage;
 
-		for (SIZE i = 0; i < (SIZE)KCTypes::maxSize; ++i) {
+		for (SIZE i = 0; i < (SIZE)CTypes::maxSize; ++i) {
 			_kcstorage[i]->serial(Out);
 		}
 		Out << _kentmap;
@@ -495,7 +500,7 @@ namespace Kite {
 		In >> _knum;
 		In >> _kroot;
 		In >> _kestorage;
-		for (SIZE i = 0; i < (SIZE)KCTypes::maxSize; ++i) {
+		for (SIZE i = 0; i < (SIZE)CTypes::maxSize; ++i) {
 			_kcstorage[i]->deserial(In);
 		}
 		In >> _kentmap;

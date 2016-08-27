@@ -32,7 +32,7 @@ KMETA
 namespace Kite{
 	KM_CLASS(COMPONENT)
 	class KITE_FUNC_EXPORT KCameraCom : public KComponent{
-		KM_INFO(KI_CTYPE = "Camera");
+		KM_INFO(KI_NAME = "Camera");
 		KMETA_KCAMERACOM_BODY();
 		friend class KRenderSys;
     public:
@@ -93,7 +93,7 @@ namespace Kite{
 		KM_PRO_SET(KP_NAME = "renderTexture")
 		inline void setRenderTexture(const KStringID &Texture) { _krtexture = Texture; }
 
-		KM_PRO_GET(KP_NAME = "renderTexture", KP_TYPE = KStringID, KP_CM = "render to texture", KP_RES = "KTexture")
+		KM_PRO_GET(KP_NAME = "renderTexture", KP_TYPE = KStringID, KP_CM = "render to texture", KP_RES = RTypes::Texture)
 		inline const KStringID &getRenderTexture() const { return _krtexture; }
 
 		KM_PRO_SET(KP_NAME = "clearViewport")

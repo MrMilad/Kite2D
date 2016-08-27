@@ -25,7 +25,7 @@ USA
 
 namespace Kite {
 	KPrefab::KPrefab(const std::string &Name) :
-		KResource(Name, false),
+		KResource(Name, false, false),
 		_kisempty(true)
 	{
 		// prefab has an entity by default

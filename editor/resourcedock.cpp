@@ -31,8 +31,8 @@ Kite::RecieveTypes ResourceDock::onMessage(Kite::KMessage *Message, Kite::Messag
 		auto res = (Kite::KResource *)Message->getData();
 
 		// add it to tree
-		auto icons = formats.values(res->getType().c_str());
-		auto pitem = resTree->findItems(res->getType().c_str(), Qt::MatchFlag::MatchRecursive).first();
+		auto icons = formats.values((size_t)res->getType());
+		auto pitem = resTree->findItems(res->getTypeName().c_str(), Qt::MatchFlag::MatchRecursive).first();
 		auto item = new QTreeWidgetItem(pitem);
 		item->setText(0, res->getName().c_str());
 
@@ -90,57 +90,55 @@ void ResourceDock::setupCategories() {
 
 	// create resources tree
 	resTree->clear();
-	auto rlist = rman.getRegisteredTypes();
-	for (auto it = rlist.begin(); it != rlist.end(); ++it) {
+	for (size_t i = 0; i < (size_t)Kite::RTypes::maxSize; ++i) {
 		// 
 		auto cat = new QTreeWidgetItem(resTree);
-		cat->setText(0, (*it).c_str());
+		cat->setText(0, Kite::getRTypesName((Kite::RTypes)i).c_str());
 		cat->setIcon(0, QIcon(":/icons/folder"));
 
 		// formats
 		QPair<QString, QString> fpair;
-		if ((*it) == "KScene") {
+		if (i == (size_t)Kite::RTypes::Scene) {
 			fpair.first = ".sce";
 			fpair.second = ":/icons/sce";
-			formats.insert((*it).c_str(), fpair);
+			formats.insert(i, fpair);
 
-		} else if ((*it) == "KScript") {
+		} else if (i == (size_t)Kite::RTypes::Script) {
 			fpair.first = ".lua";
 			fpair.second = ":/icons/scr";
-			formats.insert((*it).c_str(), fpair);
+			formats.insert(i, fpair);
 
-		} else if ((*it) == "KPrefab") {
+		} else if (i == (size_t)Kite::RTypes::Prefab) {
 			fpair.first = ".pre";
 			fpair.second = ":/icons/pre";
-			formats.insert((*it).c_str(), fpair);
+			formats.insert(i, fpair);
 
-		} else if ((*it) == "KTexture") {
+		} else if (i == (size_t)Kite::RTypes::Texture) {
 			fpair.first = ".tex";
 			fpair.second = ":/icons/texture";
-			formats.insert((*it).c_str(), fpair);
+			formats.insert(i, fpair);
 
-		} else if ((*it) == "KShader") {
+		} else if (i == (size_t)Kite::RTypes::Shader) {
 			fpair.first = ".vert";
 			fpair.second = ":/icons/vshader";
-			formats.insert((*it).c_str(), fpair);
+			formats.insert(i, fpair);
 
 			fpair.first = ".frag";
 			fpair.second = ":/icons/fshader";
-			formats.insert((*it).c_str(), fpair);
+			formats.insert(i, fpair);
 
 			fpair.first = ".geom";
 			fpair.second = ":/icons/gshader";
-			formats.insert((*it).c_str(), fpair);
+			formats.insert(i, fpair);
 
-		} else if ((*it) == "KShaderProgram") {
+		} else if (i == (size_t)Kite::RTypes::ShaderProgram) {
 			fpair.first = ".shp";
 			fpair.second = ":/icons/shaderp";
-			formats.insert((*it).c_str(), fpair);
-
+			formats.insert(i, fpair);
 		} else {
 			fpair.first = "";
 			fpair.second = ":/icons/new";
-			formats.insert((*it).c_str(), fpair);
+			formats.insert(i, fpair);
 		}
 	}
 }
@@ -266,10 +264,9 @@ void ResourceDock::clearResources() {
 	rman.clear();
 
 	// reset tree
-	auto rlist = rman.getRegisteredTypes();
-	for (auto it = rlist.begin(); it != rlist.end(); ++it) {
+	for (size_t i = 0; i < (size_t)Kite::RTypes::maxSize; ++i) {
 		auto cat = new QTreeWidgetItem(resTree);
-		cat->setText(0, (*it).c_str());
+		cat->setText(0, Kite::getRTypesName((Kite::RTypes)i).c_str());
 		cat->setIcon(0, QIcon(":/icons/folder"));
 	}
 }
@@ -285,21 +282,21 @@ const std::vector<Kite::KResource *> &ResourceDock::dumpResource() {
 	return rman.dump();
 }
 
-void ResourceDock::filterByType(const QString &Type, QStringList &List) {
+void ResourceDock::filterByType(Kite::RTypes Type, QStringList &List) {
 	List.clear();
 	auto dumpList = rman.dump();
 	for (auto it = dumpList.begin(); it != dumpList.end(); ++it) {
-		if ((*it)->getType() == Type.toStdString()) {
+		if ((*it)->getType() == Type) {
 			List.append((*it)->getName().c_str());
 		}
 	}
 }
 
-void ResourceDock::filterByTypeRes(const QString &Type, QList<const Kite::KResource *> &List) {
+void ResourceDock::filterByTypeRes(Kite::RTypes Type, QList<const Kite::KResource *> &List) {
 	List.clear();
 	auto dumpList = rman.dump();
 	for (auto it = dumpList.begin(); it != dumpList.end(); ++it) {
-		if ((*it)->getType() == Type.toStdString()) {
+		if ((*it)->getType() == Type) {
 			List.push_back((*it));
 		}
 	}
@@ -319,7 +316,7 @@ void ResourceDock::manageUsedResource(const QHash<size_t, QVector<Kite::KMetaPro
 
 	auto dumpList = rman.dump();
 	for (auto it = dumpList.begin(); it != dumpList.end(); ++it) {
-		if ((*it)->getType() == "KScene") {
+		if ((*it)->getType() == Kite::RTypes::Scene) {
 			auto scene = (Kite::KScene *)(*it);
 			auto eman = scene->getEManager();
 
@@ -334,19 +331,19 @@ void ResourceDock::manageUsedResource(const QHash<size_t, QVector<Kite::KMetaPro
 				for (auto sit = lcomps.begin(); sit != lcomps.end(); ++sit) {
 					auto script = (Kite::KLogicCom *)eit->getComponent((*sit));
 					if (!script->getScript().str.empty()) {
-						scene->addResource(script->getScript().str, "KScript");
+						scene->addResource(script->getScript().str, Kite::RTypes::Script);
 					}
 				}
 
 				// then we collect resources from other components
 				for (auto cit = ResComponents->begin(); cit != ResComponents->end(); ++cit) {
-					if (cit.key() == (size_t)Kite::KCTypes::Logic) {
+					if (cit.key() == (size_t)Kite::CTypes::Logic) {
 						continue;
 					}
 
-					if (eit->hasComponent((Kite::KCTypes)cit.key())) {
+					if (eit->hasComponent((Kite::CTypes)cit.key())) {
 						for (auto pit = cit->begin(); pit != cit->end(); ++pit) {
-							auto com = eit->getComponentByName((Kite::KCTypes)cit.key());
+							auto com = eit->getComponentByName((Kite::CTypes)cit.key());
 							auto res = com->getProperty(pit->name);
 							std::string resName;
 							if (pit->typeName == "std::string") {
@@ -366,14 +363,14 @@ void ResourceDock::manageUsedResource(const QHash<size_t, QVector<Kite::KMetaPro
 	}
 }
 
-bool ResourceDock::openResource(const QString &Address, const QString &Type, bool WarnExist) {
+bool ResourceDock::openResource(const QString &Address, Kite::RTypes Type, bool WarnExist) {
 	// check name
 	QFileInfo file(Address);
 	if (rman.get(Address.toStdString()) != nullptr) {
 		if (WarnExist) {
 			QMessageBox msg;
 			msg.setWindowTitle("Message");
-			msg.setText("This file is already exist.\nType: " + Type + "\nAddress: " + Address);
+			msg.setText("This file is already exist.\nType: " + QString(Kite::getRTypesName(Type).c_str()) + "\nAddress: " + Address);
 			msg.exec();
 			return false;
 		} else {
@@ -381,21 +378,12 @@ bool ResourceDock::openResource(const QString &Address, const QString &Type, boo
 		}
 	}
 
-	// check type
-	if (!rman.isRegiteredType(Type.toStdString())) {
-		QMessageBox msg;
-		msg.setWindowTitle("Message");
-		msg.setText("Unregistered resource type.\nType: " + Type + "\nAddress: " + Address);
-		msg.exec();
-		return false;
-	}
-
 	// load resource 
-	auto res = rman.load("KFIStream", Type.toStdString(), Address.toStdString());
+	auto res = rman.load(Kite::IStreamTypes::FIStream, Type, Address.toStdString());
 	if (res = nullptr) {
 		QMessageBox msg;
 		msg.setWindowTitle("Message");
-		msg.setText("Resource add module return nullptr!\nresource type: " + Type);
+		msg.setText("Resource add module return nullptr!\nresource type: " + QString(Kite::getRTypesName(Type).c_str()));
 		msg.exec();
 		return false;
 	}
@@ -406,27 +394,17 @@ Kite::KResource *ResourceDock::getResource(const QString &Name) {
 	return rman.get(Name.toStdString());
 }
 
-Kite::KResource *ResourceDock::addResource(const QString &Type) {
-	// check type
-	if (!rman.isRegiteredType(Type.toStdString())) {
-		QMessageBox msg;
-		msg.setWindowTitle("Message");
-		msg.setText("this type is not registered!\nresource type: " + Type);
-		msg.exec();
-		return nullptr;
-	}
-
-	
+Kite::KResource *ResourceDock::addResource(Kite::RTypes Type) {	
 	// find category and format
-	auto pitem = resTree->findItems(Type, Qt::MatchFlag::MatchRecursive);
-	auto frmt = formats.find(Type)->first;
+	auto pitem = resTree->findItems(Kite::getRTypesName(Type).c_str(), Qt::MatchFlag::MatchRecursive);
+	auto frmt = formats.find((size_t)Type)->first;
 	
 	QString text;
 	frmnewres *form;
 	QStringList slist;
 
 	// shaders have severeal types(vert, frag, geo)
-	if (Type == "KShader") {
+	if (Type == Kite::RTypes::Shader) {
 		slist.push_back("Vertex");
 		slist.push_back("Fragment");
 		slist.push_back("Geometry");
@@ -449,7 +427,7 @@ Kite::KResource *ResourceDock::addResource(const QString &Type) {
 		text = form->getName();
 
 		// shader types
-		if (Type == "KShader") {
+		if (Type == Kite::RTypes::Shader) {
 			if (form->getType() == "Vertex") { frmt = ".vert"; }
 			if (form->getType() == "Fragment") { frmt = ".frag"; }
 			if (form->getType() == "Geometry") { frmt = ".geom"; }
@@ -495,11 +473,11 @@ Kite::KResource *ResourceDock::addResource(const QString &Type) {
 	delete form;
 
 	// create new res
-	auto newres = rman.create(Type.toStdString(), text.toStdString());
+	auto newres = rman.create(Type, text.toStdString());
 	if (newres == nullptr) {
 		QMessageBox msg;
 		msg.setWindowTitle("Message");
-		msg.setText("resource add module return nullptr!\nresource type: " + Type);
+		msg.setText("resource add module return nullptr!\nresource type: " + QString(Kite::getRTypesName(Type).c_str()));
 		msg.exec();
 		return nullptr;
 	}
@@ -509,18 +487,18 @@ Kite::KResource *ResourceDock::addResource(const QString &Type) {
 	if (!newres->saveStream(fstream, currDirectory.toStdString() + "\\" + text.toStdString())) {
 		QMessageBox msg;
 		msg.setWindowTitle("Message");
-		msg.setText("cant create resource file.!\nresource type: " + Type);
+		msg.setText("cant create resource file.!\nresource type: " + QString(Kite::getRTypesName(Type).c_str()));
 		msg.exec();
 		return nullptr;
 	}
 	delete newres;
 
 	// reload it from hard disk
-	auto res = rman.load("KFIStream", Type.toStdString(), currDirectory.toStdString() + "\\" + text.toStdString());
+	auto res = rman.load(Kite::IStreamTypes::FIStream, Type, currDirectory.toStdString() + "\\" + text.toStdString());
 	if (res == nullptr) {
 		QMessageBox msg;
 		msg.setWindowTitle("Message");
-		msg.setText("resource add module return nullptr!\nresource type: " + Type);
+		msg.setText("resource add module return nullptr!\nresource type: " + QString(Kite::getRTypesName(Type).c_str()));
 		msg.exec();
 		return nullptr;
 	}
@@ -581,7 +559,7 @@ void ResourceDock::actRClicked(const QPoint & pos) {
 
 void ResourceDock::actAdd() {
 	auto pitem = resTree->currentItem();
-	auto restype = pitem->text(0);
+	auto restype = Kite::getRTypesByName(pitem->text(0).toStdString());
 	
 	if (pitem->parent() != nullptr) {
 		return;
@@ -592,8 +570,8 @@ void ResourceDock::actAdd() {
 
 void ResourceDock::actOpen() {
 	auto pitem = resTree->currentItem();
-	auto restype = pitem->text(0);
-	auto frm = formats.values(restype);
+	auto restype = Kite::getRTypesByName(pitem->text(0).toStdString());
+	auto frm = formats.values((size_t)restype);
 
 	if (pitem->parent() != nullptr) {
 		return;
@@ -603,7 +581,8 @@ void ResourceDock::actOpen() {
 	for (auto it = frm.begin(); it != frm.end(); ++it) {
 		formats += " *" + it->first;
 	}
-	QString fileName = QFileDialog::getOpenFileName(this, "Open " + restype, currDirectory, "Kite2D Resource File (" + formats + ")");
+	QString fileName = QFileDialog::getOpenFileName(this, "Open " + QString(Kite::getRTypesName(restype).c_str()),
+													currDirectory, "Kite2D Resource File (" + formats + ")");
 
 	if (!fileName.isEmpty()) {
 		openResource(fileName, restype);
@@ -618,6 +597,7 @@ void ResourceDock::actSave() {
 		return actSaveAs();
 	}
 
+	emit(resourceSave(res));
 	Kite::KFOStream ostream;
 	if (!res->saveStream(ostream, res->getAddress() + "\\" + res->getName())) {
 		QMessageBox msg;
@@ -630,13 +610,14 @@ void ResourceDock::actSave() {
 void ResourceDock::actSaveAs() {
 	auto item = resTree->currentItem();
 	auto res = rman.get(item->text(0).toStdString());
-	auto type = item->parent()->text(0);
-	auto frm = formats.find(type);
+	auto type = Kite::getRTypesByName(item->parent()->text(0).toStdString());
+	auto frm = formats.find((size_t)type);
 
 	QString fileName = QFileDialog::getSaveFileName(this, "Save " + item->text(0),
 													"", "Kite2D Resource File (*" + frm->first +" )");
 
 	if (!fileName.isEmpty()) {
+		emit(resourceSave(res));
 		Kite::KFOStream ostream;
 		if (!res->saveStream(ostream, fileName.toStdString(), true)) {
 			QMessageBox msg;

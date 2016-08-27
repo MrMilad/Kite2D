@@ -15,6 +15,11 @@ ComponentView::ComponentView(Kite::KComponent *Component, QWidget *Parent) :
 	flayout->setVerticalSpacing(2);
 
 	for (auto it = propList->cbegin(); it != propList->cend(); ++it) {
+		// only visible property
+		if (!it->show) {
+			continue;
+		}
+
 		auto propTypeMeta = getKMeta()->getMeta(it->typeName);
 		if (propTypeMeta == nullptr) {
 			QString val("Unregistered Property! Name: ");
@@ -110,14 +115,8 @@ void ComponentView::createPOD(Kite::KComponent *Comp, const Kite::KMetaProperty 
 		bool ronly = false;
 		if (Meta->type == Kite::KMetaPropertyTypes::KMP_GETTER) ronly = true;
 		priv::KSTRID *pgui = 0;
-		if (Meta->resType.empty()) {
-			pgui = new priv::KSTRID(Comp, Meta->name.c_str(), this, ronly);
-
-			// resource field
-		} else {
-			pgui = new priv::KSTRID(Comp, Meta->name.c_str(), this, ronly, Meta->resType.c_str(), true);
-			connect(pgui, &priv::KSTRID::updateResList, this, &ComponentView::updateResList);
-		}
+		pgui = new priv::KSTRID(Comp, Meta->name.c_str(), this, Meta->resType, ronly);
+		connect(pgui, &priv::KSTRID::updateResList, this, &ComponentView::updateResList);
 		connect(pgui, &priv::KSTRID::propertyEdited, this, &ComponentView::propChanged);
 		connect(this, &ComponentView::resetSig, pgui, &priv::KSTRID::reset);
 

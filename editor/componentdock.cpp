@@ -251,7 +251,7 @@ void ComponentDock::actionsControl(ActionsState State) {
 	}
 }
 
-void ComponentDock::inite(const QVector<QPair<Kite::KCTypes, bool>> &TypeList) {
+void ComponentDock::inite(const QVector<QPair<Kite::CTypes, bool>> &TypeList) {
 	types = TypeList;
 	mtypes->clear();
 	for (auto it = types.begin(); it != types.end(); ++it) {
@@ -289,7 +289,7 @@ QString ComponentDock::getAvailName(Kite::KEntity *Entity) {
 		}
 
 		// available name
-		auto isExist = Entity->hasComponent(Kite::KCTypes::Logic, text.toStdString());
+		auto isExist = Entity->hasComponent(Kite::CTypes::Logic, text.toStdString());
 		if (isExist) {
 			QMessageBox msg;
 			msg.setWindowTitle("Message");
@@ -307,7 +307,7 @@ QString ComponentDock::getAvailName(Kite::KEntity *Entity) {
 	return text;
 }
 
-Expander *ComponentDock::createCom(Kite::KCTypes Type) {
+Expander *ComponentDock::createCom(Kite::CTypes Type) {
 	auto fakeEman = Kite::KEntityManager();
 	auto fakeEnt = fakeEman.createEntity("fake");
 	auto Comp = fakeEnt->addComponent(Type, "");
@@ -325,19 +325,19 @@ void ComponentDock::addLogicToPool(int Count) {
 		treePool.logicPool.reserve(treePool.logicPool.size() + Count);
 	}
 	while (Count > 0) {
-		auto head = createCom(Kite::KCTypes::Logic);
+		auto head = createCom(Kite::CTypes::Logic);
 		treePool.logicPool.push_back(head);
 		--Count;
 	}
 }
 
-void ComponentDock::initePool(const QVector<QPair<Kite::KCTypes, bool>> &TypeList, unsigned int LogicCount) {
+void ComponentDock::initePool(const QVector<QPair<Kite::CTypes, bool>> &TypeList, unsigned int LogicCount) {
 	for (auto it = TypeList.begin(); it != TypeList.end(); ++it) {
 		// is visible
 		if (it->second) {
 			auto head = createCom(it->first);
 
-			if (it->first == Kite::KCTypes::Logic) {
+			if (it->first == Kite::CTypes::Logic) {
 				addLogicToPool(LogicCount);
 				continue;
 			}
@@ -348,7 +348,7 @@ void ComponentDock::initePool(const QVector<QPair<Kite::KCTypes, bool>> &TypeLis
 
 void ComponentDock::fetchFromPool(Kite::KComponent *Comp) {
 	Expander *expand = nullptr;
-	if (Comp->getType() == Kite::KCTypes::Logic) {
+	if (Comp->getType() == Kite::CTypes::Logic) {
 		if (treePool.logicPool.empty()) {
 			addLogicToPool(5); 
 		}
@@ -373,7 +373,7 @@ void ComponentDock::fetchFromPool(Kite::KComponent *Comp) {
 void ComponentDock::putIntoPool(Expander *Exp) {
 	for (auto it = treeList.begin(); it != treeList.end(); it) {
 		if ((*it) == Exp || Exp == nullptr) {
-			if ((*it)->getCType() == Kite::KCTypes::Logic) {
+			if ((*it)->getCType() == Kite::CTypes::Logic) {
 				treePool.logicPool.push_back((*it));
 			}
 			(*it)->getTreeItem()->setHidden(true);
@@ -439,7 +439,7 @@ void ComponentDock::entityEdit(Kite::KEntityManager *Eman, Kite::KEntity *Entity
 
 	// components
 	for (auto it = types.begin(); it != types.end(); ++it) {
-		if (it->first == Kite::KCTypes::Logic) {
+		if (it->first == Kite::CTypes::Logic) {
 			// load logic components at the end
 			continue;
 		} else {
@@ -489,7 +489,7 @@ void ComponentDock::entityDelete(Kite::KEntityManager *Eman, Kite::KEntity *Enti
 	}
 }
 
-void ComponentDock::updateResList(const QString &Type, QStringList &List) {
+void ComponentDock::updateResList(Kite::RTypes Type, QStringList &List) {
 	emit(requestResNames(Type, List));
 }
 
@@ -514,11 +514,11 @@ void ComponentDock::actAdd(QAction *Action) {
 			return;
 		}
 
-		ent->addComponent(Kite::KCTypes::Logic, text.toStdString());
+		ent->addComponent(Kite::CTypes::Logic, text.toStdString());
 		// fixed components
 	} else {
 		// available name
-		auto isExist = ent->hasComponentType((Kite::KCTypes)Action->data().toUInt());
+		auto isExist = ent->hasComponentType((Kite::CTypes)Action->data().toUInt());
 		if (isExist) {
 			QMessageBox msg;
 			msg.setWindowTitle("Message");
@@ -526,7 +526,7 @@ void ComponentDock::actAdd(QAction *Action) {
 			msg.exec();
 			return;
 		}
-		ent->addComponent((Kite::KCTypes)Action->data().toUInt(), Action->text().toStdString());
+		ent->addComponent((Kite::CTypes)Action->data().toUInt(), Action->text().toStdString());
 	}
 
 }
@@ -538,7 +538,7 @@ void ComponentDock::actAddDef() {
 		return;
 	}
 
-	ent->addComponent(Kite::KCTypes::Logic, text.toStdString());
+	ent->addComponent(Kite::CTypes::Logic, text.toStdString());
 }
 
 void ComponentDock::actRemove(Kite::KHandle CHandle) {
@@ -552,7 +552,7 @@ void ComponentDock::actRemove(Kite::KHandle CHandle) {
 		msg.exec();
 		return;
 	}
-	ent->removeComponent((Kite::KCTypes) CHandle.type, cptr->getName());
+	ent->removeComponent((Kite::CTypes) CHandle.type, cptr->getName());
 }
 
 void ComponentDock::actEdit(Kite::KHandle Chandle, const QString &Pname, QVariant &Value) {

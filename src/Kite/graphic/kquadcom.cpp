@@ -34,7 +34,7 @@ namespace Kite{
 		_kvertex(4),
 		_kindexsize(6)
 	{
-		addDependency(KCTypes::Render);
+		addDependency(CTypes::Render);
 		_setDim();
 		//setUV(KRectF32(0.0f, 1.0f, 0.0f, 1.0f));
 		setColor(KColor());

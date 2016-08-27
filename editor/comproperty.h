@@ -245,15 +245,15 @@ signals:
 		Q_OBJECT
 	public:
 		KSTRID(Kite::KComponent *Comp, const QString &PName, QWidget *Parent,
-			   bool ROnly = false, const QString &ResType = "", bool IsRes = false) :
-			KProp(Parent), pname(PName), isRes(IsRes) {
+			   Kite::RTypes ResType, bool ROnly = false) :
+			KProp(Parent), pname(PName), restype(ResType) {
 
 			auto hlayout = new QHBoxLayout(this);
 			hlayout->setMargin(0);
 			hlayout->setSpacing(0);
 
 			auto initeVal = Comp->getProperty(PName.toStdString());
-			if (!isRes) {
+			if (restype == Kite::RTypes::maxSize) {
 				ledit = new QLineEdit(Parent);
 				ledit->setStyleSheet("color: orange;");
 				ledit->setText(initeVal.as<Kite::KStringID>().str.c_str());
@@ -269,7 +269,6 @@ signals:
 				combo = new QComboBox(Parent);
 				combo->addItem(initeVal.as<Kite::KStringID>().str.c_str());
 				combo->setCurrentText(initeVal.as<Kite::KStringID>().str.c_str());
-				combo->setObjectName(ResType);
 				combo->installEventFilter(this);
 				if (ROnly) {
 					combo->setDisabled(true);
@@ -293,7 +292,7 @@ signals:
 		void reset(Kite::KComponent *Comp) override {
 			auto val = Comp->getProperty(pname.toStdString());
 			combo->clear();
-			if (isRes) {
+			if (restype != Kite::RTypes::maxSize) {
 				if (val.as<Kite::KStringID>().str.empty()) {
 					combo->addItem("");
 					combo->setCurrentText("");
@@ -308,7 +307,7 @@ signals:
 
 signals:
 		void propertyEdited(const QString &PName, QVariant &Val);
-		void updateResList(const QString &Type, QStringList &List);
+		void updateResList(Kite::RTypes Type, QStringList &List);
 
 		private slots :
 		void valueChanged(const QString &Val) {
@@ -325,7 +324,7 @@ signals:
 				combo->clear();
 				auto type = combo->objectName();
 
-				emit(updateResList(combo->objectName(), resList));
+				emit(updateResList(restype, resList));
 				combo->addItem(""); // empty res
 				combo->addItems(resList);
 				combo->setCurrentText(text);
@@ -334,10 +333,10 @@ signals:
 		}
 
 	private:
-		bool isRes;
 		QLineEdit *ledit;
 		QComboBox *combo;
 		QString pname;
+		Kite::RTypes restype;
 	};
 
 	// string
@@ -990,7 +989,7 @@ public:
 Q_SIGNALS:
 	void componentEdited(Kite::KHandle CHandle, const QString &Pname, QVariant &Value);
 	void resetSig(Kite::KComponent *Comp);
-	void updateResList(const QString &Type, QStringList &List);
+	void updateResList(Kite::RTypes Type, QStringList &List);
 
 public slots:
 void reset(Kite::KComponent *Comp);

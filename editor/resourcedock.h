@@ -21,11 +21,11 @@ public:
 	explicit ResourceDock(QWidget *parent = 0);
 	~ResourceDock();
 
-	bool openResource(const QString &Address, const QString &Type, bool WarnExist = true);
+	bool openResource(const QString &Address, Kite::RTypes Type, bool WarnExist = true);
 	Kite::KResource *getResource(const QString &Name);
-	Kite::KResource *addResource(const QString &Type);
-	void filterByType(const QString &Type, QStringList &List);
-	void filterByTypeRes(const QString &Type, QList<const Kite::KResource *> &List);
+	Kite::KResource *addResource(Kite::RTypes Type);
+	void filterByType(Kite::RTypes Type, QStringList &List);
+	void filterByTypeRes(Kite::RTypes Type, QList<const Kite::KResource *> &List);
 	void selectResource(const QString &Name);
 	void manageUsedResource(const QHash<size_t, QVector<Kite::KMetaProperty>> *ResComponents);
 	void clearResources();
@@ -40,6 +40,7 @@ signals:
 	void resourceSelected(Kite::KResource *Res);
 	void resourceEdit(Kite::KResource *Res);
 	void resourceDelete(Kite::KResource *Res);
+	void resourceSave(Kite::KResource *Res);
 
 private slots:
 	void actDoubleClicked(QTreeWidgetItem * item, int column);
@@ -71,7 +72,7 @@ private:
 	QLineEdit *ledit;
 	QString currDirectory;
 	//QHash<QString, Kite::KResource *> dictinary;
-	QMultiHash<QString, QPair<QString, QString>> formats; // <resource name, <format, icon>>
+	QMultiHash<size_t, QPair<QString, QString>> formats; // <resource name, <format, icon>>
 	Kite::KResourceManager rman;
 };
 

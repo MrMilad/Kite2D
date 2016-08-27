@@ -30,6 +30,7 @@ USA
 #include <algorithm>
 #include <utility>
 #include <string>
+#include "ktypes.khgen.h"
 #include "kresourcemanager.khgen.h"
 
 KMETA
@@ -42,17 +43,17 @@ namespace Kite{
 		~KResourceManager();
 
 		KM_FUN()
-		KResource *create(const std::string &RType, const std::string &Name);
+		KResource *create(RTypes Type, const std::string &Name);
 
 		/// create and register resource on rhe fly
 		KM_FUN()
-		KResource *createAndRegist(const std::string &RType, const std::string &Name);
+		KResource *createAndRegist(RTypes Type, const std::string &Name);
 
 		/// R: resource type
 		/// S: stream type
 		/// this function can use same as get function but will increment ref counter of source with each call
 		KM_FUN()
-		KResource *load(const std::string &SType, const std::string &RType, const std::string &Address);
+		KResource *load(IStreamTypes SType, RTypes RType, const std::string &Address);
 
 		/// add a loadded resource to resource manager
 		/// pass stream if resource hase a catched stream 
@@ -76,29 +77,27 @@ namespace Kite{
 
 		inline const auto getDictionary() const { return &_kdict; }
 
-
 		const std::vector<KResource *> &dump();
-
-		const std::vector<std::string> &getRegisteredTypes();
-
-		bool isRegiteredType(const std::string &Type);
 
 		/// clear all resources
 		KM_FUN()
 		void clear();
 
-		bool registerIStream(const std::string &SType, KIStream *(*Func)());
+		void registerIStream(IStreamTypes SType, KIStream *(*Func)());
 
-		bool registerResource(const std::string &RType, KResource *(*Func)(const std::string &), bool CatchStream);
+		void registerResource(RTypes RType, KResource *(*Func)(const std::string &));
 
 	private:
-		
+		void initeRFactory();
 		bool loadCompositeList(KResource *Res, KIStream &Stream, const std::string &Address);
+
+		// input stream factory methode
+		typedef KIStream *(*isFactory)();
 
 		std::unordered_map<std::string, std::string> _kdict;
 		std::unordered_map<std::string, std::pair<KResource *, KIStream *>> _kmap;
-		std::unordered_map<std::string, std::pair<KResource *(*)(const std::string &), bool>> _krfactory;
-		std::unordered_map<std::string, KIStream *(*)()> _ksfactory;
+		std::pair<KResource *(*)(const std::string &), bool> _krfactory[(SIZE)RTypes::maxSize];
+		isFactory _ksfactory[(SIZE)IStreamTypes::maxSize];
 	};
 }
 

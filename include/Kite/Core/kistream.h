@@ -24,6 +24,7 @@
 #include "Kite/core/kcoretypes.h"
 #include "Kite/meta/kmetadef.h"
 #include <string>
+#include "ktypes.khgen.h"
 #include "kistream.khgen.h"
 
 KMETA
@@ -68,7 +69,10 @@ namespace Kite{
 		virtual KIStream *getBase() = 0;
 
 		/// will be implemented by KHParser
-		virtual inline std::string getType() const = 0;
+		virtual inline IStreamTypes getType() const = 0;
+
+		/// will be implemented by KHParser
+		virtual inline std::string getTypeName() const = 0;
 
 		/// will be implemented by KHParser
 		virtual inline U32 getHashType() const = 0;

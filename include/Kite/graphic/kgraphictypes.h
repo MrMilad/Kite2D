@@ -234,6 +234,15 @@ namespace Kite{
 	};
 	KMETA_ATLASFILE_BODY();
 
+	KM_ENUM()
+	enum class GCullingObjectsFilter {
+		STATIC = 0,
+		DYNAMIC,
+		TILE,
+		ALL
+	};
+	KMETA_GCULLINGOBJECTSFILTER_BODY();
+
 	/*! \typedef KCallVBUpdate
 		\brief Function handle for mapping and updating VBO buffers
 	*/

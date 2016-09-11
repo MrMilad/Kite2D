@@ -22,7 +22,6 @@
 #include "Kite/meta/kmetamanager.h"
 #include "Kite/meta/kmetaclass.h"
 #include "Kite/meta/kmetatypes.h"
-#include "Kite/serialization/types/kstdstring.h"
 #include <luaintf/LuaIntf.h>
 
 namespace Kite{
@@ -31,6 +30,7 @@ namespace Kite{
 		_kshprogptr(nullptr),
 		_ktextureptr(nullptr)
 	{
+		addDependency(CTypes::GCulling);
 		addDependency(CTypes::Transform);
 		setRemoveOnDepZero(true);
 	}
@@ -50,7 +50,7 @@ namespace Kite{
 		}
 	}
 
-	void KRenderCom::setTexture(const KStringID &Texture) {
+	void KRenderCom::setAtlasTexture(const KStringID &Texture) {
 		if (_ktexture.hash != Texture.hash) {
 			_ktexture = Texture;
 			setNeedUpdate(true);

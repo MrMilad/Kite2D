@@ -38,6 +38,7 @@ public:
 
 private slots:
 void toggleFullScreen();
+void toggleDesignView();
 
 void aboutDialogue();
 void showSwitchOutput();
@@ -54,7 +55,7 @@ void engineStoped();
 void newProject();
 void openProject();
 void saveProject();
-void closeProject();
+void closeProject(bool Silent = false);
 void openProjSetting();
 void exitApp();
 
@@ -88,7 +89,6 @@ private:
 	QMenu *winMenu;
 	QMenu *compMenu;
 
-    QToolBar *fileTolb;
 	QAction *showAbout;
 	QAction *newProj;
 	QAction *openProj;

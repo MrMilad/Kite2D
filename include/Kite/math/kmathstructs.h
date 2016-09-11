@@ -232,6 +232,16 @@ namespace Kite{
 			return KRect<T>(left - Right.x, right - Right.x,
 							bottom - Right.y, top - Right.y);
 		}
+
+		inline bool operator==(const KRect<T>& Right) const {
+			return (left == Right.left && right == Right.right
+					&& bottom == Right.bottom && top == Right.top);
+		}
+
+		inline bool operator!=(const KRect<T>& Right) const {
+			return (left != Right.left || right != Right.right
+					|| bottom != Right.bottom || top != Right.top);
+		}
 	};
 
 	typedef KRect<U8>  KRectU8;

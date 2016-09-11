@@ -6,6 +6,7 @@
 #include "Kite/core/kany.h"
 #include "Kite/core/kcorestructs.h"
 #include "Kite/graphic/kgraphicstructs.h"
+#include "Kite/graphic/katlastexture.h"
 #include "Kite/math/kmathstructs.h"
 #include <Kite/meta/kmetamanager.h>
 #include <Kite/meta/kmetabase.h>
@@ -18,7 +19,7 @@ namespace priv {
 	T * singleSpin(int Min = 0, int Max = 0, bool unsig = false) {
 		auto spin1 = new T();
 
-		//spin1->setStyleSheet("color: DarkViolet;");
+		spin1->setMinimumWidth(30);
 
 		// is unsigned
 		if (unsig) {
@@ -155,7 +156,7 @@ signals:
 		private slots :
 		void valueChanged() {
 			if (!ronly) {
-				color = QColorDialog::getColor();
+				color = QColorDialog::getColor(color, this, "Color Picker", QColorDialog::ShowAlphaChannel | QColorDialog::DontUseNativeDialog);
 				if (color.isValid()) {
 					Kite::KAny pval(Kite::KColor(color.red(), color.green(), color.blue(), color.alpha()));
 					QVariant v = qVariantFromValue((void *)&pval);
@@ -238,6 +239,184 @@ signals:
 	private:
 		QCheckBox *check;
 		QString pname;
+	};
+
+	// atlas item
+	class KATLASITEM : public KProp {
+		Q_OBJECT
+	public:
+		KATLASITEM(Kite::KComponent *Comp, const QString &PName, QWidget *Parent, bool ROnly = false) :
+			KProp(Parent), pname(PName), fh(false), fv(false){
+
+			auto hlayout = new QHBoxLayout(this);
+			hlayout->setMargin(0);
+			hlayout->setSpacing(0);
+
+			auto initeVal = Comp->getProperty(PName.toStdString());
+			currItem = initeVal.as<Kite::KAtlasItem>();
+
+			combo = new QComboBox(Parent);
+			combo->setCurrentIndex(refillCombo(currItem));
+			combo->installEventFilter(this);
+			if (ROnly) {
+				combo->setDisabled(true);
+			}
+			connect(combo, static_cast<void(QComboBox::*)(int)>(&QComboBox::currentIndexChanged),
+					this, &KATLASITEM::valueChanged);
+
+			hlayout->addWidget(combo, 1);
+
+			// fliph
+			btnFliph = new QToolButton(Parent);
+			btnFliph->setIcon(QIcon(":/icons/fliph"));
+			btnFliph->setAutoRaise(true);
+			btnFliph->setToolTip("Flip Horizontal");
+			btnFliph->setCheckable(true);
+			btnFliph->setChecked(currItem.getFlipH());
+			fh = currItem.getFlipH();
+			hlayout->addWidget(btnFliph);
+			connect(btnFliph, &QToolButton::clicked, this, &KATLASITEM::fliph);
+
+			// flipv
+			btnFlipv = new QToolButton(Parent);
+			btnFlipv->setIcon(QIcon(":/icons/flipv"));
+			btnFlipv->setAutoRaise(true);
+			btnFlipv->setToolTip("Flip Vertical");
+			btnFlipv->setCheckable(true);
+			btnFlipv->setChecked(currItem.getFlipV());
+			fv = currItem.getFlipV();
+			hlayout->addWidget(btnFlipv);
+			connect(btnFlipv, &QToolButton::clicked, this, &KATLASITEM::flipv);
+
+			if (ROnly) {
+				auto lblROnly = new QLabel(this);
+				lblROnly->setText("<img src=\":/icons/lock\" height=\"12\" width=\"12\" >");
+				lblROnly->setToolTip("Read-Only Property");
+				hlayout->addSpacing(2);
+				hlayout->addWidget(lblROnly);
+			}
+
+		}
+
+		void reset(Kite::KComponent *Comp) override {
+			auto val = Comp->getProperty(pname.toStdString());
+			currItem = val.as<Kite::KAtlasItem>();
+			disconnect(combo, 0, 0, 0);
+			disconnect(btnFlipv, 0, 0, 0);
+			disconnect(btnFliph, 0, 0, 0);
+
+			btnFliph->setChecked(currItem.getFlipH());
+			btnFlipv->setChecked(currItem.getFlipV());
+			fv = currItem.getFlipV();
+			fh = currItem.getFlipH();
+
+			combo->setCurrentIndex(refillCombo(currItem));
+			connect(combo, static_cast<void(QComboBox::*)(int)>(&QComboBox::currentIndexChanged),
+					this, &KATLASITEM::valueChanged);
+
+			connect(btnFlipv, &QToolButton::clicked, this, &KATLASITEM::flipv);
+			connect(btnFliph, &QToolButton::clicked, this, &KATLASITEM::fliph);
+		}
+
+	signals:
+		void propertyEdited(const QString &PName, QVariant &Val);
+		Kite::KResource *requestRes(const QString &Name);
+		Kite::KAny requestPropValue(Kite::CTypes Type, const QString &ComName, const QString &PropName);
+
+	private slots :
+		void valueChanged(int Index) {
+			if (items != nullptr) {
+				btnFliph->setChecked(false);
+				btnFlipv->setChecked(false);
+				fv = false;
+				fh = false;
+				currItem = items->at(Index);
+				Kite::KAny pval(currItem);
+				QVariant v = qVariantFromValue((void *)&pval);
+				emit(propertyEdited(pname, v));
+			}
+		}
+
+		void fliph(bool Flip) {
+			if (items != nullptr) {
+				currItem = items->at(combo->currentIndex());
+				if (Flip) currItem.flipH();
+				if (fv) currItem.flipV();
+				fh = Flip;
+				Kite::KAny pval(currItem);
+				QVariant v = qVariantFromValue((void *)&pval);
+				emit(propertyEdited(pname, v));
+			}
+		}
+
+		void flipv(bool Flip) {
+			if (items != nullptr) {
+				currItem = items->at(combo->currentIndex());
+				if (Flip) currItem.flipV();
+				if (fh) currItem.flipH();
+				fv = Flip;
+				Kite::KAny pval(currItem);
+				QVariant v = qVariantFromValue((void *)&pval);
+				emit(propertyEdited(pname, v));
+			}
+		}
+
+	protected:
+		bool eventFilter(QObject *Obj, QEvent *Event) {
+			static QStringList resList;
+			if (Event->type() == QEvent::MouseButtonPress) {
+				disconnect(combo, 0, 0, 0);
+				combo->setCurrentIndex(refillCombo(currItem));
+				connect(combo, static_cast<void(QComboBox::*)(int)>(&QComboBox::currentIndexChanged),
+						this, &KATLASITEM::valueChanged);
+			}
+			return false;
+		}
+
+	private:
+		// return current matched item after refill
+		unsigned int refillCombo(Kite::KAtlasItem CurrItem) {
+			// set atlas attributes(flip) to default
+			if (CurrItem.getFlipH()) CurrItem.flipH();
+			if (CurrItem.getFlipV()) CurrItem.flipV();
+
+			// get atlas items
+			Kite::KAny atlasName;
+			Kite::KAtlasTexture *atlas = nullptr;
+			items = nullptr;
+			auto currIndex = 0;
+			combo->clear();
+			emit(atlasName = requestPropValue(Kite::CTypes::RenderMaterial, "", "atlasTexture"));
+			if (!atlasName.is_null()) {
+				emit(atlas = (Kite::KAtlasTexture *)requestRes(atlasName.as<Kite::KStringID>().str.c_str()));
+				if (atlas != nullptr) {
+					items = atlas->getItemContiner();
+				}
+
+				auto idcounter = 0;
+				if (items != nullptr) {
+					for (auto it = items->begin(); it != items->end(); ++it) {
+						// add items to list
+						combo->addItem("ID: " + QString::number(idcounter));
+
+						// find current item index
+						if ((*it) == CurrItem) {
+							currIndex = idcounter;
+						}
+						++idcounter;
+					}
+				}
+			}
+			return currIndex;
+		}
+		QToolButton *btnFliph;
+		QToolButton *btnFlipv;
+		QLineEdit *ledit;
+		QComboBox *combo;
+		QString pname;
+		Kite::KAtlasItem currItem;
+		std::vector<Kite::KAtlasItem> *items;
+		bool fh, fv;
 	};
 
 	// string id
@@ -990,6 +1169,8 @@ Q_SIGNALS:
 	void componentEdited(Kite::KHandle CHandle, const QString &Pname, QVariant &Value);
 	void resetSig(Kite::KComponent *Comp);
 	void updateResList(Kite::RTypes Type, QStringList &List);
+	Kite::KResource *requestRes(const QString &Name);
+	Kite::KAny requestPropValue(Kite::CTypes Type, const QString &ComName, const QString &PropName);
 
 public slots:
 void reset(Kite::KComponent *Comp);

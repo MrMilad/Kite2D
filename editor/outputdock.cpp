@@ -7,8 +7,10 @@ OutputDock::OutputDock(QWidget *parent) :
 {
 	setObjectName("Output");
 	setAllowedAreas(Qt::BottomDockWidgetArea);
+	setStyleSheet("QDockWidget { border: 3px solid; }");
 	setMinimumWidth(120);
-	setFeatures(QDockWidget::DockWidgetFeature::DockWidgetClosable);
+	setFeatures(DockWidgetFeature::DockWidgetClosable | DockWidgetFeature::DockWidgetVerticalTitleBar
+				| DockWidgetFeature::DockWidgetMovable | DockWidgetFeature::DockWidgetFloatable);
 
 	setupTEdit();
 	setupActions();
@@ -44,23 +46,32 @@ void OutputDock::setupActions() {
 void OutputDock::setupHTools() {
 	htools = new QFrame(this);
 
-	auto hlayout = new QHBoxLayout(htools);
-	hlayout->setMargin(0);
-	hlayout->setSpacing(0);
+	auto vlayout = new QVBoxLayout(htools);
+	vlayout->setMargin(0);
+	vlayout->setSpacing(0);
 
 	auto btnClaer = new QToolButton(htools);
 	btnClaer->setDefaultAction(clearAll);
 	btnClaer->setToolButtonStyle(Qt::ToolButtonIconOnly);
-	hlayout->addWidget(btnClaer);
+	vlayout->addWidget(btnClaer);
 
 	auto btnToggleWrap = new QToolButton(htools);
 	btnToggleWrap->setDefaultAction(wordWrap);
 	btnToggleWrap->setToolButtonStyle(Qt::ToolButtonIconOnly);
-	hlayout->addWidget(btnToggleWrap);
+	vlayout->addWidget(btnToggleWrap);
 
-	hlayout->addStretch(1);
+	auto sepBrush = QBrush(Qt::gray, Qt::BrushStyle::Dense6Pattern);
+	QPalette sepPalette;
+	sepPalette.setBrush(QPalette::Background, sepBrush);
 
-	htools->setLayout(hlayout);
+	auto seprator = new QLabel(htools);
+	seprator->setAutoFillBackground(true);
+	seprator->setPalette(sepPalette);
+	seprator->setMaximumWidth(10);
+	seprator->setMinimumWidth(10);
+	vlayout->addWidget(seprator, 1, Qt::AlignHCenter);
+
+	htools->setLayout(vlayout);
 	setTitleBarWidget(htools);
 }
 

@@ -13,6 +13,7 @@ public:
 
 	void inite() override;
 	bool saveChanges() override;
+	void reload() override;
 
 	static TabWidget *factory(Kite::KResource *Res, KiteInfo *KInfo, QWidget *Parent = nullptr) {
 		return new LuaEditor(Res, KInfo, Parent);

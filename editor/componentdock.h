@@ -49,9 +49,11 @@ signals:
 	void revertPrefab(Kite::KEntity *Entity);
 	void applyPrefab(Kite::KEntity *Entity);
 	void requestResNames(Kite::RTypes Type, QStringList &List);
+	Kite::KResource *requestResource(const QString &Name);
 
 private slots:
-void updateResList(Kite::RTypes Type, QStringList &List);
+	Kite::KAny getPropValue(Kite::CTypes Type, const QString &ComName, const QString &PropName);
+	void updateResList(Kite::RTypes Type, QStringList &List);
 	void actExeOrder();
 	void actCollAll();
 	void actAdd(QAction *Action);

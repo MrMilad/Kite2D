@@ -58,6 +58,9 @@
         <file alias="col">res/ico/collapse2.png</file>
         <file alias="exp">res/ico/expand2.png</file>
         <file alias="remzdep">res/ico/removeondep.png</file>
+        <file alias="atlas">res/ico/atlas.png</file>
+        <file alias="fliph">res/ico/fliph.png</file>
+        <file alias="flipv">res/ico/flipv.png</file>
     </qresource>
     <qresource prefix="/back">
         <file alias="dense">res/dense.png</file>

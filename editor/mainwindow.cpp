@@ -51,6 +51,25 @@ void MainWindow::toggleFullScreen() {
 	}
 }
 
+void MainWindow::toggleDesignView() {
+	static bool dview = (resDock->isHidden() && objDock->isHidden() && prpDock->isHidden());
+	if (dview) {
+		resDock->show();
+		objDock->show();
+		prpDock->show();
+
+		dview = false;
+
+	} else {
+		resDock->hide();
+		objDock->hide();
+		prpDock->hide();
+		outDock->hide();
+
+		dview = true;
+	}
+}
+
 void MainWindow::aboutDialogue() {
 	static frmAbout *about = new frmAbout(this);
 	about->exec();
@@ -113,8 +132,10 @@ void MainWindow::setupDocks(){
 	connect(objDock, &ObjectDock::objectDelete, prpDock, &ComponentDock::entityDelete);
 	connect(prpDock, &ComponentDock::resSelected, resDock, &ResourceDock::selectResource);
 	connect(prpDock, &ComponentDock::requestResNames, resDock, &ResourceDock::filterByType);
+	connect(prpDock, &ComponentDock::requestResource, resDock, &ResourceDock::getResource);
 	connect(prpDock, &ComponentDock::revertPrefab, objDock, &ObjectDock::revertPrefab);
 	connect(prpDock, &ComponentDock::applyPrefab, objDock, &ObjectDock::applyPrefab);
+	
 
 	// kite class browser
 	/*expDock = new QDockWidget(tr("Object Browser"), this);
@@ -126,6 +147,7 @@ void MainWindow::setupDocks(){
 	tview->setModel(kinfo->getModel());
 	tview->setHeaderHidden(true);
 	//expDock->setWidget(tview);
+	setDockNestingEnabled(true);
 }
 
 void MainWindow::setupScene(){
@@ -136,6 +158,7 @@ void MainWindow::setupScene(){
 	connect(resDock, &ResourceDock::resourceSave, mainTab, &MainTab::saveRes);
 	connect(mainTab, &MainTab::requestResList, resDock, &ResourceDock::filterByTypeRes);
 	connect(mainTab, &MainTab::requestRes, resDock, &ResourceDock::getResource);
+	connect(mainTab, &MainTab::requestAddRes, resDock, &ResourceDock::addResourceInternal);
 
     sceneView = new QGraphicsView();
 	mainTab->setScene(sceneView);
@@ -172,7 +195,7 @@ void MainWindow::setupActions() {
 	closeProj = new QAction("Close Project", this);
 	connect(closeProj, &QAction::triggered, this, &MainWindow::closeProject);
 
-	playScene = new QAction(QIcon(":/icons/play"), "Play", this);
+	playScene = new QAction(QIcon(":/icons/play"), "Start Debugging", this);
 	playScene->setShortcut(QKeySequence(Qt::Key_F5));
 	playScene->setShortcutContext(Qt::ApplicationShortcut);
 	connect(playScene, &QAction::triggered, this, &MainWindow::startEngine);
@@ -248,8 +271,14 @@ void MainWindow::setupMenus(){
 	this->addAction(fscreen);
 	connect(fscreen, &QAction::triggered, this, &MainWindow::toggleFullScreen);
 
+	auto designView = winMenu->addAction("Level Designer (Toggle)");
+	designView->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_D));
+	designView->setShortcutContext(Qt::ApplicationShortcut);
+	this->addAction(designView);
+	connect(designView, &QAction::triggered, this, &MainWindow::toggleDesignView);
+
 	// test
-	fileMenu = menuBar()->addMenu(tr("&Test"));
+	fileMenu = menuBar()->addMenu(tr("&Debug"));
 	fileMenu->addAction(playScene);
 	fileMenu->addAction(pauseScene);
 	fileMenu->addAction(stopScene);
@@ -262,8 +291,9 @@ void MainWindow::setupMenus(){
 }
 
 void MainWindow::setupToolbar(){
-    fileTolb = addToolBar(tr("Toolbar"));
-	fileTolb->setObjectName("Toolbar");
+    auto fileTolb = new QToolBar("Project");
+	addToolBar(Qt::ToolBarArea::LeftToolBarArea, fileTolb);
+	fileTolb->setObjectName("Project");
 	fileTolb->setStyleSheet("QToolBar { border: 0px }");
 	fileTolb->addAction(newProj);
 	fileTolb->addAction(openProj);
@@ -271,10 +301,14 @@ void MainWindow::setupToolbar(){
 	fileTolb->addAction(saveProj);
 	fileTolb->addSeparator();
 	fileTolb->addAction(projSettings);
-	fileTolb->addSeparator();
-	fileTolb->addAction(playScene);
-	fileTolb->addAction(pauseScene);
-	fileTolb->addAction(stopScene);
+	
+	auto debugTolb = new QToolBar("Debug");
+	addToolBar(Qt::ToolBarArea::LeftToolBarArea, debugTolb);
+	debugTolb->setObjectName("Debug");
+	debugTolb->setStyleSheet("QToolBar { border: 0px }");
+	debugTolb->addAction(playScene);
+	debugTolb->addAction(pauseScene);
+	debugTolb->addAction(stopScene);
 }
 
 void MainWindow::setupStatusBar() {
@@ -371,7 +405,7 @@ void MainWindow::saveXML(QIODevice *device, const QString &Address){
 	for (auto it = resList.cbegin(); it != resList.cend(); ++it) {
 		dict.insert({ (*it)->getName(), Address.toStdString() + "/resources/" + (*it)->getName() });
 
-		if ((*it)->isModified()) {
+		if ((*it)->isModified() || (*it)->getType() == Kite::RTypes::Scene) {
 			(*it)->saveStream(fstream, Address.toStdString() + "/resources/" + (*it)->getName());
 		}
 
@@ -602,8 +636,7 @@ void MainWindow::openProject() {
 					resDock->setCurrentDirectory(curProject->resPath);
 					enGUI();
 				} else {
-					delete curProject;
-					curProject = nullptr;
+					closeProject(true);
 				}
 				file.close();
 			}
@@ -623,18 +656,20 @@ void MainWindow::saveProject() {
 	}
 }
 
-void MainWindow::closeProject() {
+void MainWindow::closeProject(bool Silent) {
 	if (curProject != nullptr) {
-		int ret = QMessageBox::warning(this, "Kite2D Editor",
-									   "Do you want to save changes to " + curProject->name + "?",
-									   QMessageBox::Save | QMessageBox::Discard
-									   | QMessageBox::Cancel,
-									   QMessageBox::Save);
+		if (!Silent) {
+			int ret = QMessageBox::warning(this, "Kite2D Editor",
+										   "Do you want to save changes to " + curProject->name + "?",
+										   QMessageBox::Save | QMessageBox::Discard
+										   | QMessageBox::Cancel,
+										   QMessageBox::Save);
 
-		if (ret == QMessageBox::Save) {
-			saveProject();
-		} else if (ret == QMessageBox::Cancel) {
-			return;
+			if (ret == QMessageBox::Save) {
+				saveProject();
+			} else if (ret == QMessageBox::Cancel) {
+				return;
+			}
 		}
 
 		this->setWindowTitle("Kite2D Editor");

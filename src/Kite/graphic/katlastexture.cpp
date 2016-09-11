@@ -36,14 +36,13 @@ namespace Kite {
 		KBinarySerial bserial;
 		bserial << std::string("KATex");
 
+		bserial << _kitems;
+
 		if (!bserial.saveStream(Stream, Address, 0)) {
 			KD_PRINT("can't save stream.");
 			Stream.close();
 			return false;
 		}
-
-		bserial << _kitems;
-
 		Stream.close();
 
 		// save composite list (texture)
@@ -55,7 +54,6 @@ namespace Kite {
 	}
 
 	bool KAtlasTexture::_loadStream(KIStream &Stream, const std::string &Address) {
-		setModified(true);
 		// load texture info 
 		if (!Stream.isOpen()) {
 			Stream.close();

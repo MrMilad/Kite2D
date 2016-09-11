@@ -68,6 +68,7 @@ namespace Kite{
 	};
 	KMETA_PRIMITIVE_BODY();
 
+
 	enum class VectorComponent : U8{
 		X = 0,
 		Y = 1,

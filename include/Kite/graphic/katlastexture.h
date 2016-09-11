@@ -48,7 +48,7 @@ namespace Kite {
 
 		inline const KAtlasItem &getItem(U32 ID) { return _kitems.at(ID); }
 
-		inline auto getItemContiner() const { return &_kitems; }
+		inline auto getItemContiner() { return &_kitems; }
 
 		inline void setTexture(KTexture *Texture) { _ktexture = Texture; }
 

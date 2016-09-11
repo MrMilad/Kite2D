@@ -12,6 +12,7 @@ ComponentDock::ComponentDock(QWidget *Par) :
 {
 	setObjectName("Components Editor");
 	setAllowedAreas(Qt::LeftDockWidgetArea | Qt::RightDockWidgetArea);
+	setStyleSheet("QDockWidget { border: 3px solid; }");
 
 	setupActions();
 	setupTree();
@@ -74,7 +75,7 @@ void ComponentDock::setupTree() {
 
 	// tree
 	comTree = new QTreeWidget(this);
-	comTree->setMinimumWidth(280);
+	comTree->setMinimumWidth(230);
 	comTree->setHeaderLabel("Components Editor");
 	comTree->setHeaderHidden(true);
 	comTree->setSelectionMode(QAbstractItemView::SingleSelection);
@@ -164,10 +165,32 @@ void ComponentDock::setupHTools() {
 	vlayout->setMargin(2);
 	vlayout->setSpacing(0);
 
+	auto hlayoutTitle = new QHBoxLayout();
 	hlabel = new QLabel(htools);
-	hlabel->setText("Components Editor");
-	hlabel->setStyleSheet("color: DodgerBlue;");
-	vlayout->addWidget(hlabel);
+	hlabel->setText("Components Editor ");
+	hlabel->setStyleSheet("color: lightGray;");
+	hlayoutTitle->addWidget(hlabel);
+
+	auto sepBrush = QBrush(Qt::gray, Qt::BrushStyle::Dense6Pattern);
+	QPalette sepPalette;
+	sepPalette.setBrush(QPalette::Background, sepBrush);
+
+	auto seprator = new QLabel(htools);
+	seprator->setAutoFillBackground(true);
+	seprator->setPalette(sepPalette);
+	seprator->setMaximumHeight(10);
+	hlayoutTitle->addWidget(seprator, 1, Qt::AlignBottom);
+
+	auto btnClose = new QToolButton(htools);
+	btnClose->setText("X");
+	btnClose->setStyleSheet("color: lightGray\n");
+	btnClose->setAutoRaise(true);
+	btnClose->setMaximumWidth(16);
+	btnClose->setMaximumHeight(16);
+	hlayoutTitle->addWidget(btnClose);
+	connect(btnClose, &QToolButton::clicked, this, &QDockWidget::hide);
+
+	vlayout->addLayout(hlayoutTitle);
 
 	auto hlayout = new QHBoxLayout(htools);
 	hlayout->setMargin(3);
@@ -316,6 +339,8 @@ Expander *ComponentDock::createCom(Kite::CTypes Type) {
 	connect(header, &Expander::closeClicked, this, &ComponentDock::actRemove);
 	connect(header, &Expander::componentEdited, this, &ComponentDock::actEdit);
 	connect(header, &Expander::updateResList, this, &ComponentDock::updateResList);
+	connect(header, &Expander::requestPropValue, this, &ComponentDock::getPropValue);
+	connect(header, &Expander::requestRes, this, &ComponentDock::requestResource);
 
 	return header;
 }
@@ -447,7 +472,7 @@ void ComponentDock::entityEdit(Kite::KEntityManager *Eman, Kite::KEntity *Entity
 			if (it->second) {
 				auto has = Entity->hasComponent(it->first);
 				if (has) {
-					auto comp = Entity->getComponentByName(it->first);
+					auto comp = Entity->getComponent(it->first);
 					fetchFromPool(comp);
 				}
 			}
@@ -457,23 +482,15 @@ void ComponentDock::entityEdit(Kite::KEntityManager *Eman, Kite::KEntity *Entity
 	std::vector<Kite::KHandle> compList;
 	Entity->getScriptComponents(compList);
 	for (auto it = compList.begin(); it != compList.end(); ++it) {
-		auto comp = Entity->getComponent((*it));
+		auto comp = Entity->getComponentByHandle((*it));
 		fetchFromPool(comp);
 	}
 
 	actionsControl(AS_ON_LOAD);
 	QString name(Entity->getName().c_str());
-	hlabel->setText("Components Editor (" + name + ")");
+	//hlabel->setText("Components Editor (" + name + ")");
 	// lua table
 	llabel->setText(QString("Lua Table: <font color = \"orange\">") + Entity->getLuaTName().c_str() + "</font>");
-
-	// layers
-	cmbLayer->clear();
-	auto layers = eman->getLayersInfo();
-	for (auto it = layers.cbegin(); it != layers.cend(); ++it) {
-		cmbLayer->addItem(it->name.str.c_str());
-	}
-	cmbLayer->setCurrentText(Entity->getLayerName().c_str());
 
 	actSearch(ledit->text());
 }
@@ -487,6 +504,17 @@ void ComponentDock::entityDelete(Kite::KEntityManager *Eman, Kite::KEntity *Enti
 		hlabel->setText("Components Editor");
 		llabel->clear();
 	}
+}
+
+Kite::KAny ComponentDock::getPropValue(Kite::CTypes Type, const QString &ComName, const QString &PropName) {
+	auto ent = eman->getEntity(currEntity);
+	if (ent) {
+		auto comp = ent->getComponent(Type, ComName.toStdString());
+		if (comp) {
+			return comp->getProperty(PropName.toStdString());
+		}
+	}
+	return Kite::KAny(nullptr);
 }
 
 void ComponentDock::updateResList(Kite::RTypes Type, QStringList &List) {
@@ -544,7 +572,7 @@ void ComponentDock::actAddDef() {
 void ComponentDock::actRemove(Kite::KHandle CHandle) {
 	//auto obj = (Expander *)sender();
 	auto ent = eman->getEntity(currEntity);
-	auto cptr = ent->getComponent(CHandle);
+	auto cptr = ent->getComponentByHandle(CHandle);
 	if (cptr->getDepCounter() > 0) {
 		QMessageBox msg;
 		msg.setWindowTitle("Message");
@@ -557,7 +585,7 @@ void ComponentDock::actRemove(Kite::KHandle CHandle) {
 
 void ComponentDock::actEdit(Kite::KHandle Chandle, const QString &Pname, QVariant &Value) {
 	Kite::KAny *vptr = (Kite::KAny *)Value.value<void *>();
-	eman->getEntity(currEntity)->getComponent(Chandle)->setProperty(Pname.toStdString(), *vptr);
+	eman->getEntity(currEntity)->getComponentByHandle(Chandle)->setProperty(Pname.toStdString(), *vptr);
 	//emit(componentEdited(currEntity, Chandle, Pname));
 }
 

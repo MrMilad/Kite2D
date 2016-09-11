@@ -27,6 +27,7 @@
 namespace Kite{
 	KQuadCom::KQuadCom(const std::string &Name) :
 		KComponent(Name),
+		_kisVisible(true),
 		_kreverse(false),
 		_kborder(0),
 		_kwidth(100),
@@ -34,9 +35,9 @@ namespace Kite{
 		_kvertex(4),
 		_kindexsize(6)
 	{
-		addDependency(CTypes::Render);
+		addDependency(CTypes::RenderMaterial);
 		_setDim();
-		//setUV(KRectF32(0.0f, 1.0f, 0.0f, 1.0f));
+		setAtlasItem(KAtlasItem());
 		setColor(KColor());
 	}
 
@@ -51,6 +52,9 @@ namespace Kite{
 	void KQuadCom::setBorder(F32 Border) {
 		_kborder = Border;
 		_setDim();
+		if (_kborder > 0) {
+			_kvertex[4].color = _kvertex[5].color = _kvertex[6].color = _kvertex[7].color = _kbcolor;
+		}
 	}
 
 	void KQuadCom::setWidth(F32 Width) {
@@ -83,6 +87,21 @@ namespace Kite{
 			_kvertex.resize(4);
 			_kindexsize = 6;
 		}
+	}
+
+	void KQuadCom::setAtlasItem(const KAtlasItem &AtlasItem) {
+		_katlasItem = AtlasItem;
+		_kvertex[1].uv = KVector2F32(AtlasItem.blu, AtlasItem.blv);
+		_kvertex[0].uv = KVector2F32(AtlasItem.blu, AtlasItem.trv);
+		_kvertex[3].uv = KVector2F32(AtlasItem.tru, AtlasItem.blv);
+		_kvertex[2].uv = KVector2F32(AtlasItem.tru, AtlasItem.trv);
+	}
+
+	void KQuadCom::getBoundingRect(KRectF32 &Output) const {
+		Output.bottom = -((_kheight / 2) + _kborder);
+		Output.left = -((_kwidth / 2) + _kborder);
+		Output.top = ((_kheight / 2) + _kborder);
+		Output.right = ((_kwidth / 2) + _kborder);
 	}
 
 	/*void KQuadCom::setUV(const KRectF32 &UV){

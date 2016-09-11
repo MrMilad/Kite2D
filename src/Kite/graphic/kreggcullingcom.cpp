@@ -17,38 +17,24 @@ License along with this library; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 USA
 */
-#ifndef KLOGICINSTANCECOM_H
-#define KLOGICINSTANCECOM_H
+#include "Kite/graphic/kreggcullingcom.h"
+#include "Kite/meta/kmetamanager.h"
+#include "Kite/meta/kmetaclass.h"
+#include "Kite/meta/kmetatypes.h"
+#include <luaintf/LuaIntf.h>
 
-#include "Kite/core/kcoredef.h"
-#include "Kite/core/kcomponent.h"
-#include "Kite/meta/kmetadef.h"
-#include "Kite/logic/kscript.h"
-#include "Kite/core/kentity.h"
-#include <string>
-#include "klogicinstancecom.khgen.h"
-
-KMETA
 namespace Kite {
-	KM_CLASS(COMPONENT)
-	class KITE_FUNC_EXPORT KLogicInstanceCom : public KComponent {
-		friend class KLogicSys;
-		KM_INFO(KI_SHOW = false);
-		KM_INFO(KI_NAME = "LogicInstance");
-		KMETA_KLOGICINSTANCECOM_BODY();
+	KRegGCullingCom::KRegGCullingCom(const std::string &Name) :
+		KComponent(Name) {
+		setRemoveOnDepZero(true);
+	}
 
-	public:
-		KLogicInstanceCom(const std::string &Name = "");
+	void KRegGCullingCom::attached(KEntity *Owner) {}
 
-		void attached(KEntity *Entity) override;
+	void KRegGCullingCom::deattached(KEntity *Owner) {}
 
-		/// remove this script from entity
-		void deattached(KEntity *Entity) override;
-
-		KM_FUN()
-			RecieveTypes onMessage(KMessage *Message, MessageScope Scope) override;
-	};
+	RecieveTypes KRegGCullingCom::onMessage(KMessage *Message, MessageScope Scope) {
+		return RecieveTypes::IGNORED;
+	}
+	KMETA_KREGGCULLINGCOM_SOURCE();
 }
-
-
-#endif // KLOGICINSTANCECOM_H

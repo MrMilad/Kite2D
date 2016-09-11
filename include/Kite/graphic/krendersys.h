@@ -40,7 +40,7 @@ namespace Kite{
 	class KRenderCom;
 	class KShaderProgram;
 	KM_CLASS(SYSTEM)
-	class KITE_FUNC_EXPORT KRenderSys : KSystem{
+	class KITE_FUNC_EXPORT KRenderSys : public KSystem{
 		KMETA_KRENDERSYS_BODY();
 	public:
 		bool update(F32 Delta, KEntityManager *EManager, KResourceManager *RManager) override;

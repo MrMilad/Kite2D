@@ -33,7 +33,8 @@ int main(int argc, char *argv[])
 	a.processEvents();
 
     MainWindow w;
-	w.setStyleSheet("QToolTip { border: 1px solid darkGray; color: #313131;}");
+	w.setStyleSheet("QToolTip { border: 1px solid darkGray; color: #313131;}\n"
+					"QMainWindow::separator{ height: 4px;}");
     w.show();
 	splash.finish(&w);
 	return a.exec();

@@ -30,7 +30,7 @@ namespace Kite {
 	bool KTransformSys::update(F32 Delta, KEntityManager *EManager, KResourceManager *RManager) {
 		STATIC_OUT_EDITOR const bool isregist = EManager->isRegisteredComponent(CTypes::Transform);
 		if (isregist) {
-			STATIC_OUT_EDITOR auto continer = EManager->getComponentStorage<KTransformCom>(CTypes::Transform);
+			auto continer = EManager->getComponentStorage<KTransformCom>(CTypes::Transform);
 			for (auto it = continer->begin(); it != continer->end(); ++it) {
 				auto ehandle = it->getOwnerHandle();
 				auto entity = EManager->getEntity(ehandle);

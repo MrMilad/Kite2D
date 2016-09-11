@@ -12,6 +12,7 @@ ObjectDock::ObjectDock(QWidget *parent) :
 {
 	setObjectName("Hierarchy");
 	setAllowedAreas(Qt::LeftDockWidgetArea | Qt::RightDockWidgetArea);
+	setStyleSheet("QDockWidget { border: 3px solid; }");
 	setMinimumWidth(120);
 
 	setupTree();
@@ -104,10 +105,33 @@ void ObjectDock::setupHTools() {
 	vlayout->setMargin(2);
 	vlayout->setSpacing(0);
 
+	auto hlayoutTitle = new QHBoxLayout();
+
 	hlabel = new QLabel(htools);
-	hlabel->setText("Hierarchy");
-	hlabel->setStyleSheet("color: DodgerBlue;");
-	vlayout->addWidget(hlabel);
+	hlabel->setText("Hierarchy ");
+	hlabel->setStyleSheet("color: lightGray;");
+	hlayoutTitle->addWidget(hlabel);
+
+	auto sepBrush = QBrush(Qt::gray, Qt::BrushStyle::Dense6Pattern);
+	QPalette sepPalette;
+	sepPalette.setBrush(QPalette::Background, sepBrush);
+
+	auto seprator = new QLabel(htools);
+	seprator->setAutoFillBackground(true);
+	seprator->setPalette(sepPalette);
+	seprator->setMaximumHeight(10);
+	hlayoutTitle->addWidget(seprator, 1, Qt::AlignBottom);
+
+	auto btnClose = new QToolButton(htools);
+	btnClose->setText("X");
+	btnClose->setStyleSheet("color: lightGray\n");
+	btnClose->setAutoRaise(true);
+	btnClose->setMaximumWidth(16);
+	btnClose->setMaximumHeight(16);
+	hlayoutTitle->addWidget(btnClose);
+	connect(btnClose, &QToolButton::clicked, this, &QDockWidget::hide);
+
+	vlayout->addLayout(hlayoutTitle);
 
 	auto hlayout = new QHBoxLayout(htools);
 	hlayout->setMargin(3);
@@ -248,7 +272,7 @@ void ObjectDock::resEdit(Kite::KResource *Res) {
 	// scene
 	if (Res->getType() == Kite::RTypes::Scene) {
 		auto scene = (Kite::KScene *)Res;
-		hlabel->setText("Hierarchy (KScene: " + QString(scene->getName().c_str()) + ")");
+		//hlabel->setText("Hierarchy (Scene: " + QString(scene->getName().c_str()) + ")");
 		currEman = scene->getEManager();
 		root = currEman->getEntity(currEman->getRoot());
 
@@ -259,7 +283,7 @@ void ObjectDock::resEdit(Kite::KResource *Res) {
 	// prefab
 	} else if (Res->getType() == Kite::RTypes::Prefab) {
 		auto pre = (Kite::KPrefab *)Res;
-		hlabel->setText("Hierarchy (KPrefab: " + QString(pre->getName().c_str()) + ")");
+		//hlabel->setText("Hierarchy (Prefab: " + QString(pre->getName().c_str()) + ")");
 		delete preEman;
 		preEman = new Kite::KEntityManager();
 		preEman->loadPrefab(pre);
@@ -351,6 +375,7 @@ void ObjectDock::applyPrefab(Kite::KEntity *Entity) {
 				msg.setText("can't apply changes to the prefab.");
 				msg.exec();
 			}
+			pre->setModified(true);
 		}
 	}
 }
@@ -605,6 +630,7 @@ void ObjectDock::actPrefab() {
 		auto pre = (Kite::KPrefab *)emit(requestCreateResource(Kite::RTypes::Prefab));
 		if (pre != nullptr) {
 			currEman->createPrefab(entity->getHandle(), pre);
+			pre->setModified(true);
 		}
 	}
 }

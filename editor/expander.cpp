@@ -62,7 +62,7 @@ Expander::Expander(Kite::KComponent *Comp, QTreeWidget *Parent):
 		auto lblZeroDep = new QLabel(btnExpand);
 		lblZeroDep->setText("<img src=\":/icons/remzdep\" height=\"16\" width=\"16\" >");
 		lblZeroDep->setStyleSheet("QToolTip { border: 1px solid #2c2c2c; background-color: #242424; color: white;}");
-		lblZeroDep->setToolTip("<font color=\"orange\">will be removed if there is no dependency on it</font>");
+		lblZeroDep->setToolTip("Will be removed automatically if there is no dependence on it");
 		hlayout->addWidget(lblZeroDep);
 		hlayout->addSpacing(2);
 	}
@@ -75,6 +75,7 @@ Expander::Expander(Kite::KComponent *Comp, QTreeWidget *Parent):
 	btnClose->setIconSize(QSize(8, 8));
 	btnClose->setToolButtonStyle(Qt::ToolButtonIconOnly);
 	btnClose->setAutoRaise(true);
+	btnClose->setStyleSheet("QToolTip { border: 1px solid #2c2c2c; background-color: #242424; color: white;}");
 	btnClose->setToolTip("Remove Component");
 	hlayout->addWidget(btnClose);
 
@@ -86,12 +87,14 @@ Expander::Expander(Kite::KComponent *Comp, QTreeWidget *Parent):
 						   "border-bottom-left-radius: 3px;\n"
 						   "border-bottom-right-radius: 3px;}");
 	connect(content, &ComponentView::updateResList, this, &Expander::updateResList);
+	connect(content, &ComponentView::componentEdited, this, &Expander::componentEdited);
+	connect(content, &ComponentView::requestRes, this, &Expander::requestRes);
+	connect(content, &ComponentView::requestPropValue, this, &Expander::requestPropValue);
 	
 	auto child = new QTreeWidgetItem(head);
 	child->setDisabled(true);
 	Parent->setItemWidget(child, 0, content);
 
-	connect(content, &ComponentView::componentEdited, this, &Expander::componentEdited);
 	connect(btnExpand, &QPushButton::pressed, this, &Expander::expClicked);
 	connect(btnClose, &QToolButton::clicked, this, &Expander::clsClicked);
 }

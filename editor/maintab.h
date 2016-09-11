@@ -12,6 +12,8 @@
 #include "tabwidget.h"
 #include "shared.h"
 
+class QEvent;
+
 class MainTab : public QTabWidget {
 	Q_OBJECT
 
@@ -24,7 +26,7 @@ public:
 signals:
 	void requestResList(Kite::RTypes Type, QList<const Kite::KResource *> &List);
 	Kite::KResource *requestRes(const QString &Name);
-	Kite::KResource *requestAddRes(Kite::RTypes Type);
+	Kite::KResource *requestAddRes(Kite::RTypes Type, const QString &Name);
 
 public slots:
 	void saveAll();
@@ -32,6 +34,7 @@ public slots:
 	void openTabs(Kite::KResource *Res);
 	void selectResource(Kite::KResource *Res);
 	void closeResource(Kite::KResource *Res);
+	void reloadRes(Kite::KResource *Res);
 
 private slots:
 	void closeTab();
@@ -43,6 +46,8 @@ private slots:
 protected:
 	void focusInEvent(QFocusEvent *Event) override;
 	void focusOutEvent(QFocusEvent *Event) override;
+
+	bool eventFilter(QObject *Obj, QEvent *Event);
 
 private:
 	void registerTabs();

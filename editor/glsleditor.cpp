@@ -63,7 +63,32 @@ void GLSLEditor::inite() {
 
 bool GLSLEditor::saveChanges() {
 	shader->loadString(editor->document()->toPlainText().toStdString(), shader->getShaderType());
+	shader->setModified(true);
 	return true;
+}
+
+void GLSLEditor::reload() {
+	if (shader->getCode().empty()) {
+		if (shader->getShaderType() == Kite::ShaderType::VERTEX) {
+			editor->setPlainText("#version 330\n"
+								 "attribute vec2 in_pos;\n"
+								 "attribute vec2 in_uv;\n"
+								 "attribute vec4 in_col;\n"
+								 "out vec4 ex_col;\n"
+								 "out vec2 ex_uv;\n"
+								 "void main(void) {\n\t\n}");
+
+		} else if (shader->getShaderType() == Kite::ShaderType::FRAGMENT) {
+			editor->setPlainText("#version 330\n"
+								 "in vec4 ex_col;\n"
+								 "in vec2 ex_uv;\n"
+								 "uniform sampler2D in_texture;\n"
+								 "out vec4 out_col;\n"
+								 "void main(void) {\n\t\n}");
+		}
+	} else {
+		editor->appendPlainText(shader->getCode().c_str());
+	}
 }
 
 void GLSLEditor::initeModel() {

@@ -32,7 +32,7 @@ USA
 #include <unordered_map>
 #include "kengine.khgen.h"
 
-#ifdef KITE_EDITOR
+#if defined(KITE_EDITOR) && defined (KITE_DEV_DEBUG) // editor hooks	
 	#include <condition_variable>
 	#include <mutex>
 	#include <atomic>

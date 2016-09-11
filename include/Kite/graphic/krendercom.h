@@ -26,7 +26,7 @@
 #include "Kite/graphic/kgraphicstructs.h"
 #include "Kite/graphic/kgraphictypes.h"
 #include "Kite/graphic/kshaderprogram.h"
-#include "Kite/graphic/ktexture.h"
+#include "Kite/graphic/katlastexture.h"
 #include <cstring>
 #include "krendercom.khgen.h"
 
@@ -35,7 +35,7 @@ namespace Kite{
 	KM_CLASS(COMPONENT)
 	class KITE_FUNC_EXPORT KRenderCom : public KComponent{
 		friend class KRenderSys;
-		KM_INFO(KI_NAME = "Render");
+		KM_INFO(KI_NAME = "RenderMaterial");
 		KMETA_KRENDERCOM_BODY();
     public:
 		// array rendering (without index)
@@ -48,35 +48,22 @@ namespace Kite{
 		RecieveTypes onMessage(KMessage *Message, MessageScope Scope) override;
 
 		KM_PRO_SET(KP_NAME = "shaderProgram")
-		void setShader(const KStringID &ShaderProgram);
+			void setShader(const KStringID &ShaderProgram);
 
 		KM_PRO_GET(KP_NAME = "shaderProgram", KP_TYPE = KStringID, KP_CM = "name of the shader program", KP_RES = RTypes::ShaderProgram)
-		inline const KStringID &getShader() const { return _kshprog; }
+			inline const KStringID &getShader() const { return _kshprog; }
 
-		KM_PRO_SET(KP_NAME = "texture")
-		void setTexture(const KStringID &Texture);
+		KM_PRO_SET(KP_NAME = "atlasTexture")
+			void setAtlasTexture(const KStringID &Texture);
 
-		KM_PRO_GET(KP_NAME = "texture", KP_TYPE = KStringID, KP_CM = "name of the texture", KP_RES = RTypes::Texture)
-		inline const KStringID &getTexture() const { return _ktexture; }
+		KM_PRO_GET(KP_NAME = "atlasTexture", KP_TYPE = KStringID, KP_CM = "name of the atlas texture", KP_RES = RTypes::AtlasTexture)
+			inline const KStringID &getAtlasTexture() const { return _ktexture; }
 
-		KM_PRO_SET(KP_NAME = "visible")
-		inline void setVisible(bool Visible) { _isvisible = Visible; }
-
-		KM_PRO_GET(KP_NAME = "visible", KP_TYPE = bool, KP_CM = "object visibility")
-		inline bool getVisible() const { return _isvisible; }
-
-		// shuld defined in particle component
-		//inline void setRelativeTransform(bool Relative) { _krelTrans = Relative; }
-		//inline bool getRelativeTransform() const { return _krelTrans; }
-		//inline void setReverseRender(bool Reverse) { _kreverse = Reverse; }
-		//inline bool getReverseRender() const { return _kreverse; }
-
-    private:
-		KM_VAR() bool _isvisible;
+	private:
 		KM_VAR() KStringID _kshprog;
 		KM_VAR() KStringID _ktexture;
 		KShaderProgram *_kshprogptr;
-		KTexture *_ktextureptr;
+		KAtlasTexture *_ktextureptr;
     };
 }
 

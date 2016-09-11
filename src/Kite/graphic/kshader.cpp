@@ -74,7 +74,6 @@ namespace Kite{
 	}
 
 	bool KShader::_loadStream(KIStream &Stream, const std::string &Address) {
-		setModified(true);
         // first make sure that we can use shaders
 //        if(!isShaderAvailable()){
 //            KDEBUG_PRINT("shader is not available.")
@@ -165,7 +164,6 @@ namespace Kite{
 	}
 
 	bool KShader::loadString(const std::string &Code, ShaderType Type) {
-		setModified(true);
 		setInite(false);
 		_kcode = Code;
 		_kshtype = ShaderType::UNKNOWN;

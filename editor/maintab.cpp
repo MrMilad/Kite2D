@@ -46,6 +46,15 @@ void MainTab::focusOutEvent(QFocusEvent *Event) {
 	}
 }
 
+bool MainTab::eventFilter(QObject *Obj, QEvent *Event) {
+	// disable ALT+F4 on dock widgets
+	if (Event->type() == QEvent::Close) {
+		Event->ignore();
+		return true;
+	}
+	return false;
+}
+
 void MainTab::registerTabs() {
 	tabFactory.clear();
 	tabFactory.insert((size_t)Kite::RTypes::Script, LuaEditor::factory);
@@ -175,6 +184,8 @@ void MainTab::openTabs(Kite::KResource *Res) {
 				auto twidget = tab.value()(Res, kinfo, this);
 				connect(twidget, &TabWidget::requestResList, this, &MainTab::requestResList);
 				connect(twidget, &TabWidget::requestRes, this, &MainTab::requestRes);
+				connect(twidget, &TabWidget::requestAddRes, this, &MainTab::requestAddRes);
+				connect(twidget, &TabWidget::requestReloadTab, this, &MainTab::reloadRes);
 				twidget->inite();
 				auto tid = createTab(twidget, Res);
 				setCurrentIndex(tid);
@@ -225,6 +236,13 @@ void MainTab::closeResource(Kite::KResource *Res) {
 	}
 }
 
+void MainTab::reloadRes(Kite::KResource *Res) {
+	auto found = resMap.find(Res);
+	if (found != resMap.end()) {
+		found->first->reload();
+	}
+}
+
 void MainTab::closeTab() {
 	auto act = (QAction *)sender();
 	auto resPtr = (Kite::KResource *)act->data().value<void *>();
@@ -251,6 +269,7 @@ void MainTab::unpinTab() {
 
 		// and add editor into a dock widget
 		auto dock = new QDockWidget(this->parentWidget());
+		dock->installEventFilter(this);
 		dock->setStyleSheet("QDockWidget { border: 3px solid; }\n"
 							"QDockWidget > QWidget  { border: 1px solid gray; }");
 		dock->resize(400, 300);
@@ -261,11 +280,23 @@ void MainTab::unpinTab() {
 
 		// dock header widget
 		auto dframe = new QFrame(dock);
-		dframe->setStyleSheet("QFrame { background: rgb(0, 109, 163); }\n");
+		dframe->setObjectName("baseFrame");
+		dframe->setStyleSheet("#baseFrame { background: rgb(0, 109, 163); }\n");
 		auto flayout = new QHBoxLayout(dframe);
 		flayout->setMargin(3);
 
 		flayout->addWidget(new QLabel(found.key()->getName().c_str()));
+
+		auto sepBrush = QBrush(Qt::gray, Qt::BrushStyle::Dense6Pattern);
+		QPalette sepPalette;
+		sepPalette.setBrush(QPalette::Background, sepBrush);
+
+		auto seprator = new QLabel(dock);
+		seprator->setAutoFillBackground(true);
+		seprator->setPalette(sepPalette);
+		seprator->setMaximumHeight(10);
+		seprator->setMinimumHeight(10);
+		flayout->addWidget(seprator, 1, Qt::AlignVCenter);
 
 		// pin button
 		auto pinAction = new QAction(QIcon(":/icons/pin"), "Pin to Tabbar", dock);

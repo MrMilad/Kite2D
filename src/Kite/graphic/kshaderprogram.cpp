@@ -117,7 +117,6 @@ namespace Kite{
 	}
 
 	bool KShaderProgram::_loadStream(KIStream &Stream, const std::string &Address) {
-		setModified(true);
 		setInite(false);
 
 		if (!Stream.isOpen()) {
@@ -189,7 +188,6 @@ namespace Kite{
 	}
 
 	bool KShaderProgram::setShader(KShader *Shader, ShaderType Type){
-		setModified(true);
 		if (Shader != nullptr) {
 			if (Shader->getShaderType() != Type) {
 				KD_PRINT("shader type missmatch.");
@@ -226,7 +224,6 @@ namespace Kite{
 			KD_FPRINT("rebinding attribute is not allowed. rname: %s", getName().c_str());
 			return;
 		}
-		setModified(true);
 		_kattribList.push_back({ Index, Name });
 	}
 

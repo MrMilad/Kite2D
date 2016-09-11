@@ -14,7 +14,9 @@ ResourceDock::ResourceDock(QWidget *Parrent) :
 {
 	setObjectName("Resources");
 	setAllowedAreas(Qt::LeftDockWidgetArea | Qt::RightDockWidgetArea);
+	setStyleSheet("QDockWidget { border: 3px solid; }");
 	setMinimumWidth(120);
+	setFocusPolicy(Qt::StrongFocus);
 
 	setupTree();
 	setupActions();
@@ -135,6 +137,10 @@ void ResourceDock::setupCategories() {
 			fpair.first = ".shp";
 			fpair.second = ":/icons/shaderp";
 			formats.insert(i, fpair);
+		} else if (i == (size_t)Kite::RTypes::AtlasTexture) {
+			fpair.first = ".atx";
+			fpair.second = ":/icons/atlas";
+			formats.insert(i, fpair);
 		} else {
 			fpair.first = "";
 			fpair.second = ":/icons/new";
@@ -187,10 +193,32 @@ void ResourceDock::setupHTools() {
 	vlayout->setMargin(2);
 	vlayout->setSpacing(0);
 
-	auto name = new QLabel(htools);
-	name->setText("Resource Explorer");
-	name->setStyleSheet("color: DodgerBlue;");
-	vlayout->addWidget(name);
+	auto hlayoutTitle = new QHBoxLayout();
+	auto title = new QLabel(htools);
+	title->setText("Resource Explorer ");
+	title->setStyleSheet("color: lightGray;");
+	hlayoutTitle->addWidget(title);
+
+	auto sepBrush = QBrush(Qt::gray, Qt::BrushStyle::Dense6Pattern);
+	QPalette sepPalette;
+	sepPalette.setBrush(QPalette::Background, sepBrush);
+
+	auto seprator = new QLabel(htools);
+	seprator->setAutoFillBackground(true);
+	seprator->setPalette(sepPalette);
+	seprator->setMaximumHeight(10);
+	hlayoutTitle->addWidget(seprator, 1, Qt::AlignBottom);
+
+	auto btnClose = new QToolButton(htools);
+	btnClose->setText("X");
+	btnClose->setStyleSheet("color: lightGray\n");
+	btnClose->setAutoRaise(true);
+	btnClose->setMaximumWidth(16);
+	btnClose->setMaximumHeight(16);
+	hlayoutTitle->addWidget(btnClose);
+	connect(btnClose, &QToolButton::clicked, this, &QDockWidget::hide);
+
+	vlayout->addLayout(hlayoutTitle);
 
 	auto hlayout = new QHBoxLayout(htools);
 	hlayout->setMargin(3);
@@ -329,7 +357,7 @@ void ResourceDock::manageUsedResource(const QHash<size_t, QVector<Kite::KMetaPro
 				std::vector<Kite::KHandle> lcomps;
 				eit->getScriptComponents(lcomps);
 				for (auto sit = lcomps.begin(); sit != lcomps.end(); ++sit) {
-					auto script = (Kite::KLogicCom *)eit->getComponent((*sit));
+					auto script = (Kite::KLogicCom *)eit->getComponentByHandle((*sit));
 					if (!script->getScript().str.empty()) {
 						scene->addResource(script->getScript().str, Kite::RTypes::Script);
 					}
@@ -343,7 +371,7 @@ void ResourceDock::manageUsedResource(const QHash<size_t, QVector<Kite::KMetaPro
 
 					if (eit->hasComponent((Kite::CTypes)cit.key())) {
 						for (auto pit = cit->begin(); pit != cit->end(); ++pit) {
-							auto com = eit->getComponentByName((Kite::CTypes)cit.key());
+							auto com = eit->getComponent((Kite::CTypes)cit.key());
 							auto res = com->getProperty(pit->name);
 							std::string resName;
 							if (pit->typeName == "std::string") {
@@ -380,13 +408,14 @@ bool ResourceDock::openResource(const QString &Address, Kite::RTypes Type, bool 
 
 	// load resource 
 	auto res = rman.load(Kite::IStreamTypes::FIStream, Type, Address.toStdString());
-	if (res = nullptr) {
+	if (res == nullptr) {
 		QMessageBox msg;
 		msg.setWindowTitle("Message");
 		msg.setText("Resource add module return nullptr!\nresource type: " + QString(Kite::getRTypesName(Type).c_str()));
 		msg.exec();
 		return false;
 	}
+	res->setModified(true);
 	return true;
 }
 
@@ -394,7 +423,7 @@ Kite::KResource *ResourceDock::getResource(const QString &Name) {
 	return rman.get(Name.toStdString());
 }
 
-Kite::KResource *ResourceDock::addResource(Kite::RTypes Type) {	
+Kite::KResource *ResourceDock::addResource(Kite::RTypes Type) {
 	// find category and format
 	auto pitem = resTree->findItems(Kite::getRTypesName(Type).c_str(), Qt::MatchFlag::MatchRecursive);
 	auto frmt = formats.find((size_t)Type)->first;
@@ -443,7 +472,7 @@ Kite::KResource *ResourceDock::addResource(Kite::RTypes Type) {
 		}
 
 		// file validation
-		QFile file(currDirectory + "\\" + text + frmt);
+		QFile file(currDirectory + "/" + text + frmt);
 		if (file.exists()) {
 			QMessageBox msg;
 			msg.setWindowTitle("Message");
@@ -484,7 +513,7 @@ Kite::KResource *ResourceDock::addResource(Kite::RTypes Type) {
 
 	// save it to the hard disk
 	Kite::KFOStream fstream;
-	if (!newres->saveStream(fstream, currDirectory.toStdString() + "\\" + text.toStdString())) {
+	if (!newres->saveStream(fstream, currDirectory.toStdString() + "/" + text.toStdString())) {
 		QMessageBox msg;
 		msg.setWindowTitle("Message");
 		msg.setText("cant create resource file.!\nresource type: " + QString(Kite::getRTypesName(Type).c_str()));
@@ -494,7 +523,52 @@ Kite::KResource *ResourceDock::addResource(Kite::RTypes Type) {
 	delete newres;
 
 	// reload it from hard disk
-	auto res = rman.load(Kite::IStreamTypes::FIStream, Type, currDirectory.toStdString() + "\\" + text.toStdString());
+	auto res = rman.load(Kite::IStreamTypes::FIStream, Type, currDirectory.toStdString() + "/" + text.toStdString());
+	if (res == nullptr) {
+		QMessageBox msg;
+		msg.setWindowTitle("Message");
+		msg.setText("resource add module return nullptr!\nresource type: " + QString(Kite::getRTypesName(Type).c_str()));
+		msg.exec();
+		return nullptr;
+	}
+
+	return res;
+}
+
+Kite::KResource *ResourceDock::addResourceInternal(Kite::RTypes Type, const QString &Name) {
+	// check name
+	// available name
+	if (!resTree->findItems(Name, Qt::MatchFlag::MatchRecursive).isEmpty()) {
+		QMessageBox msg;
+		msg.setWindowTitle("Message");
+		msg.setText("an resource with this name \"" + Name + "\" is already exist! use another name.");
+		msg.exec();
+		return nullptr;
+	}
+
+	// create new res
+	auto newres = rman.create(Type, Name.toStdString());
+	if (newres == nullptr) {
+		QMessageBox msg;
+		msg.setWindowTitle("Message");
+		msg.setText("resource add module return nullptr!\nresource type: " + QString(Kite::getRTypesName(Type).c_str()));
+		msg.exec();
+		return nullptr;
+	}
+
+	// save it to the hard disk
+	Kite::KFOStream fstream;
+	if (!newres->saveStream(fstream, currDirectory.toStdString() + "/" + Name.toStdString())) {
+		QMessageBox msg;
+		msg.setWindowTitle("Message");
+		msg.setText("cant create resource file.!\nresource type: " + QString(Kite::getRTypesName(Type).c_str()));
+		msg.exec();
+		return nullptr;
+	}
+	delete newres;
+
+	// reload it from hard disk
+	auto res = rman.load(Kite::IStreamTypes::FIStream, Type, currDirectory.toStdString() + "/" + Name.toStdString());
 	if (res == nullptr) {
 		QMessageBox msg;
 		msg.setWindowTitle("Message");
@@ -599,7 +673,7 @@ void ResourceDock::actSave() {
 
 	emit(resourceSave(res));
 	Kite::KFOStream ostream;
-	if (!res->saveStream(ostream, res->getAddress() + "\\" + res->getName())) {
+	if (!res->saveStream(ostream, res->getAddress() + "/" + res->getName())) {
 		QMessageBox msg;
 		msg.setWindowTitle("Message");
 		msg.setText("cant save resource.\nfile address: " + QString(res->getName().c_str()));

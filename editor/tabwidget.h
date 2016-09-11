@@ -15,12 +15,15 @@ public:
 
     virtual bool saveChanges() = 0;
 
+	virtual void reload() = 0;
+
     inline const auto getResource() const { return res; }
 
 signals:
 	void requestResList(Kite::RTypes Type, QList<const Kite::KResource *> &List);
 	Kite::KResource *requestRes(const QString &Name);
-	Kite::KResource *requestAddRes(Kite::RTypes Type);
+	Kite::KResource *requestAddRes(Kite::RTypes Type, const QString &Name);
+	void requestReloadTab(Kite::KResource *Res);
 
 private:
     Kite::KResource *res;

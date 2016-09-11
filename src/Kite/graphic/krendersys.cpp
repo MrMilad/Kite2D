@@ -27,18 +27,18 @@
 #include "Kite/meta/kmetamanager.h"
 #include "Kite/meta/kmetaclass.h"
 #include "Kite/meta/kmetatypes.h"
-#include "Kite/graphic/kcameracom.h"
+#include "Kite/graphic/kcameracom.h"	
 #include "src/Kite/graphic/glcall.h"
 #include <luaintf/LuaIntf.h>
 
 namespace Kite{
 	bool KRenderSys::update(F32 Delta, KEntityManager *EManager, KResourceManager *RManager) {
 		STATIC_OUT_EDITOR const bool isregist = (EManager->isRegisteredComponent(CTypes::Camera) 
-												 && EManager->isRegisteredComponent(CTypes::Render));
+												 && EManager->isRegisteredComponent(CTypes::RenderMaterial));
 		
 		if (isregist) {
 			// sort camera(s) (based depth)
-			STATIC_OUT_EDITOR auto continer = EManager->getComponentStorage<KCameraCom>(CTypes::Camera);
+			auto continer = EManager->getComponentStorage<KCameraCom>(CTypes::Camera);
 			STATIC_OUT_EDITOR std::vector<std::pair<U32, U32>> sortedIndex(KRENDER_CAMERA_SIZE); // reserve 10 pre-defined camera
 			sortedIndex.clear();
 
@@ -90,12 +90,12 @@ namespace Kite{
 					}
 
 					// update and draw renderables
-					STATIC_OUT_EDITOR auto render = EManager->getComponentStorage<KRenderCom>(CTypes::Render);
+					STATIC_OUT_EDITOR auto render = EManager->getComponentStorage<KRenderCom>(CTypes::RenderMaterial);
 					U32 indSize = 0;
 					U32 verSize = 0;
 
 					KRenderCom *material = nullptr;
-					static std::vector<std::pair<KRenderCom *, KRenderable *>> objList(KRENDER_BUFF_SIZE);
+					STATIC_OUT_EDITOR std::vector<std::pair<KRenderCom *, KRenderable *>> objList(KRENDER_BUFF_SIZE);
 					objList.resize(0);
 
 					// inite objects list
@@ -111,9 +111,11 @@ namespace Kite{
 						}
 
 						// catch renderable components
-						if (rit->_isvisible && EManager->getEntity(rit->getOwnerHandle())->isActive()) {
-							if (auto quadcom = (KQuadCom *)ent->getComponentByName(CTypes::Quad, "")) {
-								objList.push_back({ &(*rit), quadcom });
+						if (EManager->getEntity(rit->getOwnerHandle())->isActive()) {
+							if (auto quadcom = (KQuadCom *)ent->getComponent(CTypes::Quad, "")) {
+								if (quadcom->isVisible()) {
+									objList.push_back({ &(*rit), quadcom });
+								}
 
 								// } else if (catch another renderable ...){
 							}
@@ -165,7 +167,9 @@ namespace Kite{
 							// bind materials
 							material->_kshprogptr->bind();
 							if (material->_ktextureptr) {
-								material->_ktextureptr->bind();
+								if (material->_ktextureptr->getTexture()){
+									material->_ktextureptr->getTexture()->bind();
+								}
 							}
 
 							// draw 
@@ -282,7 +286,9 @@ namespace Kite{
 	bool KRenderSys::_checkState(KRenderCom *Com, KRenderable *Rendeable){
 		U32 textId = 0;
 		if (Com->_ktextureptr) {
-			textId = Com->_ktextureptr->getGLID();
+			if (Com->_ktextureptr->getTexture()) {
+				textId = Com->_ktextureptr->getTexture()->getGLID();
+			}
 		}
 		if (Com->_kshprogptr->getGLID() != _klastState.lastShdId ||
 			Rendeable->getGeoType() != _klastState.lastGeo ||
@@ -308,19 +314,23 @@ namespace Kite{
 			return false;
 		}
 
-		Com->_ktextureptr = (KTexture *)RMan->get(Com->_ktexture.str);
-
 		if (!Com->_kshprogptr->isInite()) {
 			Com->_kshprogptr->bindAttribute(KVATTRIB_XY, "in_pos");
 			Com->_kshprogptr->bindAttribute(KVATTRIB_UV, "in_uv");
 			Com->_kshprogptr->bindAttribute(KVATTRIB_RGBA, "in_col");
 
-			// inite resources
-			if (Com->_ktextureptr) {
-				Com->_ktextureptr->inite();
-			}
 			Com->_kshprogptr->inite();
 			Com->_kshprogptr->link();
+		}
+
+		if (!Com->_ktexture.str.empty()) {
+			Com->_ktextureptr = (KAtlasTexture *)RMan->get(Com->_ktexture.str);
+
+			if (Com->_ktextureptr) {
+				if (Com->_ktextureptr->getTexture()) {
+					Com->_ktextureptr->getTexture()->inite();
+				}
+			}
 		}
 
 		Com->setNeedUpdate(false);
@@ -374,40 +384,13 @@ namespace Kite{
 	}
 
 	void KRenderSys::_computeParentsTransform(KEntityManager *Eman, KEntity *Entity, KMatrix3 *Matrix) {
-		auto trcom = (KTransformCom *)Entity->getComponentByName(CTypes::Transform, "");
+		auto trcom = (KTransformCom *)Entity->getComponent(CTypes::Transform, "");
 		if (Entity->getParentHandle() != Eman->getRoot()) {
 			_computeParentsTransform(Eman, Eman->getEntity(Entity->getParentHandle()), Matrix);
 		}
 		if (trcom) {
 			(*Matrix) *= trcom->getMatrix();
 		}
-
-
-		/*auto trcom = (KTransformCom *)Entity->getComponentByName("Transform", "");
-		KHandle phndl = Entity->getParentHandle();
-
-		std::vector<KHandle> hlist;
-		hlist.reserve(7);
-
-		// collect parrents matrix
-		while (true) {
-			if (phndl != Eman->getRoot()) {
-				hlist.push_back(phndl);
-				phndl = Eman->getEntity(phndl)->getParentHandle();
-			} else {
-				break;
-			}
-		}
-
-		// compute matrixes in reverse order 
-		for (auto it = hlist.rbegin(); it != hlist.rend(); ++it) {
-			auto com = (KTransformCom *)Eman->getEntity((*it))->getComponentByName("Transform", "");
-			if (com) {
-				(*Matrix) *= com->getMatrix();
-			}
-		}
-
-		(*Matrix) *= trcom->getMatrix();*/
 	}
 
 	/*void KRenderSys::_updateInd(void *Data, U32 Offset, U32 DataSize, void *Sender) {
@@ -427,27 +410,30 @@ namespace Kite{
 		U32 matIndex = 0;
 		U32 offset = 0;
 
-		for (auto it = udata->objects.begin(); it != udata->objects.end(); ++it) {
+		const auto cend = udata->objects.cend();
+		for (auto it = udata->objects.begin(); it != cend; ++it) {
 			U16 vindex = 0;
 
 			// reverse render
 			if ((*it)->isReverse()) {
-				for (auto vit = (*it)->getVertex()->rbegin(); vit != (*it)->getVertex()->rend(); ++vit) {
-					ver[offset + vindex].pos = KTransform::transformPoint(udata->matrix[matIndex], (*vit).pos);
-					ver[offset + vindex].r = (*vit).color.r;
-					ver[offset + vindex].g = (*vit).color.g;
-					ver[offset + vindex].b = (*vit).color.b;
-					ver[offset + vindex].a = (*vit).color.a;
+				const auto crend = (*it)->getVertex()->crend();
+				for (auto vit = (*it)->getVertex()->crbegin(); vit != crend; ++vit) {
+					ver[offset + vindex].pos = KTransform::transformPoint(udata->matrix[matIndex], vit->pos);
+					ver[offset + vindex].r = vit->color.r;
+					ver[offset + vindex].g = vit->color.g;
+					ver[offset + vindex].b = vit->color.b;
+					ver[offset + vindex].a = vit->color.a;
 
 					// update uv
-					//ver[ofst + j].uv = vtmp->uv;
+					ver[offset + vindex].uv = vit->uv;;
 
 					++vindex;
 				}
 
 			// normal render
 			} else {
-				for (auto vit = (*it)->getVertex()->begin(); vit != (*it)->getVertex()->end(); ++vit) {
+				const auto cend = (*it)->getVertex()->cend();
+				for (auto vit = (*it)->getVertex()->cbegin(); vit != cend; ++vit) {
 					ver[offset + vindex].pos = KTransform::transformPoint(udata->matrix[matIndex], (*vit).pos);
 					ver[offset + vindex].r = (*vit).color.r;
 					ver[offset + vindex].g = (*vit).color.g;
@@ -455,7 +441,7 @@ namespace Kite{
 					ver[offset + vindex].a = (*vit).color.a;
 
 					// update uv
-					//ver[ofst + j].uv = vtmp->uv;
+					ver[offset + vindex].uv = vit->uv;
 
 					++vindex;
 				}
@@ -467,211 +453,6 @@ namespace Kite{
 	}
 
 	KMETA_KRENDERSYS_SOURCE();
-
-	/*void KBatch::draw(const KBatchObject *Object, const KBatchUpdate &Update) {
-		if (!Object)
-			return;
-
-		if (Object->getIndexSize() > _kisize || Object->getVertexSize() > _kvsize) {
-			KDEBUG_PRINT("object size is greater than buffer size.");
-			return;
-		}
-
-		if (!Object->getVisible()) 
-			return;
-
-		// update vertex attributes
-		_ksender.arraySize = 1;
-		_ksender.firstObject = (const void *)&Object;
-		if (Object->getIndexed()) {
-			_kvboInd.update(0, sizeof(U16) * Object->getIndexSize(), false, (void *)this);
-		}
-		if (Update.vertex) {
-			_kvboVer.update(0, sizeof(KVector2F32) * Object->getVertexSize(), false, (void *)this);
-		} 
-		if (_kpsprite && Update.point && Object->getSpriteEnabled()) {
-			_kvboPnt.update(0, sizeof(KPointSprite)* Object->getPointSize(), false, (void *)this);
-		}
-
-		_kvao.bind();
-
-		// bind shader
-		if (Object->getShader())
-			Object->getShader()->bind();
-
-		// bind texture
-		if (Object->getTexture())
-			Object->getTexture()->bind();
-
-		// draw objects
-		if (Object->getIndexed()) {
-			KRender::draw(Object->getIndexSize(), (U16 *)0, Object->getGeoType());
-		} else {
-			KRender::draw(0, Object->getVertexSize(), Object->getGeoType());
-		}
-	}
-
-	void KBatch::draw(const std::vector<KBatchObject *> &Objects, const KBatchUpdate &Update) {
-		if (Objects.empty())
-			return;
-		
-		bool needDraw = true, needFilter = true;
-		bool indexed = Objects[0]->getIndexed();
-		U32 counter = 0;
-		U32 start = 0;
-		
-		while (needFilter) {
-
-			U32 lenght = 0;
-			// filtering objects by render types (insexed or array)
-			for (counter; counter < Objects.size(); counter++) {
-				if (indexed == Objects[counter]->getIndexed()) {
-					++lenght;
-					needDraw = true;
-				} else {
-					indexed = Objects[counter]->getIndexed();
-					break;
-				}
-			}
-			lenght += start;
-
-			// draw filtered objects
-			while (needDraw) {
-
-				U32 vsize = 0, isize = 0;
-				_kobj.clear();
-
-				for (start; start < lenght; start++) {
-
-					if (!Objects[start]->getVisible())
-						continue;
-
-					if ((vsize + Objects[start]->getVertexSize()) <= _kvsize &&
-						(isize + Objects[start]->getIndexSize()) <= _kisize) {
-						vsize += Objects[start]->getVertexSize();
-						isize += Objects[start]->getIndexSize();
-						_kobj.push_back(Objects[start]);
-
-					} else {
-						break;
-					}
-				}
-
-				if (vsize == 0 || (isize == 0 && Objects[lenght - 1]->getIndexed())) {
-					KDEBUG_PRINT("object size is greater than buffer size.");
-					return;
-				}
-
-				// draw
-				_draw(_kobj, vsize, isize, Update);
-
-				// draw completed
-				if (start >= lenght)
-					needDraw = false;
-			}
-
-			// filtering completed
-			if (counter >= Objects.size())
-				needFilter = false;
-		}
-
-	}
-
-	void KBatch::_draw(const std::vector<const KBatchObject *> &Objects, U32 VSize, U32 ISize, const KBatchUpdate &Update) {
-		// update vertex attributes
-		_ksender.arraySize = Objects.size();
-		_ksender.firstObject = (const void *)&Objects[0];
-		if (ISize > 0) {
-			_kvboInd.update(0, sizeof(U16)* ISize, false, (void *)this);
-		}
-		if (Update.vertex) {
-			_kvboVer.update(0, sizeof(KVector2F32)* VSize, false, (void *)this);
-		}
-		if (_kpsprite && Update.point) {
-			_kvboPnt.update(0, sizeof(KPointSprite)* VSize, false, (void *)this);
-		}
-
-		// catch objects state (shader, texture, ...)
-		// and render same object with single draw call
-		Internal::KCatchDraw currentCatch;
-		Internal::KCatchDraw tempCatch;
-
-		U32 iter = 0, groupOfst = 0, groupSize = 0;
-		bool completed = false;
-
-		// fill catch with first object in array
-		currentCatch.objIndex = 0;
-		if (Objects[0]->getTexture()) {
-			currentCatch.lastTexId = Objects[0]->getTexture()->getGLID();
-		} else {
-			currentCatch.lastTexId = 0;
-		}
-		if (Objects[0]->getShader())
-			currentCatch.lastShdId = Objects[0]->getShader()->getGLID();
-		currentCatch.lastGeo = Objects[0]->getGeoType();
-
-		_kvao.bind();
-
-		// compare objects
-		while (!completed) {
-
-			// iterate over all objects and draw same objects with one draw call
-			for (iter = iter; iter < Objects.size(); iter++) {
-				tempCatch.objIndex = iter;
-				if (Objects[iter]->getTexture()) {
-					tempCatch.lastTexId = Objects[iter]->getTexture()->getGLID();
-				} else {
-					tempCatch.lastTexId = 0;
-				}
-				if (Objects[iter]->getShader())
-					tempCatch.lastShdId = Objects[iter]->getShader()->getGLID();
-				tempCatch.lastGeo = Objects[iter]->getGeoType();
-				if (tempCatch == currentCatch) {
-					// indexed
-					if (ISize > 0) {
-						groupSize += Objects[iter]->getIndexSize();
-
-					// array
-					} else {
-						groupSize += Objects[iter]->getVertexSize();
-					}
-					continue;
-				}
-				break;
-			}
-
-			// draw same object(s) in group
-			// bind shader
-			if (Objects[currentCatch.objIndex]->getShader())
-				Objects[currentCatch.objIndex]->getShader()->bind();
-
-			// bind texture
-			if (Objects[currentCatch.objIndex]->getTexture()) {
-				Objects[currentCatch.objIndex]->getTexture()->bind();
-			} else {
-				KTexture::unbindTexture();
-			}
-
-			// draw objects
-			if (ISize > 0) {
-				// indexed
-				KRender::draw(groupSize, (U16 *)(sizeof(U16)* groupOfst), currentCatch.lastGeo);
-			} else {
-				// array
-				KRender::draw(0, groupSize, currentCatch.lastGeo);
-			}
-
-			// reset catch
-			currentCatch = tempCatch;
-			groupOfst += groupSize;
-			groupSize = 0;
-
-			// draw completed
-			if (iter >= Objects.size())
-				completed = true;
-		}
-	}*/
-
 
 	/*void KRenderSys::_updatePar(void *Data, U32 Offset, U32 DataSize, void *Sender) {
 		KRenderSys *clObject = (KRenderSys *)Sender;

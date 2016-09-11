@@ -37,7 +37,7 @@ namespace Kite {
 		if (isregist) {
 
 			// iterate over objects with at least 1 Logic component
-			STATIC_OUT_EDITOR auto continer = EManager->getComponentStorage<KLogicInstanceCom>(CTypes::LogicInstance);
+			auto continer = EManager->getComponentStorage<KLogicInstanceCom>(CTypes::LogicInstance);
 			for (auto it = continer->begin(); it != continer->end(); ++it) {
 
 				auto ent = EManager->getEntity(it->getOwnerHandle());
@@ -49,7 +49,7 @@ namespace Kite {
 
 					// iterate over all logic components and inite/update them
 					for (auto comp = components.begin(); comp != components.end(); ++comp) {
-						auto lcomp = (KLogicCom *)ent->getComponent((*comp));
+						auto lcomp = (KLogicCom *)ent->getComponentByHandle((*comp));
 
 						// inite component and bind it to lua vm (only one time when current script changed with a new script)
 						if (lcomp->getNeedUpdate()) {

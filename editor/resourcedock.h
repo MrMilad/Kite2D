@@ -24,6 +24,7 @@ public:
 	bool openResource(const QString &Address, Kite::RTypes Type, bool WarnExist = true);
 	Kite::KResource *getResource(const QString &Name);
 	Kite::KResource *addResource(Kite::RTypes Type);
+	Kite::KResource *addResourceInternal(Kite::RTypes Type, const QString &Name);
 	void filterByType(Kite::RTypes Type, QStringList &List);
 	void filterByTypeRes(Kite::RTypes Type, QList<const Kite::KResource *> &List);
 	void selectResource(const QString &Name);

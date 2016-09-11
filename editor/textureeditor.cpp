@@ -145,7 +145,26 @@ bool TextureEditor::saveChanges() {
 				 lblImageView->pixmap()->toImage().convertToFormat(QImage::Format_RGBA8888).bits());
 
 	texture->create(image, filter, wrap);
+	texture->setModified(true);
 	return true;
+}
+
+void TextureEditor::reload() {
+	Kite::KImage image;
+	texture->getImage(image);
+
+	spinX->setValue(image.getSize().x);
+	spinX->setDisabled(true);
+
+	spinY->setValue(image.getSize().y);
+	spinY->setDisabled(true);
+
+	cmbFilter->setCurrentIndex((int)texture->getFilter());
+	cmbWrap->setCurrentIndex((int)texture->getWrap());
+
+	QImage qimage((const uchar *)image.getPixelsData(), image.getSize().x, image.getSize().y, QImage::Format_RGBA8888);
+	lblImageView->setPixmap(QPixmap().fromImage(qimage));
+	lblImageView->resize(lblImageView->sizeHint());
 }
 
 bool TextureEditor::eventFilter(QObject *Obj, QEvent *Event) {
@@ -168,6 +187,7 @@ void TextureEditor::loadImage() {
 		spinY->setValue(image.size().height());
 		lblImageView->setPixmap(image);
 		lblImageView->resize(lblImageView->sizeHint());
+		texture->setModified(true);
 	}
 }
 
@@ -180,6 +200,7 @@ void TextureEditor::createColor() {
 		spinY->setDisabled(false);
 		lblImageView->setPixmap(pmap);
 		lblImageView->resize(lblImageView->sizeHint());
+		texture->setModified(true);
 	}
 }
 
@@ -188,6 +209,7 @@ void TextureEditor::resizeWidth(int Width) {
 	pmap.fill(color);
 	lblImageView->setPixmap(pmap);
 	lblImageView->resize(lblImageView->sizeHint());
+	texture->setModified(true);
 }
 
 void TextureEditor::resizeHeight(int Height) {
@@ -195,4 +217,5 @@ void TextureEditor::resizeHeight(int Height) {
 	pmap.fill(color);
 	lblImageView->setPixmap(pmap);
 	lblImageView->resize(lblImageView->sizeHint());
+	texture->setModified(true);
 }

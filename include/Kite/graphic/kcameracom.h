@@ -51,18 +51,18 @@ namespace Kite{
 		KM_PRO_GET(KP_NAME = "viewSize", KP_TYPE = KVector2U32, KP_CM = "size of the viewport")
 		inline const KVector2U32 &getSize() const { return _ksize; }
 
+		KM_PRO_SET(KP_NAME = "center")
+			void setCenter(const KVector2F32 &Center); // { _kcenter = Center; setNeedUpdate(true); }
+
+		KM_PRO_GET(KP_NAME = "center", KP_TYPE = KVector2F32, KP_CM = "center of the viewport")
+			inline const KVector2F32 &getCenter() const { return _kcenter; }
+
 		/// default: 0.0, 0.0
 		KM_PRO_SET(KP_NAME = "viewPosition")
 		void setPosition(const KVector2I32 &Position); // { _kcenter = Center; setNeedUpdate(true); }
 
 		KM_PRO_GET(KP_NAME = "viewPosition", KP_TYPE = KVector2I32, KP_CM = "position of the viewport")
 		inline const KVector2I32 &getPosition() const { return _kposition; }
-
-		KM_PRO_SET(KP_NAME = "center")
-		void setCenter(const KVector2F32 &Center); // { _kcenter = Center; setNeedUpdate(true); }
-
-		KM_PRO_GET(KP_NAME = "center", KP_TYPE = KVector2F32, KP_CM = "center of the viewport")
-		inline const KVector2F32 &getCenter() const { return _kcenter; }
 
 		KM_FUN()
 		void move(const KVector2F32 &Move); // { _kcenter += Move;  _kneedUpdate = true; }
@@ -102,6 +102,12 @@ namespace Kite{
 		KM_PRO_GET(KP_NAME = "clearViewport", KP_TYPE = bool, KP_CM = "clear viewport with clear color")
 		inline bool getClearViewport() const { return _kclearView; }
 
+		KM_PRO_GET(KP_NAME = "depth", KP_TYPE = U32, KP_CM = "camera render order")
+			inline U32 getDepth() const { return _kdepth; }
+
+		KM_PRO_SET(KP_NAME = "depth")
+			inline void setDepth(U32 Depth) { _kdepth = Depth; }
+
 		/// flip screen coordinate
 		/// (Micro$oft window system)
 		KM_PRO_SET(KP_NAME = "flipY")
@@ -115,12 +121,6 @@ namespace Kite{
 
 		KM_PRO_GET(KP_NAME = "flipX", KP_TYPE = bool, KP_CM = "flip screen coordinate")
 		inline bool getFlipX() const { return _kflipx; }
-
-		KM_PRO_GET(KP_NAME = "depth", KP_TYPE = U32, KP_CM = "camera render order")
-		inline U32 getDepth() const { return _kdepth; }
-
-		KM_PRO_SET(KP_NAME = "depth")
-		inline void setDepth(U32 Depth) { _kdepth = Depth; }
         
 		/// return the combined matrix
 		KM_FUN()

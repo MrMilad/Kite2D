@@ -35,7 +35,6 @@ namespace Kite {
 	}
 
 	bool KScript::_loadStream(KIStream &Stream, const std::string &Address) {
-		setModified(true);
 		_kcode.clear();
 
 		if (!Stream.isOpen()) {

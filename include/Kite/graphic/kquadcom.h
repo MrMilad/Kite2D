@@ -46,6 +46,18 @@ namespace Kite{
 
 		RecieveTypes onMessage(KMessage *Message, MessageScope Scope) override;
 
+		KM_PRO_SET(KP_NAME = "width")
+			void setWidth(F32 Width);
+
+		KM_PRO_GET(KP_NAME = "width", KP_TYPE = F32, KP_CM = "width of the quad")
+			inline F32 getWidth() const { return _kwidth; }
+
+		KM_PRO_SET(KP_NAME = "height")
+			void setHeight(F32 Height);
+
+		KM_PRO_GET(KP_NAME = "height", KP_TYPE = F32, KP_CM = "height of the quad")
+			inline F32 getHeight() const { return _kheight; }
+
 		KM_PRO_SET(KP_NAME = "border")
 		void setBorder(F32 Border);
 
@@ -58,32 +70,32 @@ namespace Kite{
 		KM_PRO_GET(KP_NAME = "borderColor", KP_TYPE = KColor, KP_CM = "border color")
 		inline const KColor &getBorderColor() const { return _kbcolor; }
 
-		KM_PRO_SET(KP_NAME = "width")
-		void setWidth(F32 Width);
-
-		KM_PRO_GET(KP_NAME = "width", KP_TYPE = F32, KP_CM = "width of the quad")
-		inline F32 getWidth() const { return _kwidth; }
-
-		KM_PRO_SET(KP_NAME = "height")
-		void setHeight(F32 Height);
-
-		KM_PRO_GET(KP_NAME = "height", KP_TYPE = F32, KP_CM = "height of the quad")
-		inline F32 getHeight() const { return _kheight; }
-
-		//void setUV(const KRectF32 &UV);
-		//inline const KRectF32 &getUV() const { return _kuv; }
-
 		KM_PRO_SET(KP_NAME = "tint")
 		void setColor(const KColor &Color);
 
 		KM_PRO_GET(KP_NAME = "tint", KP_TYPE = KColor, KP_CM = "tint color")
 		inline const KColor &getTintColor() const { return _kcolor; }
 
-		KM_PRO_GET(KP_NAME = "atlasID", KP_TYPE = U32, KP_CM = "atlas id")
-		inline U32 getAtlasID() const { return _katlasid; }
+		KM_PRO_GET(KP_NAME = "atlasItem", KP_TYPE = KAtlasItem, KP_CM = "atlas item")
+		inline const KAtlasItem &getAtlasItem() const { return _katlasItem; }
 
-		KM_PRO_SET(KP_NAME = "atlasID")
-		inline void setAtlasID(U32 AtlasID) { _katlasid = AtlasID; }
+		KM_PRO_SET(KP_NAME = "atlasItem")
+		void setAtlasItem(const KAtlasItem &AtlasItem);
+
+		KM_PRO_SET(KP_NAME = "visible")
+		inline void setVisible(bool Visible) { _kisVisible = Visible; }
+
+		KM_PRO_GET(KP_NAME = "visible", KP_TYPE = bool, KP_CM = "object visibility")
+		inline bool isVisible() const override { return _kisVisible; }
+
+		KM_FUN()
+		inline void getBoundingRect(KRectF32 &Output) const override;
+
+		// shuld defined in particle component
+		//inline void setRelativeTransform(bool Relative) { _krelTrans = Relative; }
+		//inline bool getRelativeTransform() const { return _krelTrans; }
+		//inline void setReverseRender(bool Reverse) { _kreverse = Reverse; }
+		//inline bool getReverseRender() const { return _kreverse; }
 
 	protected:
 		/// render system interface
@@ -99,10 +111,11 @@ namespace Kite{
 
     private:
 		void _setDim();
+		KM_VAR() KAtlasItem _katlasItem;
+		KM_VAR() bool _kisVisible;
 		KM_VAR() bool _kreverse;
 		KM_VAR() U32 _kindexsize;
 		KM_VAR() std::vector<KVertex> _kvertex;
-		KM_VAR() U32 _katlasid;
 		KM_VAR() F32 _kwidth;
 		KM_VAR() F32 _kheight;
 		KM_VAR() F32 _kborder;

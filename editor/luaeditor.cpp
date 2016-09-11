@@ -58,7 +58,23 @@ void LuaEditor::inite() {
 
 bool LuaEditor::saveChanges() {
 	script->setCode(editor->document()->toPlainText().toStdString());
+	script->setModified(true);
 	return true;
+}
+
+void LuaEditor::reload() {
+	if (script->getCode().empty()) {
+		editor->setPlainText("function inite(self)\n"
+							 "\t\nend\n"
+							 "\nfunction start(self)\n"
+							 "\t\nend\n"
+							 "\nfunction update(self, delta)\n"
+							 "\t\nend\n"
+							 "\nfunction onMessage(self, msg)\n"
+							 "\t\nend\n");
+	} else {
+		editor->appendPlainText(script->getCode().c_str());
+	}
 }
 
 void LuaEditor::initeModel() {

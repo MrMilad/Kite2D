@@ -201,8 +201,62 @@ namespace Kite{
 			blu(0), blv(0),
 			tru(1), trv(1),
 			width(0), height(0),
-			xpos(0), ypos(0)
-		{}
+			xpos(0), ypos(0),
+			_kfliph(false), _kflipv(false){}
+
+		KM_FUN()
+		inline void KAtlasItem::flipH() {
+			// swap left and right
+			F32 temp = blu;
+			blu = tru;
+			tru = temp;
+			_kfliph = !_kfliph;
+		}
+
+		KM_FUN()
+		inline void KAtlasItem::flipV() {
+			// swap bootom and top
+			F32 temp = blv;
+			blv = trv;
+			trv = temp;
+			_kflipv = !_kflipv;
+		}
+
+		KM_PRO_GET(KP_NAME = "flippedH", KP_TYPE = bool, KP_CM = "horizontal flip")
+			inline bool getFlipH() const { return _kfliph; }
+
+		KM_PRO_GET(KP_NAME = "flippedV", KP_TYPE = bool, KP_CM = "vertical flip")
+			inline bool getFlipV() const { return _kflipv; }
+
+		//! Equal operator
+		inline bool operator==(const KAtlasItem& rhs) {
+			if (rhs.xpos == xpos &&
+				rhs.ypos == ypos &&
+				rhs.width == width &&
+				rhs.height == height&&
+				rhs._kfliph == _kfliph &&
+				rhs._kflipv == _kflipv) {
+				return true;
+			}
+			return false;
+		}
+
+	private:
+		KM_VAR(UNBIND) bool _kfliph;
+		KM_VAR(UNBIND) bool _kflipv;
+	};
+
+	KM_CLASS(POD)
+	struct KGCullingObject {
+		KMETA_KGCULLINGOBJECT_BODY();
+
+		KM_VAR() KHandle entity;
+		KM_VAR() KHandle component;
+		KM_VAR() U32 zorder;
+
+		inline bool operator<(const KGCullingObject& Other) {
+			return (zorder < Other.zorder);
+		}
 	};
 
 	/*struct KAnimeKey {
@@ -425,11 +479,33 @@ namespace Kite{
 		bool stacked;		//!< Is stacked (stakced tile will draw on previous tile)
 	};*/
 
+	KM_CLASS(POD)
+	struct KOrthoTile {
+		KMETA_KORTHOTILE_BODY();
+
+		KM_VAR() KVertex verts[4];
+		KM_VAR() SIZE nextIndex;
+
+		KOrthoTile() :
+			nextIndex(0) {}
+	};
+
+	KM_CLASS(POD)
+	struct KRootTileMap {
+		KMETA_KROOTTILEMAP_BODY();
+
+		KM_VAR() SIZE firstIndex;
+		KM_VAR() SIZE lastIndex;
+		KM_VAR() SIZE size;
+
+		KRootTileMap() :
+			firstIndex(0), lastIndex(0), size(0) {}
+	};
+
 	/*! \namespace Kite::Internal
 		\brief Private namespace.
 	*/
     namespace Internal{
-
 		struct KGLVertex {
 			KVector2F32 pos;
 			KVector2F32 uv;
@@ -442,14 +518,6 @@ namespace Kite{
 				pos(0.0f, 0.0f), uv(0.0f),
 				r(1.0f), g(1.0f), b(1.0f), a(1.0f) {}
 
-		};
-
-		struct KUpdateSender {
-			U32 arraySize;
-			const void *firstObject;
-
-			KUpdateSender(U32 ArraySize = 0, void *FirstObject = 0) :
-				arraySize(ArraySize), firstObject(FirstObject) {}
 		};
 
 		//! Catch last OpenGL state. (internally use)

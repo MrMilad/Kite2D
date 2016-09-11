@@ -141,7 +141,6 @@ namespace Kite {
 
 		// create new resource and assocated input stream
 		KResource *resource = _krfactory[rindex].first(finfo.name);
-		resource->setModified(true);
 
 		// loading composite resources (recursive)
 		if (resource->isComposite()) {
@@ -388,7 +387,7 @@ namespace Kite {
 			if (comp == nullptr) {
 
 				// case 2: then we try load it based parrent address
-				comp = load(Stream.getType(), it->second, finfo.path + "\\" + it->first);
+				comp = load(Stream.getType(), it->second, finfo.path + "/" + it->first);
 				if (comp == nullptr) {
 					KD_FPRINT("cant load composite resource. composite name: %s", it->first.c_str());
 					return false;

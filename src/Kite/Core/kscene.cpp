@@ -39,7 +39,6 @@ namespace Kite {
 	KScene::~KScene() {}
 
 	bool KScene::_loadStream(KIStream &Stream, const std::string &Address) {
-		setModified(true);
 		if (!Stream.isOpen()) {
 			Stream.close();
 		}
@@ -93,7 +92,6 @@ namespace Kite {
 	}
 
 	bool KScene::addResource(const std::string &RName, RTypes Type) {
-		setModified(true);
 		auto found = _kres.find(RName);
 		if (found != _kres.end()) {
 			KD_FPRINT("this resource is exist. rname: %s", RName.c_str());
@@ -105,12 +103,10 @@ namespace Kite {
 	}
 
 	void KScene::removeResource(const std::string &RName) {
-		setModified(true);
 		_kres.erase(RName);
 	}
 
 	void KScene::clearResources() {
-		setModified(true);
 		_kres.clear();
 	}
 

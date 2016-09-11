@@ -34,8 +34,10 @@ USA
 #include <unordered_map>
 #include <string>
 #include <vector>
+#include <bitset>
 #include "kentity.khgen.h"
 #include "ktypes.khgen.h"
+
 
 KMETA
 namespace Kite {
@@ -83,6 +85,15 @@ namespace Kite {
 		KM_PRO_SET(KP_NAME = "isActive")
 		void setActive(bool Active);
 
+		KM_PRO_GET(KP_NAME = "isStatic", KP_TYPE = bool, KP_CM = "is static")
+		inline bool isStatic() const { return _kstatic; }
+
+		KM_PRO_SET(KP_NAME = "isStatic")
+		inline void setStatic(bool Static) { _kstatic = Static; }
+
+		KM_PRO_GET(KP_NAME = "isRemoved", KP_TYPE = bool, KP_CM = "is removed")
+		inline bool isRemoved() const { return _kdeleted; }
+
 		KM_PRO_GET(KP_NAME = "isPrefab", KP_TYPE = bool, KP_CM = "is prefab")
 		inline bool isPrefab() const {return _kisPrefab; }
 
@@ -92,17 +103,23 @@ namespace Kite {
 		KM_PRO_GET(KP_NAME = "prefab", KP_TYPE = std::string, KP_CM = "entity prefab name")
 		inline const std::string &getPrefab() const { return _kprefabName; }
 
-		KM_PRO_GET(KP_NAME = "layerName", KP_TYPE = std::string, KP_CM = "name of the current layer of entity")
-		inline const std::string &getLayerName() const { return _klayerName.str; }
+		KM_PRO_GET(KP_NAME = "layer", KP_TYPE = U32, KP_CM = "layer id")
+		inline U32 getLayer() const { return _klayerid; }
 
+		KM_PRO_SET(KP_NAME = "layer")
+		void setLayer(U32 LayerID);
+
+		// dont add multiple graphics component on the same entity. (undefined behavior)
+		// dont reuse entity with multiple graphics components. (e.g. remove current type and add another type. just dont do it)
+		// use an new entity
 		KM_FUN()
 		KComponent *addComponent(CTypes Type, const std::string &CName = "");
 
 		KM_FUN()
-		KComponent *getComponent(const KHandle &CHandle);
+		KComponent *getComponent(CTypes Type, const std::string &CName = "");
 
 		KM_FUN()
-		KComponent *getComponentByName(CTypes Type, const std::string &CName = "");
+		KComponent *getComponentByHandle(const KHandle &CHandle);
 
 		KM_FUN()
 		void getFixedComponents(std::vector<KHandle> &Output);
@@ -151,11 +168,15 @@ namespace Kite {
 		void setComponent(KComponent *Comp);
 		void remChildIndex(U32 ID);
 		void setHandle(const KHandle Handle);
+		void forceRemoveCom(CTypes Type); // force remove components and ignore dependency. (only fixed types)
+		void initeComponents(); // initialize (call attach()) all components whene deserial entity manager
 
 		// internal script function (copy,cut,paste)
 		KM_FUN()
 			inline void setPrefabName(const std::string &Name) { _kprefabName = Name; _kisPrefab = true; }
 		
+		KM_VAR() bool _kstatic;
+		KM_VAR() bool _kdeleted;
 		KM_VAR() bool _kactive;											// entity actitvity state
 		KM_VAR() bool _kisPrefab;										// is prefab instance
 		KM_VAR() KHandle _khandle;										// entity handle in the entity manager
@@ -164,10 +185,9 @@ namespace Kite {
 		KM_VAR() std::string _kprefabName;								// entity prefab name
 		KM_VAR() std::string _kname;									// entity unique name
 		KM_VAR() std::string _kluatable;								// entity env table name in lua
-		KM_VAR() KStringID _klayerName;									// entity layer name (empty = no layer)
 		KM_VAR() U32 _klayerid;
 		KM_VAR() U32 _kzorder;
-		KM_VAR() std::unordered_map<CTypes, KHandle> _kfixedComp;		// fixed components slots (built-in components)
+		KM_VAR() KHandle _kfixedComp[(SIZE)CTypes::maxSize];			// fixed components slots (built-in components)
 		KM_VAR() std::unordered_map<std::string, KHandle> _klogicComp;	// dynamic components (logic components)
 		KM_VAR() std::vector<KHandle> _klogicOrder;						// logic components queue by order
 		KM_VAR() std::vector<KHandle> _kchilds;							// children list

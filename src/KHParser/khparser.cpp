@@ -22,6 +22,7 @@ USA
 #include <string>
 #include <unordered_map>
 #include <vector>
+#include <list>
 #include <fstream>
 #include <streambuf>
 #include <stack>
@@ -107,10 +108,12 @@ struct MFunction {
 	bool cons;
 	bool vir;
 	bool explct;
+	unsigned int order;
 
 	MFunction() :
 		ista(false), inl(false), ext(false),
-		cons(false), vir(false), explct(false)
+		cons(false), vir(false), explct(false),
+		order(0)
 	{}
 };
 
@@ -124,6 +127,10 @@ struct MProperty {
 	std::string min;
 	std::string max;
 	std::string show;
+
+	inline bool operator<(const MProperty& Other) {
+		return (get.order < Other.get.order);
+	}
 };
 
 struct MOperator {
@@ -163,7 +170,7 @@ struct MClass {
 	MFunction constructure;
 	std::string flags;
 	std::string templType;
-	std::vector<MProperty> props;
+	std::list<MProperty> props; // we should sort properties
 	std::vector<MFunction> funcs;
 	std::vector<MVariable> vars;
 	std::vector<MInfo> infos;
@@ -808,7 +815,7 @@ bool procConstructure(const std::string &Content, MFunction &Func) {
 }
 
 bool procProp(const std::vector<MFunction> &AllGet, const std::vector<MFunction> &AllSet
-			  , std::vector<MProperty> &Output) {
+			  , std::list<MProperty> &Output) {
 	std::vector<std::pair<std::string, std::string>> param;
 	std::unordered_map<std::string, MProperty> map;
 	Output.clear();
@@ -976,11 +983,13 @@ bool procProp(const std::vector<MFunction> &AllGet, const std::vector<MFunction>
 		Output.push_back(it->second);
 	}
 
+	Output.sort();
+
 	return true;
 }
 
 // parse all property in the content
-bool procAllProp(const std::string &Content, std::vector<MProperty> &Props) {
+bool procAllProp(const std::string &Content, std::list<MProperty> &Props) {
 	size_t pos = 0;
 	std::vector<MFunction> allGet;
 	std::vector<MFunction> allSet;
@@ -993,6 +1002,7 @@ bool procAllProp(const std::string &Content, std::vector<MProperty> &Props) {
 
 	while ((pos = findToken(Content, pos, "KM_PRO_GET")) != std::string::npos) {
 		MFunction tfunc;
+		tfunc.order = pos;
 
 		if (procFunc(Content, tfunc, pos)) {
 			allGet.push_back(tfunc);
@@ -1005,6 +1015,7 @@ bool procAllProp(const std::string &Content, std::vector<MProperty> &Props) {
 	pos = 0;
 	while ((pos = findToken(Content, pos, "KM_PRO_SET")) != std::string::npos) {
 		MFunction tfunc;
+		tfunc.order = pos;
 
 		if (procFunc(Content, tfunc, pos)) {
 			allSet.push_back(tfunc);
@@ -1123,7 +1134,10 @@ bool procInfo(const std::string &Content, std::vector<MInfo> &AllInfo, unsigned 
 		for (auto it = param.begin(); it != param.end(); ++it) {
 			MInfo info;
 			info.key = it->first;
-			info.info = strmap[it->second];
+			info.info = it->second;
+			if (strmap.find(it->second) != strmap.end()) {
+				info.info = strmap[it->second];
+			}
 			AllInfo.push_back(info);
 		}
 	}else{
@@ -1706,16 +1720,16 @@ void createTemplMacro(const MClass &Cls, std::string &Output) {
 	}
 
 	// properties (meta)
-	for (size_t count = 0; count < Cls.props.size(); count++) {
+	for (auto it = Cls.props.begin(); it != Cls.props.end(); ++it) {
 		std::string prpType("KMP_BOTH");
-		if (Cls.props[count].set.name.empty()) {
+		if (it->set.name.empty()) {
 			prpType = "KMP_GETTER";
 		} else {
 			prpType = "KMP_BOTH";
 		}
-		Output.append("instance.addProperty(KMetaProperty(\"" + Cls.props[count].name + "\", \""
-					  + Cls.props[count].type + "\", \"" + Cls.props[count].comment + "\", "
-					  + prpType + ", " + Cls.props[count].min + ", " + Cls.props[count].max + "));\\\n");
+		Output.append("instance.addProperty(KMetaProperty(\"" + it->name + "\", \""
+					  + it->type + "\", \"" + it->comment + "\", "
+					  + prpType + ", " + it->min + ", " + it->max + "));\\\n");
 	}
 
 	// functions
@@ -1751,13 +1765,13 @@ void createTemplMacro(const MClass &Cls, std::string &Output) {
 	}
 
 	// properties
-	for (size_t count = 0; count < Cls.props.size(); count++) {
-		if (!Cls.props[count].get.name.empty() && !Cls.props[count].set.name.empty()) {
-			Output.append(".addProperty(\"" + Cls.props[count].name + "\", &" + Cls.name + "<" + Cls.templType + ">::"
-							+ Cls.props[count].get.name + ", &" + Cls.name + "<" + Cls.templType + ">::" + Cls.props[count].set.name + ")\\\n");
-		} else if (Cls.props[count].set.name.empty()) {
-			Output.append(".addProperty(\"" + Cls.props[count].name + "\", &" + Cls.name + "<" + Cls.templType + ">::"
-							+ Cls.props[count].get.name + ")\\\n");
+	for (auto it = Cls.props.begin(); it != Cls.props.end(); ++it) {
+		if (!it->get.name.empty() && !it->set.name.empty()) {
+			Output.append(".addProperty(\"" + it->name + "\", &" + Cls.name + "<" + Cls.templType + ">::"
+							+ it->get.name + ", &" + Cls.name + "<" + Cls.templType + ">::" + it->set.name + ")\\\n");
+		} else if (it->set.name.empty()) {
+			Output.append(".addProperty(\"" + it->name + "\", &" + Cls.name + "<" + Cls.templType + ">::"
+							+ it->get.name + ")\\\n");
 		}
 	}
 
@@ -2105,11 +2119,11 @@ void createMacros(const std::vector<MClass> &Cls, const std::vector<MEnum> &Enms
 
 			// property setter/getter (only components have properties)
 			Output.append("bool " + Cls[i].name + "::setProperty(const std::string &Name, KAny &Value){\\\n");
-			for (size_t count = 0; count < Cls[i].props.size(); ++count) {
-				if (!Cls[i].props[count].set.name.empty()) {
-					Output.append("if (Name == \"" + Cls[i].props[count].name + "\"){\\\n" +
-								  "if (Value.is<" + Cls[i].props[count].type + ">()){\\\n" +
-								  Cls[i].props[count].set.name + "(Value.as<" + Cls[i].props[count].type + ">());\\\n"
+			for (auto it = Cls[i].props.begin(); it != Cls[i].props.end(); ++it) {
+				if (!it->set.name.empty()) {
+					Output.append("if (Name == \"" + it->name + "\"){\\\n" +
+								  "if (Value.is<" + it->type + ">()){\\\n" +
+								  it->set.name + "(Value.as<" + it->type + ">());\\\n"
 								  "return true;\\\n"
 								  "}else{ KD_FPRINT(\"incorrect property type. pname: %s\", Name.c_str()); return false;}}\\\n");
 				}
@@ -2118,10 +2132,10 @@ void createMacros(const std::vector<MClass> &Cls, const std::vector<MEnum> &Enms
 
 			// get
 			Output.append("KAny " + Cls[i].name + "::getProperty(const std::string &Name) const {\\\n");
-			for (size_t count = 0; count < Cls[i].props.size(); ++count) {
-				if (!Cls[i].props[count].get.name.empty()) {
-					Output.append("if (Name == \"" + Cls[i].props[count].name + "\"){\\\n"
-								 "return " + Cls[i].props[count].get.name + "();}\\\n");
+			for (auto it = Cls[i].props.begin(); it != Cls[i].props.end(); ++it) {
+				if (!it->get.name.empty()) {
+					Output.append("if (Name == \"" + it->name + "\"){\\\n"
+								 "return " + it->get.name + "();}\\\n");
 				}
 			}
 			Output.append("return KAny(nullptr);}\\\n");
@@ -2141,18 +2155,18 @@ void createMacros(const std::vector<MClass> &Cls, const std::vector<MEnum> &Enms
 		}
 
 		// properties (meta)
-		for (size_t count = 0; count < Cls[i].props.size(); count++) {
+		for (auto it = Cls[i].props.begin(); it != Cls[i].props.end(); ++it) {
 			std::string prpType("KMP_BOTH");
-			if (Cls[i].props[count].set.name.empty()) {
+			if (it->set.name.empty()) {
 				prpType = "KMP_GETTER";
 			} else {
 				prpType = "KMP_BOTH";
 			}
-			Output.append("instance.addProperty(KMetaProperty(\"" + Cls[i].props[count].name + "\", "
-						  + "\"" + Cls[i].props[count].type + "\", \"" + Cls[i].props[count].comment + "\", "
-						  + Cls[i].props[count].show + ", "
-						  + prpType + ", " + Cls[i].props[count].min + ", " + Cls[i].props[count].max + ", " 
-						  + Cls[i].props[count].resType + "));\\\n");
+			Output.append("instance.addProperty(KMetaProperty(\"" + it->name + "\", "
+						  + "\"" + it->type + "\", \"" + it->comment + "\", "
+						  + it->show + ", "
+						  + prpType + ", " + it->min + ", " + it->max + ", "
+						  + it->resType + "));\\\n");
 		}
 
 		
@@ -2223,13 +2237,13 @@ void createMacros(const std::vector<MClass> &Cls, const std::vector<MEnum> &Enms
 			}
 
 			// properties
-			for (size_t count = 0; count < Cls[i].props.size(); count++) {
-				if (!Cls[i].props[count].get.name.empty() && !Cls[i].props[count].set.name.empty()) {
-					Output.append(".addProperty(\"" + Cls[i].props[count].name + "\", &" + Cls[i].name + "::"
-								  + Cls[i].props[count].get.name + ", &" + Cls[i].name + "::" + Cls[i].props[count].set.name + ")\\\n");
-				} else if (Cls[i].props[count].set.name.empty()) {
-					Output.append(".addProperty(\"" + Cls[i].props[count].name + "\", &" + Cls[i].name + "::"
-								  + Cls[i].props[count].get.name + ")\\\n");
+			for (auto it = Cls[i].props.begin(); it != Cls[i].props.end(); ++it) {
+				if (!it->get.name.empty() && !it->set.name.empty()) {
+					Output.append(".addProperty(\"" + it->name + "\", &" + Cls[i].name + "::"
+								  + it->get.name + ", &" + Cls[i].name + "::" + it->set.name + ")\\\n");
+				} else if (it->set.name.empty()) {
+					Output.append(".addProperty(\"" + it->name + "\", &" + Cls[i].name + "::"
+								  + it->get.name + ")\\\n");
 				}
 			}
 
@@ -2609,6 +2623,8 @@ void createSource(const std::vector<std::string> &Files, const std::vector<MClas
 	}
 	Output.append("Internal::Register" + COM_ENUM_NAME + "::registerMeta(MMan, Lua);\n");
 	Output.append("Internal::Register" + RES_ENUM_NAME + "::registerMeta(MMan, Lua);\n");
+	Output.append("Internal::Register" + ISTREAM_ENUM_NAME + "::registerMeta(MMan, Lua);\n");
+	Output.append("Internal::Register" + OSTREAM_ENUM_NAME + "::registerMeta(MMan, Lua);\n");
 
 	// end of meta
 	Output.append("}\n");

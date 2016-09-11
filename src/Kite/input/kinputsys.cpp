@@ -30,7 +30,7 @@ namespace Kite {
 		STATIC_OUT_EDITOR const bool isregist = EManager->isRegisteredComponent(CTypes::Input);
 
 		if (isregist) {
-			STATIC_OUT_EDITOR auto continer = EManager->getComponentStorage<KInputCom>(CTypes::Input); // avoid hash lookup in every frame
+			auto continer = EManager->getComponentStorage<KInputCom>(CTypes::Input);
 			for (auto it = continer->begin(); it != continer->end(); ++it) {
 				auto EHandle = it->getOwnerHandle();
 				auto entity = EManager->getEntity(EHandle);

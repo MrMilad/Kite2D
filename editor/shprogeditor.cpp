@@ -96,6 +96,7 @@ bool ShProgEditor::eventFilter(QObject *Obj, QEvent *Event) {
 
 		combo->addItems(slist);
 		combo->setCurrentText(text);
+		prog->setModified(true);
 	}
 	return false;
 }
@@ -115,5 +116,49 @@ bool ShProgEditor::saveChanges() {
 	emit(res = requestRes(cmbGeom->currentText()));
 	prog->setShader((Kite::KShader *)res, Kite::ShaderType::GEOMETRY);
 	
+	prog->setModified(true);
 	return true;
+}
+
+void ShProgEditor::reload() {
+	// request shaders
+	QList<const Kite::KResource *> rlist;
+	emit(TabWidget::requestResList(Kite::RTypes::Shader, rlist));
+
+	// splite shader types
+	QStringList vshader;
+	QStringList fshader;
+	QStringList gshader;
+
+	vshader.push_back("");
+	fshader.push_back("");
+	gshader.push_back("");
+
+	for (auto it = rlist.cbegin(); it != rlist.cend(); ++it) {
+		auto shd = (const Kite::KShader *)(*it);
+		if (shd->getShaderType() == Kite::ShaderType::VERTEX) {
+			vshader.push_back(shd->getName().c_str());
+		} else if (shd->getShaderType() == Kite::ShaderType::FRAGMENT) {
+			fshader.push_back(shd->getName().c_str());
+		} else if (shd->getShaderType() == Kite::ShaderType::GEOMETRY) {
+			gshader.push_back(shd->getName().c_str());
+		}
+	}
+	cmbVert->clear();
+	cmbVert->addItems(vshader);
+	if (prog->getShader(Kite::ShaderType::VERTEX) != nullptr) {
+		cmbVert->setCurrentText(prog->getShader(Kite::ShaderType::VERTEX)->getName().c_str());
+	}
+
+	cmbFrag->clear();
+	cmbFrag->addItems(fshader);
+	if (prog->getShader(Kite::ShaderType::FRAGMENT) != nullptr) {
+		cmbFrag->setCurrentText(prog->getShader(Kite::ShaderType::FRAGMENT)->getName().c_str());
+	}
+
+	cmbGeom->clear();
+	cmbGeom->addItems(gshader);
+	if (prog->getShader(Kite::ShaderType::GEOMETRY) != nullptr) {
+		cmbGeom->setCurrentText(prog->getShader(Kite::ShaderType::GEOMETRY)->getName().c_str());
+	}
 }

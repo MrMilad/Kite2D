@@ -52,7 +52,8 @@ SOURCES += main.cpp\
     glsleditor.cpp \
     glslhlight.cpp \
     shprogeditor.cpp \
-    textureeditor.cpp
+    textureeditor.cpp \
+    mapeditor.cpp
 
 HEADERS  += mainwindow.h \
     shared.h \
@@ -80,7 +81,9 @@ HEADERS  += mainwindow.h \
     glsleditor.h \
     glslhlight.h \
     shprogeditor.h \
-    textureeditor.h
+    textureeditor.h \
+    atlaseditor.h \
+    mapeditor.h
 
 RESOURCES += \
     res.qrc

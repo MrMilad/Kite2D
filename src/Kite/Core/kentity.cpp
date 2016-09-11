@@ -25,6 +25,7 @@ USA
 #include "Kite/serialization/types/kstdstring.h"
 #include "Kite/serialization/types/kstdumap.h"
 #include "Kite/serialization/types/kstdvector.h"
+#include "Kite/serialization/types/kstdbitset.h"
 #include <luaintf\LuaIntf.h>
 
 namespace Kite {
@@ -35,6 +36,8 @@ namespace Kite {
 		_kaddOpaque(nullptr),
 		_kremOpaque(nullptr),
 #endif
+		_kstatic(false),
+		_kdeleted(false),
 		_kplistid(0),
 		_kname(Name),
 		_kcstorage(nullptr),
@@ -93,6 +96,7 @@ namespace Kite {
 	void KEntity::setActive(bool Active) {
 		_kactive = Active;
 
+		// set activation of childs
 		if (_kestorage != nullptr) {
 			for (auto it = _kchilds.begin(); it != _kchilds.end(); ++it) {
 				_kestorage->get((*it))->setActive(Active);
@@ -105,7 +109,7 @@ namespace Kite {
 			_klogicOrder.push_back(Comp->getHandle());
 			_klogicComp[Comp->getName()] = Comp->getHandle();
 		} else {
-			_kfixedComp[Comp->getType()] = Comp->getHandle();
+			_kfixedComp[(SIZE)Comp->getType()] = Comp->getHandle();
 		}
 	}
 
@@ -121,6 +125,65 @@ namespace Kite {
 	void KEntity::setHandle(const KHandle Handle) {
 		_kluatable = "ent" + std::to_string(Handle.index);
 		_khandle = Handle;
+	}
+
+	void KEntity::forceRemoveCom(CTypes Type) {
+		if (!hasComponent(Type, "") || Type == CTypes::Logic) {
+			return;
+		}
+
+		// check ref counter
+		auto hndl = getComponentHandle(Type, "");
+		auto comPtr = _kcstorage[(SIZE)Type]->get(hndl);
+
+		// deattach component from entity and call deattach function
+		comPtr->setOwnerHandle(getHandle());
+		comPtr->deattached(this);
+
+		// call editor callback (we must call editor callback befor removing dependency to avoid poniter dangling)
+#ifdef KITE_EDITOR
+		if (_kremCallb) {
+			(*_kremCallb)(comPtr, _kremOpaque);
+		}
+#endif
+
+		// remove components id from entity
+		_kfixedComp[(SIZE)Type] = KHandle();
+
+		// dec ref counter
+		auto depList = comPtr->getDependency();
+		for (auto it = depList.begin(); it != depList.end(); ++it) {
+			auto dep = getComponent((*it), "");
+			if (dep) {
+				--dep->_krefcounter;
+
+				// remove if on zero dep (only removable zero dep components)
+				if (dep->_kremoveNoDep && dep->_krefcounter == 0) {
+					removeComponent(dep->getType(), dep->getName());
+				}
+			}
+		}
+
+		// and remove component itself from storage
+		_kcstorage[(SIZE)Type]->remove(hndl);
+	}
+
+	void KEntity::initeComponents() {
+		std::vector<KHandle> clist;
+
+		// inite fixed components
+		getFixedComponents(clist);
+		for (auto it = clist.begin(); it != clist.end(); ++it) {
+			auto com = getComponentByHandle((*it));
+			com->attached(this);
+		}
+
+		// inite logic components
+		getScriptComponents(clist);
+		for (auto it = clist.begin(); it != clist.end(); ++it) {
+			auto com = getComponentByHandle((*it));
+			com->attached(this);
+		}
 	}
 
 	void KEntity::addChild(const KHandle &EHandle) {
@@ -165,6 +228,15 @@ namespace Kite {
 		return true;
 	}
 
+	void KEntity::setLayer(U32 LayerID) {
+		if (LayerID < KENTITY_LAYER_SIZE) {
+			_klayerid = LayerID;
+			return;
+		}
+
+		KD_PRINT("layer id is out of range");
+	}
+
 	KComponent *KEntity::addComponent(CTypes Type, const std::string &CName) {
 		// cehck storage
 		if (_kcstorage == nullptr) {
@@ -177,7 +249,7 @@ namespace Kite {
 		// this component is already exist
 		// we just return it
 		if (hasComponent(Type, CName)) {
-			return getComponentByName(Type, CName);
+			return getComponent(Type, CName);
 		}
 
 		// create component
@@ -192,9 +264,6 @@ namespace Kite {
 		setComponent(com);
 		com->setOwnerHandle(getHandle());
 
-		// call attach functon
-		com->attached(this);
-
 		// check component's dependency (recursive).
 		// circular-dependency is allowed but not recommended.
 		auto depList = com->getDependency();
@@ -204,6 +273,9 @@ namespace Kite {
 				++dep->_krefcounter;
 			}
 		}
+
+		// call attach functon
+		com->attached(this);
 
 		// call editor callback
 #ifdef KITE_EDITOR
@@ -215,25 +287,35 @@ namespace Kite {
 		return com;
 	}
 
-	KComponent *KEntity::getComponent(const KHandle &Handle) {
+	KComponent *KEntity::getComponent(CTypes Type, const std::string &CName) {
 		// cehck storage
 		if (_kcstorage == nullptr) {
 			KD_PRINT("set component storage at first");
 			return nullptr;
 
 		}
-		
-		auto type = (CTypes)Handle.type;
-		if (!hasComponentType(type)) {
-			KD_FPRINT("there is no component of this type in the given entity. ctype: %s", getCTypesName(type).c_str());
+
+		if (!hasComponentType(Type)) {
+			KD_FPRINT("there is no component of this type in the given entity. ctype: %s", getCTypesName(Type).c_str());
 			return nullptr;
 		}
 
-		return _kcstorage[Handle.type]->get(Handle);
+		auto chandle = getComponentHandle(Type, CName);
+		return _kcstorage[chandle.type]->get(chandle);
 	}
 
-	KComponent *KEntity::getComponentByName(CTypes Type, const std::string &CName) {
-		return getComponent(getComponentHandle(Type, CName));
+	KComponent *KEntity::getComponentByHandle(const KHandle &CHandle) {
+		if (_kcstorage == nullptr) {
+			KD_PRINT("set component storage at first");
+			return nullptr;
+		}
+
+		if (!hasComponentType((CTypes)CHandle.type)) {
+			KD_FPRINT("there is no component of this type in the given entity. ctype: %s", getCTypesName((CTypes)CHandle.type).c_str());
+			return nullptr;
+		}
+
+		return _kcstorage[CHandle.type]->get(CHandle);
 	}
 
 	void KEntity::getFixedComponents(std::vector<KHandle> &Output) {
@@ -244,9 +326,11 @@ namespace Kite {
 			return;
 		}
 
-		Output.reserve(_kfixedComp.size());
-		for (auto it = _kfixedComp.begin(); it != _kfixedComp.end(); ++it) {
-			Output.push_back(it->second);
+		Output.reserve((SIZE)CTypes::maxSize);
+		for (SIZE i = 0; i < (SIZE)CTypes::maxSize; ++i) {
+			if (_kfixedComp[i] != KHandle()) {
+				Output.push_back(_kfixedComp[i]);
+			}
 		}
 	}
 
@@ -307,13 +391,13 @@ namespace Kite {
 				}
 			}
 		} else {
-			_kfixedComp.erase(Type);
+			_kfixedComp[(SIZE)Type] = KHandle();
 		}
 
 		// dec ref counter
 		auto depList = comPtr->getDependency();
 		for (auto it = depList.begin(); it != depList.end(); ++it) {
-			auto dep = getComponentByName((*it), "");
+			auto dep = getComponent((*it), "");
 			if (dep) {
 				--dep->_krefcounter;
 
@@ -344,17 +428,21 @@ namespace Kite {
 			_klogicOrder.clear();
 
 			// fixed components
-			for (auto it = _kfixedComp.begin(); it != _kfixedComp.end(); ++it) {
-				auto storage = _kcstorage[(SIZE)it->first];
+			for (SIZE i = 0; i < (SIZE)CTypes::maxSize; ++i) {
+				if (_kfixedComp[i] == KHandle()) {
+					continue;
+				}
+
+				auto storage = _kcstorage[i];
 
 				// call deattach on all components
-				auto comPtr = storage->get(it->second);
+				auto comPtr = storage->get(_kfixedComp[i]);
 				comPtr->deattached(this);
 
 				// remove from storage
-				storage->remove(it->second);
+				storage->remove(_kfixedComp[i]);
+				_kfixedComp[i] = KHandle();
 			}
-			_kfixedComp.clear();
 		}
 
 	}
@@ -369,9 +457,8 @@ namespace Kite {
 
 		// non-script component
 		} else {
-			auto found = _kfixedComp.find(Type);
-			if (found != _kfixedComp.end()) {
-				return found->second;
+			if (_kfixedComp[(SIZE)Type] != KHandle()) {
+				return _kfixedComp[(SIZE)Type];
 			}
 		}
 
@@ -380,11 +467,17 @@ namespace Kite {
 	}
 
 	void KEntity::reorderScriptComponent(const KHandle &CHandle, U32 NewOrder) {
+		// cehck storage
+		if (_kcstorage == nullptr) {
+			KD_PRINT("set component storage at first");
+			return;
+		}
+
 		if (CHandle.type != (SIZE)CTypes::Logic) {
 			KD_FPRINT("invalid handle type. handle type is: %s", getCTypesName((CTypes) CHandle.type).c_str());
 			return;
 		}
-		auto comp = getComponent(CHandle);
+		auto comp = _kcstorage[CHandle.type]->get(CHandle);
 		if (comp == nullptr) {
 			KD_PRINT("there is no logic component with the given handle.");
 			return;
@@ -422,7 +515,7 @@ namespace Kite {
 				return true;
 			}
 		} else {
-			if (_kfixedComp.find(Type) != _kfixedComp.end()) {
+			if (_kfixedComp[(SIZE)Type] != KHandle()) {
 				return true;
 			}
 		}
@@ -434,7 +527,7 @@ namespace Kite {
 		if (Type == CTypes::Logic && !_klogicComp.empty()) {
 			return true;
 		} else {
-			if (_kfixedComp.find(Type) != _kfixedComp.end()) {
+			if (_kfixedComp[(SIZE)Type] != KHandle()) {
 				return true;
 			}
 		}

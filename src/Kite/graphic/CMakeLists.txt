@@ -20,6 +20,11 @@ set(GFX_SRC
     ${SRCROOT}/kcameracom.cpp
     ${SRCROOT}/kquadcom.cpp
     ${SRCROOT}/katlastexture.cpp
+    ${SRCROOT}/korthogonalmap.cpp
+    ${SRCROOT}/kgcullingsys.cpp
+    ${SRCROOT}/kgcullingcom.cpp
+    ${SRCROOT}/kreggcullingcom.cpp
+    ${SRCROOT}/korthomapcom.cpp
     PARENT_SCOPE
 )
 
@@ -43,6 +48,11 @@ set(GFX_INC
     ${INCROOT}/kcameracom.h
     ${INCROOT}/kquadcom.h
     ${INCROOT}/katlastexture.h
+    ${INCROOT}/korthogonalmap.h
+    ${INCROOT}/kgcullingsys.h
+    ${INCROOT}/kgcullingcom.h
+    ${INCROOT}/kreggcullingcom.h
+    ${INCROOT}/korthomapcom.h
     PARENT_SCOPE
 )
 

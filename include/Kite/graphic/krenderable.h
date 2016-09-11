@@ -26,13 +26,16 @@
 
 namespace Kite{
 	class KITE_FUNC_EXPORT KRenderable{
-    public:
+		friend class KRenderSys;
+		friend class KGCullingSys;
+	protected:
+		virtual void getBoundingRect(KRectF32 &Output) const = 0;
 		virtual const std::vector<KVertex> *getVertex() const = 0;
 		virtual const U32 getIndexSize() const = 0;
 		virtual const std::vector<KPointSprite> *getPoint() const = 0;
 
 		virtual GLPrimitive getGeoType() const = 0;
-
+		virtual bool isVisible() const = 0;
 		virtual bool isIndexed() const = 0;
 		virtual bool isPoint() const = 0;
 		virtual bool isReverse() const = 0;

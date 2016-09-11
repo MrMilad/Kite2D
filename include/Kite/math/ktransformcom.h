@@ -53,6 +53,15 @@ namespace Kite{
 		KM_PRO_GET(KP_NAME = "position", KP_TYPE = KVector2F32, KP_CM = "Position value")
         inline const KVector2F32 &getPosition() const {return _kposition;}
 
+		/// set center of (position, scale, rotation)
+		/// relative to the top-left
+		/// default (0, 0)
+		KM_PRO_SET(KP_NAME = "center")
+			void setCenter(const KVector2F32 &Center);
+
+		KM_PRO_GET(KP_NAME = "center", KP_TYPE = KVector2F32, KP_CM = "Center value")
+			inline const KVector2F32 &getCenter() const { return _kcenter; }
+
         /// completely restore the previous Rotation
         /// range [0, 360]
         /// default 0
@@ -79,15 +88,6 @@ namespace Kite{
 
 		KM_PRO_GET(KP_NAME = "skew", KP_TYPE = KVector2F32, KP_CM = "Skew value")
 		inline const KVector2F32 &getSkew() const { return _kskew; }
-
-        /// set center of (position, scale, rotation)
-        /// relative to the top-left
-        /// default (0, 0)
-		KM_PRO_SET(KP_NAME = "center")
-        void setCenter(const KVector2F32 &Center);
-
-		KM_PRO_GET(KP_NAME = "center", KP_TYPE = KVector2F32, KP_CM = "Center value")
-        inline const KVector2F32 &getCenter() const {return _kcenter;}
 
 		/// return the combined matrix
 		KM_FUN()

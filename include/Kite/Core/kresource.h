@@ -86,12 +86,13 @@ namespace Kite{
 		KM_PRO_GET(KP_NAME = "catchStream", KP_TYPE = bool)
 		inline bool getCatchStream() const { return _kcatchStream; }
 
+#ifdef KITE_EDITOR
 		/// main usage: for saving modified resource in editor
-		KM_PRO_GET(KP_NAME = "isModified", KP_TYPE = bool, KP_CM = "is scene modified")
 		inline bool isModified() { bool temp = _kisModified; _kisModified = false;  return temp; }
+		inline void setModified(bool Modify) { _kisModified = Modify; }
+#endif
 
 	protected:
-		inline void setModified(bool Modify) { _kisModified = Modify; }
 		inline void setInite(bool Inite) { _kisInite = Inite; }
 		inline void setCompositeList(std::vector<KResource *> List) { _kclist = List; }
 		inline std::vector<KResource *> getCompositeList() const { return _kclist; }

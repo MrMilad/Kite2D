@@ -43,7 +43,6 @@ namespace Kite {
 	}
 
 	bool KPrefab::_loadStream(KIStream &Stream, const std::string &Address) {
-		setModified(true);
 		clear();
 		KBinarySerial bserial;
 		auto ret = bserial.loadStream(Stream, Address);
@@ -61,7 +60,6 @@ namespace Kite {
 	}
 
 	void KPrefab::clear() {
-		setModified(true);
 		_kdata.clearCatch();
 		_kcode.clear();
 		_kisempty = true;

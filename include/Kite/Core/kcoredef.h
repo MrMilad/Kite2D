@@ -208,10 +208,11 @@ namespace Kite {
 #define K2D_VER_BUILD 0
 
 /// max audio buffer (ogg vorbis)
-#define KOGG_BUFF_SIZE 4096
-#define KTEXT_BUFF_SIZE 4096
+#define KOGG_BUFF_SIZE 4096			// byte
+#define KTEXT_BUFF_SIZE 4096		// byte
 #define KBSERIAL_CHUNK_SIZE 262144	// byte (total = 256kb)
 #define KCFSTORAGE_CHUNK_SIZE 256	// item (KHandle && KEntity)
+#define KENTITY_LAYER_SIZE 32		// item (number of usable layers)
 
 /// Kite2D hash seed
 #define KHASH_SEED 13711010

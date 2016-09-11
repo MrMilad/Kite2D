@@ -25,9 +25,14 @@
 #include "Kite/input/kmouse.h"
 #include "Kite/graphic/katlastexture.h"
 #include "Kite/graphic/kcameracom.h"
+#include "Kite/graphic/kgcullingcom.h"
+#include "Kite/graphic/kgcullingsys.h"
 #include "Kite/graphic/kgraphicstructs.h"
 #include "Kite/graphic/kgraphictypes.h"
+#include "Kite/graphic/korthogonalmap.h"
+#include "Kite/graphic/korthomapcom.h"
 #include "Kite/graphic/kquadcom.h"
+#include "Kite/graphic/kreggcullingcom.h"
 #include "Kite/graphic/krendercom.h"
 #include "Kite/graphic/krendersys.h"
 #include "Kite/graphic/kshader.h"
@@ -83,10 +88,18 @@ KKeyboard::registerMeta(MMan, Lua);
 KMouse::registerMeta(MMan, Lua);
 KAtlasTexture::registerMeta(MMan, Lua);
 KCameraCom::registerMeta(MMan, Lua);
+KGCullingCom::registerMeta(MMan, Lua);
+KGCullingSys::registerMeta(MMan, Lua);
 KColor::registerMeta(MMan, Lua);
 KVertex::registerMeta(MMan, Lua);
 KAtlasItem::registerMeta(MMan, Lua);
+KGCullingObject::registerMeta(MMan, Lua);
+KOrthoTile::registerMeta(MMan, Lua);
+KRootTileMap::registerMeta(MMan, Lua);
+KOrthogonalMap::registerMeta(MMan, Lua);
+KOrthoMapCom::registerMeta(MMan, Lua);
 KQuadCom::registerMeta(MMan, Lua);
+KRegGCullingCom::registerMeta(MMan, Lua);
 KRenderCom::registerMeta(MMan, Lua);
 KRenderSys::registerMeta(MMan, Lua);
 KShader::registerMeta(MMan, Lua);
@@ -132,12 +145,15 @@ Internal::RegisterAttributeCount::registerMeta(MMan, Lua);
 Internal::RegisterAttributeType::registerMeta(MMan, Lua);
 Internal::RegisterBuiltinShaderType::registerMeta(MMan, Lua);
 Internal::RegisterAtlasFile::registerMeta(MMan, Lua);
+Internal::RegisterGCullingObjectsFilter::registerMeta(MMan, Lua);
 Internal::RegisterIOMode::registerMeta(MMan, Lua);
 Internal::RegisterPrimitive::registerMeta(MMan, Lua);
 Internal::RegisterRecieveTypes::registerMeta(MMan, Lua);
 Internal::RegisterMessageScope::registerMeta(MMan, Lua);
 Internal::RegisterCTypes::registerMeta(MMan, Lua);
 Internal::RegisterRTypes::registerMeta(MMan, Lua);
+Internal::RegisterIStreamTypes::registerMeta(MMan, Lua);
+Internal::RegisterOStreamTypes::registerMeta(MMan, Lua);
 }
 void registerCTypes(KEntityManager *EMan){
 EMan->registerComponent<KTransformCom>(CTypes::Transform);
@@ -145,12 +161,16 @@ EMan->registerComponent<KLogicCom>(CTypes::Logic);
 EMan->registerComponent<KLogicInstanceCom>(CTypes::LogicInstance);
 EMan->registerComponent<KInputCom>(CTypes::Input);
 EMan->registerComponent<KCameraCom>(CTypes::Camera);
+EMan->registerComponent<KGCullingCom>(CTypes::GCulling);
+EMan->registerComponent<KOrthoMapCom>(CTypes::OrthogonalMap);
 EMan->registerComponent<KQuadCom>(CTypes::Quad);
-EMan->registerComponent<KRenderCom>(CTypes::Render);
+EMan->registerComponent<KRegGCullingCom>(CTypes::RegisterGCulling);
+EMan->registerComponent<KRenderCom>(CTypes::RenderMaterial);
 }
 void registerRTypes(KResourceManager *RMan){
 RMan->registerResource(RTypes::Script, KScript::factory);
 RMan->registerResource(RTypes::AtlasTexture, KAtlasTexture::factory);
+RMan->registerResource(RTypes::OrthogonalMap, KOrthogonalMap::factory);
 RMan->registerResource(RTypes::Shader, KShader::factory);
 RMan->registerResource(RTypes::ShaderProgram, KShaderProgram::factory);
 RMan->registerResource(RTypes::Texture, KTexture::factory);

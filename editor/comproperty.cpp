@@ -82,7 +82,7 @@ void ComponentView::createPOD(Kite::KComponent *Comp, const Kite::KMetaProperty 
 		connect(this, &ComponentView::resetSig, pgui, &priv::KBOOL::reset);
 		Layout->addRow(Meta->name.c_str(), pgui);
 
-	// U32, I32
+	// U32, I32, U8
 	} else if (Meta->typeName == "I32" || Meta->typeName == "U32") {
 		// create an appropriate widgte and bind property to it
 		bool ronly = false;
@@ -90,7 +90,7 @@ void ComponentView::createPOD(Kite::KComponent *Comp, const Kite::KMetaProperty 
 		priv::KI32 *pgui = 0;
 		if (Meta->typeName == "I32") {
 			pgui = new priv::KI32(Comp, Meta->name.c_str(), "", this, ronly, Meta->min, Meta->max);
-		} else {
+		}else {
 			pgui = new priv::KI32(Comp, Meta->name.c_str(), "", this, ronly, Meta->min, INT32_MAX);
 		}
 		connect(pgui, &priv::KI32::propertyEdited, this, &ComponentView::propChanged);
@@ -119,6 +119,20 @@ void ComponentView::createPOD(Kite::KComponent *Comp, const Kite::KMetaProperty 
 		connect(pgui, &priv::KSTRID::updateResList, this, &ComponentView::updateResList);
 		connect(pgui, &priv::KSTRID::propertyEdited, this, &ComponentView::propChanged);
 		connect(this, &ComponentView::resetSig, pgui, &priv::KSTRID::reset);
+
+		Layout->addRow(Meta->name.c_str(), pgui);
+
+	// KAtlasItem
+	} else if (Meta->typeName == "KAtlasItem") {
+		// create an appropriate widgte and bind property to it
+		bool ronly = false;
+		if (Meta->type == Kite::KMetaPropertyTypes::KMP_GETTER) ronly = true;
+		priv::KATLASITEM *pgui = 0;
+		pgui = new priv::KATLASITEM(Comp, Meta->name.c_str(), this, ronly);
+		connect(pgui, &priv::KATLASITEM::requestPropValue, this, &ComponentView::requestPropValue);
+		connect(pgui, &priv::KATLASITEM::requestRes, this, &ComponentView::requestRes);
+		connect(pgui, &priv::KATLASITEM::propertyEdited, this, &ComponentView::propChanged);
+		connect(this, &ComponentView::resetSig, pgui, &priv::KATLASITEM::reset);
 
 		Layout->addRow(Meta->name.c_str(), pgui);
 

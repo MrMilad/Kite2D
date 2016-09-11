@@ -87,7 +87,6 @@ namespace Kite{
 	}
 
 	bool KTexture::_loadStream(KIStream &Stream, const std::string &Address) {
-		setModified(true);
 		// load texture info 
 		if (!Stream.isOpen()) {
 			Stream.close();
@@ -130,17 +129,17 @@ namespace Kite{
 	}
 
     void KTexture::create(const Kite::KVector2U32 &Size, TextureFilter Filter, TextureWrap Wrap){
-		setModified(true);
 		_kfilter = Filter;
 		_kwrap = Wrap;
 		_kimage.create(Size.x, Size.y, KColor(0, 0, 0, 255));
+		_ksize = Size;
     }
 
     void KTexture::create(const KImage &Image, TextureFilter Filter, TextureWrap Wrap){
-		setModified(true);
 		_kfilter = Filter;
 		_kwrap = Wrap;
 		_kimage = Image;
+		_ksize = Image.getSize();
     }
 
 	void KTexture::getImage(KImage &ImageOutput) {
@@ -225,7 +224,6 @@ namespace Kite{
     }
 
     void KTexture::setFilter(TextureFilter Filter){
-		setModified(true);
 		if (!isInite()) {
 			KD_FPRINT("texture not initialized. rname: %s", getName().c_str());
 			return;
@@ -250,7 +248,6 @@ namespace Kite{
     }
 
     void KTexture::setWrap(TextureWrap Wrap){
-		setModified(true);
 		if (!isInite()) {
 			KD_FPRINT("texture not initialized. rname: %s", getName().c_str());
 			return;
@@ -276,11 +273,6 @@ namespace Kite{
 
     void KTexture::_create(const U8 *Data, const KVector2U32 &Size,
                         TextureFilter Filter, TextureWrap Wrap, KTexture &Instance){
-
-		if (!Instance.isInite()) {
-			KD_FPRINT("texture not initialized. rname: %s", Instance.getName().c_str());
-			return;
-		}
 
         // save currently binded texture then bind our texture temporary
 		Internal::GLBindGuard guard(Internal::KBG_TEXTURE, _klastTexId, Instance._ktexId);

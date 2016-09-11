@@ -28,8 +28,10 @@ USA
 
 namespace Kite {
 	KResource::KResource(const std::string &Name, bool CatchStream, bool IsComposite) :
-		_kcatchStream(CatchStream),
+#ifdef KITE_EDITOR
 		_kisModified(false),
+#endif
+		_kcatchStream(CatchStream),
 		_kisInite(false),
 		_kcomposite(IsComposite),
 		_kname(Name),
@@ -64,7 +66,7 @@ namespace Kite {
 
 					// save resource itself
 					if (SaveDependency) {
-						if (!(*it)->saveStream(Stream, finfo.path + "\\" + (*it)->getName())) {
+						if (!(*it)->saveStream(Stream, finfo.path + "/" + (*it)->getName())) {
 							KD_FPRINT("cant save composite resource. rname: %s", (*it)->getName().c_str());
 							return false;
 						}

@@ -76,25 +76,11 @@ namespace Kite {
 		KM_FUN()
 		bool isRegisteredComponent(CTypes Type);
 
-		KM_FUN()
-		bool createLayer(const std::string &Name);
-
-		/// remove built-in layers is not allowed
-		/// all entities of removed layer will be added to 'unlayered' layer
-		KM_FUN()
-		void removeLayer(const std::string &Name);
-
-		KM_FUN()
-		const std::vector<KLayerInfo> &getLayersInfo();
-
-		void addEntityToLayer(const KHandle &Entity, const std::string &Layer);
-
 		/// create entity in the root branch. (parent = 0)
 		/// after creating an entity, all previous pointers may be invalid.
-		/// so always use handle whene need an older entity.
+		/// so always use handle when need access to an older entity.
 		/// if an empty string pass as name parameter, 
 		/// a new name (ent + N) will generated for entity. (N = ordred number)
-		/// entity will added to 'unlayered' layer.
 		KM_FUN()
 			KEntity *createEntity(const std::string &Name = "");
 
@@ -133,8 +119,6 @@ namespace Kite {
 		KM_FUN()
 		KHandle loadPrefab(KPrefab *Prefab);
 
-		inline const auto getLayerStorage() const { return &_klayermap; }
-
 		// create new entity will invalidate iterators (use index instead)
 		inline const auto getEntityStorage() { return _kestorage.getContiner(); }
 
@@ -142,6 +126,22 @@ namespace Kite {
 		auto getComponentStorage(CTypes Type){
 			Internal::CHolder<T, KComponent> *drived = static_cast<Internal::CHolder<T, KComponent> *>(_kcstorage[(SIZE)Type]);
 			return drived->getStorage()->getContiner();
+		}
+
+		// usage: register new entity to systems and clear list after registration
+		template<typename T>
+		void clearComponentStorage(CTypes Type) {
+			if (Type == CTypes::Logic) {
+				KD_PRINT("logic storage is not removable");
+				return;
+			}
+			Internal::CHolder<T, KComponent> *drived = static_cast<Internal::CHolder<T, KComponent> *>(_kcstorage[(SIZE)Type]);
+			auto continer = drived->getStorage()->getContiner();
+			for (auto it = continer->begin(); it != continer->end(); ++it) {
+				auto EHandle = it->getOwnerHandle();
+				auto entity = getEntity(EHandle);
+				entity->forceRemoveCom(Type);
+			}
 		}
 
 #ifdef KITE_EDITOR
@@ -157,14 +157,12 @@ namespace Kite {
 		void recursiveDeleter(KHandle EHandle);
 		void initeRoot();
 		U32 recursiveSaveChilds(KEntity *Entity, KPrefab *Prefab, U32 Level, bool Name, bool CopyPrefab);
-		void removeCurrentLayer(KEntity *Entity);
 		static bool initeLua();
 
 		KHandle _kroot;
 		KCFStorage<KEntity> _kestorage;											// entity storage
 		Internal::BaseCHolder<KComponent> *_kcstorage[(SIZE)CTypes::maxSize];	// component storages (array)
 		std::unordered_map<std::string, KHandle> _kentmap; 
-		std::unordered_map<std::string, std::pair<KLayerInfo, std::vector<KHandle>>> _klayermap;
 
 		std::vector<KHandle> _ktrash;
 		static lua_State *_klstate;

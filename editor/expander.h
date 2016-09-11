@@ -27,6 +27,8 @@ signals:
 	void closeClicked(Kite::KHandle CHandle);
 	void componentEdited(Kite::KHandle Chandle, const QString &Pname, QVariant &Value);
 	void updateResList(Kite::RTypes Type, QStringList &List);
+	Kite::KResource *requestRes(const QString &Name);
+	Kite::KAny requestPropValue(Kite::CTypes Type, const QString &ComName, const QString &PropName);
 
 private slots:
 	void expClicked();

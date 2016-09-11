@@ -28,5 +28,6 @@ set(SER_INC_SUB
     ${INCROOT}/types/kstdstring.h
     ${INCROOT}/types/kstdumap.h
     ${INCROOT}/types/kstddeque.h
+    ${INCROOT}/types/kstdbitset.h
     PARENT_SCOPE
 )

@@ -20,6 +20,7 @@ class QMenu;
 class QFormLayout;
 class Expander;
 class QComboBox;
+class QCheckBox;
 
 namespace priv {
 	struct TreeItemPool {
@@ -106,6 +107,7 @@ private:
 	QComboBox *cmbLayer;
 	QLabel *hlabel;
 	QLabel *llabel;
+	QCheckBox *chkStatic;
 	QMenu *mtypes;
 	Kite::KHandle currEntity;
 	QVector<QPair<Kite::CTypes, bool>> types;

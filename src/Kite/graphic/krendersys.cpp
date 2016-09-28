@@ -17,8 +17,9 @@
     Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
     USA
 */
-#include "Kite/math/ktransformcom.h"
 #include "Kite/graphic/krendersys.h"
+#include "Kite/math/ktransformcom.h"
+#include "Kite/graphic/katlastexturearray.h"
 #include "Kite/graphic/kshaderprogram.h"
 #include "Kite/graphic/kgraphicdef.h"
 #include "Kite/graphic/krenderable.h"
@@ -34,7 +35,7 @@
 namespace Kite{
 	bool KRenderSys::update(F32 Delta, KEntityManager *EManager, KResourceManager *RManager) {
 		STATIC_OUT_EDITOR const bool isregist = (EManager->isRegisteredComponent(CTypes::Camera) 
-												 && EManager->isRegisteredComponent(CTypes::RenderMaterial));
+												 && EManager->isRegisteredComponent(CTypes::RenderInstance));
 		
 		if (isregist) {
 			// sort camera(s) (based depth)
@@ -90,58 +91,56 @@ namespace Kite{
 					}
 
 					// update and draw renderables
-					STATIC_OUT_EDITOR auto render = EManager->getComponentStorage<KRenderCom>(CTypes::RenderMaterial);
+					STATIC_OUT_EDITOR auto render = EManager->getComponentStorage<KRenderCom>(CTypes::RenderInstance);
 					U32 indSize = 0;
 					U32 verSize = 0;
 
-					KRenderCom *material = nullptr;
-					STATIC_OUT_EDITOR std::vector<std::pair<KRenderCom *, KRenderable *>> objList(KRENDER_BUFF_SIZE);
+					KRenderable *material = nullptr;
+					STATIC_OUT_EDITOR std::vector<std::pair<KHandle, KRenderable *>> objList(KRENDER_BUFF_SIZE);
 					objList.resize(0);
 
 					// inite objects list
 					for (auto rit = render->begin(); rit != render->end(); ++rit) {
 						auto ent = EManager->getEntity(rit->getOwnerHandle());
 
-						// inite materials
-						if (rit->getNeedUpdate()) {
-							if (!_initeMaterials(RManager, &(*rit))) {
-								KD_FPRINT("cant init material. entity name: %s", ent->getName().c_str());
-								return false;
-							}
-						}
-
 						// catch renderable components
-						if (EManager->getEntity(rit->getOwnerHandle())->isActive()) {
+						if (ent->isActive()) {
 							if (auto quadcom = (KQuadCom *)ent->getComponent(CTypes::Quad, "")) {
 								if (quadcom->isVisible()) {
-									objList.push_back({ &(*rit), quadcom });
+									objList.push_back({ ent->getHandle() ,quadcom });
 								}
-
-								// } else if (catch another renderable ...){
-							}
+							}// } else if (catch another renderable ...){
 						}
 					}
 						
 					// render objects list
 					for (auto oit = objList.begin(); oit != objList.end(); ++oit){
-						auto ent = EManager->getEntity(oit->first->getOwnerHandle());
+						auto ent = EManager->getEntity(oit->first);
+
+						// inite materials
+						if (oit->second->getMatNeedUpdate()) {
+							if (!_initeMaterials(RManager, oit->second)) {
+								KD_FPRINT("cant init material. entity name: %s", ent->getName().c_str());
+								return false;
+							}
+						}
+
 						// inite state
 						if (oit == objList.begin()) {
-							_checkState(oit->first, oit->second);
+							_checkState(oit->second);
 						}
 
 						// check material (render shared materials in a single batch)
-						if (_checkState(oit->first, oit->second)) {
+						if (_checkState(oit->second)) {
 
 							// check available buffer size
 							if ((indSize + oit->second->getIndexSize()) < KRENDER_IBUFF_SIZE) {
-
 								// compute (parent * child * camera) matrix
 								// catch object with its matrix
 								_kupdata.matrix.push_back((*it).getMatrix());
 								_computeParentsTransform(EManager, ent, &_kupdata.matrix.back());
 								_kupdata.objects.push_back(oit->second);
-								material = oit->first;
+								material = oit->second;
 
 								// increase buffers size
 								indSize += oit->second->getIndexSize();
@@ -159,17 +158,21 @@ namespace Kite{
 						// render 
 						if (!_kupdata.objects.empty()) {
 							// update vetex
-							_kvboVer->update(0, sizeof(Internal::KGLVertex) * verSize, false, (void *)&_kupdata);
+							_kvboVer->update(0, sizeof(KGLVertex) * verSize, false, (void *)&_kupdata);
 
 							// bind quad vao
 							_kvao->bind();
 
 							// bind materials
-							material->_kshprogptr->bind();
-							if (material->_ktextureptr) {
-								if (material->_ktextureptr->getTexture()){
-									material->_ktextureptr->getTexture()->bind();
+							material->_ksahder->bind();
+							if (material->_katlas) {
+								if (material->_katlas->isInite()) {
+									material->_katlas->bind();
+								} else {
+									KAtlasTextureArray::unbindTextureArray();
 								}
+							} else {
+								KAtlasTextureArray::unbindTextureArray();
 							}
 
 							// draw 
@@ -220,7 +223,7 @@ namespace Kite{
 
 		// inite vertex buffer
 		_kvboVer = new KVertexBuffer(BufferTarget::VERTEX);
-		std::vector<Internal::KGLVertex> vert(KRENDER_VBUFF_SIZE, Internal::KGLVertex());
+		std::vector<KGLVertex> vert(KRENDER_VBUFF_SIZE, KGLVertex());
 
 		// inite point
 		_kvboPnt = nullptr;
@@ -240,21 +243,26 @@ namespace Kite{
 
 		// fill vertex buffer
 		_kvboVer->bind();
-		_kvboVer->fill(&vert[0], sizeof(Internal::KGLVertex) * KRENDER_VBUFF_SIZE, VBufferType::STREAM);
+		_kvboVer->fill(&vert[0], sizeof(KGLVertex) * KRENDER_VBUFF_SIZE, VBufferType::STREAM);
 
 		// set pos attr
 		_kvao->enableAttribute(0);
-		_kvao->setAttribute(0, AttributeCount::COMPONENT_2, AttributeType::FLOAT, false, sizeof(Internal::KGLVertex), KBUFFER_OFFSET(0));
+		_kvao->setAttribute(0, AttributeCount::COMPONENT_2, AttributeType::FLOAT, false, sizeof(KGLVertex), KBUFFER_OFFSET(0));
 
 		// set uv attr
 		_kvao->enableAttribute(1);
 		_kvao->setAttribute(1, AttributeCount::COMPONENT_2, AttributeType::FLOAT,
-							false, sizeof(Internal::KGLVertex), KBUFFER_OFFSET(sizeof(KVector2F32)));
+							false, sizeof(KGLVertex), KBUFFER_OFFSET(sizeof(F32) * 2));
+
+		// set texture array index attr
+		_kvao->enableAttribute(2);
+		_kvao->setAttribute(2, AttributeCount::COMPONENT_1, AttributeType::UNSIGNED_SHORT,
+							false, sizeof(KGLVertex), KBUFFER_OFFSET(sizeof(F32) * 4));
 
 		// set color attr
-		_kvao->enableAttribute(2);
-		_kvao->setAttribute(2, AttributeCount::COMPONENT_4, AttributeType::FLOAT,
-							false, sizeof(Internal::KGLVertex), KBUFFER_OFFSET(sizeof(F32) * 4));
+		_kvao->enableAttribute(3);
+		_kvao->setAttribute(3, AttributeCount::COMPONENT_4, AttributeType::FLOAT,
+							false, sizeof(KGLVertex), KBUFFER_OFFSET((sizeof(F32) * 4) + sizeof(U16)));
 		_kvboVer->setUpdateHandle(_updateVer);
 
 		// point sprite buffer
@@ -283,20 +291,20 @@ namespace Kite{
 		setInite(false);
 	}
 
-	bool KRenderSys::_checkState(KRenderCom *Com, KRenderable *Rendeable){
+	bool KRenderSys::_checkState(KRenderable *Rendeable){
 		U32 textId = 0;
-		if (Com->_ktextureptr) {
-			if (Com->_ktextureptr->getTexture()) {
-				textId = Com->_ktextureptr->getTexture()->getGLID();
+		if (Rendeable->_katlas) {
+			if (Rendeable->_katlas->isInite()) {
+				textId = Rendeable->_katlas->getGLID();
 			}
 		}
-		if (Com->_kshprogptr->getGLID() != _klastState.lastShdId ||
+		if (Rendeable->_ksahder->getGLID() != _klastState.lastShdId ||
 			Rendeable->getGeoType() != _klastState.lastGeo ||
 			textId != _klastState.lastTexId)
 		{
 			// reset last state
-			_klastState.lastShdId = Com->_kshprogptr->getGLID();
-			_klastState.lastShdId = Com->_kshprogptr->getGLID();
+			_klastState.lastShdId = Rendeable->_ksahder->getGLID();
+			_klastState.lastShdId = Rendeable->_ksahder->getGLID();
 			_klastState.lastTexId = textId;
 			_klastState.lastGeo = Rendeable->getGeoType();
 			return false;
@@ -305,35 +313,34 @@ namespace Kite{
 		return true;
 	}
 
-	bool KRenderSys::_initeMaterials(KResourceManager*RMan, KRenderCom *Com) {
+	bool KRenderSys::_initeMaterials(KResourceManager*RMan, KRenderable *Com) {
 		// fetch resources to the component
-		Com->_kshprogptr = (KShaderProgram *)RMan->get(Com->_kshprog.str);
+		Com->_ksahder = (KShaderProgram *)RMan->get(Com->getShader().str);
 
 		// all renderables must have shader program
-		if (!Com->_kshprogptr) {
+		if (!Com->_ksahder) {
 			return false;
 		}
 
-		if (!Com->_kshprogptr->isInite()) {
-			Com->_kshprogptr->bindAttribute(KVATTRIB_XY, "in_pos");
-			Com->_kshprogptr->bindAttribute(KVATTRIB_UV, "in_uv");
-			Com->_kshprogptr->bindAttribute(KVATTRIB_RGBA, "in_col");
+		if (!Com->_ksahder->isInite()) {
+			Com->_ksahder->bindAttribute(KVATTRIB_XY, "in_pos");
+			Com->_ksahder->bindAttribute(KVATTRIB_UV, "in_uv");
+			Com->_ksahder->bindAttribute(KVATTRIB_ARRAYINDEX, "in_tindex");
+			Com->_ksahder->bindAttribute(KVATTRIB_RGBA, "in_col");
 
-			Com->_kshprogptr->inite();
-			Com->_kshprogptr->link();
+			Com->_ksahder->inite();
+			Com->_ksahder->link();
 		}
 
-		if (!Com->_ktexture.str.empty()) {
-			Com->_ktextureptr = (KAtlasTexture *)RMan->get(Com->_ktexture.str);
+		if (!Com->getAtlasTextureArray().str.empty()) {
+			Com->_katlas = (KAtlasTextureArray *)RMan->get(Com->getAtlasTextureArray().str);
 
-			if (Com->_ktextureptr) {
-				if (Com->_ktextureptr->getTexture()) {
-					Com->_ktextureptr->getTexture()->inite();
-				}
+			if (Com->_katlas) {
+				Com->_katlas->inite();
 			}
 		}
 
-		Com->setNeedUpdate(false);
+		Com->_kmatNeedUpdate = false;
 		return true;
 	}
 
@@ -406,7 +413,7 @@ namespace Kite{
 
 	void KRenderSys::_updateVer(void *Data, U32 Offset, U32 DataSize, void *Sender) {
 		updateData *udata = (updateData *)Sender;
-		Internal::KGLVertex *ver = (Internal::KGLVertex *)Data;
+		KGLVertex *ver = (KGLVertex *)Data;
 		U32 matIndex = 0;
 		U32 offset = 0;
 
@@ -414,38 +421,7 @@ namespace Kite{
 		for (auto it = udata->objects.begin(); it != cend; ++it) {
 			U16 vindex = 0;
 
-			// reverse render
-			if ((*it)->isReverse()) {
-				const auto crend = (*it)->getVertex()->crend();
-				for (auto vit = (*it)->getVertex()->crbegin(); vit != crend; ++vit) {
-					ver[offset + vindex].pos = KTransform::transformPoint(udata->matrix[matIndex], vit->pos);
-					ver[offset + vindex].r = vit->color.r;
-					ver[offset + vindex].g = vit->color.g;
-					ver[offset + vindex].b = vit->color.b;
-					ver[offset + vindex].a = vit->color.a;
-
-					// update uv
-					ver[offset + vindex].uv = vit->uv;;
-
-					++vindex;
-				}
-
-			// normal render
-			} else {
-				const auto cend = (*it)->getVertex()->cend();
-				for (auto vit = (*it)->getVertex()->cbegin(); vit != cend; ++vit) {
-					ver[offset + vindex].pos = KTransform::transformPoint(udata->matrix[matIndex], (*vit).pos);
-					ver[offset + vindex].r = (*vit).color.r;
-					ver[offset + vindex].g = (*vit).color.g;
-					ver[offset + vindex].b = (*vit).color.b;
-					ver[offset + vindex].a = (*vit).color.a;
-
-					// update uv
-					ver[offset + vindex].uv = vit->uv;
-
-					++vindex;
-				}
-			}
+			memcpy(ver + offset, &(*it)->getVertex()->operator[](0), sizeof(KGLVertex) * (*it)->getVertex()->size());
 
 			offset += (*it)->getVertex()->size();
 			++matIndex;

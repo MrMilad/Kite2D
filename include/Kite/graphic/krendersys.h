@@ -50,8 +50,8 @@ namespace Kite{
 		void destroy() override;
 
 	private:
-		bool _initeMaterials(KResourceManager*RMan, KRenderCom *Com);
-		bool _checkState(KRenderCom *Com, KRenderable *Rendeable);
+		bool _initeMaterials(KResourceManager*RMan, KRenderable *Com);
+		bool _checkState(KRenderable *Rendeable);
 		void _initeQuadIndex(std::vector<U16> *Buffer);
 		void _computeCamera(KCameraCom *Camera);
 		void _computeParentsTransform(KEntityManager *Eman, KEntity *Entity, KMatrix3 *Matrix);

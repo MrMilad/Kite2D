@@ -142,7 +142,7 @@ namespace Kite{
 		KVertex is a struct to store the vertex attributes in RAM
 		in order to prepare for graphics memory
 	*/
-	KM_CLASS(POD)
+	/*KM_CLASS(POD)
     struct KVertex{
 		KMETA_KVERTEX_BODY();
 
@@ -161,7 +161,42 @@ namespace Kite{
 		KVertex(const KVector2F32 &Pos, const KVector2F32 &UV, const KColor &Color) :
             pos(Pos), uv(UV), color(Color)
         {}
-    };
+    };*/
+
+	struct KGLVertex {
+		KVector2F32 pos;
+		KVector2F32 uv;
+		U16 tindex;
+		F32 r;
+		F32 g;
+		F32 b;
+		F32 a;
+
+		KGLVertex() :
+			pos(0.0f, 0.0f), uv(0.0f), tindex(0),
+			r(1.0f), g(1.0f), b(1.0f), a(1.0f) {}
+
+		friend KBaseSerial &operator<<(KBaseSerial &Out, const KGLVertex &Value) {
+			Out << Value.pos;
+			Out << Value.uv;
+			Out << Value.tindex;
+			Out << Value.r;
+			Out << Value.g;
+			Out << Value.b;
+			Out << Value.a;
+			return Out;
+		}
+		friend KBaseSerial &operator>>(KBaseSerial &In, KGLVertex &Value) {
+			In >> Value.pos;
+			In >> Value.uv;
+			In >> Value.tindex;
+			In >> Value.r;
+			In >> Value.g;
+			In >> Value.b;
+			In >> Value.a;
+			return In;
+		}
+	};
 
 	struct KPointSprite {
 		F32 pointSize;
@@ -184,20 +219,22 @@ namespace Kite{
 	*/
 	KM_CLASS(POD)
 	struct KAtlasItem{
-		KMETA_KATLASITEM_BODY()
+		KMETA_KATLASITEM_BODY();
 
+		KM_VAR() U32 id;	//!< Unique ID
 		KM_VAR() F32 blu;	//!< Bottom-left U texture position with range [0, 1]
 		KM_VAR() F32 blv;	//!< Bottom-left V texture position with range [0, 1]
 		KM_VAR() F32 tru;	//!< Top-right U texture position with range [0, 1]
 		KM_VAR() F32 trv;	//!< Top-right V texture position with range [0, 1]
 		KM_VAR() U32 width;	//!< Width in pixel
 		KM_VAR() U32 height;//!< Height in pixel
-		KM_VAR() U32 xpos;	//!< Width in pixel
-		KM_VAR() U32 ypos;	//!< Height in pixel
+		KM_VAR() U32 xpos;	//!< XPos in pixel
+		KM_VAR() U32 ypos;	//!< XPos in pixel
 
 		//! Construct the atlas object from its attributes.
 		KM_CON()
 		KAtlasItem() :
+			id(0),
 			blu(0), blv(0),
 			tru(1), trv(1),
 			width(0), height(0),
@@ -223,10 +260,10 @@ namespace Kite{
 		}
 
 		KM_PRO_GET(KP_NAME = "flippedH", KP_TYPE = bool, KP_CM = "horizontal flip")
-			inline bool getFlipH() const { return _kfliph; }
+		inline bool getFlipH() const { return _kfliph; }
 
 		KM_PRO_GET(KP_NAME = "flippedV", KP_TYPE = bool, KP_CM = "vertical flip")
-			inline bool getFlipV() const { return _kflipv; }
+		inline bool getFlipV() const { return _kflipv; }
 
 		//! Equal operator
 		inline bool operator==(const KAtlasItem& rhs) {
@@ -482,12 +519,25 @@ namespace Kite{
 	KM_CLASS(POD)
 	struct KOrthoTile {
 		KMETA_KORTHOTILE_BODY();
-
-		KM_VAR() KVertex verts[4];
-		KM_VAR() SIZE nextIndex;
+		KM_VAR() KColor tint;
+		KM_VAR() KAtlasItem atlas;
+		KM_VAR() U16 textureIndex;
 
 		KOrthoTile() :
-			nextIndex(0) {}
+			tint(Colors::WHITE),
+			textureIndex(0) {}
+	};
+
+	KM_CLASS(POD)
+	struct KOrthoTileNode {
+		KMETA_KORTHOTILENODE_BODY();
+
+		KM_VAR(UNBIND) U32 atlasID;
+		KM_VAR(UNBIND) KGLVertex verts[4];
+		KM_VAR(UNBIND) SIZE nextIndex;
+
+		KOrthoTileNode() :
+			atlasID(0), nextIndex(0) {}
 	};
 
 	KM_CLASS(POD)
@@ -502,23 +552,24 @@ namespace Kite{
 			firstIndex(0), lastIndex(0), size(0) {}
 	};
 
+	KM_CLASS(POD)
+	struct KTileStamp {
+		KMETA_KTILESTAMP_BODY();
+
+		KM_VAR() I16 row;	// releative row to anchor row (-+)
+		KM_VAR() I16 col;	// releative column to anchor column (-+)
+		KM_VAR() KAtlasItem atlas;
+
+		KM_CON()
+		KTileStamp():
+			row(0), col(0)
+		{}
+	};
+
 	/*! \namespace Kite::Internal
 		\brief Private namespace.
 	*/
     namespace Internal{
-		struct KGLVertex {
-			KVector2F32 pos;
-			KVector2F32 uv;
-			F32 r;
-			F32 g;
-			F32 b;
-			F32 a;
-
-			KGLVertex() :
-				pos(0.0f, 0.0f), uv(0.0f),
-				r(1.0f), g(1.0f), b(1.0f), a(1.0f) {}
-
-		};
 
 		//! Catch last OpenGL state. (internally use)
 		struct KGLState{

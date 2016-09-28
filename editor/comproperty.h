@@ -6,7 +6,7 @@
 #include "Kite/core/kany.h"
 #include "Kite/core/kcorestructs.h"
 #include "Kite/graphic/kgraphicstructs.h"
-#include "Kite/graphic/katlastexture.h"
+#include "Kite/graphic/katlastexturearray.h"
 #include "Kite/math/kmathstructs.h"
 #include <Kite/meta/kmetamanager.h>
 #include <Kite/meta/kmetabase.h>
@@ -156,8 +156,9 @@ signals:
 		private slots :
 		void valueChanged() {
 			if (!ronly) {
-				color = QColorDialog::getColor(color, this, "Color Picker", QColorDialog::ShowAlphaChannel | QColorDialog::DontUseNativeDialog);
-				if (color.isValid()) {
+				auto tcolor = QColorDialog::getColor(color, this, "Color Picker", QColorDialog::ShowAlphaChannel | QColorDialog::DontUseNativeDialog);
+				if (tcolor.isValid()) {
+					color = tcolor;
 					Kite::KAny pval(Kite::KColor(color.red(), color.green(), color.blue(), color.alpha()));
 					QVariant v = qVariantFromValue((void *)&pval);
 					btnBrowse->setStyleSheet("QToolButton { border: 2px solid black;\n"
@@ -251,6 +252,8 @@ signals:
 			auto hlayout = new QHBoxLayout(this);
 			hlayout->setMargin(0);
 			hlayout->setSpacing(0);
+
+			type = Comp->getType();
 
 			auto initeVal = Comp->getProperty(PName.toStdString());
 			currItem = initeVal.as<Kite::KAtlasItem>();
@@ -381,16 +384,30 @@ signals:
 			if (CurrItem.getFlipV()) CurrItem.flipV();
 
 			// get atlas items
-			Kite::KAny atlasName;
-			Kite::KAtlasTexture *atlas = nullptr;
+			QString atlasName;
+			Kite::KAny val;
+			Kite::KAtlasTextureArray *atlas = nullptr;
+			Kite::U16 atlasindex;
 			items = nullptr;
 			auto currIndex = 0;
 			combo->clear();
-			emit(atlasName = requestPropValue(Kite::CTypes::RenderMaterial, "", "atlasTexture"));
-			if (!atlasName.is_null()) {
-				emit(atlas = (Kite::KAtlasTexture *)requestRes(atlasName.as<Kite::KStringID>().str.c_str()));
+
+			emit(val = requestPropValue(type, "", "textureGroup"));
+
+			if (!val.is_null()) {
+				atlasName = val.as<Kite::KStringID>().str.c_str();
+			}
+
+			emit(val = requestPropValue(type, "", "textureIndex"));
+			if (!val.is_null()) {
+				atlasindex = val.as<Kite::U16>();
+			}
+
+			if (!atlasName.isEmpty()) {
+				emit(atlas = (Kite::KAtlasTextureArray *)requestRes(atlasName));
 				if (atlas != nullptr) {
-					items = atlas->getItemContiner();
+					if (atlas->getContiner()->size() > atlasindex)
+						items = atlas->getContiner()->at(atlasindex)->getContiner();
 				}
 
 				auto idcounter = 0;
@@ -409,6 +426,7 @@ signals:
 			}
 			return currIndex;
 		}
+		Kite::CTypes type;
 		QToolButton *btnFliph;
 		QToolButton *btnFlipv;
 		QLineEdit *ledit;
@@ -499,6 +517,8 @@ signals:
 		bool eventFilter(QObject *Obj, QEvent *Event) {
 			static QStringList resList;
 			if (Event->type() == QEvent::MouseButtonPress) {
+				disconnect(combo, 0, 0, 0);
+
 				auto text = combo->currentText();
 				combo->clear();
 				auto type = combo->objectName();
@@ -507,6 +527,9 @@ signals:
 				combo->addItem(""); // empty res
 				combo->addItems(resList);
 				combo->setCurrentText(text);
+
+				connect(combo, static_cast<void(QComboBox::*)(const QString &)>(&QComboBox::currentIndexChanged),
+						this, &KSTRID::valueChanged);
 			}
 			return false;
 		}
@@ -572,19 +595,18 @@ signals:
 		QString pname;
 	};
 
-	// I32
-	class KI32 : public KProp {
-		Q_OBJECT
+	// IU
+	template<typename NUM>
+	class KIU {
 	public:
-		KI32(Kite::KComponent *Comp, const QString &PName, const QString &Label, QWidget *Parent,
-			 bool ROnly = false, int Min = 0, int Max = 0) :
-			KProp(Parent), pname(PName) {
-			auto hlayout = new QHBoxLayout(this);
+		KIU(Kite::KComponent *Comp, const QString &PName, const QString &Label, QWidget *Parent,
+			bool ROnly = false, int Min = 0, int Max = 0) {
+			auto hlayout = new QHBoxLayout(Parent);
 			hlayout->setMargin(0);
 			hlayout->setSpacing(0);
 
 			if (!Label.isEmpty()) {
-				auto label = new QLabel(this);
+				auto label = new QLabel(Parent);
 				label->setText(Label);
 				label->setStyleSheet("background-color: green; color: white;"
 									 "border-top-left-radius: 4px;"
@@ -597,13 +619,12 @@ signals:
 
 			auto initeVal = Comp->getProperty(PName.toStdString());
 			spin = singleSpin<QSpinBox>(Min, Max);
-			spin->setValue(initeVal.asFreeCast<int>());
+			spin->setValue(initeVal.as<NUM>());
 			spin->setReadOnly(ROnly);
-			connect(spin, static_cast<void(QSpinBox::*)(int)>(&QSpinBox::valueChanged), this, &KI32::valueChanged);
 			hlayout->addWidget(spin, 1);
 
 			if (ROnly) {
-				auto lblROnly = new QLabel(this);
+				auto lblROnly = new QLabel(Parent);
 				lblROnly->setText("<img src=\":/icons/lock\" height=\"12\" width=\"12\" >");
 				lblROnly->setToolTip("Read-Only Property");
 				hlayout->addSpacing(2);
@@ -611,9 +632,27 @@ signals:
 			}
 		}
 
+		void reset(Kite::KComponent *Comp, const QString &PName) {
+			auto val = Comp->getProperty(PName.toStdString());
+			spin->setValue(val.as<NUM>());
+		}
+		QSpinBox *spin;
+	};
+
+	// I32
+	class KI32 : public KProp {
+		Q_OBJECT
+	public:
+		KI32(Kite::KComponent *Comp, const QString &PName, const QString &Label, QWidget *Parent,
+			bool ROnly = false, int Min = 0, int Max = 0) :
+			KProp(Parent), pname(PName),
+			imp(Comp, PName, Label, this, ROnly, Min, Max)
+		{
+			imp.spin->connect(imp.spin, static_cast<void(QSpinBox::*)(int)>(&QSpinBox::valueChanged), this, &KI32::valueChanged);
+		}
+
 		void reset(Kite::KComponent *Comp) override {
-			auto val = Comp->getProperty(pname.toStdString());
-			spin->setValue(val.asFreeCast<int>());
+			imp.reset(Comp, pname);
 		}
 
 signals:
@@ -621,13 +660,104 @@ signals:
 
 		private slots :
 		void valueChanged(int Val) {
-			Kite::KAny pval(Val, true);
+			Kite::KAny pval((Kite::I32)Val, true);
 			QVariant v = qVariantFromValue((void *)&pval);
 			emit(propertyEdited(pname, v));
 		}
 
 	private:
-		QSpinBox *spin;
+		KIU<Kite::I32> imp;
+		QString pname;
+	};
+
+	// U32
+	class KU32 : public KProp {
+		Q_OBJECT
+	public:
+		KU32(Kite::KComponent *Comp, const QString &PName, const QString &Label, QWidget *Parent,
+			 bool ROnly = false, int Min = 0, int Max = 0) :
+			KProp(Parent), pname(PName),
+			imp(Comp, PName, Label, this, ROnly, Min, Max) {
+			imp.spin->connect(imp.spin, static_cast<void(QSpinBox::*)(int)>(&QSpinBox::valueChanged), this, &KU32::valueChanged);
+		}
+
+		void reset(Kite::KComponent *Comp) override {
+			imp.reset(Comp, pname);
+		}
+
+signals:
+		void propertyEdited(const QString &PName, QVariant &Val);
+
+		private slots :
+		void valueChanged(int Val) {
+			Kite::KAny pval((Kite::U32)Val, true);
+			QVariant v = qVariantFromValue((void *)&pval);
+			emit(propertyEdited(pname, v));
+		}
+
+	private:
+		KIU<Kite::U32> imp;
+		QString pname;
+	};
+
+	// I16
+	class KI16 : public KProp {
+		Q_OBJECT
+	public:
+		KI16(Kite::KComponent *Comp, const QString &PName, const QString &Label, QWidget *Parent,
+			 bool ROnly = false, int Min = 0, int Max = 0) :
+			KProp(Parent), pname(PName),
+			imp(Comp, PName, Label, this, ROnly, Min, Max) {
+			imp.spin->connect(imp.spin, static_cast<void(QSpinBox::*)(int)>(&QSpinBox::valueChanged), this, &KI16::valueChanged);
+		}
+
+		void reset(Kite::KComponent *Comp) override {
+			imp.reset(Comp, pname);
+		}
+
+signals:
+		void propertyEdited(const QString &PName, QVariant &Val);
+
+		private slots :
+		void valueChanged(int Val) {
+			Kite::KAny pval((Kite::I16)Val, true);
+			QVariant v = qVariantFromValue((void *)&pval);
+			emit(propertyEdited(pname, v));
+		}
+
+	private:
+		KIU<Kite::I16> imp;
+		QString pname;
+	};
+
+	// U16
+	class KU16 : public KProp {
+		Q_OBJECT
+	public:
+		KU16(Kite::KComponent *Comp, const QString &PName, const QString &Label, QWidget *Parent,
+			 bool ROnly = false, int Min = 0, int Max = 0) :
+			KProp(Parent), pname(PName) ,
+			imp(Comp, PName, Label, this, ROnly, Min, Max) 
+		{
+			imp.spin->connect(imp.spin, static_cast<void(QSpinBox::*)(int)>(&QSpinBox::valueChanged), this, &KU16::valueChanged);
+		}
+
+		void reset(Kite::KComponent *Comp) override {
+			imp.reset(Comp, pname);
+		}
+
+signals:
+		void propertyEdited(const QString &PName, QVariant &Val);
+
+		private slots :
+		void valueChanged(int Val) {
+			Kite::KAny pval((Kite::U16)Val, true);
+			QVariant v = qVariantFromValue((void *)&pval);
+			emit(propertyEdited(pname, v));
+		}
+
+	private:
+		KIU<Kite::U16> imp;
 		QString pname;
 	};
 

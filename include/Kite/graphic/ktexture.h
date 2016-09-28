@@ -74,7 +74,7 @@ namespace Kite{
 		*/
         void create(const KImage &Image, TextureFilter Filter, TextureWrap Wrap);
 
-		void getImage(KImage &ImageOutput);
+		void getImage(KImage &ImageOutput) const;
 
 		bool inite() override;
 
@@ -91,7 +91,11 @@ namespace Kite{
 		*/
 		void update(const KImage &Image, const KVector2U32 &Position);
 
-		inline KVector2U32 getSize() const { return _ksize; }
+		inline U32 getWidth() const { return _ksize.x; }
+
+		inline U32 getHeight() const { return _ksize.y; }
+
+		inline const KVector2U32 &getSize() const { return _ksize; }
 
 		//! Get filter of the texture
 		/*!

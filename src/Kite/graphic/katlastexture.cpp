@@ -101,6 +101,10 @@ namespace Kite {
 		return true;
 	}
 
-	
+	void KAtlasTexture::addItem(const KAtlasItem &Item) {
+		_kitems.push_back(Item);
+		_kitems.back().id = _kitems.size() - 1;
+		setModified(true);
+	}
 	KMETA_KATLASTEXTURE_SOURCE();
 }

@@ -2138,7 +2138,7 @@ void createMacros(const std::vector<MClass> &Cls, const std::vector<MEnum> &Enms
 								 "return " + it->get.name + "();}\\\n");
 				}
 			}
-			Output.append("return KAny(nullptr);}\\\n");
+			Output.append("return KAny();}\\\n");
 		}
 
 		// meta registration

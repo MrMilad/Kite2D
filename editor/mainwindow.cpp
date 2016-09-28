@@ -155,6 +155,7 @@ void MainWindow::setupScene(){
 	connect(resDock, &ResourceDock::resourceSelected, mainTab, &MainTab::selectResource);
 	connect(resDock, &ResourceDock::resourceEdit, mainTab, &MainTab::openTabs);
 	connect(resDock, &ResourceDock::resourceDelete, mainTab, &MainTab::closeResource);
+	connect(resDock, &ResourceDock::resourceDeleted, mainTab, &MainTab::resourceDeleted);
 	connect(resDock, &ResourceDock::resourceSave, mainTab, &MainTab::saveRes);
 	connect(mainTab, &MainTab::requestResList, resDock, &ResourceDock::filterByTypeRes);
 	connect(mainTab, &MainTab::requestRes, resDock, &ResourceDock::getResource);
@@ -165,8 +166,8 @@ void MainWindow::setupScene(){
 
 	setCentralWidget(mainTab);
 	
-	GridScene *scene1 = new GridScene(25, 20, 32, 32);
-	QPixmap plogo("F:\\MyImage\\Kite\\Logo-2-tr.png");
+	auto *scene1 = new QGraphicsScene();
+	QPixmap plogo(":/icons/logo");
 	QGraphicsPixmapItem *logo = new QGraphicsPixmapItem(plogo);
 	logo->setPos((scene1->width() / 2) - (plogo.width() / 2), (scene1->height() / 2) - (plogo.height() / 2));
 	scene1->addItem(logo);
@@ -444,6 +445,7 @@ bool MainWindow::loadXML(QIODevice *device, const QString &Address) {
 			curProject->name = xml.attributes().value("name").toString();
 			curProject->Path = finfo.path();
 			curProject->resPath = finfo.path() + "/resources";
+			resDock->setCurrentDirectory(curProject->resPath);
 			//curProject->config.dictionary = finfo.path().toStdString() + "/dict.kdict";
 			head = true;
 		}
@@ -522,6 +524,7 @@ bool MainWindow::loadXML(QIODevice *device, const QString &Address) {
 }
 
 void MainWindow::startEngine() {
+	fullscreenIssue = (curProject->config.window.fullscreen && this->isFullScreen());
 	saveProject();
 	outDock->getEditor()->clear();
 	outDock->autoShow();
@@ -550,7 +553,8 @@ void MainWindow::getEngineOutput(const QString &Text, int MType) {
 }
 
 void MainWindow::engineStarted() {
-	outDock->getEditor()->appendHtml("<font color = \"Aqua\">---- Engine Started ----</font>");
+	//outDock->getEditor()->appendHtml("<font color = \"Aqua\">---- Engine Started ----</font>");
+	outDock->getEditor()->appendPlainText("----[ Engine Started ]----");
 	playScene->setDisabled(true);
 	pauseScene->setDisabled(false);
 	stopScene->setDisabled(false);
@@ -581,6 +585,9 @@ void MainWindow::engineStoped() {
 	//outDock->getEditor()->appendHtml("<font color = \"Aqua\">---- Engine Stoped ----</font>");
 	outDock->getEditor()->appendPlainText("----[ Engine Stoped ]----");
 	outDock->autoHide();
+	if (fullscreenIssue) {
+		this->showFullScreen();
+	}
 	playScene->setDisabled(false);
 	pauseScene->setDisabled(true);
 	stopScene->setDisabled(true);
@@ -612,7 +619,7 @@ void MainWindow::newProject() {
 			curProject->config.window.resizable = false;
 			curProject->config.dictionary = curProject->Path.toStdString() + "/dict.kdict";
 
-			this->setWindowTitle("Kite2D Editor - " + frm.getName());
+			this->setWindowTitle("Kite2D Editor - " + curProject->Path + "/" + curProject->name);
 			resDock->setCurrentDirectory(curProject->resPath);
 
 			enGUI();
@@ -632,13 +639,15 @@ void MainWindow::openProject() {
 			QFile file(fileName);
 			if (file.open(QIODevice::ReadOnly)) {
 				curProject = new Project;
+				disconnect(resDock, &ResourceDock::resourceAdded, mainTab, &MainTab::resourceAdded);
 				if (loadXML(&file, fileName)) {
-					resDock->setCurrentDirectory(curProject->resPath);
 					enGUI();
+					this->setWindowTitle("Kite2D Editor - " + curProject->Path + "/" + curProject->name);
 				} else {
 					closeProject(true);
 				}
 				file.close();
+				connect(resDock, &ResourceDock::resourceAdded, mainTab, &MainTab::resourceAdded);
 			}
 		}
 	}

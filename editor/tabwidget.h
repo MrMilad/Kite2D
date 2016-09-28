@@ -17,6 +17,9 @@ public:
 
 	virtual void reload() = 0;
 
+	virtual void onRemoveRes(Kite::RTypes Type) {}
+	virtual void onAddRes(const Kite::KResource *Res) {}
+
     inline const auto getResource() const { return res; }
 
 signals:
@@ -24,8 +27,10 @@ signals:
 	Kite::KResource *requestRes(const QString &Name);
 	Kite::KResource *requestAddRes(Kite::RTypes Type, const QString &Name);
 	void requestReloadTab(Kite::KResource *Res);
+	void requestReloadRes(Kite::RTypes Type); // reload all opened resources with the given type
 
 private:
+	static std::string temp;
     Kite::KResource *res;
 };
 

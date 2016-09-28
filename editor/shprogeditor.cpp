@@ -10,62 +10,28 @@ ShProgEditor::ShProgEditor(Kite::KResource *Res, KiteInfo *KInfo, QWidget *Paren
 {}
 
 void ShProgEditor::inite() {
-	// request shaders
-	QList<const Kite::KResource *> rlist;
-	emit(TabWidget::requestResList(Kite::RTypes::Shader, rlist));
-
-	// splite shader types
-	QStringList vshader;
-	QStringList fshader;
-	QStringList gshader;
-
-	vshader.push_back("");
-	fshader.push_back("");
-	gshader.push_back("");
-
-	for (auto it = rlist.cbegin(); it != rlist.cend(); ++it) {
-		auto shd = (const Kite::KShader *)(*it);
-		if (shd->getShaderType() == Kite::ShaderType::VERTEX) {
-			vshader.push_back(shd->getName().c_str());
-		} else if (shd->getShaderType() == Kite::ShaderType::FRAGMENT) {
-			fshader.push_back(shd->getName().c_str());
-		} else if (shd->getShaderType() == Kite::ShaderType::GEOMETRY) {
-			gshader.push_back(shd->getName().c_str());
-		}
-	}
-
 	// main layout
 	auto flayout = new QFormLayout(this);
 
 	// vertex
 	cmbVert = new QComboBox(this);
 	cmbVert->setObjectName("vert");
-	cmbVert->addItems(vshader);
-	if (prog->getShader(Kite::ShaderType::VERTEX) != nullptr) {
-		cmbVert->setCurrentText(prog->getShader(Kite::ShaderType::VERTEX)->getName().c_str());
-	}
 	cmbVert->installEventFilter(this);
 	flayout->addRow("Vertex Shader: ", cmbVert);
 
 	// fragment
 	cmbFrag = new QComboBox(this);
 	cmbFrag->setObjectName("frag");
-	cmbFrag->addItems(fshader);
-	if (prog->getShader(Kite::ShaderType::FRAGMENT) != nullptr) {
-		cmbFrag->setCurrentText(prog->getShader(Kite::ShaderType::FRAGMENT)->getName().c_str());
-	}
 	cmbFrag->installEventFilter(this);
 	flayout->addRow("Fragment Shader: ", cmbFrag);
 
 	// Geomety
 	cmbGeom = new QComboBox(this);
 	cmbGeom->setObjectName("geom");
-	cmbGeom->addItems(gshader);
-	if (prog->getShader(Kite::ShaderType::GEOMETRY) != nullptr) {
-		cmbGeom->setCurrentText(prog->getShader(Kite::ShaderType::GEOMETRY)->getName().c_str());
-	}
 	cmbGeom->installEventFilter(this);
 	flayout->addRow("Geometry Shader (Optional): ", cmbGeom);
+
+	reload();
 }
 
 bool ShProgEditor::eventFilter(QObject *Obj, QEvent *Event) {
@@ -146,19 +112,25 @@ void ShProgEditor::reload() {
 	}
 	cmbVert->clear();
 	cmbVert->addItems(vshader);
-	if (prog->getShader(Kite::ShaderType::VERTEX) != nullptr) {
+	if ((Kite::KResource *)prog->getShader(Kite::ShaderType::VERTEX)) {
 		cmbVert->setCurrentText(prog->getShader(Kite::ShaderType::VERTEX)->getName().c_str());
 	}
 
 	cmbFrag->clear();
 	cmbFrag->addItems(fshader);
-	if (prog->getShader(Kite::ShaderType::FRAGMENT) != nullptr) {
+	if ((Kite::KResource *)prog->getShader(Kite::ShaderType::FRAGMENT)) {
 		cmbFrag->setCurrentText(prog->getShader(Kite::ShaderType::FRAGMENT)->getName().c_str());
 	}
 
 	cmbGeom->clear();
 	cmbGeom->addItems(gshader);
-	if (prog->getShader(Kite::ShaderType::GEOMETRY) != nullptr) {
+	if ((Kite::KResource *)prog->getShader(Kite::ShaderType::GEOMETRY)) {
 		cmbGeom->setCurrentText(prog->getShader(Kite::ShaderType::GEOMETRY)->getName().c_str());
+	}
+}
+
+void ShProgEditor::onRemoveRes(Kite::RTypes Type) {
+	if (Type == Kite::RTypes::Shader) {
+		reload();
 	}
 }

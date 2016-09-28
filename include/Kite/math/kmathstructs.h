@@ -52,8 +52,8 @@ namespace Kite{
 			x(X), y(Y)
 		{}
 
-		inline KVector2<T> operator-(const KVector2<T>& right) {
-			return KVector2<T>(-right.x, -right.y);
+		inline KVector2<T> operator-() {
+			return KVector2<T>(-x, -y);
 		}
 
 		inline KVector2<T> operator-(const KVector2<T>& right) const {
@@ -223,6 +223,12 @@ namespace Kite{
 			left(Left), right(Right), bottom(Bottom), top(Top)
 		{}
 
+		KM_FUN()
+		inline void correctSides() {
+			if (left > right) { T temp = left; left = right; right = temp; }
+			if (bottom > top) { T temp = bottom; bottom = top; top = temp; }
+		}
+
 		inline KRect<T> operator+(const KVector2<T>& Right) const {
 			return KRect<T>(left + Right.x, right + Right.x,
 							bottom + Right.y, top + Right.y);
@@ -283,6 +289,7 @@ namespace Kite{
 			return KRect2<T>(leftBottom - right, leftTop - right,
 							 rightBottom - right, rightTop - right);
 		}
+
 	};
 
 	typedef KRect2<U8>  KRect2U8;

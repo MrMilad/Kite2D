@@ -24,6 +24,7 @@ USA
 #include "Kite/core/kresource.h"
 #include "Kite/math/kmathstructs.h"
 #include "Kite/graphic/kgraphicstructs.h"
+#include "Kite/graphic/katlastexturearray.h"
 #include <vector>
 #include "korthogonalmap.khgen.h"
 
@@ -46,25 +47,58 @@ namespace Kite {
 		bool inite() override;
 
 		KM_FUN()
-		void create(U32 Width, U32 Height, U16 TileWidth, U16 TileHeight);
+		void create(U32 Width, U32 Height, U32 TileWidth, U32 TileHeight);
 
 		KM_FUN()
 		inline U32 getMapWidth() const { return _kwidth; }
 
 		KM_FUN()
+		inline void setTileset(KAtlasTextureArray *Tileset) { _ktileSet = Tileset; }
+
+		KM_FUN()
+		inline KAtlasTextureArray *getTileset() const { return _ktileSet; }
+
+		KM_FUN()
 		inline U32 getMapHeight() const { return _kheight; }
 
 		KM_FUN()
-		inline U16 getTileWidth() const { return _ktilewidth; }
+		inline U32 getTileWidth() const { return _ktilewidth; }
 
 		KM_FUN()
-		inline U16 getTileHeight() const { return _ktileheight; }
+		inline U32 getTileHeight() const { return _ktileheight; }
 
 		KM_FUN()
-		void pushTile(U32 TileID, const KAtlasItem &Texture, const KColor &Tint);
+		inline U32 getTotalWidthPixelSize() const { return _ktotalWidthPixels; }
+
+		KM_FUN()
+		inline U32 getTotalHeightPixelSize() const { return _ktotalHeightPixels; }
+
+		KM_FUN()
+		inline U32 getTotalTiles() const { return _krootList.size(); }
+
+		KM_FUN()
+		inline U32 getTotalStackedTiles() const { return _ktotalStack; }
+
+		KM_FUN()
+		void pushTile(U32 TileID, const KAtlasItem &Texture, U16 TextureIndex, const KColor &Tint);
+
+		KM_FUN()
+		void pushTileStamp(U32 TileID, const std::vector<KTileStamp> &Stamp, U16 TextureIndex, const KColor &Tint);
+
+		/// push a tile over entire map
+		/// common usage: inite map (with background tile) or add a new layer to tiles
+		KM_FUN()
+		void pushLayer(const KAtlasItem &Texture, U16 TextureIndex, const KColor &Tint);
+
+		/// return true if LayerIndex was exist in the TileID
+		KM_FUN()
+		bool setTile(U32 TileID, const KAtlasItem &Texture, U16 LayerIndex, U16 TextureIndex, const KColor &Tint);
 
 		KM_FUN()
 		void popTile(U32 TileID);
+
+		KM_FUN()
+		void popTileStamp(U32 TileID, const std::vector<KTileStamp> &Stamp);
 
 		KM_FUN()
 		void clearTile(U32 TileID);
@@ -73,27 +107,47 @@ namespace Kite {
 		bool getTileID(const KVector2F32 &Position, U32 &Output);
 
 		KM_FUN()
-		KRectU32 getTileDimension(U32 TileID);
+		KRectF32 getTileDimension(U32 TileID);
 
+		KM_FUN()
+		U32 getTileRow(U32 TileID) const;
+
+		KM_FUN()
+		U32 getTileColumn(U32 TileID) const;
+
+		// number of attached tiles in the root
 		KM_FUN()
 		SIZE getTileSize(U32 TileID);
 
-		void queryTiles(const KRectF32 &Area, std::vector<KOrthoTile> &Output);
+		/// normal version
+		KM_FUN()
+		void queryTiles(U32 TileID, std::vector<KOrthoTile> &Output);
 
-		void queryTilesVertex(const KRectF32 &Area, std::vector<KVertex> &Output);
+		/// fast and optimized version for rendering purpose
+		void queryTilesVertex(const KRectF32 &Area, std::vector<KGLVertex> &Output);
+
+#if defined(KITE_EDITOR)
+		// convert top-left coordinate system to bottom-left
+		U32 convertID(U32 TileID);
+#endif
 	private:
 		bool _saveStream(KOStream &Stream, const std::string &Address) override;
 		bool _loadStream(KIStream &Stream, const std::string &Address) override;
 
-		void initeNode(KOrthoTile &Node, U32 ID, const KAtlasItem &UV, const KColor &Col);
+		void initeNode(KOrthoTileNode &Node, U32 ID, const KAtlasItem &UV, U16 TIndex, const KColor &Col);
 
 		U32 _kwidth;
 		U32 _kheight;
-		U16 _ktilewidth;
-		U16 _ktileheight;
+		U32 _ktilewidth;
+		U32 _ktileheight;
+		U32 _ktotalWidthPixels;
+		U32 _ktotalHeightPixels;
+		U32 _ktotalStack;
 		std::vector<KRootTileMap> _krootList;
-		std::vector<KOrthoTile> _knodeList;
+		std::vector<KOrthoTileNode> _knodeList;
 		std::vector<SIZE> _kfreeNodeList;
+
+		KAtlasTextureArray *_ktileSet;
 	};
 }
 

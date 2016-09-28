@@ -13,6 +13,14 @@
 #include <Kite/meta/kmetaclass.h>
 #include "shared.h"
 
+struct ResInfo {
+	QList<QPair<QString, QString>> resFI;	// <format, icon>
+	void (*onResRemove)(Kite::KResource *, Kite::KResource *); // dependency and pointer checker (avoid pointer dangling in resources)
+
+	ResInfo() :
+		onResRemove(nullptr) {}
+};
+
 class ResourceDock : public QDockWidget, public Kite::KListener {
 	Q_OBJECT
 
@@ -41,6 +49,7 @@ signals:
 	void resourceSelected(Kite::KResource *Res);
 	void resourceEdit(Kite::KResource *Res);
 	void resourceDelete(Kite::KResource *Res);
+	void resourceDeleted(Kite::RTypes Type);
 	void resourceSave(Kite::KResource *Res);
 
 private slots:
@@ -72,8 +81,7 @@ private:
 	QFrame *htools;
 	QLineEdit *ledit;
 	QString currDirectory;
-	//QHash<QString, Kite::KResource *> dictinary;
-	QMultiHash<size_t, QPair<QString, QString>> formats; // <resource name, <format, icon>>
+	QHash<size_t, ResInfo> resInfoMap; // <type, ResInfo>
 	Kite::KResourceManager rman;
 };
 

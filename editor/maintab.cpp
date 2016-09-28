@@ -4,6 +4,8 @@
 #include "glsleditor.h"
 #include "shprogeditor.h"
 #include "textureeditor.h"
+#include "mapeditor.h"
+#include "texturearrayeditor.h"
 #include "atlaseditor.h"
 #include <qpropertyanimation.h>
 #include <kmeta.khgen.h>
@@ -62,6 +64,8 @@ void MainTab::registerTabs() {
 	tabFactory.insert((size_t)Kite::RTypes::ShaderProgram, ShProgEditor::factory);
 	tabFactory.insert((size_t)Kite::RTypes::Texture, TextureEditor::factory);
 	tabFactory.insert((size_t)Kite::RTypes::AtlasTexture, AtlasEditor::factory);
+	tabFactory.insert((size_t)Kite::RTypes::OrthogonalMap, MapEditor::factory);
+	tabFactory.insert((size_t)Kite::RTypes::TextureGroup, TextureArrayEditor::factory);
 }
 
 int MainTab::createTab(QWidget *Widget, Kite::KResource *ResPtr) {
@@ -186,6 +190,7 @@ void MainTab::openTabs(Kite::KResource *Res) {
 				connect(twidget, &TabWidget::requestRes, this, &MainTab::requestRes);
 				connect(twidget, &TabWidget::requestAddRes, this, &MainTab::requestAddRes);
 				connect(twidget, &TabWidget::requestReloadTab, this, &MainTab::reloadRes);
+				connect(twidget, &TabWidget::requestReloadRes, this, &MainTab::reloadResType);
 				twidget->inite();
 				auto tid = createTab(twidget, Res);
 				setCurrentIndex(tid);
@@ -194,10 +199,8 @@ void MainTab::openTabs(Kite::KResource *Res) {
 		}
 	} else {
 		// pined (tab)
-		if ((*found).second == nullptr) {
-			if (Res->getType() == Kite::RTypes::Scene) { 
-				setCurrentIndex(indexOf((*found).first));
-			}
+		if (found->second == nullptr) {
+			setCurrentIndex(indexOf(found->first));
 
 		// unpined (dock)
 		} else {
@@ -212,13 +215,14 @@ void MainTab::openTabs(Kite::KResource *Res) {
 	}
 }
 
-void MainTab::closeResource(Kite::KResource *Res) {
+void MainTab::closeResource(const Kite::KResource *Res) {
 	if (Res->getType() == Kite::RTypes::Scene) {
 		auto ind = indexOf(scene);
 		setTabText(ind, "Scene");
 		return;
 	}
 
+	// close and remove resource editor
 	auto found = resMap.find(Res);
 	if (found != resMap.end()) {
 		found->first->saveChanges();
@@ -236,10 +240,32 @@ void MainTab::closeResource(Kite::KResource *Res) {
 	}
 }
 
-void MainTab::reloadRes(Kite::KResource *Res) {
+void MainTab::resourceAdded(const Kite::KResource *Res) {
+	// update all open editors
+	for (auto it = resMap.begin(); it != resMap.end(); ++it) {
+		it->first->onAddRes(Res);
+	}
+}
+
+void MainTab::resourceDeleted(Kite::RTypes Type) {
+	// update all open editors
+	for (auto it = resMap.begin(); it != resMap.end(); ++it) {
+		it->first->onRemoveRes(Type);
+	}
+}
+
+void MainTab::reloadRes(const Kite::KResource *Res) {
 	auto found = resMap.find(Res);
 	if (found != resMap.end()) {
 		found->first->reload();
+	}
+}
+
+void MainTab::reloadResType(Kite::RTypes Type) {
+	for (auto it = resMap.begin(); it != resMap.end(); ++it) {
+		if (it.key()->getType() == Type) {
+			it->first->reload();
+		}
 	}
 }
 
@@ -328,7 +354,7 @@ void MainTab::pinDock() {
 	auto dockHead = (QFrame *)dock->titleBarWidget();
 	auto editor = (QFrame *)dock->widget();
 
-	createTab(editor, found.key());
+	createTab(editor, (Kite::KResource *)act->data().value<void *>());
 	
 	delete dockHead;
 	delete dock;
@@ -341,7 +367,7 @@ void MainTab::closeDock() {
 	auto found = resMap.find(resPtr);
 	if (found != resMap.end()) {
 		found->first->saveChanges();
-		// save code to KScript object
+		
 		deleteDock(found->second);
 		resMap.erase(found);
 	}

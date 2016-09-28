@@ -2,12 +2,16 @@
 #include <QtWidgets>
 #include <qfiledialog.h>
 #include <qmessagebox.h>
-#include "frmnewres.h"
 #include <Kite/core/kscene.h>
 #include <Kite/core/kfistream.h>
 #include <Kite/core/kfostream.h>
 #include <Kite/logic/klogic.h>
 #include <kmeta.khgen.h>
+#include "frmnewres.h"
+#include "atlaseditor.h"
+#include "shprogeditor.h"
+#include "texturearrayeditor.h"
+#include "mapeditor.h"
 
 ResourceDock::ResourceDock(QWidget *Parrent) :
 	QDockWidget("Resource Explorer", Parrent)
@@ -33,19 +37,19 @@ Kite::RecieveTypes ResourceDock::onMessage(Kite::KMessage *Message, Kite::Messag
 		auto res = (Kite::KResource *)Message->getData();
 
 		// add it to tree
-		auto icons = formats.values((size_t)res->getType());
+		auto icons = resInfoMap.find((size_t)res->getType());
 		auto pitem = resTree->findItems(res->getTypeName().c_str(), Qt::MatchFlag::MatchRecursive).first();
 		auto item = new QTreeWidgetItem(pitem);
 		item->setText(0, res->getName().c_str());
 
 		// single format
-		if (icons.size() == 1) {
-			item->setIcon(0, QIcon(icons.first().second));
+		if (icons->resFI.size() == 1) {
+			item->setIcon(0, QIcon(icons->resFI.first().second));
 
 		// multi format
 		} else {
 			auto format = res->getName().substr(res->getName().find_last_of("."));
-			for (auto it = icons.begin(); it != icons.end(); ++it) {
+			for (auto it = icons->resFI.begin(); it != icons->resFI.end(); ++it) {
 				if (it->first.toStdString() == format) {
 					item->setIcon(0, QIcon(it->second));
 					break;
@@ -60,7 +64,18 @@ Kite::RecieveTypes ResourceDock::onMessage(Kite::KMessage *Message, Kite::Messag
 
 	} else if (Message->getType() == "RES_UNLOAD") {
 		auto res = (Kite::KResource *)Message->getData();
+		auto reslist = rman.dump();
+		for (auto it = reslist.begin(); it != reslist.end(); ++it) {
+			auto onRem = resInfoMap[(size_t)(*it)->getType()].onResRemove;
+			if (onRem) {
+				(onRem)((*it), res);
+			}
+		}
 		emit(resourceDelete(res));
+		return Kite::RecieveTypes::RECEIVED;
+	} else if (Message->getType() == "RES_UNLOADED") {
+		auto type = (Kite::RTypes *)Message->getData();
+		emit(resourceDeleted(*type));
 		return Kite::RecieveTypes::RECEIVED;
 	}
 	return Kite::RecieveTypes::IGNORED;
@@ -89,6 +104,7 @@ void ResourceDock::setupCategories() {
 	// subscribe to resource load\unload
 	rman.subscribe(*this, "RES_LOAD");
 	rman.subscribe(*this, "RES_UNLOAD");
+	rman.subscribe(*this, "RES_UNLOADED");
 
 	// create resources tree
 	resTree->clear();
@@ -103,48 +119,60 @@ void ResourceDock::setupCategories() {
 		if (i == (size_t)Kite::RTypes::Scene) {
 			fpair.first = ".sce";
 			fpair.second = ":/icons/sce";
-			formats.insert(i, fpair);
+			resInfoMap[i].resFI.append(fpair);
 
 		} else if (i == (size_t)Kite::RTypes::Script) {
 			fpair.first = ".lua";
 			fpair.second = ":/icons/scr";
-			formats.insert(i, fpair);
+			resInfoMap[i].resFI.append(fpair);
 
 		} else if (i == (size_t)Kite::RTypes::Prefab) {
 			fpair.first = ".pre";
 			fpair.second = ":/icons/pre";
-			formats.insert(i, fpair);
+			resInfoMap[i].resFI.append(fpair);
 
 		} else if (i == (size_t)Kite::RTypes::Texture) {
 			fpair.first = ".tex";
 			fpair.second = ":/icons/texture";
-			formats.insert(i, fpair);
+			resInfoMap[i].resFI.append(fpair);
 
 		} else if (i == (size_t)Kite::RTypes::Shader) {
 			fpair.first = ".vert";
 			fpair.second = ":/icons/vshader";
-			formats.insert(i, fpair);
+			resInfoMap[i].resFI.append(fpair);
 
 			fpair.first = ".frag";
 			fpair.second = ":/icons/fshader";
-			formats.insert(i, fpair);
+			resInfoMap[i].resFI.append(fpair);
 
 			fpair.first = ".geom";
 			fpair.second = ":/icons/gshader";
-			formats.insert(i, fpair);
+			resInfoMap[i].resFI.append(fpair);
 
 		} else if (i == (size_t)Kite::RTypes::ShaderProgram) {
 			fpair.first = ".shp";
 			fpair.second = ":/icons/shaderp";
-			formats.insert(i, fpair);
+			resInfoMap[i].onResRemove = SHProgDepChecker::onResRemove;
+			resInfoMap[i].resFI.append(fpair);
 		} else if (i == (size_t)Kite::RTypes::AtlasTexture) {
 			fpair.first = ".atx";
 			fpair.second = ":/icons/atlas";
-			formats.insert(i, fpair);
+			resInfoMap[i].onResRemove = AtlasDepChecker::onResRemove;
+			resInfoMap[i].resFI.append(fpair);
+		} else if (i == (size_t)Kite::RTypes::TextureGroup) {
+			fpair.first = ".txg";
+			fpair.second = ":/icons/layer";
+			resInfoMap[i].onResRemove = TextureArrayDepChecker::onResRemove;
+			resInfoMap[i].resFI.append(fpair);
+		} else if (i == (size_t)Kite::RTypes::OrthogonalMap) {
+			fpair.first = ".map";
+			fpair.second = ":/icons/ortho";
+			resInfoMap[i].onResRemove = OrthoMapDepChecker::onResRemove;
+			resInfoMap[i].resFI.append(fpair);
 		} else {
 			fpair.first = "";
 			fpair.second = ":/icons/new";
-			formats.insert(i, fpair);
+			resInfoMap[i].resFI.append(fpair);
 		}
 	}
 }
@@ -415,7 +443,10 @@ bool ResourceDock::openResource(const QString &Address, Kite::RTypes Type, bool 
 		msg.exec();
 		return false;
 	}
-	res->setModified(true);
+
+	if (file.path() != currDirectory) {
+		res->setModified(true);
+	}
 	return true;
 }
 
@@ -426,7 +457,7 @@ Kite::KResource *ResourceDock::getResource(const QString &Name) {
 Kite::KResource *ResourceDock::addResource(Kite::RTypes Type) {
 	// find category and format
 	auto pitem = resTree->findItems(Kite::getRTypesName(Type).c_str(), Qt::MatchFlag::MatchRecursive);
-	auto frmt = formats.find((size_t)Type)->first;
+	auto frmt = resInfoMap.find((size_t)Type)->resFI.first().first;
 	
 	QString text;
 	frmnewres *form;
@@ -518,6 +549,7 @@ Kite::KResource *ResourceDock::addResource(Kite::RTypes Type) {
 		msg.setWindowTitle("Message");
 		msg.setText("cant create resource file.!\nresource type: " + QString(Kite::getRTypesName(Type).c_str()));
 		msg.exec();
+		delete newres;
 		return nullptr;
 	}
 	delete newres;
@@ -645,14 +677,14 @@ void ResourceDock::actAdd() {
 void ResourceDock::actOpen() {
 	auto pitem = resTree->currentItem();
 	auto restype = Kite::getRTypesByName(pitem->text(0).toStdString());
-	auto frm = formats.values((size_t)restype);
+	auto frmt = resInfoMap.find((size_t)restype);
 
 	if (pitem->parent() != nullptr) {
 		return;
 	}
 
 	QString formats;
-	for (auto it = frm.begin(); it != frm.end(); ++it) {
+	for (auto it = frmt->resFI.begin(); it != frmt->resFI.end(); ++it) {
 		formats += " *" + it->first;
 	}
 	QString fileName = QFileDialog::getOpenFileName(this, "Open " + QString(Kite::getRTypesName(restype).c_str()),
@@ -684,11 +716,10 @@ void ResourceDock::actSave() {
 void ResourceDock::actSaveAs() {
 	auto item = resTree->currentItem();
 	auto res = rman.get(item->text(0).toStdString());
-	auto type = Kite::getRTypesByName(item->parent()->text(0).toStdString());
-	auto frm = formats.find((size_t)type);
 
+	auto format = res->getName().substr(res->getName().find_last_of("."));
 	QString fileName = QFileDialog::getSaveFileName(this, "Save " + item->text(0),
-													"", "Kite2D Resource File (*" + frm->first +" )");
+													"", "Kite2D Resource File (*" + QString(format.c_str()) +" )");
 
 	if (!fileName.isEmpty()) {
 		emit(resourceSave(res));
@@ -727,7 +758,6 @@ void ResourceDock::actRemove() {
 
 	auto item = resTree->currentItem();
 	rman.unload(item->text(0).toStdString(), true);
-
 	delete item;
 }
 

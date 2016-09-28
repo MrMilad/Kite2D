@@ -26,9 +26,7 @@
 
 namespace Kite{
 	KRenderCom::KRenderCom(const std::string &Name) :
-		KComponent(Name),
-		_kshprogptr(nullptr),
-		_ktextureptr(nullptr)
+		KComponent(Name)
 	{
 		addDependency(CTypes::GCulling);
 		addDependency(CTypes::Transform);
@@ -41,20 +39,6 @@ namespace Kite{
 
 	RecieveTypes KRenderCom::onMessage(KMessage *Message, MessageScope Scope) {
 		return RecieveTypes::IGNORED;
-	}
-
-	void KRenderCom::setShader(const KStringID &Shader) {
-		if (_kshprog.hash != Shader.hash) {
-			_kshprog = Shader;
-			setNeedUpdate(true);
-		}
-	}
-
-	void KRenderCom::setAtlasTexture(const KStringID &Texture) {
-		if (_ktexture.hash != Texture.hash) {
-			_ktexture = Texture;
-			setNeedUpdate(true);
-		}
 	}
 
 	KMETA_KRENDERCOM_SOURCE();

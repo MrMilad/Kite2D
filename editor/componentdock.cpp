@@ -230,7 +230,7 @@ void ComponentDock::setupHTools() {
 	hlayout2->addWidget(cmbLayer, 1);
 	hlayout2->addSpacing(5);
 
-	auto chkStatic = new QCheckBox(this);
+	chkStatic = new QCheckBox(this);
 	chkStatic->setText("Static");
 	hlayout2->addWidget(chkStatic);
 
@@ -491,6 +491,7 @@ void ComponentDock::entityEdit(Kite::KEntityManager *Eman, Kite::KEntity *Entity
 	//hlabel->setText("Components Editor (" + name + ")");
 	// lua table
 	llabel->setText(QString("Lua Table: <font color = \"orange\">") + Entity->getLuaTName().c_str() + "</font>");
+	chkStatic->setChecked(Entity->isStatic());
 
 	actSearch(ledit->text());
 }
@@ -514,7 +515,7 @@ Kite::KAny ComponentDock::getPropValue(Kite::CTypes Type, const QString &ComName
 			return comp->getProperty(PropName.toStdString());
 		}
 	}
-	return Kite::KAny(nullptr);
+	return Kite::KAny();
 }
 
 void ComponentDock::updateResList(Kite::RTypes Type, QStringList &List) {

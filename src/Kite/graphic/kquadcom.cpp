@@ -27,15 +27,14 @@
 namespace Kite{
 	KQuadCom::KQuadCom(const std::string &Name) :
 		KComponent(Name),
+		_ktindex(0),
 		_kisVisible(true),
-		_kreverse(false),
-		_kborder(0),
 		_kwidth(100),
 		_kheight(100),
 		_kvertex(4),
 		_kindexsize(6)
 	{
-		addDependency(CTypes::RenderMaterial);
+		addDependency(CTypes::RenderInstance);
 		_setDim();
 		setAtlasItem(KAtlasItem());
 		setColor(KColor());
@@ -47,14 +46,6 @@ namespace Kite{
 
 	RecieveTypes KQuadCom::onMessage(KMessage *Message, MessageScope Scope) {
 		return RecieveTypes::IGNORED;
-	}
-
-	void KQuadCom::setBorder(F32 Border) {
-		_kborder = Border;
-		_setDim();
-		if (_kborder > 0) {
-			_kvertex[4].color = _kvertex[5].color = _kvertex[6].color = _kvertex[7].color = _kbcolor;
-		}
 	}
 
 	void KQuadCom::setWidth(F32 Width) {
@@ -72,21 +63,6 @@ namespace Kite{
 		_kvertex[1].pos = KVector2F32(-(_kwidth / 2), (_kheight / 2));
 		_kvertex[2].pos = KVector2F32((_kwidth / 2), -(_kheight / 2));
 		_kvertex[3].pos = KVector2F32((_kwidth / 2), (_kheight / 2));
-
-		if (_kborder > 0) {
-			_kvertex.resize(8);
-			_kindexsize = 12;
-			_kreverse = true;
-			_kvertex[4].pos = KVector2F32(-((_kwidth / 2) + _kborder), -((_kheight / 2) + _kborder));
-			_kvertex[5].pos = KVector2F32(-((_kwidth / 2) + _kborder), (_kheight / 2) + _kborder);
-			_kvertex[6].pos = KVector2F32((_kwidth / 2) + _kborder, -((_kheight / 2) + _kborder));
-			_kvertex[7].pos = KVector2F32((_kwidth / 2) + _kborder, (_kheight / 2) + _kborder);
-
-		} else {
-			_kreverse = false;
-			_kvertex.resize(4);
-			_kindexsize = 6;
-		}
 	}
 
 	void KQuadCom::setAtlasItem(const KAtlasItem &AtlasItem) {
@@ -98,10 +74,10 @@ namespace Kite{
 	}
 
 	void KQuadCom::getBoundingRect(KRectF32 &Output) const {
-		Output.bottom = -((_kheight / 2) + _kborder);
-		Output.left = -((_kwidth / 2) + _kborder);
-		Output.top = ((_kheight / 2) + _kborder);
-		Output.right = ((_kwidth / 2) + _kborder);
+		Output.bottom = -(_kheight / 2);
+		Output.left = -(_kwidth / 2);
+		Output.top = (_kheight / 2);
+		Output.right = (_kwidth / 2);
 	}
 
 	/*void KQuadCom::setUV(const KRectF32 &UV){
@@ -112,16 +88,31 @@ namespace Kite{
 		_kuv = UV;
 	}*/
 
-	void KQuadCom::setBorderColor(const KColor &Color) {
-		if (_kborder > 0) {
-			_kvertex[4].color = _kvertex[5].color = _kvertex[6].color = _kvertex[7].color = Color;
-		}
-		_kbcolor = Color;
+	void KQuadCom::setColor(const KColor &Color){
+		_kvertex[0].r = _kvertex[1].r = _kvertex[2].r = _kvertex[3].r = Color.getGLR();
+		_kvertex[0].g = _kvertex[1].g = _kvertex[2].g = _kvertex[3].g = Color.getGLG();
+		_kvertex[0].b = _kvertex[1].b = _kvertex[2].b = _kvertex[3].b = Color.getGLB();
+		_kvertex[0].a = _kvertex[1].a = _kvertex[2].a = _kvertex[3].a = Color.getGLA();
+		_kcolor = Color;
 	}
 
-	void KQuadCom::setColor(const KColor &Color){
-		_kvertex[0].color = _kvertex[1].color = _kvertex[2].color = _kvertex[3].color = Color;
-		_kcolor = Color;
+	void KQuadCom::setShader(const KStringID &Shader) {
+		if (_kshprog.hash != Shader.hash) {
+			_kshprog = Shader;
+			matNeedUpdate();
+		}
+	}
+
+	void KQuadCom::setAtlasTextureArraye(const KStringID &TextureArrayName) {
+		if (_ktextureArrayName.hash != TextureArrayName.hash) {
+			_ktextureArrayName = TextureArrayName;
+			matNeedUpdate();
+		}
+	}
+
+	void KQuadCom::setTextureArrayIndex(U16 Index) {
+		_kvertex[0].tindex = _kvertex[1].tindex = _kvertex[2].tindex = _kvertex[3].tindex = Index;
+		_ktindex = Index;
 	}
 
 	KMETA_KQUADCOM_SOURCE();

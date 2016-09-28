@@ -51,7 +51,7 @@ void TextureEditor::inite() {
 	spinX = new QSpinBox(this);
 	spinX->setMinimum(0);
 	spinX->setMaximum(10000);
-	spinX->setValue(image.getSize().x);
+	spinX->setValue(image.getWidth());
 	spinX->setDisabled(true);
 	connect(spinX, static_cast<void (QSpinBox::*)(int)>(&QSpinBox::valueChanged),
 			this, &TextureEditor::resizeWidth);
@@ -64,7 +64,7 @@ void TextureEditor::inite() {
 	spinY = new QSpinBox(this);
 	spinY->setMinimum(0);
 	spinY->setMaximum(10000);
-	spinY->setValue(image.getSize().y);
+	spinY->setValue(image.getHeight());
 	spinY->setDisabled(true);
 	connect(spinY, static_cast<void (QSpinBox::*)(int)>(&QSpinBox::valueChanged),
 			this, &TextureEditor::resizeHeight);
@@ -109,7 +109,7 @@ void TextureEditor::inite() {
 	lblImageView->setMouseTracking(true);
 	lblImageView->installEventFilter(this);
 
-	QImage qimage((const uchar *)image.getPixelsData(), image.getSize().x, image.getSize().y, QImage::Format_RGBA8888);
+	QImage qimage((const uchar *)image.getPixelsData(), image.getWidth(), image.getHeight(), QImage::Format_RGBA8888);
 	lblImageView->setPixmap(QPixmap().fromImage(qimage));
 	lblImageView->resize(lblImageView->sizeHint());
 	
@@ -127,7 +127,8 @@ void TextureEditor::inite() {
 	botHLayout->setMargin(3);
 
 	lblPos = new QLabel(botFrame);
-	lblPos->setText("x: <font color = \"orange\">0</font> y: <font color = \"orange\">0</font>");
+	lblPos->setText("<font color = \"orange\">X: </font>0<font color = \"orange\"> y: </font>0");
+	lblPos->setFixedSize(256, 16);
 	botHLayout->addWidget(lblPos);
 	botHLayout->addStretch(1);
 	vlayout->addWidget(botFrame);
@@ -153,16 +154,16 @@ void TextureEditor::reload() {
 	Kite::KImage image;
 	texture->getImage(image);
 
-	spinX->setValue(image.getSize().x);
+	spinX->setValue(image.getWidth());
 	spinX->setDisabled(true);
 
-	spinY->setValue(image.getSize().y);
+	spinY->setValue(image.getHeight());
 	spinY->setDisabled(true);
 
 	cmbFilter->setCurrentIndex((int)texture->getFilter());
 	cmbWrap->setCurrentIndex((int)texture->getWrap());
 
-	QImage qimage((const uchar *)image.getPixelsData(), image.getSize().x, image.getSize().y, QImage::Format_RGBA8888);
+	QImage qimage((const uchar *)image.getPixelsData(), image.getWidth(), image.getHeight(), QImage::Format_RGBA8888);
 	lblImageView->setPixmap(QPixmap().fromImage(qimage));
 	lblImageView->resize(lblImageView->sizeHint());
 }
@@ -170,8 +171,8 @@ void TextureEditor::reload() {
 bool TextureEditor::eventFilter(QObject *Obj, QEvent *Event) {
 	if (Event->type() == QEvent::MouseMove) {
 		auto mevent = (QMouseEvent *)Event;
-		lblPos->setText("x: <font color = \"orange\">" + QString::number(mevent->pos().x()) 
-						+ "</font> y: <font color = \"orange\">" + QString::number(mevent->pos().y()) + "</font>");
+		lblPos->setText("<font color = \"orange\">X: </font>" + QString::number(mevent->pos().x()) 
+						+ "<font color = \"orange\"> Y: </font>" + QString::number(mevent->pos().y()));
 	}
 	return false;
 }

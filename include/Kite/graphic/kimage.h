@@ -123,11 +123,17 @@ namespace Kite{
 		*/
         KColor getPixel(KVector2U32 Position) const;
 
-		//! Get the size of the image
+		//! Get the width of the image
 		/*!
-			\return The size of the image
+			\return The width of the image
 		*/
-        inline KVector2U32 getSize() const {return _ksize;}
+        inline U32 getWidth() const {return _ksize.x;}
+
+		inline U32 getHeight() const { return _ksize.y; }
+
+		inline const KVector2U32 &getSize() const { return _ksize; }
+
+		inline SIZE getPixelsDataSize() const { return _kpixels.size(); }
 
 		//! Get a read-only (const) pointer to the array of pixels
 		/*!

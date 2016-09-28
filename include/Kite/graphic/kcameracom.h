@@ -84,6 +84,18 @@ namespace Kite{
 		KM_PRO_GET(KP_NAME = "zoom", KP_TYPE = F32, KP_CM = "zoom in/out factor")
 		inline F32 getZoom() const { return _kzoom; }
 
+		KM_PRO_GET(KP_NAME = "depth", KP_TYPE = U32, KP_CM = "camera render order")
+		inline U32 getDepth() const { return _kdepth; }
+
+		KM_PRO_SET(KP_NAME = "depth")
+		inline void setDepth(U32 Depth) { _kdepth = Depth; }
+
+		KM_PRO_SET(KP_NAME = "clearViewport")
+		inline void setClearViewport(bool ClearViewport) { _kclearView = ClearViewport; }
+
+		KM_PRO_GET(KP_NAME = "clearViewport", KP_TYPE = bool, KP_CM = "clear viewport with clear color")
+		inline bool getClearViewport() const { return _kclearView; }
+
 		KM_PRO_SET(KP_NAME = "clearColor")
 		inline void setClearColor(const KColor &Color) { _kclearCol = Color; }
 
@@ -95,18 +107,6 @@ namespace Kite{
 
 		KM_PRO_GET(KP_NAME = "renderTexture", KP_TYPE = KStringID, KP_CM = "render to texture", KP_RES = RTypes::Texture)
 		inline const KStringID &getRenderTexture() const { return _krtexture; }
-
-		KM_PRO_SET(KP_NAME = "clearViewport")
-		inline void setClearViewport(bool ClearViewport) { _kclearView = ClearViewport; }
-
-		KM_PRO_GET(KP_NAME = "clearViewport", KP_TYPE = bool, KP_CM = "clear viewport with clear color")
-		inline bool getClearViewport() const { return _kclearView; }
-
-		KM_PRO_GET(KP_NAME = "depth", KP_TYPE = U32, KP_CM = "camera render order")
-			inline U32 getDepth() const { return _kdepth; }
-
-		KM_PRO_SET(KP_NAME = "depth")
-			inline void setDepth(U32 Depth) { _kdepth = Depth; }
 
 		/// flip screen coordinate
 		/// (Micro$oft window system)

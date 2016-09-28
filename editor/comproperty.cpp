@@ -82,19 +82,49 @@ void ComponentView::createPOD(Kite::KComponent *Comp, const Kite::KMetaProperty 
 		connect(this, &ComponentView::resetSig, pgui, &priv::KBOOL::reset);
 		Layout->addRow(Meta->name.c_str(), pgui);
 
-	// U32, I32, U8
-	} else if (Meta->typeName == "I32" || Meta->typeName == "U32") {
+	// I32
+	} else if (Meta->typeName == "I32") {
 		// create an appropriate widgte and bind property to it
 		bool ronly = false;
 		if (Meta->type == Kite::KMetaPropertyTypes::KMP_GETTER) ronly = true;
 		priv::KI32 *pgui = 0;
-		if (Meta->typeName == "I32") {
-			pgui = new priv::KI32(Comp, Meta->name.c_str(), "", this, ronly, Meta->min, Meta->max);
-		}else {
-			pgui = new priv::KI32(Comp, Meta->name.c_str(), "", this, ronly, Meta->min, INT32_MAX);
-		}
+		pgui = new priv::KI32(Comp, Meta->name.c_str(), "", this, ronly, Meta->min, Meta->max);
 		connect(pgui, &priv::KI32::propertyEdited, this, &ComponentView::propChanged);
 		connect(this, &ComponentView::resetSig, pgui, &priv::KI32::reset);
+		Layout->addRow(Meta->name.c_str(), pgui);
+
+	// U32
+	} else if (Meta->typeName == "U32") {
+		// create an appropriate widgte and bind property to it
+		bool ronly = false;
+		if (Meta->type == Kite::KMetaPropertyTypes::KMP_GETTER) ronly = true;
+		priv::KU32 *pgui = 0;
+		pgui = new priv::KU32(Comp, Meta->name.c_str(), "", this, ronly, Meta->min, UINT32_MAX);
+		connect(pgui, &priv::KU32::propertyEdited, this, &ComponentView::propChanged);
+		connect(this, &ComponentView::resetSig, pgui, &priv::KU32::reset);
+		Layout->addRow(Meta->name.c_str(), pgui);
+
+	// I16
+	} else if (Meta->typeName == "I16") {
+		// create an appropriate widgte and bind property to it
+		bool ronly = false;
+		if (Meta->type == Kite::KMetaPropertyTypes::KMP_GETTER) ronly = true;
+		priv::KI16 *pgui = 0;
+		pgui = new priv::KI16(Comp, Meta->name.c_str(), "", this, ronly, Meta->min, INT16_MAX);
+		connect(pgui, &priv::KI16::propertyEdited, this, &ComponentView::propChanged);
+		connect(this, &ComponentView::resetSig, pgui, &priv::KI16::reset);
+		Layout->addRow(Meta->name.c_str(), pgui);
+
+
+	// U16
+	} else if (Meta->typeName == "U16") {
+		// create an appropriate widgte and bind property to it
+		bool ronly = false;
+		if (Meta->type == Kite::KMetaPropertyTypes::KMP_GETTER) ronly = true;
+		priv::KU16 *pgui = 0;
+		pgui = new priv::KU16(Comp, Meta->name.c_str(), "", this, ronly, Meta->min, INT16_MAX);
+		connect(pgui, &priv::KU16::propertyEdited, this, &ComponentView::propChanged);
+		connect(this, &ComponentView::resetSig, pgui, &priv::KU16::reset);
 		Layout->addRow(Meta->name.c_str(), pgui);
 
 	// string

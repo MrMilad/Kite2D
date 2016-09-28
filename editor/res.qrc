@@ -61,6 +61,16 @@
         <file alias="atlas">res/ico/atlas.png</file>
         <file alias="fliph">res/ico/fliph.png</file>
         <file alias="flipv">res/ico/flipv.png</file>
+        <file alias="farr">res/ico/farrow.png</file>
+        <file alias="swap">res/ico/swap.png</file>
+        <file alias="layer">res/ico/layers.png</file>
+        <file alias="ortho">res/ico/ortho.png</file>
+        <file alias="select">res/ico/cursor.png</file>
+        <file alias="grid">res/ico/grid.png</file>
+        <file alias="stamp">res/ico/stamp.png</file>
+        <file alias="dup">res/ico/duplicate.png</file>
+        <file alias="redo">res/ico/redo.png</file>
+        <file alias="undo">res/ico/undo.png</file>
     </qresource>
     <qresource prefix="/back">
         <file alias="dense">res/dense.png</file>

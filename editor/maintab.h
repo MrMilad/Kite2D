@@ -33,8 +33,12 @@ public slots:
 	void saveRes(Kite::KResource *Res);
 	void openTabs(Kite::KResource *Res);
 	void selectResource(Kite::KResource *Res);
-	void closeResource(Kite::KResource *Res);
-	void reloadRes(Kite::KResource *Res);
+	void closeResource(const Kite::KResource *Res);
+	void reloadRes(const Kite::KResource *Res);
+	void reloadResType(Kite::RTypes Type);
+
+	void resourceAdded(const Kite::KResource *Res);
+	void resourceDeleted(Kite::RTypes Type);
 
 private slots:
 	void closeTab();
@@ -51,6 +55,7 @@ protected:
 
 private:
 	void registerTabs();
+	QWidget *createTabHead(Kite::KResource *);
 	int createTab(QWidget *Widget, Kite::KResource *ResPtr);
 	void deleteTab(QWidget *Widget);
 	void deleteDock(QDockWidget *Dock);
@@ -58,8 +63,8 @@ private:
 	QWidget *scene;
 	KiteInfo *kinfo;
 	QVector<QShortcut *> shortcuts;
-	QHash<size_t, TabWidget *(*)(Kite::KResource *, KiteInfo *, QWidget *)> tabFactory;
-	QHash<Kite::KResource *, QPair<TabWidget *, QDockWidget *>> resMap;
+	QHash<size_t, TabWidget *(*)(Kite::KResource *, KiteInfo *, QWidget *)> tabFactory; // <type, factory, inite>>
+	QHash<const Kite::KResource *, QPair<TabWidget *, QDockWidget *>> resMap;
 };
 
 #endif // MAINTAB_H

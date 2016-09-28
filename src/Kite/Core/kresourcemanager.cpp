@@ -279,6 +279,13 @@ namespace Kite {
 		// check resource catch
 		auto found = _kmap.find(tempKey);
 		if (found != _kmap.end()) {
+
+			// uload dependency
+			/*if (found->second.first->isComposite()) {
+				unloadCompositeList(found->second.first);
+			}*/
+
+			// dec ref counter
 			found->second.first->decRef();
 
 			// check resource count
@@ -289,6 +296,8 @@ namespace Kite {
 				msg.setType("RES_UNLOAD");
 				msg.setData((void *)found->second.first, sizeof(found->second.first));
 				postMessage(&msg, MessageScope::ALL);
+
+				auto type = found->second.first->getType();
 
 				// free resource
 				delete found->second.first;
@@ -302,6 +311,10 @@ namespace Kite {
 				// erase pair from catch
 				// we dont need remove it from name\dictionary
 				_kmap.erase(found);
+
+				msg.setType("RES_UNLOADED");
+				msg.setData((void *)&type, sizeof(RTypes));
+				postMessage(&msg, MessageScope::ALL);
 			}
 		}
 	}
@@ -343,13 +356,16 @@ namespace Kite {
 	}
 
 	void KResourceManager::clear() {
+		// for avoiding pointer dangling and circular-iteration we post message about removing all resource(s) at first
 		for (auto it = _kmap.begin(); it != _kmap.end(); ++it) {
 			// post a message about unloaded resource
 			KMessage msg;
 			msg.setType("RES_UNLOAD");
 			msg.setData((void *)it->second.first, sizeof(it->second.first));
 			postMessage(&msg, MessageScope::ALL);
+		}
 
+		for (auto it = _kmap.begin(); it != _kmap.end(); ++it) {
 			// free resource
 			delete it->second.first;
 

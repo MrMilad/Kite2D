@@ -47,28 +47,16 @@ namespace Kite{
 		RecieveTypes onMessage(KMessage *Message, MessageScope Scope) override;
 
 		KM_PRO_SET(KP_NAME = "width")
-			void setWidth(F32 Width);
+		void setWidth(F32 Width);
 
 		KM_PRO_GET(KP_NAME = "width", KP_TYPE = F32, KP_CM = "width of the quad")
-			inline F32 getWidth() const { return _kwidth; }
+		inline F32 getWidth() const { return _kwidth; }
 
 		KM_PRO_SET(KP_NAME = "height")
-			void setHeight(F32 Height);
+		void setHeight(F32 Height);
 
 		KM_PRO_GET(KP_NAME = "height", KP_TYPE = F32, KP_CM = "height of the quad")
-			inline F32 getHeight() const { return _kheight; }
-
-		KM_PRO_SET(KP_NAME = "border")
-		void setBorder(F32 Border);
-
-		KM_PRO_GET(KP_NAME = "border", KP_TYPE = F32, KP_CM = "border tickness")
-		inline F32 getBorder() const { return _kborder; }
-
-		KM_PRO_SET(KP_NAME = "borderColor")
-		void setBorderColor(const KColor &Color);
-
-		KM_PRO_GET(KP_NAME = "borderColor", KP_TYPE = KColor, KP_CM = "border color")
-		inline const KColor &getBorderColor() const { return _kbcolor; }
+		inline F32 getHeight() const { return _kheight; }
 
 		KM_PRO_SET(KP_NAME = "tint")
 		void setColor(const KColor &Color);
@@ -76,10 +64,29 @@ namespace Kite{
 		KM_PRO_GET(KP_NAME = "tint", KP_TYPE = KColor, KP_CM = "tint color")
 		inline const KColor &getTintColor() const { return _kcolor; }
 
-		KM_PRO_GET(KP_NAME = "atlasItem", KP_TYPE = KAtlasItem, KP_CM = "atlas item")
+		KM_PRO_SET(KP_NAME = "shaderProgram")
+		void setShader(const KStringID &ShaderProgram);
+
+		KM_PRO_GET(KP_NAME = "shaderProgram", KP_TYPE = KStringID, KP_CM = "name of the shader program", KP_RES = RTypes::ShaderProgram)
+		inline const KStringID &getShader() const override { return _kshprog; }
+
+		KM_PRO_SET(KP_NAME = "textureGroup")
+		void setAtlasTextureArraye(const KStringID &TextureArrayName);
+
+		KM_PRO_GET(KP_NAME = "textureGroup", KP_TYPE = KStringID, KP_CM = "name of the atlas texture group",
+				   KP_RES = RTypes::TextureGroup)
+		inline const KStringID &getAtlasTextureArray() const override { return _ktextureArrayName; }
+
+		KM_PRO_SET(KP_NAME = "textureIndex")
+		void setTextureArrayIndex(U16 Index);
+
+		KM_PRO_GET(KP_NAME = "textureIndex", KP_TYPE = U16, KP_CM = "index of the texture group")
+		inline U16 getTextureArrayIndex() const { return _ktindex; }
+
+		KM_PRO_GET(KP_NAME = "atlasIndex", KP_TYPE = KAtlasItem, KP_CM = "atlas item")
 		inline const KAtlasItem &getAtlasItem() const { return _katlasItem; }
 
-		KM_PRO_SET(KP_NAME = "atlasItem")
+		KM_PRO_SET(KP_NAME = "atlasIndex")
 		void setAtlasItem(const KAtlasItem &AtlasItem);
 
 		KM_PRO_SET(KP_NAME = "visible")
@@ -98,29 +105,26 @@ namespace Kite{
 		//inline bool getReverseRender() const { return _kreverse; }
 
 	protected:
-		/// render system interface
-		inline const std::vector<KVertex> *getVertex() const override { return &_kvertex; }
+		/// renderable interface
+		inline const std::vector<KGLVertex> *getVertex() const override { return &_kvertex; }
 		inline const U32 getIndexSize() const override { return _kindexsize; }
 		inline const std::vector<KPointSprite> *getPoint() const override { return nullptr; }
-
 		inline GLPrimitive getGeoType() const override { return GLPrimitive::TRIANGLES; }
-
 		inline bool isIndexed() const override { return true; }
 		inline bool isPoint() const override { return false; }
-		inline bool isReverse() const override { return _kreverse; }
 
     private:
 		void _setDim();
+		KM_VAR() U16 _ktindex;
 		KM_VAR() KAtlasItem _katlasItem;
 		KM_VAR() bool _kisVisible;
-		KM_VAR() bool _kreverse;
 		KM_VAR() U32 _kindexsize;
-		KM_VAR() std::vector<KVertex> _kvertex;
+		KM_VAR() std::vector<KGLVertex> _kvertex;
 		KM_VAR() F32 _kwidth;
 		KM_VAR() F32 _kheight;
-		KM_VAR() F32 _kborder;
 		KM_VAR() KColor _kcolor;
-		KM_VAR() KColor _kbcolor;
+		KM_VAR() KStringID _kshprog;
+		KM_VAR() KStringID _ktextureArrayName;
     };
 }
 

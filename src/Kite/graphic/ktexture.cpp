@@ -53,6 +53,7 @@ namespace Kite{
 		bserial << std::string("KTex");
 		bserial << _kfilter;
 		bserial << _kwrap;
+		bserial << _ksize;
 
 		if (!bserial.saveStream(Stream, Address, 0)) {
 			KD_PRINT("can't save stream.");
@@ -115,6 +116,7 @@ namespace Kite{
 
 		bserial >> _kfilter;
 		bserial >> _kwrap;
+		bserial >> _ksize;
 
 		Stream.close();
 
@@ -142,7 +144,7 @@ namespace Kite{
 		_ksize = Image.getSize();
     }
 
-	void KTexture::getImage(KImage &ImageOutput) {
+	void KTexture::getImage(KImage &ImageOutput) const{
 		// online pixel data (opengl side)
 		if (isInite()) {
 			// save currently binded texture then bind our texture temporary
@@ -179,11 +181,6 @@ namespace Kite{
 	}
 
     void KTexture::update(const KImage &Image, const KVector2U32 &Position){
-		if (!isInite()) {
-			KD_FPRINT("texture not initialized. rname: %s", getName().c_str());
-			return;
-		}
-
         if (_ktexId > 0){
 
             // check new image size with texture size
@@ -198,9 +195,10 @@ namespace Kite{
 			DGL_CALL(glTexSubImage2D(GL_TEXTURE_2D, 0, Position.x, Position.y,
                                      Image.getSize().x, Image.getSize().y,
                                      GL_RGBA, GL_UNSIGNED_BYTE, Image.getPixelsData()));
-        }else{
-            KD_FPRINT("texture is not created. rname: %s", getName().c_str());
+			return;
         }
+
+		KD_FPRINT("texture is not created. rname: %s", getName().c_str());
     }
 
     void KTexture::bind() const{
@@ -224,13 +222,7 @@ namespace Kite{
     }
 
     void KTexture::setFilter(TextureFilter Filter){
-		if (!isInite()) {
-			KD_FPRINT("texture not initialized. rname: %s", getName().c_str());
-			return;
-		}
-
         if (_ktexId > 0){
-
             if (Filter != _kfilter){
                 // save currently bound texture then bind our texture temporary
                 Internal::GLBindGuard guard(Internal::KBG_TEXTURE, _klastTexId, _ktexId);
@@ -240,21 +232,13 @@ namespace Kite{
                 int filterType[] = {GL_NEAREST, GL_LINEAR};
                 DGL_CALL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, filterType[(U8)Filter]));
                 DGL_CALL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, filterType[(U8)Filter]));
-                _kfilter = Filter;
             }
-        }else{
-            KD_FPRINT("texture is not created. rname: %s", getName().c_str());
         }
+		_kfilter = Filter;
     }
 
     void KTexture::setWrap(TextureWrap Wrap){
-		if (!isInite()) {
-			KD_FPRINT("texture not initialized. rname: %s", getName().c_str());
-			return;
-		}
-
         if (_ktexId > 0){
-
             if (Wrap != _kwrap){
                 // save currently bound texture then bind our texture temporary
                 Internal::GLBindGuard guard(Internal::KBG_TEXTURE, _klastTexId, _ktexId);
@@ -264,11 +248,9 @@ namespace Kite{
                 int wrapType[] = {GL_REPEAT, GL_MIRRORED_REPEAT, GL_CLAMP_TO_EDGE};
                 DGL_CALL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, wrapType[(U8)Wrap]));
                 DGL_CALL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, wrapType[(U8)Wrap]));
-                _kwrap = Wrap;
             }
-        }else{
-            KD_FPRINT("texture is not created. rname: %s", getName().c_str());
         }
+		_kwrap = Wrap;
     }
 
     void KTexture::_create(const U8 *Data, const KVector2U32 &Size,

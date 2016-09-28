@@ -44,15 +44,21 @@ namespace Kite {
 
 		bool inite() override;
 
-		inline void addItem(const KAtlasItem &Item) { setModified(true);  _kitems.push_back(Item); }
+		void addItem(const KAtlasItem &Item);
 
-		inline const KAtlasItem &getItem(U32 ID) { return _kitems.at(ID); }
+		inline const KAtlasItem *getItem(U32 ID) const { return &_kitems.at(ID); }
 
-		inline auto getItemContiner() { return &_kitems; }
+		inline void clearItems() { _kitems.clear(); }
+
+		inline U32 getItemsSize() const { return _kitems.size(); }
 
 		inline void setTexture(KTexture *Texture) { _ktexture = Texture; }
 
 		inline auto getTexture() const { return _ktexture; }
+
+#if defined(KITE_EDITOR)
+		inline auto getContiner() { return &_kitems; }
+#endif
 
 	private:
 		bool _saveStream(KOStream &Stream, const std::string &Address) override;

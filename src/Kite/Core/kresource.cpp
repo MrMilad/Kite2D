@@ -29,7 +29,7 @@ USA
 namespace Kite {
 	KResource::KResource(const std::string &Name, bool CatchStream, bool IsComposite) :
 #ifdef KITE_EDITOR
-		_kisModified(false),
+		edIsModified(false),
 #endif
 		_kcatchStream(CatchStream),
 		_kisInite(false),
@@ -54,13 +54,13 @@ namespace Kite {
 	}
 
 	bool KResource::saveCompositeList(KOStream &Stream, const std::string &Address, bool SaveDependency) {
+		std::vector<std::pair<std::string, RTypes>> plist;
 		if (!_kclist.empty()) {
 			// address info
 			KFileInfo finfo;
 			Stream.getFileInfoStr(Address, finfo);
 
 			// save composite infomations (name and type)
-			std::vector<std::pair<std::string, RTypes>> plist;
 			for (auto it = _kclist.cbegin(); it != _kclist.cend(); ++it) {
 				if ((*it) != nullptr) {
 
@@ -72,25 +72,23 @@ namespace Kite {
 						}
 					}
 
-					// save resource info
+					// catch resources info for saving in next phase
 					plist.push_back({ (*it)->getName(), (*it)->getType() });
 				} else {
 					KD_FPRINT("warning: an nullptr composite resource detected. rname: %s", getName().c_str());
 				}
 			}
-
-			KBinarySerial serializer;
-			serializer << plist;
-			if (!serializer.saveStream(Stream, Address + ".dep", 0)) {
-				KD_FPRINT("cant save stream. address: %s", Address.c_str());
-				return false;
-			}
-
-			return true;
 		} 
 
-		KD_FPRINT("save composite called but composite list is empty. rname: %s", getName().c_str());
-		return false;
+		// save resources info
+		KBinarySerial serializer;
+		serializer << plist;
+		if (!serializer.saveStream(Stream, Address + ".dep", 0)) {
+			KD_FPRINT("cant save stream. address: %s", Address.c_str());
+			return false;
+		}
+
+		return true;
 	}
 
 	KMETA_KRESOURCE_SOURCE();

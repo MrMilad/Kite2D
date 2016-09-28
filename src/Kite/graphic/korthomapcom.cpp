@@ -27,9 +27,11 @@ USA
 namespace Kite {
 	KOrthoMapCom::KOrthoMapCom(const std::string &Name) :
 		KComponent(Name),
-		_kcullIsValid(false)
+		_kcullIsValid(false),
+		_ktindex(0),
+		_kisVisible(0)
 	{
-		addDependency(CTypes::RenderMaterial);
+		addDependency(CTypes::RenderInstance);
 	}
 
 	void KOrthoMapCom::attached(KEntity *Entity) {}
@@ -80,6 +82,20 @@ namespace Kite {
 		if (_kmap != nullptr) {
 			KRectF32 area = _kcullArea - _kpos;
 			_kmap->queryTilesVertex(area, _kverts);
+		}
+	}
+
+	void KOrthoMapCom::setShader(const KStringID &Shader) {
+		if (_kshprog.hash != Shader.hash) {
+			_kshprog = Shader;
+			matNeedUpdate();
+		}
+	}
+
+	void KOrthoMapCom::setAtlasTextureArraye(const KStringID &TextureArrayName) {
+		if (_ktextureArrayName.hash != TextureArrayName.hash) {
+			_ktextureArrayName = TextureArrayName;
+			matNeedUpdate();
 		}
 	}
 

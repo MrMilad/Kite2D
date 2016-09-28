@@ -53,7 +53,12 @@ SOURCES += main.cpp\
     glslhlight.cpp \
     shprogeditor.cpp \
     textureeditor.cpp \
-    mapeditor.cpp
+    mapeditor.cpp \
+    frmnewmap.cpp \
+    frmnewtexarray.cpp \
+    texturearrayeditor.cpp \
+    frmnewatlas.cpp\
+    atlaseditor.cpp
 
 HEADERS  += mainwindow.h \
     shared.h \
@@ -83,7 +88,12 @@ HEADERS  += mainwindow.h \
     shprogeditor.h \
     textureeditor.h \
     atlaseditor.h \
-    mapeditor.h
+    mapeditor.h \
+    mapeditorcmd.h \
+    frmnewmap.h \
+    frmnewtexarray.h \
+    texturearrayeditor.h \
+    frmnewatlas.h
 
 RESOURCES += \
     res.qrc
@@ -94,5 +104,8 @@ FORMS += \
     frmexeorder.ui \
     frmaddobj.ui \
     frmnewres.ui \
-    frmabout.ui
+    frmabout.ui \
+    frmnewmap.ui \
+    frmnewtexarray.ui \
+    frmnewatlas.ui
 

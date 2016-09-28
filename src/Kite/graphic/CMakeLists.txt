@@ -25,6 +25,8 @@ set(GFX_SRC
     ${SRCROOT}/kgcullingcom.cpp
     ${SRCROOT}/kreggcullingcom.cpp
     ${SRCROOT}/korthomapcom.cpp
+    ${SRCROOT}/katlastexturearray.cpp
+    ${SRCROOT}/korthotilestamp.cpp
     PARENT_SCOPE
 )
 
@@ -53,6 +55,8 @@ set(GFX_INC
     ${INCROOT}/kgcullingcom.h
     ${INCROOT}/kreggcullingcom.h
     ${INCROOT}/korthomapcom.h
+    ${INCROOT}/katlastexturearray.h
+    ${INCROOT}/korthotilestamp.h
     PARENT_SCOPE
 )
 

@@ -24,6 +24,7 @@
 #include "Kite/input/kkeyboard.h"
 #include "Kite/input/kmouse.h"
 #include "Kite/graphic/katlastexture.h"
+#include "Kite/graphic/katlastexturearray.h"
 #include "Kite/graphic/kcameracom.h"
 #include "Kite/graphic/kgcullingcom.h"
 #include "Kite/graphic/kgcullingsys.h"
@@ -31,6 +32,7 @@
 #include "Kite/graphic/kgraphictypes.h"
 #include "Kite/graphic/korthogonalmap.h"
 #include "Kite/graphic/korthomapcom.h"
+#include "Kite/graphic/korthotilestamp.h"
 #include "Kite/graphic/kquadcom.h"
 #include "Kite/graphic/kreggcullingcom.h"
 #include "Kite/graphic/krendercom.h"
@@ -87,17 +89,20 @@ KInputSys::registerMeta(MMan, Lua);
 KKeyboard::registerMeta(MMan, Lua);
 KMouse::registerMeta(MMan, Lua);
 KAtlasTexture::registerMeta(MMan, Lua);
+KAtlasTextureArray::registerMeta(MMan, Lua);
 KCameraCom::registerMeta(MMan, Lua);
 KGCullingCom::registerMeta(MMan, Lua);
 KGCullingSys::registerMeta(MMan, Lua);
 KColor::registerMeta(MMan, Lua);
-KVertex::registerMeta(MMan, Lua);
 KAtlasItem::registerMeta(MMan, Lua);
 KGCullingObject::registerMeta(MMan, Lua);
 KOrthoTile::registerMeta(MMan, Lua);
+KOrthoTileNode::registerMeta(MMan, Lua);
 KRootTileMap::registerMeta(MMan, Lua);
+KTileStamp::registerMeta(MMan, Lua);
 KOrthogonalMap::registerMeta(MMan, Lua);
 KOrthoMapCom::registerMeta(MMan, Lua);
+KOrthoTileStamp::registerMeta(MMan, Lua);
 KQuadCom::registerMeta(MMan, Lua);
 KRegGCullingCom::registerMeta(MMan, Lua);
 KRenderCom::registerMeta(MMan, Lua);
@@ -165,11 +170,12 @@ EMan->registerComponent<KGCullingCom>(CTypes::GCulling);
 EMan->registerComponent<KOrthoMapCom>(CTypes::OrthogonalMap);
 EMan->registerComponent<KQuadCom>(CTypes::Quad);
 EMan->registerComponent<KRegGCullingCom>(CTypes::RegisterGCulling);
-EMan->registerComponent<KRenderCom>(CTypes::RenderMaterial);
+EMan->registerComponent<KRenderCom>(CTypes::RenderInstance);
 }
 void registerRTypes(KResourceManager *RMan){
 RMan->registerResource(RTypes::Script, KScript::factory);
 RMan->registerResource(RTypes::AtlasTexture, KAtlasTexture::factory);
+RMan->registerResource(RTypes::TextureGroup, KAtlasTextureArray::factory);
 RMan->registerResource(RTypes::OrthogonalMap, KOrthogonalMap::factory);
 RMan->registerResource(RTypes::Shader, KShader::factory);
 RMan->registerResource(RTypes::ShaderProgram, KShaderProgram::factory);

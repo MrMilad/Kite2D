@@ -58,8 +58,10 @@ namespace Kite{
 	#define KVATTRIB_XY 0
 	/*! \brief Vertex attribute index*/
 	#define KVATTRIB_UV 1
+	/*! \brief Texture array index attribute index*/
+	#define KVATTRIB_ARRAYINDEX 2
 	/*! \brief Vertex attribute index*/
-	#define KVATTRIB_RGBA 2
+	#define KVATTRIB_RGBA 3
 
 	/*!
 		\brief Convert opengl (buttom-left) float coordinate to window (top-left) integer coordinate.

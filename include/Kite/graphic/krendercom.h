@@ -35,7 +35,8 @@ namespace Kite{
 	KM_CLASS(COMPONENT)
 	class KITE_FUNC_EXPORT KRenderCom : public KComponent{
 		friend class KRenderSys;
-		KM_INFO(KI_NAME = "RenderMaterial");
+		KM_INFO(KI_SHOW = false);
+		KM_INFO(KI_NAME = "RenderInstance");
 		KMETA_KRENDERCOM_BODY();
     public:
 		// array rendering (without index)
@@ -46,24 +47,6 @@ namespace Kite{
 		void deattached(KEntity *Entity) override;
 
 		RecieveTypes onMessage(KMessage *Message, MessageScope Scope) override;
-
-		KM_PRO_SET(KP_NAME = "shaderProgram")
-			void setShader(const KStringID &ShaderProgram);
-
-		KM_PRO_GET(KP_NAME = "shaderProgram", KP_TYPE = KStringID, KP_CM = "name of the shader program", KP_RES = RTypes::ShaderProgram)
-			inline const KStringID &getShader() const { return _kshprog; }
-
-		KM_PRO_SET(KP_NAME = "atlasTexture")
-			void setAtlasTexture(const KStringID &Texture);
-
-		KM_PRO_GET(KP_NAME = "atlasTexture", KP_TYPE = KStringID, KP_CM = "name of the atlas texture", KP_RES = RTypes::AtlasTexture)
-			inline const KStringID &getAtlasTexture() const { return _ktexture; }
-
-	private:
-		KM_VAR() KStringID _kshprog;
-		KM_VAR() KStringID _ktexture;
-		KShaderProgram *_kshprogptr;
-		KAtlasTexture *_ktextureptr;
     };
 }
 

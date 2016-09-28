@@ -21,24 +21,43 @@
 #define KRENDERABLE_H
 
 #include "Kite/core/kcoredef.h"
+#include "Kite/core/kcorestructs.h"
 #include "Kite/graphic/kgraphicstructs.h"
 #include "Kite/graphic/kgraphictypes.h"
 
 namespace Kite{
+	class KShaderProgram;
+	class KAtlasTextureArray;
 	class KITE_FUNC_EXPORT KRenderable{
 		friend class KRenderSys;
 		friend class KGCullingSys;
+	public:
+		KRenderable() :
+			_kmatNeedUpdate(true),
+			_ksahder(nullptr),
+			_katlas(nullptr)
+		{}
+
 	protected:
 		virtual void getBoundingRect(KRectF32 &Output) const = 0;
-		virtual const std::vector<KVertex> *getVertex() const = 0;
+		virtual const std::vector<KGLVertex> *getVertex() const = 0;
 		virtual const U32 getIndexSize() const = 0;
 		virtual const std::vector<KPointSprite> *getPoint() const = 0;
+
+		virtual const KStringID &getShader() const = 0;
+		virtual const KStringID &getAtlasTextureArray() const = 0;
 
 		virtual GLPrimitive getGeoType() const = 0;
 		virtual bool isVisible() const = 0;
 		virtual bool isIndexed() const = 0;
 		virtual bool isPoint() const = 0;
-		virtual bool isReverse() const = 0;
+
+		inline bool getMatNeedUpdate() const { return _kmatNeedUpdate; }
+		inline void matNeedUpdate() { _kmatNeedUpdate = true; }
+	private:
+		bool _kmatNeedUpdate;
+		KShaderProgram *_ksahder;
+		KAtlasTextureArray *_katlas;
     };
 }
 

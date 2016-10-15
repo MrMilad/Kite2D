@@ -229,6 +229,50 @@ namespace Kite{
 			if (bottom > top) { T temp = bottom; bottom = top; top = temp; }
 		}
 
+		KM_FUN()
+		bool continePoint(const KVector2<T> &HitPoint) const{
+			if (HitPoint.x < left) return false;
+			if (HitPoint.y < bottom) return false;
+			if (HitPoint.x > right) return false;
+			if (HitPoint.y > top) return false;
+			return true;
+		}
+
+		KM_FUN()
+		inline bool contineRect(const KRect<T> &Rect) const {
+			if ((Rect.left >= left) && (Rect.right <= right)) {
+				if ((Rect.bottom >= bottom) && (Rect.top <= top)) {
+					return true;
+				}
+			}
+			return false;
+		}
+
+
+		KM_FUN()
+		bool overlapRect(const KRect<T> &Rect) const {
+			if (valueInRange(left, Rect.left, Rect.right) || valueInRange(Rect.left, left, right)) {
+				if (valueInRange(bottom, Rect.bottom, Rect.top) || valueInRange(Rect.bottom, bottom, Rect.top)) {
+					return true;
+				}
+			}
+			return false;;
+		}
+
+		inline void operator+=(const KVector2<T>& Right) {
+			left += Right.x;
+			right += Right.x;
+			bottom += Right.y;
+			top += Right.y;
+		}
+
+		inline void operator-=(const KVector2<T>& Right) {
+			left -= Right.x;
+			right -= Right.x;
+			bottom -= Right.y;
+			top -= Right.y;
+		}
+
 		inline KRect<T> operator+(const KVector2<T>& Right) const {
 			return KRect<T>(left + Right.x, right + Right.x,
 							bottom + Right.y, top + Right.y);
@@ -248,6 +292,17 @@ namespace Kite{
 			return (left != Right.left || right != Right.right
 					|| bottom != Right.bottom || top != Right.top);
 		}
+
+	private:
+		inline bool valueInRange(T Value, T Min, T Max) const {
+			return (Value >= Min) && (Value <= Max);
+		}
+
+		KM_OPE(KO_ADD)
+			inline KRect<T> luaAddOpr(const KVector2<T> &right) const { return operator+(right); }
+
+		KM_OPE(KO_SUB)
+			inline KRect<T> luaSubOpr(const KVector2<T> &right) const { return operator-(right); }
 	};
 
 	typedef KRect<U8>  KRectU8;
@@ -300,6 +355,29 @@ namespace Kite{
 	typedef KRect2<I32> KRect2I32;
 	typedef KRect2<F32> KRect2F32;
 	typedef KRect2<F64> KRect2F64;
+
+	KM_CLASS(POD)
+	struct KCameraTransformRatio {
+		KMETA_KCAMERATRANSFORMRATIO_BODY();
+
+		KM_VAR() KVector2F32 center;
+		KM_VAR() F32 zoom;
+		KM_VAR() F32 rotation;
+
+		KCameraTransformRatio(KVector2F32 Center , F32 Zoom, F32 Rotation) :
+			center(Center), zoom(Zoom), rotation(Rotation) {}
+
+		KM_CON()
+			KCameraTransformRatio() :
+			center(1,1), zoom(1), rotation(1) {} // normal ratio
+
+		bool operator==(const KCameraTransformRatio &Right) {
+			if (center != Right.center) return false;
+			if (zoom != Right.zoom) return false;
+			if (rotation != Right.rotation) return false;
+			return true;
+		}
+	};
 }
 
 #endif // KMATHSTRUCTS_H

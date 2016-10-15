@@ -34,6 +34,7 @@ set(GFX_SRC
 set(GFX_INC
     ${SRCROOT}/glcall.h
     ${SRCROOT}/imageio.h
+    ${INCROOT}/kgraphic.h
     ${INCROOT}/kframebuffer.h
     ${INCROOT}/kgraphicstructs.h
     ${INCROOT}/kgraphicdef.h

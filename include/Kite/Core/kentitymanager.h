@@ -123,7 +123,7 @@ namespace Kite {
 		inline const auto getEntityStorage() { return _kestorage.getContiner(); }
 
 		template<typename T>
-		auto getComponentStorage(CTypes Type){
+		std::vector<T> *getComponentStorage(CTypes Type){
 			Internal::CHolder<T, KComponent> *drived = static_cast<Internal::CHolder<T, KComponent> *>(_kcstorage[(SIZE)Type]);
 			return drived->getStorage()->getContiner();
 		}
@@ -137,8 +137,8 @@ namespace Kite {
 			}
 			Internal::CHolder<T, KComponent> *drived = static_cast<Internal::CHolder<T, KComponent> *>(_kcstorage[(SIZE)Type]);
 			auto continer = drived->getStorage()->getContiner();
-			for (auto it = continer->begin(); it != continer->end(); ++it) {
-				auto EHandle = it->getOwnerHandle();
+			while (continer->size() > 0) {
+				auto EHandle = continer->back().getOwnerHandle();
 				auto entity = getEntity(EHandle);
 				entity->forceRemoveCom(Type);
 			}

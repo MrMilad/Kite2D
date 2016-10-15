@@ -53,6 +53,8 @@ namespace Kite {
 		KM_PRO_GET(KP_NAME = "script", KP_TYPE = KStringID, KP_CM = "name of the lua script resource", KP_RES = RTypes::Script)
 		inline const KStringID &getScript() const { return _kscriptName; }
 
+		bool updateRes() override;
+
 	private:
 		inline const std::string &getTName() { return _ktname; }
 		void removeLuaEnv();

@@ -23,7 +23,7 @@ namespace Kite{
 namespace Internal{
 
     bool initeGLEW(){
-        static bool isInit = false;
+		static bool isInit = false;
         if (isInit == false){
             glewExperimental = GL_TRUE;
             GLenum err = glewInit();

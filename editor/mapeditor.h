@@ -4,6 +4,9 @@
 #include "tabwidget.h"
 #include <Kite/graphic/korthogonalmap.h>
 #include <Kite/graphic/korthotilestamp.h>
+#include <qgraphicsitem.h>
+#include <qlist.h>
+#include "mapeditorcmd.h"
 
 class QUndoStack;
 class QGraphicsScene;
@@ -13,6 +16,9 @@ class QLabel;
 class QTabWidget;
 class QComboBox;
 class QSpinBox;
+class QToolButton;
+class QTableWidget;
+class QTableWidgetItem;
 
 class MapEditor : public TabWidget{
 public:
@@ -32,17 +38,28 @@ private slots:
 	void createNew();
 	void tilesetChanged(int);
 
-	void recreateMarker(const Kite::KOrthoTileStamp *Stamp);
+	void initeMarkerPixmap(QPixmap *Pixmap, MarkerItem &Marker);
+	void recreateMarker(const std::vector<Kite::KTileStamp> *Stamp);
 	void redrawMarker(unsigned int AnchorID, bool OutOfView);
 	void drawPushedTiles();
-
-	void selectTintColor();
 
 	void stampTool(bool Check);
 	void selectTool(bool check);
 	void eraserTool(bool Check);
 
-	inline auto getMap() { return orthoMap; }
+	void blendColorPicker();
+	void selectBlend();
+	void selectFlip();
+	void selectDuplicate();
+
+	void addLayer();
+	void removeLayer();
+	void clearLayer();
+	void lowerLayer();
+	void raiseLayer();
+	void layerItemChanged(QTableWidgetItem * Item);
+
+	void manageSceneSelection(const std::vector<Kite::KTileStamp> *Stamp);
 
 protected:
 	bool eventFilter(QObject *Obj, QEvent *Event);
@@ -52,16 +69,17 @@ private:
 	QUndoStack *ustack;
 	GridScene *gscene;
 	QLabel *lblWarning;
-	QComboBox *cmbStampMode;
-	QSpinBox *spnLayer;
-	QString totalStackedSize;
+	QToolButton *btnBlend;
 	QTabWidget *tileset;
-	QColor tint;
+	QTableWidget *layerTable;
+	QColor blend;
 	QVector<GridScene *> viewPool;
-	QVector<QGraphicsItem *> stampList;
+	QVector<MarkerItem> markerList;
 	QAction *actStamp;
 	QAction *actSelect;
 	QAction *actEraser;
+	QVector<QPixmap> tilesetPixmap;
+	QList<QGraphicsItemGroup *> layerList;
 };
 
 class OrthoMapDepChecker {

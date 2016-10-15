@@ -21,6 +21,7 @@ USA
 #define KENGINE_H
 
 #include "Kite/core/kcore.h"
+#include "Kite/graphic/kgraphic.h"
 #include "Kite/window/kwindow.h"
 #include "Kite/input/kinput.h"
 #include "Kite/logic/klogic.h"
@@ -46,6 +47,7 @@ namespace Kite {
 		KMETA_KCONFIG_BODY();
 
 		KM_VAR() KWindowState window;
+		KM_VAR() KRenderState render;
 		KM_VAR() std::string startUpScene;
 		KM_VAR() std::string dictionary;
 	};
@@ -67,10 +69,6 @@ namespace Kite {
 
 		void shutdown();
 
-#if defined(KITE_EDITOR) && defined (KITE_DEV_DEBUG) // editor hooks	
-		inline void setExitFlag(bool Value) { exitFlag.store(Value); }
-		inline void setPauseFlag(bool Value) { pauseFlag.store(Value); }
-#endif
 		KM_FUN()
 		inline auto getWindow() { return _kwindow; }
 
@@ -86,7 +84,15 @@ namespace Kite {
 		KM_FUN()
 		inline auto getResourceManager() { return _krman; }
 
+		KM_FUN()
+		inline const auto getConfig() const { return &_kconfig; }
+
 		inline auto getLuaState() { return _klstate; }
+
+#if defined(KITE_EDITOR) && defined (KITE_DEV_DEBUG) // editor hooks	
+		inline void setExitFlag(bool Value) { exitFlag.store(Value); }
+		inline void setPauseFlag(bool Value) { pauseFlag.store(Value); }
+#endif
 
 	private:
 		KEngine();

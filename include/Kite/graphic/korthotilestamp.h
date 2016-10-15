@@ -75,6 +75,9 @@ namespace Kite {
 		U32 getTileColumn(U32 TileID) const;
 
 		KM_FUN()
+		KTileStamp getStamp(U32 TileID) const;
+
+		KM_FUN()
 		void select(U32 TileID);
 
 		KM_FUN()
@@ -106,7 +109,7 @@ namespace Kite {
 
 	private:
 		void queryExec(const KRectF32 &Area, void(KOrthoTileStamp::*Func)(U32));
-		void initeTile(U32 ID, KTileStamp &Item);
+		void initeTile(U32 ID, KTileStamp &Item) const;
 		void queryOnly(U32 TileID);
 		KM_VAR(UNBIND) U32 _kwidth;
 		KM_VAR(UNBIND) U32 _kheight;

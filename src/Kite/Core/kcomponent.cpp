@@ -21,18 +21,27 @@ USA
 #include "Kite/core/kcoreutil.h"
 #include "Kite/meta/kmetamanager.h"
 #include "Kite/meta/kmetaclass.h"
+#include "Kite/core/kresourcemanager.h"
 #include "Kite/serialization/types/kstdstring.h"
 #include <luaintf\LuaIntf.h>
 
 namespace Kite {
+	KResourceManager *KComponent::_krman = nullptr;
 	KComponent::KComponent(const std::string &Name) :
+#ifdef KITE_EDITOR
+		sceneItem(nullptr),
+#endif
 		_kremoveNoDep(false),
 		_krefcounter(0),
 		_kname(Name),
-		_kneedup(true)
+		_kresNeedup(true)
 	{}
 
 	KComponent::~KComponent() {}
+
+	bool KComponent::updateRes() { return true; }
+
+	KResourceManager * KComponent::getRMan() { return _krman; }
 
 	KMETA_KCOMPONENT_SOURCE();
 }

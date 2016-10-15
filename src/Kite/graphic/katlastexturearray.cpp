@@ -161,7 +161,9 @@ namespace Kite {
 		DGL_CALL(glBindTexture(GL_TEXTURE_2D_ARRAY, Instance->_ktexId));
 
 		// allocate the storage.
-		DGL_CALL(glTexStorage3D(GL_TEXTURE_2D_ARRAY, 0, GL_RGBA8, Size.x, Size.y, Instance->_karray.size()));
+		//DGL_CALL(glTexStorage3D(GL_TEXTURE_2D_ARRAY, 1, GL_RGBA8, Size.x, Size.y, Instance->_karray.size())); // opengl 4.2 (dont work in 3.3)
+		glTexImage3D(GL_TEXTURE_2D_ARRAY, 0, GL_RGBA8, Size.x, Size.y,
+					 Instance->_karray.size(), 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL); // 3.3 version
 
 		//Upload pixel data.
 		//The first 0 refers to the mipmap level (level 0, since there's only 1)

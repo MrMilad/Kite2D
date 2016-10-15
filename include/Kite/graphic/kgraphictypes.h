@@ -96,6 +96,15 @@ namespace Kite{
     };
 	KMETA_GLPRIMITIVE_BODY();
 
+	KM_ENUM()
+	enum class TileAttribute {
+		BLEND = 1,
+		TEXTURE = 2,
+		TEXTUE_INDEX = 4,
+		ALL = 8
+	};
+	KMETA_TILEATTRIBUTE_BODY();
+
 //    enum KFilteringDrawTypes{
 //        KFD_ALIASED,
 //        KFD_SMOOTH
@@ -235,11 +244,10 @@ namespace Kite{
 	KMETA_ATLASFILE_BODY();
 
 	KM_ENUM()
-	enum class GCullingObjectsFilter {
-		STATIC = 0,
-		DYNAMIC,
-		TILE,
-		ALL
+	enum class GCullingObjectsFilter : U8{
+		STATIC = 1,
+		DYNAMIC = 2,
+		TILE = 4
 	};
 	KMETA_GCULLINGOBJECTSFILTER_BODY();
 

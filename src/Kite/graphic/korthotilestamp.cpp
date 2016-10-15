@@ -38,7 +38,6 @@ namespace Kite {
 		_ktileHeight = TileHeight;
 		_kisValid = false;
 		_kanchor = 0;
-		_kitems.clear();
 		resetSelection();
 
 		if (TileWidth == 0 || TileHeight == 0) {
@@ -105,6 +104,16 @@ namespace Kite {
 				_kqueried.push_back(item);
 			}
 		}
+	}
+
+	KTileStamp KOrthoTileStamp::getStamp(U32 TileID) const {
+		if (_kitems.size() <= TileID) {
+			KD_PRINT("tile id is out of range");
+			return KTileStamp();
+		}
+		KTileStamp item;
+		initeTile(TileID, item);
+		return item;
 	}
 
 	void KOrthoTileStamp::select(U32 TileID) {
@@ -193,13 +202,15 @@ namespace Kite {
 		if (cullArea.bottom > cullArea.top) return;
 		if (cullArea.left > _kwidth) return;
 		if (cullArea.bottom > _kheight) return;
+		if (cullArea.top < 0) return;
+		if (cullArea.right < 0) return;
 
 		// caliboration area
 		if (cullArea.bottom < 0) cullArea.bottom = 0;
 		if (cullArea.top > _kheight) cullArea.top = _kheight;
 
 		if (cullArea.left < 0) cullArea.left = 0;
-		if (cullArea.right > _kwidth) cullArea.right = _kheight;
+		if (cullArea.right > _kwidth) cullArea.right = _kwidth;
 
 		// find bottom-left and top-right tile id's
 		U32 blID = 0, brID = 0, trID = 0;
@@ -225,7 +236,7 @@ namespace Kite {
 		}
 	}
 
-	void KOrthoTileStamp::initeTile(U32 ID, KTileStamp &Item) {
+	void KOrthoTileStamp::initeTile(U32 ID, KTileStamp &Item) const{
 		// tile dimension
 		auto dim = getTileDimension(ID);
 		Item.atlas.id = ID;

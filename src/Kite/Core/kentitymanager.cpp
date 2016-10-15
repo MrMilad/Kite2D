@@ -60,7 +60,7 @@ namespace Kite {
 	KEntityManager::KEntityManager() :
 		_knum(0),
 		_kzorder(0)
-		{
+	{
 		initeLua();
 		_kentmap.reserve(KCFSTORAGE_CHUNK_SIZE);
 		initeCStorages();
@@ -93,8 +93,6 @@ namespace Kite {
 
 		// register it to map
 		_kentmap.insert({ "Root", _kroot });
-
-		// do not add root to default layer
 	}
 
 	KEntity *KEntityManager::createEntity(const std::string &Name) {
@@ -122,12 +120,14 @@ namespace Kite {
 		auto hndl = _kestorage.add(KEntity(ename));
 		auto ent = _kestorage.get(hndl);
 		ent->setHandle(hndl);
-		ent->_kzorder = _kzorder; /// order will increased by 1
-		++_kzorder;
 
-		// set storages
+		// set storages (storage are static and will changed per scene)
 		ent->_kcstorage = _kcstorage;
 		ent->_kestorage = &_kestorage;
+
+		// z order
+		ent->_kzorder = _kzorder; /// order will increased by 1
+		++_kzorder;
 
 		// added it to root by default
 		getEntity(getRoot())->addChild(hndl);
@@ -209,10 +209,6 @@ namespace Kite {
 
 	KEntity *KEntityManager::getEntity(const KHandle &Handle) {
 		auto ent = _kestorage.get(Handle);
-		if (ent != nullptr) {
-			ent->_kcstorage = _kcstorage;
-			ent->_kestorage = &_kestorage;
-		}
 		return ent;
 	}
 
@@ -421,11 +417,11 @@ namespace Kite {
 			_kcstorage[i]->deserial(In);
 		}
 		In >> _kentmap;
-
+		
 		// inite entities 
 		for (auto it = _kestorage.getContiner()->begin(); it != _kestorage.getContiner()->end(); ++it) {
-			it->_kcstorage = _kcstorage;
 			it->_kestorage = &_kestorage;
+			it->_kcstorage = _kcstorage;
 			it->initeComponents();
 		}
 	}

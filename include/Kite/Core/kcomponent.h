@@ -35,10 +35,11 @@ USA
 
 KMETA
 namespace Kite {
+	class KResourceManager;
 	KM_CLASS(COMPONENT, ABSTRACT)
 	class KITE_FUNC_EXPORT KComponent : public KListener{
-		friend class KEntityManager;
 		friend class KEntity;
+		friend class KEngine;
 	public:
 		KComponent(const std::string &Name = "");
 
@@ -60,6 +61,10 @@ namespace Kite {
 		/// usage: access base members in lua
 		virtual KComponent *getBase() = 0;
 
+		/// optional (only components that has resource)
+		/// all fetching operation from resource manager shuld happen here
+		virtual bool updateRes();
+
 		/// will be implemented by KHParser
 		KM_PRO_GET(KP_NAME = "type", KP_TYPE = KCTypes, KP_CM = "type of the component")
 		virtual inline CTypes getType() const = 0;
@@ -75,8 +80,8 @@ namespace Kite {
 		KM_PRO_GET(KP_NAME = "name", KP_TYPE = std::string, KP_CM = "name of the component")
 		inline const std::string &getName() const { return _kname; }
 
-		KM_PRO_GET(KP_NAME = "needUpdate", KP_TYPE = bool, KP_CM = "update state of the component")
-		inline bool getNeedUpdate() const { return _kneedup; }
+		KM_PRO_GET(KP_NAME = "resNeedUpdate", KP_TYPE = bool, KP_CM = "update state of the component")
+		inline bool getResNeedUpdate() const { return _kresNeedup; }
 
 		KM_PRO_GET(KP_NAME = "handle", KP_TYPE = KHandle, KP_CM = "component handle")
 		inline const KHandle &getHandle() const { return _khandle; }
@@ -109,17 +114,27 @@ namespace Kite {
 		/// false by default.
 		/// use this function in constructure.
 		inline void setRemoveOnDepZero(bool Remove) { _kremoveNoDep = Remove; }
-		inline void setNeedUpdate(bool NeedUpdate) { _kneedup = NeedUpdate; }
 		inline void setOwnerHandle(const KHandle &Handle) { _kohandle = Handle; }
 
+		inline void resNeedUpdate() { _kresNeedup = true; }
+		inline void resUpdated() { _kresNeedup = false; }
+
+		static KResourceManager * getRMan();
+
 	private:
-		bool _kneedup;
+		bool _kresNeedup;
 		bool _kremoveNoDep; // component will removed if refcounter = 0
 		std::vector<CTypes> _kdeplist;
 		KM_VAR() U16 _krefcounter; // dependency ref counter
 		KM_VAR() std::string _kname;
 		KM_VAR() KHandle _khandle;
 		KM_VAR() KHandle _kohandle;
+
+		static KResourceManager *_krman;
+
+#ifdef KITE_EDITOR
+		void *sceneItem;
+#endif
 	};
 }
 

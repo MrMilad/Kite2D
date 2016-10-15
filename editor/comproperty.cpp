@@ -104,6 +104,17 @@ void ComponentView::createPOD(Kite::KComponent *Comp, const Kite::KMetaProperty 
 		connect(this, &ComponentView::resetSig, pgui, &priv::KU32::reset);
 		Layout->addRow(Meta->name.c_str(), pgui);
 
+	// I8
+	} else if (Meta->typeName == "I8") {
+		// create an appropriate widgte and bind property to it
+		bool ronly = false;
+		if (Meta->type == Kite::KMetaPropertyTypes::KMP_GETTER) ronly = true;
+		priv::KI8 *pgui = 0;
+		pgui = new priv::KI8(Comp, Meta->name.c_str(), "", this, ronly, Meta->min, INT8_MAX);
+		connect(pgui, &priv::KI8::propertyEdited, this, &ComponentView::propChanged);
+		connect(this, &ComponentView::resetSig, pgui, &priv::KI8::reset);
+		Layout->addRow(Meta->name.c_str(), pgui);
+
 	// I16
 	} else if (Meta->typeName == "I16") {
 		// create an appropriate widgte and bind property to it

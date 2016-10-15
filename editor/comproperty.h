@@ -259,6 +259,9 @@ signals:
 			currItem = initeVal.as<Kite::KAtlasItem>();
 
 			combo = new QComboBox(Parent);
+			combo->setIconSize(QSize(32, 32));
+			combo->setEditable(true);
+			combo->setInsertPolicy(QComboBox::InsertPolicy::NoInsert);
 			combo->setCurrentIndex(refillCombo(currItem));
 			combo->installEventFilter(this);
 			if (ROnly) {
@@ -387,7 +390,9 @@ signals:
 			QString atlasName;
 			Kite::KAny val;
 			Kite::KAtlasTextureArray *atlas = nullptr;
+			Kite::KTexture *texture;
 			Kite::U16 atlasindex;
+			QPixmap pix;
 			items = nullptr;
 			auto currIndex = 0;
 			combo->clear();
@@ -406,15 +411,23 @@ signals:
 			if (!atlasName.isEmpty()) {
 				emit(atlas = (Kite::KAtlasTextureArray *)requestRes(atlasName));
 				if (atlas != nullptr) {
-					if (atlas->getContiner()->size() > atlasindex)
+					if (atlas->getContiner()->size() > atlasindex) {
 						items = atlas->getContiner()->at(atlasindex)->getContiner();
+
+						/// cretae icon from texture
+						texture = atlas->getContiner()->at(atlasindex)->getTexture();
+						Kite::KImage image;
+						texture->getImage(image);
+						pix = QPixmap::fromImage(QImage(image.getPixelsData(), image.getWidth(), image.getHeight(),
+														QImage::Format::Format_RGBA8888));
+					}
 				}
 
 				auto idcounter = 0;
 				if (items != nullptr) {
 					for (auto it = items->begin(); it != items->end(); ++it) {
 						// add items to list
-						combo->addItem("ID: " + QString::number(idcounter));
+						combo->addItem(QIcon(pix.copy(it->xpos, it->ypos, it->width, it->height)), QString::number(idcounter));
 
 						// find current item index
 						if ((*it) == CurrItem) {
@@ -697,6 +710,36 @@ signals:
 
 	private:
 		KIU<Kite::U32> imp;
+		QString pname;
+	};
+
+	// I8
+	class KI8 : public KProp {
+		Q_OBJECT
+	public:
+		KI8(Kite::KComponent *Comp, const QString &PName, const QString &Label, QWidget *Parent,
+			 bool ROnly = false, int Min = 0, int Max = 0) :
+			KProp(Parent), pname(PName),
+			imp(Comp, PName, Label, this, ROnly, Min, Max) {
+			imp.spin->connect(imp.spin, static_cast<void(QSpinBox::*)(int)>(&QSpinBox::valueChanged), this, &KI8::valueChanged);
+		}
+
+		void reset(Kite::KComponent *Comp) override {
+			imp.reset(Comp, pname);
+		}
+
+signals:
+		void propertyEdited(const QString &PName, QVariant &Val);
+
+		private slots :
+		void valueChanged(int Val) {
+			Kite::KAny pval((Kite::I8)Val, true);
+			QVariant v = qVariantFromValue((void *)&pval);
+			emit(propertyEdited(pname, v));
+		}
+
+	private:
+		KIU<Kite::I8> imp;
 		QString pname;
 	};
 

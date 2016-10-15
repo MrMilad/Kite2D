@@ -46,7 +46,7 @@ namespace Kite{
     void KVertexBuffer::fill(const void *Data, U32 DataSize, VBufferType BufferType){
         // check array pointer and size of array
         if (Data != 0 && DataSize > 0){
-			static int dataHint[] = { GL_STATIC_DRAW, GL_DYNAMIC_DRAW, GL_STREAM_DRAW };
+			static const int dataHint[] = { GL_STATIC_DRAW, GL_DYNAMIC_DRAW, GL_STREAM_DRAW };
 
 			bind();
 

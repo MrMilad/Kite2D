@@ -160,7 +160,7 @@ namespace Kite{
         TextureWrap _kwrap;		//!< Texture wrapping
         KVector2U32 _ksize;		//!< Size of texture
 		KImage _kimage;			//!< Offline pixel data
-        static U32 _klastTexId;	//!< Static last texture ID
+		static U32 _klastTexId;	//!< Static last texture ID
     };
 }
 

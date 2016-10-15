@@ -80,7 +80,7 @@ namespace Kite{
 
     private:
         U32 _kbufId;			//!< OpenGL FBO ID
-        static U32 _klastBufId; //!< Last FBO ID
+		static U32 _klastBufId; //!< Last FBO ID
     };
 }
 

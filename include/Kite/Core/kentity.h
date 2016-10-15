@@ -103,11 +103,11 @@ namespace Kite {
 		KM_PRO_GET(KP_NAME = "prefab", KP_TYPE = std::string, KP_CM = "entity prefab name")
 		inline const std::string &getPrefab() const { return _kprefabName; }
 
-		KM_PRO_GET(KP_NAME = "layer", KP_TYPE = U32, KP_CM = "layer id")
-		inline U32 getLayer() const { return _klayerid; }
+		KM_PRO_GET(KP_NAME = "layer", KP_TYPE = U8, KP_CM = "layer id")
+		inline U8 getLayer() const { return _klayerid; }
 
 		KM_PRO_SET(KP_NAME = "layer")
-		void setLayer(U32 LayerID);
+		void setLayer(U8 LayerID);
 
 		// dont add multiple graphics component on the same entity. (undefined behavior)
 		// dont reuse entity with multiple graphics components. (e.g. remove current type and add another type. just dont do it)
@@ -185,7 +185,7 @@ namespace Kite {
 		KM_VAR() std::string _kprefabName;								// entity prefab name
 		KM_VAR() std::string _kname;									// entity unique name
 		KM_VAR() std::string _kluatable;								// entity env table name in lua
-		KM_VAR() U32 _klayerid;
+		KM_VAR() U8 _klayerid;
 		KM_VAR() U32 _kzorder;
 		KM_VAR() KHandle _kfixedComp[(SIZE)CTypes::maxSize];			// fixed components slots (built-in components)
 		KM_VAR() std::unordered_map<std::string, KHandle> _klogicComp;	// dynamic components (logic components)

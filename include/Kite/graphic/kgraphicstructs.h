@@ -36,6 +36,24 @@ KMETA
 	\brief Public namespace.
 */
 namespace Kite{
+	KM_CLASS(POD)
+	struct KRenderState {
+		KMETA_KRENDERSTATE_BODY();
+
+		KM_VAR() bool culling;
+		KM_VAR() bool zSorting;
+		KM_VAR() bool camDepth;
+		KM_VAR() U32 vertexSize;
+		KM_VAR() U32 indexSize;
+		KM_VAR() U32 objectSize;
+
+		KM_CON()
+			KRenderState(bool Culling = false, bool ZSorting = true, bool CamDepth = true,
+						 U32 VertexSize = 4000, U32 IndexSize = 6000, U32 ObjectSize = 1000) :
+			culling(Culling), zSorting(ZSorting), camDepth(CamDepth),
+			vertexSize(VertexSize), indexSize(IndexSize), objectSize(ObjectSize) {}
+	};
+
 	//! Utility struct for manipulating RGBAs color.
 	/*! 
 		KColor is a simple color struct composed of 4 components: r, g, b, a (opacity)
@@ -52,7 +70,7 @@ namespace Kite{
 	*/
 		KM_CON(U8, U8, U8, U8)
 		KColor(U8 R = 255, U8 G = 255, U8 B = 255, U8 A = 255):
-			r(R / 255.0f), g(G / 255.0f), b(B / 255.0f), a(A / 255.0f) {}
+			r(R), g(G), b(B), a(A) {}
 
 	//! Construct the color from a hexadecimal color code.
 	/*!
@@ -60,48 +78,48 @@ namespace Kite{
 	However, the hexadecimal code can be passed directly
 	*/
 		KColor(Colors HexCode){
-			r = ((U8)(((U32)HexCode >> 16) & 0xFF)) / 255.0f;
-			g = ((U8)(((U32)HexCode >> 8) & 0xFF)) / 255.0f;
-			b = ((U8)(((U32)HexCode)& 0xFF)) / 255.0f;
-			a = 1.0;
+			r = ((U8)(((U32)HexCode >> 16) & 0xFF));
+			g = ((U8)(((U32)HexCode >> 8) & 0xFF));
+			b = ((U8)(((U32)HexCode)& 0xFF));
+			a = 255;
 		}
 
-		inline F32 getGLR() const { return r; }
-		inline F32 getGLG() const { return g; }
-		inline F32 getGLB() const { return b; }
-		inline F32 getGLA() const { return a; }
+		inline F32 getGLR() const { return r / 255.0f; }
+		inline F32 getGLG() const { return g / 255.0f; }
+		inline F32 getGLB() const { return b / 255.0f; }
+		inline F32 getGLA() const { return a / 255.0f; }
 
 		//! Set R component. range [0 to 255]
 		KM_PRO_GET(KP_NAME = "r", KP_TYPE = U8, KP_CM = "R component")
-		inline U8 getR() const { return (U8)(r * 255.0f); }
+		inline U8 getR() const { return r; }
 
 		//! Set R component. range [0 to 255]
 		KM_PRO_SET(KP_NAME = "r")
-		inline void setR(U8 R) { r = (R / 255.0f); }
+		inline void setR(U8 R) { r = R; }
 
 		//! Set G component. range [0 to 255]
 		KM_PRO_GET(KP_NAME = "g", KP_TYPE = U8, KP_CM = "G component")
-		inline U8 getG() const { return (U8)(g * 255.0f); }
+		inline U8 getG() const { return g; }
 
 		//! Set G component. range [0 to 255]
 		KM_PRO_SET(KP_NAME = "g")
-		inline void setG(U8 G) { g = (G / 255.0f); }
+		inline void setG(U8 G) { g = G; }
 
 		//! Set B component. range [0 to 255]
 		KM_PRO_GET(KP_NAME = "b", KP_TYPE = U8, KP_CM = "B component")
-		inline U8 getB() const { return (U8)(b * 255.0f); }
+		inline U8 getB() const { return b; }
 
 		//! Set B component. range [0 to 255]
 		KM_PRO_SET(KP_NAME = "b")
-		inline void setB(U8 B) { b = (B / 255.0f); }
+		inline void setB(U8 B) { b = B; }
 
 		//! Set A component. range [0 to 255]
 		KM_PRO_GET(KP_NAME = "a", KP_TYPE = U8, KP_CM = "A component")
-		inline U8 getA() const { return (U8)(a * 255.0f); }
+		inline U8 getA() const { return a; }
 
 		//! Set A component. range [0 to 255]
 		KM_PRO_SET(KP_NAME = "a")
-		inline void setA(U8 A) { a = (A / 255.0f); }
+		inline void setA(U8 A) { a = A; }
 
 		//! lua side function. in C++ use constructure instead.
 		KM_FUN()
@@ -110,7 +128,7 @@ namespace Kite{
 		}
 
 		//! Equal operator
-		inline bool operator==(const KColor& rhs) {
+		inline bool operator==(const KColor& rhs) const {
 			if (rhs.r == r && rhs.g == g &&
 				rhs.b == b && rhs.a == a) {
 				return true;
@@ -120,7 +138,7 @@ namespace Kite{
 		}
 
 		//! unequal operator
-		inline bool operator!=(const KColor& rhs) {
+		inline bool operator!=(const KColor& rhs) const {
 			if (rhs.r != r || rhs.g != g ||
 				rhs.b != b || rhs.a != a) {
 				return true;
@@ -130,10 +148,10 @@ namespace Kite{
 		}
 
 	private:
-		KM_VAR(UNBIND) F32 r;	//!< Red component
-		KM_VAR(UNBIND) F32 g;	//!< Green component
-		KM_VAR(UNBIND) F32 b;	//!< Blue component
-		KM_VAR(UNBIND) F32 a;	//!< Alpha component (opacity)
+		KM_VAR(UNBIND) U8 r;	//!< Red component
+		KM_VAR(UNBIND) U8 g;	//!< Green component
+		KM_VAR(UNBIND) U8 b;	//!< Blue component
+		KM_VAR(UNBIND) U8 a;	//!< Alpha component (opacity)
 	};
 
 
@@ -166,15 +184,15 @@ namespace Kite{
 	struct KGLVertex {
 		KVector2F32 pos;
 		KVector2F32 uv;
+		U8 r;
+		U8 g;
+		U8 b;
+		U8 a;
 		U16 tindex;
-		F32 r;
-		F32 g;
-		F32 b;
-		F32 a;
 
 		KGLVertex() :
 			pos(0.0f, 0.0f), uv(0.0f), tindex(0),
-			r(1.0f), g(1.0f), b(1.0f), a(1.0f) {}
+			r(0), g(0), b(0), a(255) {}
 
 		friend KBaseSerial &operator<<(KBaseSerial &Out, const KGLVertex &Value) {
 			Out << Value.pos;
@@ -281,19 +299,6 @@ namespace Kite{
 	private:
 		KM_VAR(UNBIND) bool _kfliph;
 		KM_VAR(UNBIND) bool _kflipv;
-	};
-
-	KM_CLASS(POD)
-	struct KGCullingObject {
-		KMETA_KGCULLINGOBJECT_BODY();
-
-		KM_VAR() KHandle entity;
-		KM_VAR() KHandle component;
-		KM_VAR() U32 zorder;
-
-		inline bool operator<(const KGCullingObject& Other) {
-			return (zorder < Other.zorder);
-		}
 	};
 
 	/*struct KAnimeKey {
@@ -517,51 +522,78 @@ namespace Kite{
 	};*/
 
 	KM_CLASS(POD)
-	struct KOrthoTile {
-		KMETA_KORTHOTILE_BODY();
-		KM_VAR() KColor tint;
+	struct KOrthoLayer {
+		KMETA_KORTHOLAYER_BODY();
+		KM_VAR() KColor blend;
 		KM_VAR() KAtlasItem atlas;
-		KM_VAR() U16 textureIndex;
+		KM_VAR() U16 textureID;
+		KM_VAR() U16 layerIndex;
 
-		KOrthoTile() :
-			tint(Colors::WHITE),
-			textureIndex(0) {}
+#if defined(KITE_EDITOR)
+		void *sceneItem;
+#endif
+
+		KOrthoLayer() :
+#if defined(KITE_EDITOR)
+			sceneItem(nullptr),
+#endif
+			blend(Colors::WHITE),
+			textureID(0), layerIndex(0) {}
 	};
 
 	KM_CLASS(POD)
-	struct KOrthoTileNode {
-		KMETA_KORTHOTILENODE_BODY();
-
+	struct KOrthoNode {
+		KMETA_KORTHONODE_BODY();
+		KM_VAR(UNBIND) bool fliph;
+		KM_VAR(UNBIND) bool flipv;
+		KM_VAR(UNBIND) U16 layerIndex;
 		KM_VAR(UNBIND) U32 atlasID;
+		KM_VAR(UNBIND) U32 tileID;
 		KM_VAR(UNBIND) KGLVertex verts[4];
-		KM_VAR(UNBIND) SIZE nextIndex;
+		KM_VAR(UNBIND) SIZE nextNode;
 
-		KOrthoTileNode() :
-			atlasID(0), nextIndex(0) {}
+#if defined(KITE_EDITOR)
+		void *sceneItem;
+#endif
+
+		KOrthoNode() :
+#if defined(KITE_EDITOR)
+			sceneItem(nullptr),
+#endif
+			fliph(false), flipv(false),
+			layerIndex(0),atlasID(0),
+			tileID(0), nextNode(0) {}
 	};
 
 	KM_CLASS(POD)
 	struct KRootTileMap {
 		KMETA_KROOTTILEMAP_BODY();
 
-		KM_VAR() SIZE firstIndex;
-		KM_VAR() SIZE lastIndex;
-		KM_VAR() SIZE size;
+		KM_VAR() SIZE firstNode;
+		KM_VAR() U16 layerSize;
 
 		KRootTileMap() :
-			firstIndex(0), lastIndex(0), size(0) {}
+			firstNode(0), layerSize(0) {}
 	};
 
 	KM_CLASS(POD)
 	struct KTileStamp {
 		KMETA_KTILESTAMP_BODY();
 
+		KM_VAR() KAtlasItem atlas;
 		KM_VAR() I16 row;	// releative row to anchor row (-+)
 		KM_VAR() I16 col;	// releative column to anchor column (-+)
-		KM_VAR() KAtlasItem atlas;
+
+#if defined(KITE_EDITOR)
+		I16 textureIndex;
+		KColor blend;
+#endif
 
 		KM_CON()
 		KTileStamp():
+#if defined(KITE_EDITOR)
+			textureIndex(-1),
+#endif
 			row(0), col(0)
 		{}
 	};

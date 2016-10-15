@@ -27,7 +27,7 @@ USA
 
 namespace Kite {
 	bool KInputSys::update(F32 Delta, KEntityManager *EManager, KResourceManager *RManager) {
-		STATIC_OUT_EDITOR const bool isregist = EManager->isRegisteredComponent(CTypes::Input);
+		EDITOR_STATIC const bool isregist = EManager->isRegisteredComponent(CTypes::Input);
 
 		if (isregist) {
 			auto continer = EManager->getComponentStorage<KInputCom>(CTypes::Input);
@@ -35,15 +35,13 @@ namespace Kite {
 				auto EHandle = it->getOwnerHandle();
 				auto entity = EManager->getEntity(EHandle);
 				if (entity->isActive()) {
-					if (it->getNeedUpdate()) {
-						if (it->getEnableKeyboard() && KKeyboard::isAnyKeyDown()) {
-							KMessage msg("KEY_DOWN");
-							entity->onMessage(&msg, MessageScope::ALL);
-						}
-						if (it->getEnableMouse() && KMouse::isAnyKeyDown()) {
-							KMessage msg("MOUSE_DOWN");
-							entity->onMessage(&msg, MessageScope::ALL);
-						}
+					if (it->getEnableKeyboard() && KKeyboard::isAnyKeyDown()) {
+						KMessage msg("KEY_DOWN");
+						entity->onMessage(&msg, MessageScope::ALL);
+					}
+					if (it->getEnableMouse() && KMouse::isAnyKeyDown()) {
+						KMessage msg("MOUSE_DOWN");
+						entity->onMessage(&msg, MessageScope::ALL);
 					}
 				}
 			}
@@ -52,8 +50,6 @@ namespace Kite {
 	}
 
 	bool KInputSys::inite(void *Opaque) {
-		KKeyboard::initeKeyboard();
-		KMouse::initeMouse();
 		setInite(true);
 		return true;
 	}

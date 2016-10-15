@@ -21,6 +21,7 @@ class QFormLayout;
 class Expander;
 class QComboBox;
 class QCheckBox;
+class QSpinBox;
 
 namespace priv {
 	struct TreeItemPool {
@@ -46,6 +47,9 @@ signals:
 	void componentAdded(Kite::KEntity *Entity, Kite::KComponent *Component);
 	void componentDelete(Kite::KEntity *Entity, Kite::KComponent *Component);
 	void componentEdited(Kite::KEntity *Entity, Kite::KComponent *Component, const QString &PName);
+	void entityLayerChanged(Kite::KEntity *Entity);
+	void entityZOrderChanged(Kite::KEntity *Entity);
+	void entityStaticChanged(Kite::KEntity *Entity);
 	void resSelected(const QString &Name);
 	void revertPrefab(Kite::KEntity *Entity);
 	void applyPrefab(Kite::KEntity *Entity);
@@ -68,6 +72,9 @@ private slots:
 	void actApllyPrefab();
 	void onExpand(const QModelIndex &);
 	void onCollpase(const QModelIndex &);
+	void layerChanged(int Value);
+	void zorderChanged(int Value);
+	void staticChanged(int Value);
 
 private:
 	static void addComCallb(Kite::KComponent *NewComp, void *Ptr);
@@ -104,7 +111,8 @@ private:
 	QAction *preApply;
 	QFrame *htools;
 	QLineEdit *ledit;
-	QComboBox *cmbLayer;
+	QSpinBox *spnLayer;
+	QSpinBox *spnZOrder;
 	QLabel *hlabel;
 	QLabel *llabel;
 	QCheckBox *chkStatic;

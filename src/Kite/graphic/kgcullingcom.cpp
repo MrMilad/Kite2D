@@ -29,7 +29,8 @@ namespace Kite {
 		KComponent(Name),
 		_kcallb(nullptr),
 		_ksysptr(nullptr),
-		_kobjptr(nullptr)
+		_kobjptr(nullptr),
+		_kobjIndex(0)
 	{
 		setRemoveOnDepZero(true);
 		addDependency(CTypes::RegisterGCulling);

@@ -67,6 +67,38 @@ void ComponentDock::onCollpase(const QModelIndex &Index) {
 							 "border-radius: 3px;}");
 }
 
+void ComponentDock::layerChanged(int Value) {
+	if (eman != nullptr) {
+		auto ent = eman->getEntity(currEntity);
+		if (ent) {
+			ent->setLayer((unsigned char)Value);
+			emit(entityLayerChanged(ent));
+		}
+	}
+}
+
+void ComponentDock::zorderChanged(int Value) {
+	if (eman != nullptr) {
+		auto ent = eman->getEntity(currEntity);
+		if (ent) {
+			ent->setZOrder(Value);
+			emit(entityZOrderChanged(ent));
+		}
+	}
+}
+
+void ComponentDock::staticChanged(int Value) {
+	if (eman != nullptr) {
+		auto ent = eman->getEntity(currEntity);
+		if (ent) {
+			bool state = false;
+			if (Value == Qt::CheckState::Checked) state = true;
+			ent->setStatic(state);
+			emit(entityStaticChanged(ent));
+		}
+	}
+}
+
 void ComponentDock::setupTree() {
 	auto mainFrame = new QFrame(this);
 	auto vlayout = new QVBoxLayout(mainFrame);
@@ -193,7 +225,7 @@ void ComponentDock::setupHTools() {
 	vlayout->addLayout(hlayoutTitle);
 
 	auto hlayout = new QHBoxLayout(htools);
-	hlayout->setMargin(3);
+	hlayout->setMargin(0);
 
 	auto btnAddComps = new QToolButton(htools);
 	btnAddComps->setMenu(mtypes);
@@ -213,9 +245,10 @@ void ComponentDock::setupHTools() {
 
 	hlayout->addStretch(1);
 
-	// lua table name
-	llabel = new QLabel(htools);
-	hlayout->addWidget(llabel);
+	chkStatic = new QCheckBox(this);
+	chkStatic->setText("Static");
+	connect(chkStatic, &QCheckBox::stateChanged, this, &ComponentDock::staticChanged);
+	hlayout->addWidget(chkStatic);
 
 	vlayout->addLayout(hlayout);
 
@@ -226,13 +259,29 @@ void ComponentDock::setupHTools() {
 	lblLayer->setText("Layer: ");
 	hlayout2->addWidget(lblLayer);
 
-	cmbLayer = new QComboBox(this);
-	hlayout2->addWidget(cmbLayer, 1);
+	spnLayer = new QSpinBox(this);
+	spnLayer->setMinimum(0);
+	spnLayer->setMaximum(KENTITY_LAYER_SIZE);
+	connect(spnLayer, static_cast<void(QSpinBox::*)(int)>(&QSpinBox::valueChanged), this, &ComponentDock::layerChanged);
+	hlayout2->addWidget(spnLayer, 1);
 	hlayout2->addSpacing(5);
 
-	chkStatic = new QCheckBox(this);
-	chkStatic->setText("Static");
-	hlayout2->addWidget(chkStatic);
+	auto lblOrder = new QLabel(this);
+	lblOrder->setText("Z: ");
+	hlayout2->addWidget(lblOrder);
+
+	spnZOrder = new QSpinBox(this);
+	spnZOrder->setMinimum(0);
+	spnZOrder->setMaximum(9999999);
+	spnZOrder->setValue(0);
+	connect(spnZOrder, static_cast<void(QSpinBox::*)(int)>(&QSpinBox::valueChanged), this, &ComponentDock::zorderChanged);
+	hlayout2->addWidget(spnZOrder, 1);
+	hlayout2->addSpacing(5);
+
+	// lua table name
+	llabel = new QLabel(htools);
+	hlayout2->addWidget(llabel);
+	hlayout2->addSpacing(5);
 
 	vlayout->addLayout(hlayout2);
 
@@ -450,6 +499,7 @@ void ComponentDock::entityEdit(Kite::KEntityManager *Eman, Kite::KEntity *Entity
 	if (Entity->getHandle() == currEntity && Eman == eman) {
 		return;
 	}
+	this->setDisabled(false);
 	eman = Eman;
 	actClear();
 
@@ -492,6 +542,8 @@ void ComponentDock::entityEdit(Kite::KEntityManager *Eman, Kite::KEntity *Entity
 	// lua table
 	llabel->setText(QString("Lua Table: <font color = \"orange\">") + Entity->getLuaTName().c_str() + "</font>");
 	chkStatic->setChecked(Entity->isStatic());
+	spnLayer->setValue(Entity->getLayer());
+	spnZOrder->setValue(Entity->getZOrder());
 
 	actSearch(ledit->text());
 }
@@ -502,8 +554,18 @@ void ComponentDock::entityDelete(Kite::KEntityManager *Eman, Kite::KEntity *Enti
 		actionsControl(AS_ON_INITE);
 		currEntity = Kite::KHandle();
 		eman = nullptr;
-		hlabel->setText("Components Editor");
 		llabel->clear();
+		this->setDisabled(true);
+		return;
+	}
+
+	if (Entity->getHandle() == currEntity) {
+		actClear();
+		actionsControl(AS_ON_INITE);
+		currEntity = Kite::KHandle();
+		eman = nullptr;
+		llabel->clear();
+		this->setDisabled(true);
 	}
 }
 

@@ -49,8 +49,9 @@ namespace Kite {
 				KD_FPRINT("cant load scene resources. sname: %s", scene->getName().c_str());
 				return false;
 			}
-			//res->inite(); // resources will inite in their systems
+			//res->inite(); // resources will inite bye systems
 		}
+
 		return true;
 	}
 

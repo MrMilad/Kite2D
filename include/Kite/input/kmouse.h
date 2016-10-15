@@ -64,7 +64,7 @@ namespace Kite{
 		/// SDL dos not support mouse wheel in mouse input sections
 		/// so we add an event watcher for catching wheel events
 		static int _eventWatcher(void *Data, SDL_Event *Event);
-        static KWindowHandle _kwinHandle;
+		static KWindowHandle _kwinHandle;
 		static KVector2I32 _kwheelVal;
 		static U16 _kcount;
     };

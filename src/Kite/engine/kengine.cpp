@@ -85,7 +85,7 @@ namespace Kite {
 
 		_krman = new KResourceManager();
 		_ksman = new KSceneManager(*_krman);
-
+		KComponent::_krman = _krman;
 		registerKiteMeta(_kmman, _klstate); // _kmman can be passed as nullptr
 		registerRTypes(_krman); // CTypes will registered in EntityManager constructure
 
@@ -102,15 +102,17 @@ namespace Kite {
 		}
 
 		// inite gl window
+		Internal::initeSDL();
 		_kwindow = new KGLWindow(_kconfig.window);
 		_kwindow->open(); // we have to open the window for initialize glew
 
 		// inite systems (glew must initialize in render system)
 		for (auto it = _ksys.begin(); it != _ksys.end(); ++it) {
-			(*it)->inite((void *)_klstate);
+			(*it)->inite((void *)this);
 		}
 
 		// inite input (Mouse, Keyboard)
+		// joystick will initilized automatically
 		KKeyboard::initeKeyboard();
 		KMouse::initeMouse();
 
@@ -132,6 +134,7 @@ namespace Kite {
 			_ksman->setActiveScene(_ksman->getScene(_kconfig.startUpScene));
 		}// else {use default K2D scene}
 
+		_keman = _ksman->getActiveScene()->getEManager();
 		_kinite = true;
 		return true;
 	}

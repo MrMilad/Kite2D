@@ -7,7 +7,6 @@ set(WIN_SRC
     ${SRCROOT}/sdlcall.h
     ${SRCROOT}/kglwindow.cpp
     ${SRCROOT}/kwindowstructs.cpp
-    ${SRCROOT}/kwindowutil.cpp
     PARENT_SCOPE
 )
 
@@ -17,7 +16,6 @@ set(WIN_INC
     ${INCROOT}/kwindow.h
     ${INCROOT}/kwindowstructs.h
     ${INCROOT}/kwindowtypes.h
-    ${INCROOT}/kwindowutil.h
     PARENT_SCOPE
 )
 

@@ -37,7 +37,7 @@ namespace Kite {
 
 		bool inite() override;
 
-		inline void setCode(const std::string &Code) { _kcode = Code; setModified(true); }
+		inline void setCode(const std::string &Code) { _kcode = Code;}
 
 		inline const std::string &getCode() const { return _kcode; }
 

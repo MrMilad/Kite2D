@@ -10,6 +10,7 @@
 #include "frmprojsettings.h"
 #include "frmabout.h"
 #include "comproperty.h"
+#include "objectscene.h"
 #include <Kite/serialization/kbinaryserial.h>
 #include <Kite/serialization/types/kstdstring.h>
 #include <Kite/serialization/types/kstdumap.h>
@@ -162,14 +163,20 @@ void MainWindow::setupScene(){
 	connect(mainTab, &MainTab::requestAddRes, resDock, &ResourceDock::addResourceInternal);
 
     sceneView = new QGraphicsView();
+	sceneView->scale(1, -1);
+	sceneView->setMouseTracking(true);
+	sceneView->setVerticalScrollBarPolicy(Qt::ScrollBarPolicy::ScrollBarAsNeeded);
+	sceneView->setAlignment(Qt::AlignLeft | Qt::AlignBottom);
 	mainTab->setScene(sceneView);
 
 	setCentralWidget(mainTab);
 	
-	auto *scene1 = new QGraphicsScene();
+	auto *scene1 = new ObjectScene(this);
+	connect(resDock, &ResourceDock::resourceSelected, scene1, &ObjectScene::resSelect);
+
 	QPixmap plogo(":/icons/logo");
 	QGraphicsPixmapItem *logo = new QGraphicsPixmapItem(plogo);
-	logo->setPos((scene1->width() / 2) - (plogo.width() / 2), (scene1->height() / 2) - (plogo.height() / 2));
+	//logo->setPos((scene1->width() / 2) - (plogo.width() / 2), (scene1->height() / 2) - (plogo.height() / 2));
 	scene1->addItem(logo);
 	sceneView->setScene(scene1);
 }
@@ -364,6 +371,8 @@ void MainWindow::enGUI() {
 
 void MainWindow::saveXML(QIODevice *device, const QString &Address){
 	QXmlStreamWriter stream(device);
+	KFOStream fstream;
+	Kite::KBinarySerial bserial;
 	stream.setAutoFormatting(true);
 	stream.writeStartDocument();
 
@@ -371,35 +380,7 @@ void MainWindow::saveXML(QIODevice *device, const QString &Address){
 	stream.writeAttribute("name", curProject->name);
 	stream.writeAttribute("version", "1.0");
 
-	// config
-	stream.writeStartElement("config");
-	stream.writeStartElement("window");
-	stream.writeAttribute("title", curProject->config.window.title.c_str());
-	stream.writeAttribute("width", QString::number(curProject->config.window.width));
-	stream.writeAttribute("height", QString::number(curProject->config.window.height));
-	stream.writeAttribute("xpos", QString::number(curProject->config.window.xpos));
-	stream.writeAttribute("ypos", QString::number(curProject->config.window.ypos));
-	stream.writeAttribute("startupScene", curProject->config.startUpScene.c_str());
-	if (curProject->config.window.fullscreen) {
-		stream.writeAttribute("fullscreen", "true");
-	} else {
-		stream.writeAttribute("fullscreen", "false");
-	}
-	if (curProject->config.window.showCursor) {
-		stream.writeAttribute("showcursor", "true");
-	} else {
-		stream.writeAttribute("showcursor", "false");
-	}
-	if (curProject->config.window.resizable) {
-		stream.writeAttribute("resizable", "true");
-	} else {
-		stream.writeAttribute("resizable", "false");
-	}
-	stream.writeEndElement(); // config.window
-	stream.writeEndElement(); // config
-
 	// resources
-	KFOStream fstream;
 	std::unordered_map<std::string, std::string> dict;
 	stream.writeStartElement("resources");
 	auto resList = resDock->dumpResource();
@@ -427,16 +408,20 @@ void MainWindow::saveXML(QIODevice *device, const QString &Address){
 	stream.writeEndDocument();
 
 	// save dictinary
-	Kite::KBinarySerial bserial;
+	bserial.clearCatch();
 	bserial << dict;
 	bserial.saveStream(fstream, Address.toStdString() + "/dict.kdict", 0);
 	curProject->config.dictionary = Address.toStdString() + "/dict.kdict";
+
+	// save config
+	bserial.clearCatch();
+	bserial << curProject->config;
+	bserial.saveStream(fstream, Address.toStdString() + "/config.kconf", 0);
 }
 
 bool MainWindow::loadXML(QIODevice *device, const QString &Address) {
 	QXmlStreamReader xml(device);
 	bool head = false;
-	bool config = false;
 	bool res = false;
 
 	if (xml.readNextStartElement()) {
@@ -446,49 +431,25 @@ bool MainWindow::loadXML(QIODevice *device, const QString &Address) {
 			curProject->Path = finfo.path();
 			curProject->resPath = finfo.path() + "/resources";
 			resDock->setCurrentDirectory(curProject->resPath);
+
+			// config
+			KFIStream fstream;
+			Kite::KBinarySerial bserial;
+			if (!bserial.loadStream(fstream, finfo.path().toStdString() + "/config.kconf")) {
+				QMessageBox msg;
+				msg.setWindowTitle("Message");
+				msg.setText("cant load project file.\nfile address: " + Address
+							+ "\nmissing config file!");
+				msg.exec();
+				return false;
+			}
+			bserial >> curProject->config;
 			//curProject->config.dictionary = finfo.path().toStdString() + "/dict.kdict";
 			head = true;
 		}
 
 		while (!xml.atEnd()) {
-			xml.readNext();
-
-			// config
-			if (xml.isStartElement() && xml.name() == "config") {
-				config = true;
-				while (!xml.isEndElement()) {
-					xml.readNext();
-
-					// window
-					if (xml.isStartElement() && xml.name() == "window") {
-						curProject->config.window.title = xml.attributes().value("title").toString().toStdString();
-						curProject->config.window.width = xml.attributes().value("width").toInt();
-						curProject->config.window.height = xml.attributes().value("height").toInt();
-						curProject->config.window.xpos = xml.attributes().value("xpos").toInt();
-						curProject->config.window.ypos = xml.attributes().value("ypos").toInt();
-						curProject->config.startUpScene = xml.attributes().value("startupScene").toString().toStdString();
-						if (xml.attributes().value("fullscreen").toString() == "true") {
-							curProject->config.window.fullscreen = true;
-						} else {
-							curProject->config.window.fullscreen = false;
-						}
-
-						if (xml.attributes().value("showcursor").toString() == "true") {
-							curProject->config.window.showCursor = true;
-						} else {
-							curProject->config.window.showCursor = false;
-						}
-
-						if (xml.attributes().value("resizable").toString() == "true") {
-							curProject->config.window.resizable = true;
-						} else {
-							curProject->config.window.resizable = false;
-						}
-
-					}
-				}
-			}
-				
+			xml.readNext();				
 			// resources
 			if (xml.isStartElement() && xml.name() == "resources") {
 				res = true;
@@ -520,16 +481,28 @@ bool MainWindow::loadXML(QIODevice *device, const QString &Address) {
 		msg.exec();
 		return false;
 	}
-	return (head && res && config);
+	return (head && res);
 }
 
 void MainWindow::startEngine() {
-	fullscreenIssue = (curProject->config.window.fullscreen && this->isFullScreen());
 	saveProject();
 	outDock->getEditor()->clear();
 	outDock->autoShow();
 	connect(exec, &Executer::engineOutput, this, &MainWindow::getEngineOutput);
-	exec->run(&curProject->config);
+	Kite::KConfig tempConfig(curProject->config);
+
+	// we have problem with fullscreen and i dont know what is this shit!
+	// so we try to simulate fullscreen mode with window mode
+	if (curProject->config.window.fullscreen) {
+		tempConfig.window.fullscreen = false;
+		tempConfig.window.resizable = false;
+		QRect rec = QApplication::desktop()->screenGeometry();
+		tempConfig.window.width = rec.width();	
+		tempConfig.window.height = rec.height();
+		tempConfig.window.xpos = 0;
+		tempConfig.window.ypos = 1; // this must be 1 otherwise we have unknowen problem!
+	}
+	exec->run(&tempConfig);
 }
 
 void MainWindow::getEngineOutput(const QString &Text, int MType) {
@@ -585,9 +558,6 @@ void MainWindow::engineStoped() {
 	//outDock->getEditor()->appendHtml("<font color = \"Aqua\">---- Engine Stoped ----</font>");
 	outDock->getEditor()->appendPlainText("----[ Engine Stoped ]----");
 	outDock->autoHide();
-	if (fullscreenIssue) {
-		this->showFullScreen();
-	}
 	playScene->setDisabled(false);
 	pauseScene->setDisabled(true);
 	stopScene->setDisabled(true);

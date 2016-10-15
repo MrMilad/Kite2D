@@ -130,13 +130,13 @@ namespace Kite{
 		inline U32 getGLID() const { return _kbufId; }
 
     private:
-        VBufferType _kbufType;	//!< Storage state of buffer
-		BufferTarget _kbufTarget;	//!< Type of buffer
-        U32 _ksize;		//!< Size of buffer
-        U32 _kbufId;	//!< OpenGL vbo ID
-        KCallVBUpdate *_kupdateHnd;	//!< Function pointer for update
-		static I32 _ktargets[2];	//!< Buffer types
-        static U32 _klastBufId;		//!< Last openGL buffer ID
+        VBufferType _kbufType;				//!< Storage state of buffer
+		BufferTarget _kbufTarget;			//!< Type of buffer
+        U32 _ksize;							//!< Size of buffer
+        U32 _kbufId;						//!< OpenGL vbo ID
+        KCallVBUpdate *_kupdateHnd;			//!< Function pointer for update
+		static I32 _ktargets[2];		//!< Buffer types
+		static U32 _klastBufId;		//!< Last openGL buffer ID
     };
 }
 

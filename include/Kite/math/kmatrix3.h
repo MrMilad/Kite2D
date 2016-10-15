@@ -39,7 +39,7 @@ namespace Kite{
         inline const F32 *getArray() const {return _kmatrix;}
 
 		KM_FUN()
-			inline const F32 at(U8 Index) { if (Index < 9) return _kmatrix[Index]; return 0; }
+		inline const F32 at(U8 Index) const { if (Index < 9) return _kmatrix[Index]; return 0; }
 
 		inline float KMatrix3::operator[](int index) const { return _kmatrix[index]; }
 
@@ -62,6 +62,9 @@ namespace Kite{
 		bool KMatrix3::operator==(const KMatrix3& right) const;
 
 		bool KMatrix3::operator!=(const KMatrix3& right) const;
+
+		KM_FUN()
+		static const KMatrix3 &getIdentity();
 
     private:
 		KM_OPE(KO_ADD)

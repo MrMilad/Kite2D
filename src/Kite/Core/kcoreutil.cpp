@@ -65,7 +65,7 @@ void cpuid(U32 CPUInfo[4],I32 InfoType){
     }
 
     const KCPUInfo *getCPUInfo(){
-        static KCPUInfo cpuInfo;
+		static KCPUInfo cpuInfo;
 
         unsigned int info[4];
         cpuid(info, 0);
@@ -101,7 +101,7 @@ void cpuid(U32 CPUInfo[4],I32 InfoType){
     }
 
     U64 getUniqueNumber(){
-        static U64 id = 0;
+		static U64 id = 0;
         return ++id;
     }
 

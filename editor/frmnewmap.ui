@@ -6,19 +6,19 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>309</width>
+    <width>327</width>
     <height>167</height>
    </rect>
   </property>
   <property name="minimumSize">
    <size>
-    <width>309</width>
+    <width>327</width>
     <height>167</height>
    </size>
   </property>
   <property name="maximumSize">
    <size>
-    <width>309</width>
+    <width>327</width>
     <height>167</height>
    </size>
   </property>
@@ -28,7 +28,7 @@
   <widget class="QPushButton" name="btnCancel">
    <property name="geometry">
     <rect>
-     <x>230</x>
+     <x>250</x>
      <y>140</y>
      <width>75</width>
      <height>23</height>
@@ -41,7 +41,7 @@
   <widget class="QPushButton" name="btnOk">
    <property name="geometry">
     <rect>
-     <x>150</x>
+     <x>170</x>
      <y>140</y>
      <width>75</width>
      <height>23</height>
@@ -51,16 +51,36 @@
     <string>Ok</string>
    </property>
   </widget>
-  <widget class="QWidget" name="layoutWidget">
+  <widget class="QLabel" name="lblInfo">
    <property name="geometry">
     <rect>
      <x>10</x>
-     <y>10</y>
-     <width>291</width>
-     <height>101</height>
+     <y>120</y>
+     <width>311</width>
+     <height>16</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Map Size(Tile): 0  Map Size(Pixel): 0 Total Tiles: 0</string>
+   </property>
+  </widget>
+  <widget class="QWidget" name="layoutWidget">
+   <property name="geometry">
+    <rect>
+     <x>11</x>
+     <y>11</y>
+     <width>311</width>
+     <height>100</height>
     </rect>
    </property>
    <layout class="QGridLayout" name="gridLayout">
+    <item row="0" column="0">
+     <widget class="QLabel" name="label_5">
+      <property name="text">
+       <string>Map Type: </string>
+      </property>
+     </widget>
+    </item>
     <item row="1" column="0">
      <widget class="QLabel" name="label">
       <property name="text">
@@ -81,63 +101,10 @@
       </property>
      </widget>
     </item>
-    <item row="0" column="0">
-     <widget class="QLabel" name="label_5">
+    <item row="1" column="2">
+     <widget class="QLabel" name="label_3">
       <property name="text">
-       <string>Map Type: </string>
-      </property>
-     </widget>
-    </item>
-    <item row="2" column="2">
-     <widget class="QLabel" name="label_4">
-      <property name="text">
-       <string>Tile Height: </string>
-      </property>
-     </widget>
-    </item>
-    <item row="3" column="0">
-     <widget class="QLabel" name="label_6">
-      <property name="text">
-       <string>Tileset: </string>
-      </property>
-     </widget>
-    </item>
-    <item row="2" column="3">
-     <widget class="QSpinBox" name="spnTHeight">
-      <property name="minimum">
-       <number>1</number>
-      </property>
-      <property name="maximum">
-       <number>1000000</number>
-      </property>
-      <property name="value">
-       <number>32</number>
-      </property>
-     </widget>
-    </item>
-    <item row="2" column="1">
-     <widget class="QSpinBox" name="spnMHeight">
-      <property name="minimum">
-       <number>1</number>
-      </property>
-      <property name="maximum">
-       <number>1000000</number>
-      </property>
-      <property name="value">
-       <number>20</number>
-      </property>
-     </widget>
-    </item>
-    <item row="0" column="1" colspan="3">
-     <widget class="QComboBox" name="cmbType"/>
-    </item>
-    <item row="3" column="1" colspan="3">
-     <widget class="QComboBox" name="cmbTileset"/>
-    </item>
-    <item row="2" column="0">
-     <widget class="QLabel" name="label_2">
-      <property name="text">
-       <string>Map Height: </string>
+       <string>Tile Width:</string>
       </property>
      </widget>
     </item>
@@ -154,27 +121,60 @@
       </property>
      </widget>
     </item>
-    <item row="1" column="2">
-     <widget class="QLabel" name="label_3">
+    <item row="2" column="0">
+     <widget class="QLabel" name="label_2">
       <property name="text">
-       <string>Tile Width:</string>
+       <string>Map Height: </string>
       </property>
      </widget>
     </item>
+    <item row="2" column="1">
+     <widget class="QSpinBox" name="spnMHeight">
+      <property name="minimum">
+       <number>1</number>
+      </property>
+      <property name="maximum">
+       <number>1000000</number>
+      </property>
+      <property name="value">
+       <number>20</number>
+      </property>
+     </widget>
+    </item>
+    <item row="2" column="2">
+     <widget class="QLabel" name="label_4">
+      <property name="text">
+       <string>Tile Height: </string>
+      </property>
+     </widget>
+    </item>
+    <item row="2" column="3">
+     <widget class="QSpinBox" name="spnTHeight">
+      <property name="minimum">
+       <number>1</number>
+      </property>
+      <property name="maximum">
+       <number>1000000</number>
+      </property>
+      <property name="value">
+       <number>32</number>
+      </property>
+     </widget>
+    </item>
+    <item row="3" column="0">
+     <widget class="QLabel" name="label_6">
+      <property name="text">
+       <string>Tileset: </string>
+      </property>
+     </widget>
+    </item>
+    <item row="0" column="1" colspan="3">
+     <widget class="QComboBox" name="cmbType"/>
+    </item>
+    <item row="3" column="1" colspan="3">
+     <widget class="QComboBox" name="cmbTileset"/>
+    </item>
    </layout>
-  </widget>
-  <widget class="QLabel" name="lblInfo">
-   <property name="geometry">
-    <rect>
-     <x>10</x>
-     <y>120</y>
-     <width>291</width>
-     <height>16</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>Map Size(Tile): 0  Map Size(Pixel): 0 Total Tiles: 0</string>
-   </property>
   </widget>
  </widget>
  <tabstops>

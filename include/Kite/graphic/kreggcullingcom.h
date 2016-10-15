@@ -41,6 +41,7 @@ namespace Kite {
 		void deattached(KEntity *Owner) override;
 
 		RecieveTypes onMessage(KMessage *Message, MessageScope Scope) override;
+
 	};
 }
 

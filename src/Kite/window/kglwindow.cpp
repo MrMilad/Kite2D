@@ -59,10 +59,6 @@ namespace Kite{
 			}
 		}
 
-		// Set our OpenGL version.
-		// SDL_GL_CONTEXT_CORE gives us only the newer version, deprecated functions are disabled
-		DSDL_CALL(SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE));
-
 		// OGL version
 		// opengl 3.3 or greater
 		if (_kwinstate.oglMajor <= 3) {
@@ -70,6 +66,11 @@ namespace Kite{
 			if (_kwinstate.oglMinor < 3)
 				_kwinstate.oglMinor = 3;
 		}
+
+		// Set our OpenGL version.
+		// SDL_GL_CONTEXT_CORE gives us only the newer version, deprecated functions are disabled
+		DSDL_CALL(SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE));
+
 		DSDL_CALL(SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, _kwinstate.oglMajor));
 		DSDL_CALL(SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, _kwinstate.oglMinor));
 
@@ -77,7 +78,10 @@ namespace Kite{
 		DSDL_CALL(SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 0));
 		DSDL_CALL(SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 0));
 
-		// Create our window centered at 512x512 resolution
+		// double buffer
+		DSDL_CALL(SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1));
+
+		// Create our window 
 		DSDL_CALL(_kwindow = SDL_CreateWindow(_kwinstate.title.c_str(), _kwinstate.xpos, _kwinstate.ypos,
 											  _kwinstate.width, _kwinstate.height, flag));
 

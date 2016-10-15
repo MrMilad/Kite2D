@@ -147,7 +147,7 @@ namespace Kite {
 			return &_kcontiner[_khandle[Handle.index].index];
 		}
 
-		inline auto getContiner() { return &_kcontiner; }
+		inline std::vector<T> *getContiner() { return &_kcontiner; }
 
 		SIZE getSize() const { return _kcontiner.size(); }
 

@@ -48,7 +48,7 @@ namespace Kite{
 
 		KM_CON()
 		KWindowState(const std::string &Title = "Kite2D Window!",
-					 I32 Width = 200, I32 Height = 200,
+					 I32 Width = 600, I32 Height = 400,
 					 I32 XPosition = 50, I32 YPosition = 50,
 					 bool ShowCursor = true, bool Fullscreen = false,
 					 bool Resizable = false,

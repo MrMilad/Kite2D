@@ -29,6 +29,7 @@ USA
 #include <luaintf\LuaIntf.h>
 
 namespace Kite {
+
 	KEntity::KEntity(const std::string &Name):
 #ifdef KITE_EDITOR
 		 _kaddCallb(nullptr),
@@ -40,11 +41,11 @@ namespace Kite {
 		_kdeleted(false),
 		_kplistid(0),
 		_kname(Name),
-		_kcstorage(nullptr),
-		_kestorage(nullptr),
 		_kisPrefab(false),
 		_klayerid(0),
-		_kzorder(0)
+		_kzorder(0),
+		_kestorage(nullptr),
+		_kcstorage(nullptr)
 	{}
 
 	KEntity::~KEntity() {}
@@ -228,7 +229,7 @@ namespace Kite {
 		return true;
 	}
 
-	void KEntity::setLayer(U32 LayerID) {
+	void KEntity::setLayer(U8 LayerID) {
 		if (LayerID < KENTITY_LAYER_SIZE) {
 			_klayerid = LayerID;
 			return;

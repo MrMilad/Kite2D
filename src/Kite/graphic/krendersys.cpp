@@ -19,12 +19,15 @@
 */
 #include "Kite/graphic/krendersys.h"
 #include "Kite/math/ktransformcom.h"
+#include "Kite/engine/kengine.h"
 #include "Kite/graphic/katlastexturearray.h"
 #include "Kite/graphic/kshaderprogram.h"
 #include "Kite/graphic/kgraphicdef.h"
 #include "Kite/graphic/krenderable.h"
 #include "Kite/graphic/krendercom.h"
 #include "Kite/graphic/kquadcom.h"
+#include "Kite/graphic/kgcullingsys.h"
+#include "Kite/graphic/korthomapcom.h"
 #include "Kite/meta/kmetamanager.h"
 #include "Kite/meta/kmetaclass.h"
 #include "Kite/meta/kmetatypes.h"
@@ -34,88 +37,110 @@
 
 namespace Kite{
 	bool KRenderSys::update(F32 Delta, KEntityManager *EManager, KResourceManager *RManager) {
-		STATIC_OUT_EDITOR const bool isregist = (EManager->isRegisteredComponent(CTypes::Camera) 
+		EDITOR_STATIC const bool isregist = (EManager->isRegisteredComponent(CTypes::Camera)
 												 && EManager->isRegisteredComponent(CTypes::RenderInstance));
 		
 		if (isregist) {
-			// sort camera(s) (based depth)
-			auto continer = EManager->getComponentStorage<KCameraCom>(CTypes::Camera);
-			STATIC_OUT_EDITOR std::vector<std::pair<U32, U32>> sortedIndex(KRENDER_CAMERA_SIZE); // reserve 10 pre-defined camera
-			sortedIndex.clear();
-
-			// collect depth of all camera(s)
-			for (auto i = 0; i < continer->size(); ++i) {
-				sortedIndex.push_back({ i, continer->at(i)._kdepth });
+			// update culling system
+			if (_kconfig.culling) {
+				_kcullSys->update(0, EManager, RManager);
 			}
 
-			// sort depth list
-			std::sort(sortedIndex.begin(), sortedIndex.end(),
-					  [](const std::pair<U32, U32> &left, const std::pair<U32, U32> &right) {
-				return left.second < right.second;
-			});
+			// get camera continer
+			auto camContiner = EManager->getComponentStorage<KCameraCom>(CTypes::Camera);
+			U32 camIndex = 0;
+			U32 camSize = camContiner->size();
+			static std::vector<std::pair<U32, U32>> sortedIndex(KRENDER_CAMERA_SIZE); // reserve 10 pre-defined camera
+
+			// sort camera(s) (based depth)
+			if (_kconfig.camDepth) {
+				// collect depth of all camera(s)
+				sortedIndex.resize(0);
+				for (SIZE i = 0; i < camContiner->size(); ++i) {
+					sortedIndex.push_back({ i, camContiner->at(i).getDepth() });
+				}
+
+				// sort depth list
+				std::sort(sortedIndex.begin(), sortedIndex.end(),
+						  [](const std::pair<U32, U32> &left, const std::pair<U32, U32> &right) {
+					return left.second < right.second;
+				});
+			}
 
 			// update all active camera(s) (sorted)
-			for (auto sit = sortedIndex.begin(); sit != sortedIndex.end(); ++sit) {
-				auto it = &continer->at(sit->first);
+			for (SIZE camCounter = 0; camCounter < camSize; ++camCounter) {
+				// camera index based depth or in order
+				if (_kconfig.camDepth) { camIndex = sortedIndex.at(camCounter).first; }
+				else { camIndex = camCounter; }
+				auto cam = &camContiner->at(camIndex);
+
 				_kupdata.clear();
-				auto ehandle = it->getOwnerHandle();
+				auto ehandle = cam->getOwnerHandle();
 				auto entity = EManager->getEntity(ehandle);
+
+				// check active
 				if (entity->isActive()) {
 
 					// update camera
-					if (it->getNeedUpdate()) {
-						this->_computeCamera(&(*it));
-					}
+					cam->computeMatrixes();
 
 					// update viewport and scissor
-					if (_klastState.lastViewSize != it->_ksize || _klastState.lastViewPos != it->_kposition) {
-						DGL_CALL(glViewport(it->_kposition.x, it->_kposition.y, it->_ksize.x, it->_ksize.y));
-						_klastState.lastViewSize = it->_ksize;
-						_klastState.lastViewPos = it->_kposition;
+					if (_klastState.lastViewSize != cam->_ksize || _klastState.lastViewPos != cam->_kposition) {
+						DGL_CALL(glViewport(cam->_kposition.x, cam->_kposition.y, cam->_ksize.x, cam->_ksize.y));
+						_klastState.lastViewSize = cam->_ksize;
+						_klastState.lastViewPos = cam->_kposition;
 
-						DGL_CALL(glScissor(it->_kposition.x, it->_kposition.y, it->_ksize.x, it->_ksize.y));
+						DGL_CALL(glScissor(cam->_kposition.x, cam->_kposition.y, cam->_ksize.x, cam->_ksize.y));
 					}
 
 					// update clear color
-					if (it->_kclearCol != _klastState.lastColor) {
-						DGL_CALL(glClearColor((GLclampf)(it->_kclearCol.getGLR()),
-											  (GLclampf)(it->_kclearCol.getGLG()),
-											  (GLclampf)(it->_kclearCol.getGLB()),
-											  (GLclampf)(it->_kclearCol.getGLA())));
-						_klastState.lastColor = it->_kclearCol;
+					if (cam->_kclearCol != _klastState.lastColor) {
+						DGL_CALL(glClearColor((GLclampf)(cam->_kclearCol.getGLR()),
+											  (GLclampf)(cam->_kclearCol.getGLG()),
+											  (GLclampf)(cam->_kclearCol.getGLB()),
+											  (GLclampf)(cam->_kclearCol.getGLA())));
+						_klastState.lastColor = cam->_kclearCol;
 					}
 
 					// clear scene 
-					if (it->_kclearView) {
+					if (cam->_kclearView) {
 						DGL_CALL(glClear(GL_COLOR_BUFFER_BIT));
 					}
 
-					// update and draw renderables
-					STATIC_OUT_EDITOR auto render = EManager->getComponentStorage<KRenderCom>(CTypes::RenderInstance);
 					U32 indSize = 0;
 					U32 verSize = 0;
 
 					KRenderable *material = nullptr;
-					STATIC_OUT_EDITOR std::vector<std::pair<KHandle, KRenderable *>> objList(KRENDER_BUFF_SIZE);
-					objList.resize(0);
+					static std::vector<std::pair<KEntity *, KRenderable *>> objList;
+					objList.reserve(_kconfig.objectSize);
 
-					// inite objects list
-					for (auto rit = render->begin(); rit != render->end(); ++rit) {
-						auto ent = EManager->getEntity(rit->getOwnerHandle());
+					// update and draw renderables
+					// culling is enabled
+					if (_kconfig.culling) {
+						const U8 filter = (U8)GCullingObjectsFilter::TILE 
+							| (U8)GCullingObjectsFilter::DYNAMIC 
+							| (U8)GCullingObjectsFilter::STATIC;
 
-						// catch renderable components
-						if (ent->isActive()) {
-							if (auto quadcom = (KQuadCom *)ent->getComponent(CTypes::Quad, "")) {
-								if (quadcom->isVisible()) {
-									objList.push_back({ ent->getHandle() ,quadcom });
-								}
-							}// } else if (catch another renderable ...){
-						}
+						_kcullSys->queryObjects(cam->getViewRect(), std::bitset<KENTITY_LAYER_SIZE>("01"),
+												(GCullingObjectsFilter)filter,
+												EManager, objList);
+					} else {
+						// culling is disabled
+						_fillRenderList(EManager, objList);
+					}
+
+					// sort objects
+					if (_kconfig.zSorting) {
+						// sort using a lambda expression 
+						std::sort(objList.begin(), objList.end(), [](const std::pair<KEntity *, KRenderable *> &A,
+																   const std::pair<KEntity *, KRenderable *> &B) {
+							return B.first->getZOrder() < A.first->getZOrder();
+						});
 					}
 						
 					// render objects list
 					for (auto oit = objList.begin(); oit != objList.end(); ++oit){
-						auto ent = EManager->getEntity(oit->first);
+						auto ent = oit->first;
 
 						// inite materials
 						if (oit->second->getMatNeedUpdate()) {
@@ -134,10 +159,11 @@ namespace Kite{
 						if (_checkState(oit->second)) {
 
 							// check available buffer size
-							if ((indSize + oit->second->getIndexSize()) < KRENDER_IBUFF_SIZE) {
+							if ((indSize + oit->second->getIndexSize()) < _kconfig.indexSize) {
 								// compute (parent * child * camera) matrix
 								// catch object with its matrix
-								_kupdata.matrix.push_back((*it).getMatrix());
+								auto trcom = (KTransformCom *)ent->getComponent(CTypes::Transform, "");
+								_kupdata.matrix.push_back((*cam).getRatioMatrix(trcom->getRatioIndex()));
 								_computeParentsTransform(EManager, ent, &_kupdata.matrix.back());
 								_kupdata.objects.push_back(oit->second);
 								material = oit->second;
@@ -164,10 +190,11 @@ namespace Kite{
 							_kvao->bind();
 
 							// bind materials
-							material->_ksahder->bind();
-							if (material->_katlas) {
-								if (material->_katlas->isInite()) {
-									material->_katlas->bind();
+							material->getShaderProg()->bind();
+							auto atlas = material->getATextureArray();
+							if (atlas) {
+								if (atlas->isInite()) {
+									atlas->bind();
 								} else {
 									KAtlasTextureArray::unbindTextureArray();
 								}
@@ -192,8 +219,18 @@ namespace Kite{
 	}
 
 	bool KRenderSys::inite(void *Data) {
+		const auto engine = static_cast<KEngine *>(Data);
+		_kconfig = engine->getConfig()->render;
+
 		if (!Internal::initeGLEW()) {
 			return false;
+		}
+
+		// graphic culling sub-system
+		_kcullSys = nullptr;
+		if (_kconfig.culling) {
+			_kcullSys = new KGCullingSys();
+			_kcullSys->inite(nullptr);
 		}
 
 		// we dont need depth test (objects are always in a sorted order)
@@ -207,8 +244,8 @@ namespace Kite{
 		DGL_CALL(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
 
 		// update lists
-		_kupdata.objects.reserve(KRENDER_BUFF_SIZE);
-		_kupdata.matrix.reserve(KRENDER_BUFF_SIZE);
+		_kupdata.objects.reserve(_kconfig.objectSize);
+		_kupdata.matrix.reserve(_kconfig.objectSize);
 
 		// set color to black (gl default)
 		_klastState.lastColor = KColor::fromName(Colors::BLACK);
@@ -218,12 +255,12 @@ namespace Kite{
 
 		// inite index buffer
 		_kvboInd = new KVertexBuffer(BufferTarget::INDEX);
-		std::vector<U16> ind(KRENDER_IBUFF_SIZE, 0);
+		std::vector<U16> ind(_kconfig.indexSize, 0);
 		_initeQuadIndex(&ind);
 
 		// inite vertex buffer
 		_kvboVer = new KVertexBuffer(BufferTarget::VERTEX);
-		std::vector<KGLVertex> vert(KRENDER_VBUFF_SIZE, KGLVertex());
+		std::vector<KGLVertex> vert(_kconfig.vertexSize, KGLVertex());
 
 		// inite point
 		_kvboPnt = nullptr;
@@ -238,31 +275,32 @@ namespace Kite{
 
 		// fill index buffer
 		_kvboInd->bind();
-		_kvboInd->fill(&ind[0], sizeof(U16) * KRENDER_IBUFF_SIZE, VBufferType::STREAM);
+		_kvboInd->fill(&ind[0], sizeof(U16) * _kconfig.indexSize, VBufferType::STREAM);
 		//_kvboInd->setUpdateHandle(_updateInd);
 
 		// fill vertex buffer
 		_kvboVer->bind();
-		_kvboVer->fill(&vert[0], sizeof(KGLVertex) * KRENDER_VBUFF_SIZE, VBufferType::STREAM);
+		_kvboVer->fill(&vert[0], sizeof(KGLVertex) * _kconfig.vertexSize, VBufferType::STREAM);
 
 		// set pos attr
 		_kvao->enableAttribute(0);
-		_kvao->setAttribute(0, AttributeCount::COMPONENT_2, AttributeType::FLOAT, false, sizeof(KGLVertex), KBUFFER_OFFSET(0));
+		_kvao->setAttribute(0, AttributeCount::COMPONENT_2, AttributeType::FLOAT, true, sizeof(KGLVertex), KBUFFER_OFFSET(0));
 
 		// set uv attr
 		_kvao->enableAttribute(1);
 		_kvao->setAttribute(1, AttributeCount::COMPONENT_2, AttributeType::FLOAT,
-							false, sizeof(KGLVertex), KBUFFER_OFFSET(sizeof(F32) * 2));
-
-		// set texture array index attr
-		_kvao->enableAttribute(2);
-		_kvao->setAttribute(2, AttributeCount::COMPONENT_1, AttributeType::UNSIGNED_SHORT,
-							false, sizeof(KGLVertex), KBUFFER_OFFSET(sizeof(F32) * 4));
+							true, sizeof(KGLVertex), KBUFFER_OFFSET(sizeof(F32) * 2));
 
 		// set color attr
+		_kvao->enableAttribute(2);
+		_kvao->setAttribute(2, AttributeCount::COMPONENT_4, AttributeType::UNSIGNED_BYTE,
+							false, sizeof(KGLVertex), KBUFFER_OFFSET(sizeof(F32) * 4));
+
+		// set texture array index attr
 		_kvao->enableAttribute(3);
-		_kvao->setAttribute(3, AttributeCount::COMPONENT_4, AttributeType::FLOAT,
-							false, sizeof(KGLVertex), KBUFFER_OFFSET((sizeof(F32) * 4) + sizeof(U16)));
+		_kvao->setAttribute(3, AttributeCount::COMPONENT_1, AttributeType::UNSIGNED_SHORT,
+							false, sizeof(KGLVertex), KBUFFER_OFFSET((sizeof(F32) * 4) + (sizeof(U8) * 4)));
+
 		_kvboVer->setUpdateHandle(_updateVer);
 
 		// point sprite buffer
@@ -288,23 +326,27 @@ namespace Kite{
 		delete _kvboInd;
 		delete _kvboPnt;
 		delete _kvao;
+		delete _kcullSys;
 		setInite(false);
 	}
 
 	bool KRenderSys::_checkState(KRenderable *Rendeable){
 		U32 textId = 0;
-		if (Rendeable->_katlas) {
-			if (Rendeable->_katlas->isInite()) {
-				textId = Rendeable->_katlas->getGLID();
+		auto tarraye = Rendeable->getATextureArray();
+		if (tarraye) {
+			if (tarraye->isInite()) {
+				textId = tarraye->getGLID();
 			}
 		}
-		if (Rendeable->_ksahder->getGLID() != _klastState.lastShdId ||
+
+		auto shader = Rendeable->getShaderProg();
+		if (shader->getGLID() != _klastState.lastShdId ||
 			Rendeable->getGeoType() != _klastState.lastGeo ||
 			textId != _klastState.lastTexId)
 		{
 			// reset last state
-			_klastState.lastShdId = Rendeable->_ksahder->getGLID();
-			_klastState.lastShdId = Rendeable->_ksahder->getGLID();
+			_klastState.lastShdId = shader->getGLID();
+			_klastState.lastShdId = shader->getGLID();
 			_klastState.lastTexId = textId;
 			_klastState.lastGeo = Rendeable->getGeoType();
 			return false;
@@ -313,33 +355,49 @@ namespace Kite{
 		return true;
 	}
 
-	bool KRenderSys::_initeMaterials(KResourceManager*RMan, KRenderable *Com) {
-		// fetch resources to the component
-		Com->_ksahder = (KShaderProgram *)RMan->get(Com->getShader().str);
+	void KRenderSys::_fillRenderList(KEntityManager *Eman, std::vector<std::pair<KEntity *, KRenderable *>> &Output) {
+		Output.resize(0);
+		// culling is disabled
+		EDITOR_STATIC auto render = Eman->getComponentStorage<KRenderCom>(CTypes::RenderInstance);
 
-		// all renderables must have shader program
-		if (!Com->_ksahder) {
-			return false;
-		}
+		// inite objects list
+		for (auto rit = render->begin(); rit != render->end(); ++rit) {
+			auto ent = Eman->getEntity(rit->getOwnerHandle());
 
-		if (!Com->_ksahder->isInite()) {
-			Com->_ksahder->bindAttribute(KVATTRIB_XY, "in_pos");
-			Com->_ksahder->bindAttribute(KVATTRIB_UV, "in_uv");
-			Com->_ksahder->bindAttribute(KVATTRIB_ARRAYINDEX, "in_tindex");
-			Com->_ksahder->bindAttribute(KVATTRIB_RGBA, "in_col");
+			// catch renderable components
+			if (ent->isActive()) {
+				auto com = ent->getComponent(rit->getRenderable());
+				com->updateRes();
 
-			Com->_ksahder->inite();
-			Com->_ksahder->link();
-		}
-
-		if (!Com->getAtlasTextureArray().str.empty()) {
-			Com->_katlas = (KAtlasTextureArray *)RMan->get(Com->getAtlasTextureArray().str);
-
-			if (Com->_katlas) {
-				Com->_katlas->inite();
+				auto renderable = dynamic_cast<KRenderable *>(com);
+				if (renderable->isVisible() && renderable->getIndexSize() > 0) {
+					Output.push_back({ ent ,renderable });
+				}
 			}
 		}
+	}
 
+	bool KRenderSys::_initeMaterials(KResourceManager*RMan, KRenderable *Com) {
+		// all renderables must have shader program
+		auto shader = Com->getShaderProg();
+		if (!shader) {
+			return false;
+		}
+		
+		if (!shader->isInite()) {
+			shader->bindAttribute(KVATTRIB_XY, "in_pos");
+			shader->bindAttribute(KVATTRIB_UV, "in_uv");
+			shader->bindAttribute(KVATTRIB_RGBA, "in_col");
+			shader->bindAttribute(KVATTRIB_ARRAYINDEX, "in_tindex");
+
+			shader->inite();
+			shader->link();
+		}
+
+		auto tarraye = Com->getATextureArray();
+		if (tarraye) {
+			tarraye->inite();
+		}
 		Com->_kmatNeedUpdate = false;
 		return true;
 	}
@@ -356,38 +414,6 @@ namespace Kite{
 			(*Buffer)[offset + 4] = value + 1;
 			(*Buffer)[offset + 5] = value + 3;
 		}
-	}
-
-	void KRenderSys::_computeCamera(KCameraCom *Camera) {
-		F32 flipy = 1.0f; 
-		if (Camera->_kflipy) flipy = -1.0f;
-		F32 flipx = 1.0f; 
-		if (Camera->_kflipx) flipx = -1.0f;
-		// rotation components
-		F32 angle = Camera->_krotation * KMATH_PIsub180;
-		F32 cosx = (F32)(std::cos(angle));
-		F32 sinx = (F32)(std::sin(angle));
-		//F32 tx = -(_kviewport.right + _kviewport.left) / (_kviewport.right - _kviewport.left);
-		//F32 ty = -(_kviewport.top + _kviewport.bottom) / (_kviewport.top - _kviewport.bottom);
-		F32 tx = -Camera->_kcenter.x * cosx - Camera->_kcenter.y * sinx + Camera->_kcenter.x;
-		F32 ty = Camera->_kcenter.x * sinx - Camera->_kcenter.y * cosx + Camera->_kcenter.y;
-
-		// projection components
-		F32 a = (2.0f * flipx) / (Camera->_ksize.x / Camera->_kzoom);
-		F32 b = (2.0f * flipy) / (Camera->_ksize.y / Camera->_kzoom); // -2.f for microsoft windows coordinate system
-		F32 c = -a * Camera->_kcenter.x;
-		F32 d = -b * Camera->_kcenter.y;
-
-		// rebuild the projection matrix
-		Camera->_kmatrix = KMatrix3(a * cosx, a * sinx, a * tx + c,
-										  -b * sinx, b * cosx, b * ty + d,
-										  0.0f, 0.0f, 1.0f);
-
-		/*_kmatrix = KMatrix3(	a,		0.0f,	tx,
-		0.0f,	b,		ty,
-		0.0f,	0.0f,	1.0f);*/
-
-		Camera->setNeedUpdate(false);
 	}
 
 	void KRenderSys::_computeParentsTransform(KEntityManager *Eman, KEntity *Entity, KMatrix3 *Matrix) {
@@ -420,8 +446,11 @@ namespace Kite{
 		const auto cend = udata->objects.cend();
 		for (auto it = udata->objects.begin(); it != cend; ++it) {
 			U16 vindex = 0;
-
+			
 			memcpy(ver + offset, &(*it)->getVertex()->operator[](0), sizeof(KGLVertex) * (*it)->getVertex()->size());
+			for (SIZE i = 0; i < (*it)->getVertex()->size(); ++i) {
+				(ver + offset)[i].pos = KTransform::transformPoint(udata->matrix[matIndex], (ver + offset)[i].pos);
+			}
 
 			offset += (*it)->getVertex()->size();
 			++matIndex;

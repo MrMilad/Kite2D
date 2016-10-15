@@ -24,7 +24,9 @@ USA
 #include "Kite/serialization/kbinaryserial.h"
 #include "Kite/serialization/types/kstdstring.h"
 #include "Kite/serialization/types/kstdvector.h"
+#include "Kite/serialization/types/kstdpair.h"
 #include <luaintf/LuaIntf.h>
+#include <assert.h>
 
 namespace Kite {
 	KOrthogonalMap::KOrthogonalMap(const std::string &Name) :
@@ -35,8 +37,8 @@ namespace Kite {
 		_ktileheight(1),
 		_ktotalWidthPixels(0),
 		_ktotalHeightPixels(0),
-		_ktotalStack(0),
-		_ktileSet(nullptr)
+		_ktileSet(nullptr),
+		_ktilesetStamp(0, 0, 1, 1)
 	{
 		_krootList.reserve(KORTHO_MAP_SIZE);
 		_knodeList.reserve(KORTHO_STACK_SIZE);
@@ -50,7 +52,11 @@ namespace Kite {
 	void KOrthogonalMap::create(U32 Width, U32 Height, U32 TileWidth, U32 TileHeight) {
 		_krootList.clear();
 		_knodeList.clear();
-		_kfreeNodeList.clear();
+		_klayerNames.clear();
+		
+		if (_ktileSet) {
+			_ktilesetStamp.resetSize(_ktileSet->getTextureWidth(), _ktileSet->getTextureHeight(), TileWidth, TileHeight);
+		}
 
 		_kwidth = Width;
 		_kheight = Height;
@@ -58,147 +64,272 @@ namespace Kite {
 		_ktileheight = TileHeight;
 		_ktotalWidthPixels = _kwidth * _ktilewidth;
 		_ktotalHeightPixels = _kheight * _ktileheight;
-		_ktotalStack = 0;
 
 		_krootList.resize(Width * Height);
 	}
 
-	bool KOrthogonalMap::setTile(U32 TileID, const KAtlasItem &Texture, U16 LayerIndex, U16 TextureIndex, const KColor &Tint) {
+	void KOrthogonalMap::setTileset(KAtlasTextureArray *Tileset) {
+		_ktileSet = Tileset;
+
+		if (_ktileSet) {
+			_ktilesetStamp.resetSize(_ktileSet->getTextureWidth(), _ktileSet->getTextureHeight(), _ktilewidth, _ktileheight);
+		} else {
+			_ktilesetStamp.resetSize(0, 0, 1, 1);
+		}
+	}
+
+	void KOrthogonalMap::setTileLayer(U32 TileID, U16 LayerIndex, const KOrthoLayer &Layer) {
+		// check range
+		if (TileID >= _krootList.size()) {
+			KD_PRINT("tile id is out of range or tile map is not created yet");
+			return;
+		}
+
+		// find layer if it is already exist otherwise create it
+		KOrthoNode &nodeRef = insertNode(TileID, LayerIndex);
+
+		// reset node with new values
+		initeNode(nodeRef, TileID, Layer);
+	}
+
+	void KOrthogonalMap::setTilesLayer(U32 TileID, U16 LayerIndex, const std::vector<KTileStamp> &Stamp, const KOrthoLayer &Layer) {
+		auto anchRow = getTileRow(TileID);
+		auto anchCol = getTileColumn(TileID);
+		for (auto it = Stamp.begin(); it != Stamp.end(); ++it) {
+			if ((anchRow + it->row) < _kheight && (anchCol + it->col) < _kwidth) {
+				// calculate id
+				auto id = ((anchRow + it->row) * _kwidth) + (anchCol + it->col);
+				setTileLayer(id, LayerIndex, Layer);
+			}
+		}
+	}
+
+	void KOrthogonalMap::swapTileLayer(U32 TileID, U16 Layer1, U16 Layer2) {
+		// check range
+		if (TileID >= _krootList.size()) {
+			KD_PRINT("tile id is out of range or tile map is not created yet");
+			return;
+		}
+
+		if (Layer1 == Layer2) return;
+
+		// layer 1
+		KOrthoLayer layer1;
+		bool l1 = getTileLayer(TileID, Layer1, layer1);
+		removeTileLayer(TileID, Layer1);
+
+		// layer 2
+		KOrthoLayer layer2;
+		bool l2 = getTileLayer(TileID, Layer2, layer2);
+		removeTileLayer(TileID, Layer2);
+
+		if (l1) {
+			setTileLayer(TileID, Layer2, layer1);
+		}
+
+		if (l2) {
+			setTileLayer(TileID, Layer1, layer2);
+		}
+
+#if defined(KITE_EDITOR)
+		setScenePtr(TileID, Layer1, layer2.sceneItem);
+		setScenePtr(TileID, Layer2, layer1.sceneItem);
+#endif
+
+	}
+
+	void KOrthogonalMap::removeTileLayer(U32 TileID, U16 LayerIndex) {
+		// check range
+		if (TileID >= _krootList.size()) {
+			KD_PRINT("tile id is out of range or tile map is not created yet");
+			return;
+		}
+
+		// empty tile (there is no layer)
+		if (_krootList[TileID].layerSize == 0) return;
+
+		// iterate over layers
+		SIZE nodeIndex = _krootList[TileID].firstNode;
+		SIZE prevNode = nodeIndex;
+		for (U16 i = 0; i < _krootList[TileID].layerSize; ++i) {
+			// layer not found
+			if (_knodeList[nodeIndex].layerIndex > LayerIndex) break;
+
+			// layer found
+			if (_knodeList[nodeIndex].layerIndex == LayerIndex) {
+
+				// first node 
+				if (i == 0) {
+					_krootList[TileID].firstNode = _knodeList[nodeIndex].nextNode;
+
+				} else {
+					_knodeList[prevNode].nextNode = _knodeList[nodeIndex].nextNode;
+				}
+
+				--_krootList[TileID].layerSize;
+
+				// swap and remove methode
+				moveNode(_knodeList.back(), nodeIndex);
+				_knodeList.pop_back();
+				break;
+			}
+
+			// store current node
+			prevNode = nodeIndex;
+
+			// move to next node
+			nodeIndex = _knodeList[nodeIndex].nextNode;
+		}
+	}
+
+	void KOrthogonalMap::removeTilesLayer(U32 TileID, U16 LayerIndex, const std::vector<KTileStamp> &Stamp) {
+		auto anchRow = getTileRow(TileID);
+		auto anchCol = getTileColumn(TileID);
+		for (auto it = Stamp.begin(); it != Stamp.end(); ++it) {
+			if ((anchRow + it->row) < _kheight && (anchCol + it->col) < _kwidth) {
+				// calculate id
+				auto id = ((anchRow + it->row) * _kwidth) + (anchCol + it->col);
+				removeTileLayer(id, LayerIndex);
+			}
+		}
+	}
+
+	void KOrthogonalMap::removeTileLayers(U32 TileID) {
+		// check range
+		if (TileID >= _krootList.size()) {
+			KD_PRINT("tile id is out of range or tile map is not created yet");
+			return;
+		}
+
+		// iterate over nodes and remove them
+		auto tempSize = _krootList[TileID].layerSize;
+		for (SIZE i = 0; i < tempSize; ++i) {
+			--_krootList[TileID].layerSize;
+			// swap and remove methode
+			// swap removed node with last node in the list
+			moveNode(_knodeList.back(), _krootList[TileID].firstNode);
+			_knodeList.pop_back();
+
+			// move first pointer to next node
+			_krootList[TileID].firstNode = _knodeList[_krootList[TileID].firstNode].nextNode;
+		}
+
+		// cleanup root
+		_krootList[TileID].firstNode = 0;
+	}
+
+	void KOrthogonalMap::swapMapLayer(U16 Layer1, U16 Layer2) {
+		for (SIZE i = 0; i < _krootList.size(); ++i) {
+			swapTileLayer(i, Layer1, Layer2);
+		}
+
+		auto name1 = getMapLayerName(Layer1);
+		auto name2 = getMapLayerName(Layer2);
+
+		setMapLayerName(Layer1, name2);
+		setMapLayerName(Layer2, name1);
+	}
+
+	void KOrthogonalMap::removeMapLayer(U16 LayerIndex) {
+		for (SIZE i = 0; i < _krootList.size(); ++i) {
+			// remove layer
+			removeTileLayer(i, LayerIndex);
+		}
+	}
+
+	void KOrthogonalMap::setMapLayerName(U16 LayerIndex, const std::string &Name) {
+		// linear search
+		for (auto it = _klayerNames.begin(); it != _klayerNames.end(); ++it) {
+			if (it->first == LayerIndex) {
+				it->second = Name;
+				return;
+			}
+		}
+
+		// add to vector
+		_klayerNames.push_back({ LayerIndex, Name });
+	}
+
+	const std::string &KOrthogonalMap::getMapLayerName(U16 LayerIndex) {
+		// linear search
+		for (auto it = _klayerNames.begin(); it != _klayerNames.end(); ++it) {
+			if (it->first == LayerIndex) {
+				return it->second;
+			}
+		}
+
+		// add to vector
+		_klayerNames.push_back({ LayerIndex, "" });
+		return _klayerNames.back().second;
+	}
+
+	bool KOrthogonalMap::getTileLayer(U32 TileID, U16 LayerIndex, KOrthoLayer &Output) {
 		// check range
 		if (TileID >= _krootList.size()) {
 			KD_PRINT("tile id is out of range or tile map is not created yet");
 			return false;
 		}
 
-		// check layer
-		if (_krootList[TileID].size <= LayerIndex) return false;
-
-		// iterate over nodes for findig given layer index
-		SIZE nodeIndex = _krootList[TileID].firstIndex;
-		for (SIZE i = 0; i < LayerIndex; ++i) {
-			nodeIndex = _knodeList[nodeIndex].nextIndex;
-		}
-
-		// set node at the given layer index
-		initeNode(_knodeList[nodeIndex], TileID, Texture, TextureIndex, Tint);
-		return true;
-	}
-
-	void KOrthogonalMap::pushTile(U32 TileID, const KAtlasItem &Texture, U16 TextureIndex, const KColor &Tint) {
-		// check range
-		if (TileID >= _krootList.size()) {
-			KD_PRINT("tile id is out of range or tile map is not created yet");
-			return;
-		}
-
-		// create a new node
-		// there is enough capacity in node list so we use it
-		SIZE nodeIndex = 0;
-		if (_knodeList.size() < _knodeList.capacity()) {
-			KOrthoTileNode node;
-			initeNode(node, TileID, Texture, TextureIndex, Tint);
-			_knodeList.push_back(node);
-			nodeIndex = _knodeList.size() - 1;
-
-
-			// recycle node from free list if any
-		} else if (!_kfreeNodeList.empty()) {
-			nodeIndex = _kfreeNodeList.back();
-			_kfreeNodeList.pop_back();
-			initeNode(_knodeList[nodeIndex], TileID, Texture, TextureIndex, Tint);
-
-			// node list is full and we have to push new node to it (new allocation)
-		} else {
-			KOrthoTileNode node;
-			initeNode(node, TileID, Texture, TextureIndex, Tint);
-			_knodeList.push_back(node);
-			nodeIndex = _knodeList.size() - 1;
-		}
-
-		// add new node to map
-		// empty root
-		if (_krootList[TileID].size == 0) {
-			_krootList[TileID].firstIndex = nodeIndex;
-			_krootList[TileID].lastIndex = nodeIndex;
-
-			// link to last node
-		} else {
-			_knodeList[_krootList[TileID].lastIndex].nextIndex = nodeIndex;
-			_krootList[TileID].lastIndex = nodeIndex;
-		}
-
-		++_krootList[TileID].size;
-		++_ktotalStack;
-	}
-
-	void KOrthogonalMap::pushTileStamp(U32 TileID, const std::vector<KTileStamp> &Stamp, U16 TextureIndex, const KColor &Tint) {
-		auto anchRow = getTileRow(TileID);
-		auto anchCol = getTileColumn(TileID);
-		for (auto it = Stamp.begin(); it != Stamp.end(); ++it) {
-			if ((anchRow + it->row) < _kheight && (anchCol + it->col) < _kwidth){
-				// calculate id and push 
-				auto id = ((anchRow + it->row) * _kwidth) + (anchCol + it->col);
-				pushTile(id, it->atlas, TextureIndex, Tint);
+		// iterate over nodes
+		SIZE nodeIndex = _krootList[TileID].firstNode;
+		for (SIZE i = 0; i < _krootList[TileID].layerSize; ++i) {
+			// layer found
+			if (_knodeList[nodeIndex].layerIndex == LayerIndex) {
+				initeLayer(_knodeList[nodeIndex], Output);
+				return true;
 			}
+
+			// layer not found
+			if (_knodeList[nodeIndex].layerIndex > LayerIndex) break;
+
+			// move to next node
+			nodeIndex = _knodeList[nodeIndex].nextNode;
 		}
+		return false;
 	}
 
-	void KOrthogonalMap::pushLayer(const KAtlasItem &Texture, U16 TextureIndex, const KColor &Tint) {
-		for (SIZE i = 0; i < _krootList.size(); ++i) {
-			pushTile(i, Texture, TextureIndex, Tint);
-		}
-	}
-
-	void KOrthogonalMap::popTile(U32 TileID) {
+	void KOrthogonalMap::getTileLayers(U32 TileID, std::vector<KOrthoLayer> &Output) {
+		Output.clear();
 		// check range
 		if (TileID >= _krootList.size()) {
 			KD_PRINT("tile id is out of range or tile map is not created yet");
 			return;
 		}
+		Output.reserve(_krootList[TileID].layerSize);
 
-		if (_krootList[TileID].size > 0) {
-			// move last index to free list and decerase the size
-			_kfreeNodeList.push_back(_krootList[TileID].lastIndex);
-			--_krootList[TileID].size;
-			--_ktotalStack;
-			return;
+		U32 tindex = _krootList[TileID].firstNode;
+		auto dim = getTileDimension(TileID);
+		for (SIZE ncounter = 0; ncounter < _krootList[TileID].layerSize; ++ncounter) {
+			Output.push_back(KOrthoLayer());
+			initeLayer(_knodeList[tindex], Output.back());
+			tindex = _knodeList[tindex].nextNode;
 		}
-
-		KD_FPRINT("this tile is empty. tid: %u", TileID);
 	}
 
-	void KOrthogonalMap::popTileStamp(U32 TileID, const std::vector<KTileStamp> &Stamp) {
+	void KOrthogonalMap::getTilesLayer(U32 TileID, U16 LayerIndex, const std::vector<KTileStamp> &Stamp, std::vector<KOrthoLayer> &Output) {
+		Output.clear();
 		auto anchRow = getTileRow(TileID);
 		auto anchCol = getTileColumn(TileID);
 		for (auto it = Stamp.begin(); it != Stamp.end(); ++it) {
 			if ((anchRow + it->row) < _kheight && (anchCol + it->col) < _kwidth) {
-				// calculate id and push 
+				// calculate id
 				auto id = ((anchRow + it->row) * _kwidth) + (anchCol + it->col);
-				popTile(id);
+				KOrthoLayer layer;
+				if (getTileLayer(id, LayerIndex, layer)) {
+					Output.push_back(layer);
+				}
 			}
 		}
 	}
 
-	void KOrthogonalMap::clearTile(U32 TileID) {
+	SIZE KOrthogonalMap::getTileLayerSize(U32 TileID) {
 		// check range
 		if (TileID >= _krootList.size()) {
 			KD_PRINT("tile id is out of range or tile map is not created yet");
-			return;
+			return 0;
 		}
 
-		// iterate over nodes and move them to free list
-		_ktotalStack -= _krootList[TileID].size;
-		for (SIZE i = 0; i < _krootList[TileID].size; ++i) {
-
-			// push first node to free list
-			_kfreeNodeList.push_back(_krootList[TileID].firstIndex);
-
-			// move first pointer to next node
-			_krootList[TileID].firstIndex = _knodeList[_krootList[TileID].firstIndex].nextIndex;
-		}
-
-		_krootList[TileID].firstIndex = 0;
-		_krootList[TileID].size = 0;
+		return _krootList[TileID].layerSize;
 	}
 
 	bool KOrthogonalMap::getTileID(const KVector2F32 &Position, U32 &Output) {
@@ -228,6 +359,30 @@ namespace Kite {
 		
 		return (crow * _kwidth) + col;
 	}
+
+	void KOrthogonalMap::setScenePtr(U32 TileID, U16 LayerIndex, void *Pointer) {
+		// check range
+		if (TileID >= _krootList.size()) {
+			KD_PRINT("tile id is out of range or tile map is not created yet");
+			return;
+		}
+
+		// iterate over nodes
+		SIZE nodeIndex = _krootList[TileID].firstNode;
+		for (SIZE i = 0; i < _krootList[TileID].layerSize; ++i) {
+			// layer found
+			if (_knodeList[nodeIndex].layerIndex == LayerIndex) {
+				_knodeList[nodeIndex].sceneItem = Pointer;
+				return;
+			}
+
+			// layer not found
+			if (_knodeList[nodeIndex].layerIndex > LayerIndex) break;
+
+			// move to next node
+			nodeIndex = _knodeList[nodeIndex].nextNode;
+		}
+	}
 #endif
 
 	KRectF32 KOrthogonalMap::getTileDimension(U32 TileID) {
@@ -254,35 +409,6 @@ namespace Kite {
 		return TileID % _kwidth;
 	}
 
-	SIZE KOrthogonalMap::getTileSize(U32 TileID) {
-		// check range
-		if (TileID >= _krootList.size()) {
-			KD_PRINT("tile id is out of range or tile map is not created yet");
-			return 0;
-		}
-
-		return _krootList[TileID].size;
-	}
-
-	void KOrthogonalMap::queryTiles(U32 TileID, std::vector<KOrthoTile> &Output) {
-		Output.clear();
-		Output.reserve(_krootList[TileID].size);
-
-		U32 tindex = _krootList[TileID].firstIndex;
-		auto dim = getTileDimension(TileID);
-		for (SIZE ncounter = 0; ncounter < _krootList[TileID].size; ++ncounter) {
-			Output.push_back(KOrthoTile());
-			Output.back().tint = KColor(_knodeList[tindex].verts[0].r, _knodeList[tindex].verts[0].g,
-							   _knodeList[tindex].verts[0].b, _knodeList[tindex].verts[0].a);
-
-			Output.back().atlas = *_ktileSet->getItem(_knodeList[tindex].verts[0].tindex)->getItem(_knodeList[tindex].atlasID);
-			Output.back().textureIndex = _knodeList[tindex].verts[0].tindex;
-
-			tindex = _knodeList[tindex].nextIndex;
-		}
-	}
-
-
 	void KOrthogonalMap::queryTilesVertex(const KRectF32 &Area, std::vector<KGLVertex> &Output) {
 		Output.clear();
 		KRectF32 cullArea = Area;
@@ -292,6 +418,8 @@ namespace Kite {
 		if (cullArea.bottom > cullArea.top) return;
 		if (cullArea.left > _ktotalWidthPixels) return;
 		if (cullArea.bottom > _ktotalHeightPixels) return;
+		if (cullArea.top < 0) return;
+		if (cullArea.right < 0) return;
 
 		// caliboration area
 		if (cullArea.bottom < 0) cullArea.bottom = 0;
@@ -313,10 +441,10 @@ namespace Kite {
 
 		// iterate over tiles and extract their vertex data
 		for (U32 i = blID; i <= trID; i) {
-			U32 tindex = _krootList[i].firstIndex;
-			for (SIZE ncounter = 0; ncounter < _krootList[i].size; ++ncounter) {
+			U32 tindex = _krootList[i].firstNode;
+			for (SIZE ncounter = 0; ncounter < _krootList[i].layerSize; ++ncounter) {
 				Output.insert(Output.end(), _knodeList[tindex].verts, _knodeList[tindex].verts + 4);
-				tindex = _knodeList[tindex].nextIndex;
+				tindex = _knodeList[tindex].nextNode;
 			}
 
 			// check lenght
@@ -330,11 +458,37 @@ namespace Kite {
 		}
 	}
 
-	void KOrthogonalMap::initeNode(KOrthoTileNode &Node, U32 ID, const KAtlasItem &UV, U16 TIndex, const KColor &Col) {
-		KRectF32 dim = getTileDimension(ID);
+	void KOrthogonalMap::moveNode(KOrthoNode &Node, SIZE NewIndex) {
+		// iterate over nodes and change indexes
+		SIZE nodeIndex = _krootList[Node.tileID].firstNode;
+		SIZE prevNode = 0;
+		for (U16 i = 0; i < _krootList[Node.tileID].layerSize; ++i) {
 
-		Node.atlasID = UV.id;
-		
+			if (_knodeList[nodeIndex].layerIndex == Node.layerIndex) {
+				// first node
+				if (i == 0) {
+					_krootList[Node.tileID].firstNode = NewIndex;
+
+				} else {
+					_knodeList[prevNode].nextNode = NewIndex;
+				}
+			}
+
+			prevNode = nodeIndex;
+			nodeIndex = _knodeList[nodeIndex].nextNode;
+		}
+
+		// mve node values
+		_knodeList[NewIndex] = Node;
+	}
+
+	void KOrthogonalMap::initeNode(KOrthoNode &Node, U32 TileID, const KOrthoLayer &Layer) {
+		Node.tileID = TileID;
+		Node.atlasID = Layer.atlas.id;
+		Node.fliph = Layer.atlas.getFlipH();
+		Node.flipv = Layer.atlas.getFlipV();
+
+		KRectF32 dim = getTileDimension(TileID);
 		Node.verts[0].pos.x = dim.left;
 		Node.verts[0].pos.y = dim.bottom;
 		Node.verts[1].pos.x = dim.left;
@@ -344,17 +498,82 @@ namespace Kite {
 		Node.verts[3].pos.x = dim.right;
 		Node.verts[3].pos.y = dim.top;
 
-		Node.verts[0].tindex = Node.verts[1].tindex = Node.verts[2].tindex = Node.verts[3].tindex = TIndex;
+		Node.verts[0].r = Node.verts[1].r = Node.verts[2].r = Node.verts[3].r = Layer.blend.getR();
+		Node.verts[0].g = Node.verts[1].g = Node.verts[2].g = Node.verts[3].g = Layer.blend.getG();
+		Node.verts[0].b = Node.verts[1].b = Node.verts[2].b = Node.verts[3].b = Layer.blend.getB();
+		Node.verts[0].a = Node.verts[1].a = Node.verts[2].a = Node.verts[3].a = Layer.blend.getA();
 
-		Node.verts[0].r = Node.verts[1].r = Node.verts[2].r = Node.verts[3].r = Col.getGLR();
-		Node.verts[0].g = Node.verts[1].g = Node.verts[2].g = Node.verts[3].g = Col.getGLG();
-		Node.verts[0].b = Node.verts[1].b = Node.verts[2].b = Node.verts[3].b = Col.getGLB();
-		Node.verts[0].a = Node.verts[1].a = Node.verts[2].a = Node.verts[3].a = Col.getGLA();
+		Node.verts[0].tindex = Node.verts[1].tindex = Node.verts[2].tindex = Node.verts[3].tindex = Layer.textureID;
+		Node.verts[1].uv = KVector2F32(Layer.atlas.blu, Layer.atlas.blv);
+		Node.verts[0].uv = KVector2F32(Layer.atlas.blu, Layer.atlas.trv);
+		Node.verts[3].uv = KVector2F32(Layer.atlas.tru, Layer.atlas.blv);
+		Node.verts[2].uv = KVector2F32(Layer.atlas.tru, Layer.atlas.trv);
+	}
 
-		Node.verts[1].uv = KVector2F32(UV.blu, UV.blv);
-		Node.verts[0].uv = KVector2F32(UV.blu, UV.trv);
-		Node.verts[3].uv = KVector2F32(UV.tru, UV.blv);
-		Node.verts[2].uv = KVector2F32(UV.tru, UV.trv);
+	void KOrthogonalMap::initeLayer(const KOrthoNode &Node, KOrthoLayer &Layer) {
+		Layer.textureID = Node.verts[0].tindex;
+		Layer.blend = KColor(Node.verts[0].r, Node.verts[0].g, Node.verts[0].b, Node.verts[0].a);
+		Layer.atlas = _ktilesetStamp.getStamp(Node.atlasID).atlas;
+		Layer.layerIndex = Node.layerIndex;
+
+		if (Node.fliph) Layer.atlas.flipH();
+		if (Node.flipv) Layer.atlas.flipV();
+
+#if defined(KITE_EDITOR)
+		Layer.sceneItem = Node.sceneItem;
+#endif
+	}
+
+	KOrthoNode &KOrthogonalMap::insertNode(U32 TileID, U16 LayerIndex){
+		// iterate over nodes for findig given layer index
+		SIZE nodeIndex = _krootList[TileID].firstNode;
+		SIZE prevNode = nodeIndex;
+		bool found = false;
+		U16 i = 0;
+		for (i; i < _krootList[TileID].layerSize; ++i) {
+			// layer found
+			if (_knodeList[nodeIndex].layerIndex == LayerIndex) {
+				found = true;
+				break;
+			}
+
+			// layer not found
+			if (_knodeList[nodeIndex].layerIndex > LayerIndex) {
+				break;
+			}
+
+			// store current node
+			prevNode = nodeIndex;
+
+			// move to next node
+			nodeIndex = _knodeList[nodeIndex].nextNode;
+		}
+
+		// layer not found, so we create it
+		if (!found) {
+			KOrthoNode node;
+			node.layerIndex = LayerIndex;
+			nodeIndex = _knodeList.size();
+
+			// its first node in the root list
+			if (i == 0) {
+				node.nextNode = _krootList[TileID].firstNode;
+				_krootList[TileID].firstNode = nodeIndex;
+
+			// its not first node in the root list
+			} else {
+				node.nextNode = _knodeList[prevNode].nextNode;
+				_knodeList[prevNode].nextNode = nodeIndex;
+			}
+
+			// add node to node list
+			_knodeList.push_back(node);
+
+			// update root stats
+			++_krootList[TileID].layerSize;
+		}
+
+		return _knodeList[nodeIndex];
 	}
 
 	bool KOrthogonalMap::_saveStream(KOStream &Stream, const std::string &Address) {
@@ -368,10 +587,10 @@ namespace Kite {
 		bserial << _ktileheight;
 		bserial << _ktotalWidthPixels;
 		bserial << _ktotalHeightPixels;
-		bserial << _ktotalStack;
 		bserial << _krootList;
 		bserial << _knodeList;
-		bserial << _kfreeNodeList;
+		bserial << _ktilesetStamp;
+		bserial << _klayerNames;
 
 		if (!bserial.saveStream(Stream, Address, 0)) {
 			KD_PRINT("can't save stream.");
@@ -420,10 +639,10 @@ namespace Kite {
 		bserial >> _ktileheight;
 		bserial >> _ktotalWidthPixels;
 		bserial >> _ktotalHeightPixels;
-		bserial >> _ktotalStack;
 		bserial >> _krootList;
 		bserial >> _knodeList;
-		bserial >> _kfreeNodeList;
+		bserial >> _ktilesetStamp;
+		bserial >> _klayerNames;
 
 		// load composite resources (texture)
 		auto slist = getCompositeList();

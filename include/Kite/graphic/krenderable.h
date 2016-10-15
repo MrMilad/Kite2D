@@ -33,9 +33,7 @@ namespace Kite{
 		friend class KGCullingSys;
 	public:
 		KRenderable() :
-			_kmatNeedUpdate(true),
-			_ksahder(nullptr),
-			_katlas(nullptr)
+			_kmatNeedUpdate(true)
 		{}
 
 	protected:
@@ -44,8 +42,8 @@ namespace Kite{
 		virtual const U32 getIndexSize() const = 0;
 		virtual const std::vector<KPointSprite> *getPoint() const = 0;
 
-		virtual const KStringID &getShader() const = 0;
-		virtual const KStringID &getAtlasTextureArray() const = 0;
+		virtual KShaderProgram *getShaderProg() const = 0;
+		virtual KAtlasTextureArray *getATextureArray() const = 0;
 
 		virtual GLPrimitive getGeoType() const = 0;
 		virtual bool isVisible() const = 0;
@@ -54,10 +52,9 @@ namespace Kite{
 
 		inline bool getMatNeedUpdate() const { return _kmatNeedUpdate; }
 		inline void matNeedUpdate() { _kmatNeedUpdate = true; }
+
 	private:
 		bool _kmatNeedUpdate;
-		KShaderProgram *_ksahder;
-		KAtlasTextureArray *_katlas;
     };
 }
 

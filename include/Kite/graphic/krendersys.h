@@ -28,9 +28,9 @@
 #include <vector>
 #include "krendersys.khgen.h"
 
-#define KRENDER_VBUFF_SIZE 40000	// item (KGLVertext)
-#define KRENDER_IBUFF_SIZE 60000	// item (U16)
-#define KRENDER_BUFF_SIZE 10000		// item (KRenderable)
+//#define KRENDER_VBUFF_SIZE 40000	// item (KGLVertext)
+//#define KRENDER_IBUFF_SIZE 60000	// item (U16)
+//#define KRENDER_BUFF_SIZE 10000		// item (KRenderable)
 #define KRENDER_CAMERA_SIZE 10		// item (size of pre-defined camera)
 
 KMETA
@@ -39,6 +39,8 @@ namespace Kite{
 	class KRenderable;
 	class KRenderCom;
 	class KShaderProgram;
+	class KGCullingSys;
+
 	KM_CLASS(SYSTEM)
 	class KITE_FUNC_EXPORT KRenderSys : public KSystem{
 		KMETA_KRENDERSYS_BODY();
@@ -50,10 +52,10 @@ namespace Kite{
 		void destroy() override;
 
 	private:
+		void _fillRenderList(KEntityManager *Eman, std::vector<std::pair<KEntity *, KRenderable *>> &Output);
 		bool _initeMaterials(KResourceManager*RMan, KRenderable *Com);
 		bool _checkState(KRenderable *Rendeable);
 		void _initeQuadIndex(std::vector<U16> *Buffer);
-		void _computeCamera(KCameraCom *Camera);
 		void _computeParentsTransform(KEntityManager *Eman, KEntity *Entity, KMatrix3 *Matrix);
 		//void _draw(const std::vector<const KBatchObject *> &Objects, U32 VSize, U32 ISize, const KBatchUpdate &Update);
 		//static void _updateInd(void *Data, U32 Offset, U32 DataSize, void *Sender);
@@ -64,8 +66,11 @@ namespace Kite{
 		KVertexBuffer *_kvboInd;		/// index
 		KVertexBuffer *_kvboVer;		/// xy (position)
 		KVertexBuffer *_kvboPnt;		/// point sprite: point size and texture size (usage: Particle)
+		KRenderState _kconfig;
 
 		Internal::KGLState _klastState;
+
+		KGCullingSys *_kcullSys;
 
 		struct updateData {
 			std::vector<KRenderable *> objects;

@@ -22,8 +22,7 @@ INCLUDEPATH += F:/KEngineLab/Lab/CMakeBase/include/KiteMeta
 
 win32:LIBS += opengl32.lib
 win32:LIBS += F:/KEngineLab/Lab/CMakeBase/extlibs/lib-vc/win32/lua.lib
-win32:LIBS += F:/KEngineLab/Lab/CMakeBase/extlibs/lib-vc/win32/SDL2.lib
-win32:LIBS += F:/KEngineLab/Lab/CMakeBase/extlibs/lib-vc/win32/SDL2main.lib
+win32:LIBS += F:/KEngineLab/Lab/CMakeBase/extlibs/lib-vc/win32/sdl2.lib
 win32:LIBS += C:/Users/_M1L4D_/Desktop/cmtest/lib/debug/Kite2Dd.lib
 
 SOURCES += main.cpp\
@@ -58,7 +57,8 @@ SOURCES += main.cpp\
     frmnewtexarray.cpp \
     texturearrayeditor.cpp \
     frmnewatlas.cpp\
-    atlaseditor.cpp
+    atlaseditor.cpp\
+    objectscene.cpp
 
 HEADERS  += mainwindow.h \
     shared.h \
@@ -93,7 +93,8 @@ HEADERS  += mainwindow.h \
     frmnewmap.h \
     frmnewtexarray.h \
     texturearrayeditor.h \
-    frmnewatlas.h
+    frmnewatlas.h\
+    objectscene.h\
 
 RESOURCES += \
     res.qrc

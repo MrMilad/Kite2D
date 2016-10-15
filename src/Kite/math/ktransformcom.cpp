@@ -18,6 +18,7 @@
     USA
 */
 #include "Kite/math/ktransformcom.h"
+#include "Kite/math/kmathdef.h"
 #include "Kite/meta/kmetamanager.h"
 #include "Kite/meta/kmetaclass.h"
 #include "Kite/meta/kmetatypes.h"
@@ -27,23 +28,25 @@
 
 namespace Kite{
 	KTransformCom::KTransformCom(const std::string &Name) :
-		KComponent(Name)
-	{
-		_kposition = KVector2F32(0.0f, 0.0f);
-		_krotation = 0.0f;
-		_kscale = KVector2F32(1.0f, 1.0f);
-		_kskew = KVector2F32(0.0f, 0.0f);
-		_kcenter = KVector2F32(0.0f, 0.0f);
-		setNeedUpdate(true);
-	}
+		KComponent(Name),
+		_kcompute(true),
+		_kposition(0.0f, 0.0f),
+		_krotation(0.0f),
+		_kratioIndex(-1),
+		_kscale(1.0f, 1.0f),
+		_kskew(0.0f, 0.0f),
+		_kcenter(0.0f, 0.0f)
+		{}
 
 	void KTransformCom::attached(KEntity *Entity) {}
 
 	void KTransformCom::deattached(KEntity *Entity) {}
 
     void KTransformCom::setPosition(const KVector2F32& Position){
-        _kposition = Position;
-		setNeedUpdate(true);
+		if (_kposition != Position) {
+			_kposition = Position;
+			_kcompute = true;
+		}
     }
 
 	RecieveTypes KTransformCom::onMessage(KMessage *Message, MessageScope Scope) {
@@ -53,25 +56,55 @@ namespace Kite{
     void KTransformCom::setRotation(F32 Angle){
 		if (Angle > 360.000f || Angle < -360.000f)
 			Angle = (F32)fmod(Angle, 360);
-        _krotation = Angle;
-		setNeedUpdate(true);
+
+		if (_krotation != Angle) {
+			_krotation = Angle;
+			_kcompute = true;
+		}
     }
 
     void KTransformCom::setScale(const KVector2F32 &Scale){
-        _kscale = Scale;
-		setNeedUpdate(true);
+		if (_kscale != Scale) {
+			_kscale = Scale;
+			_kcompute = true;
+		}
     }
 
 	void KTransformCom::setSkew(const KVector2F32 &Skew){
 		_kskew.x = (fmod(Skew.x, 180) == 90) ? 0 : Skew.x;
 		_kskew.y = (fmod(Skew.y, 180) == 90) ? 0 : Skew.y;
-		setNeedUpdate(true);
+		_kcompute = true;
 	}
 
     void KTransformCom::setCenter(const KVector2F32 &Center){
-        _kcenter = Center;
-		setNeedUpdate(true);
+		if (_kcenter != Center) {
+			_kcenter = Center;
+			_kcompute = true;
+		}
     }
+
+	void KTransformCom::computeMatrix() {
+		if (_kcompute) {
+			F32 angle = -_krotation * KMATH_PIsub180; // 3.14 \ 180;
+			F32 skewX = _kskew.x * KMATH_PIsub180;
+			F32 skewY = _kskew.y * KMATH_PIsub180;
+			F32 cosine = (float)(std::cos(angle));
+			F32 sine = (float)(std::sin(angle));
+			F32 tanX = (float)(std::tan(skewX));
+			F32 tanY = (float)(std::tan(skewY));
+			F32 sxc = _kscale.x * cosine;
+			F32 syc = _kscale.y * cosine;
+			F32 sxs = _kscale.x * sine + tanX;
+			F32 sys = _kscale.y * sine + tanY;
+			F32 tx = -_kcenter.x * sxc - _kcenter.y * sys + _kposition.x;
+			F32 ty = _kcenter.x * sxs - _kcenter.y * syc + _kposition.y;
+
+			_kmatrix = KMatrix3(sxc, sys, tx,
+										   -sxs, syc, ty,
+										   0.f, 0.f, 1.f);
+			_kcompute = false;
+		}
+	}
 
 	KMETA_KTRANSFORMCOM_SOURCE();
 }

@@ -37,18 +37,28 @@ void GLSLEditor::inite() {
 			editor->setPlainText("#version 330\n"
 								 "attribute vec2 in_pos;\n"
 								 "attribute vec2 in_uv;\n"
-								 "attribute vec4 in_col;\n"
+								 "attribute uvec4 in_col;\n"
+								 "attribute uint in_tindex;\n\n"
+								 "flat out uint ex_tindex;\n"
 								 "out vec4 ex_col;\n"
-								 "out vec2 ex_uv;\n"
-								 "void main(void) {\n\t\n}");
+								 "out vec2 ex_uv;\n\n"
+								 "void main(void) {\n"
+								 "\tgl_Position = vec4(in_pos, 0.0, 1.0);\n"
+								 "\tex_uv = in_uv;\n"
+								 "\tex_col = vec4(in_col.x / 255.0, in_col.y / 255.0, in_col.z / 255.0, in_col.w / 255.0);\n"
+								 "\tex_tindex = in_tindex;\n"
+								 "}\n");
 
 		} else if (shader->getShaderType() == Kite::ShaderType::FRAGMENT) {
 			editor->setPlainText("#version 330\n"
 								 "in vec4 ex_col;\n"
 								 "in vec2 ex_uv;\n"
-								 "uniform sampler2D in_texture;\n"
+								 "flat in uint ex_tindex;\n"
+								 "uniform sampler2DArray in_texture;\n\n"
 								 "out vec4 out_col;\n"
-								 "void main(void) {\n\t\n}");
+								 "void main(void) {\n"
+								 "\tout_col = texture(in_texture, vec3(ex_uv, ex_tindex), 0) * ex_col;\n"
+								 "}\n");
 		}
 	} else {
 		editor->appendPlainText(shader->getCode().c_str());
@@ -68,27 +78,7 @@ bool GLSLEditor::saveChanges() {
 }
 
 void GLSLEditor::reload() {
-	if (shader->getCode().empty()) {
-		if (shader->getShaderType() == Kite::ShaderType::VERTEX) {
-			editor->setPlainText("#version 330\n"
-								 "attribute vec2 in_pos;\n"
-								 "attribute vec2 in_uv;\n"
-								 "attribute vec4 in_col;\n"
-								 "out vec4 ex_col;\n"
-								 "out vec2 ex_uv;\n"
-								 "void main(void) {\n\t\n}");
-
-		} else if (shader->getShaderType() == Kite::ShaderType::FRAGMENT) {
-			editor->setPlainText("#version 330\n"
-								 "in vec4 ex_col;\n"
-								 "in vec2 ex_uv;\n"
-								 "uniform sampler2D in_texture;\n"
-								 "out vec4 out_col;\n"
-								 "void main(void) {\n\t\n}");
-		}
-	} else {
-		editor->appendPlainText(shader->getCode().c_str());
-	}
+	editor->appendPlainText(shader->getCode().c_str());
 }
 
 void GLSLEditor::initeModel() {
@@ -141,7 +131,8 @@ void GLSLEditor::initeModel() {
 			<< "isamplerBuffer" << "usamplerBuffer" << "sampler2DMS"
 			<< "isampler2DMS" << "usampler2DMS" << "sampler2DMSArray"
 			<< "isampler2DMSArray" << "usampler2DMSArray" << "samplerCubeArray"
-			<< "samplerCubeArrayShadow" << "isamplerCubeArray" << "usamplerCubeArray";
+			<< "samplerCubeArrayShadow" << "isamplerCubeArray" << "usamplerCubeArray"
+			<< "uint";
 
 		for (auto it = luaKeys.begin(); it != luaKeys.end(); ++it) {
 			model->appendRow(new QStandardItem(QIcon(":/icons/key16"), (*it)));

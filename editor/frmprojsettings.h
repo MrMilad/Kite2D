@@ -20,6 +20,7 @@ public:
 private slots:
 	void okClicked();
 	void cancelClicked();
+	void fscreenState(int);
 
 private:
 	Kite::KConfig *config;

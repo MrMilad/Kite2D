@@ -116,7 +116,7 @@ namespace Kite{
 
     private:
         U32 _karrayId;				//!< OpenGL VAO ID
-        static U32 _klastArrayId;	//!< Last VAO ID
+		static U32 _klastArrayId;	//!< Last VAO ID
     };
 }
 

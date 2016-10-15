@@ -71,6 +71,13 @@
         <file alias="dup">res/ico/duplicate.png</file>
         <file alias="redo">res/ico/redo.png</file>
         <file alias="undo">res/ico/undo.png</file>
+        <file alias="cpicker">res/ico/cpicker.png</file>
+        <file alias="addl">res/ico/addlayer.png</file>
+        <file alias="reml">res/ico/remlayer.png</file>
+        <file alias="clayer">res/ico/cleanLayer.png</file>
+        <file alias="darrow">res/ico/darrow.png</file>
+        <file alias="uarrow">res/ico/uarrow.png</file>
+        <file alias="cblend">res/ico/cblend.png</file>
     </qresource>
     <qresource prefix="/back">
         <file alias="dense">res/dense.png</file>

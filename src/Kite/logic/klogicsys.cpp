@@ -24,6 +24,7 @@ USA
 #include "Kite/meta/kmetatypes.h"
 #include "Kite/logic/klogicinstancecom.h"
 #include "Kite/logic/klogiccom.h"
+#include "Kite/engine/kengine.h"
 #include <luaintf/LuaIntf.h>
 #ifdef KITE_DEV_DEBUG
 #include <exception>
@@ -31,7 +32,7 @@ USA
 
 namespace Kite {
 	bool KLogicSys::update(F32 Delta, KEntityManager *EManager, KResourceManager *RManager) {
-		STATIC_OUT_EDITOR const bool isregist = EManager->isRegisteredComponent(CTypes::LogicInstance);
+		EDITOR_STATIC const bool isregist = EManager->isRegisteredComponent(CTypes::LogicInstance);
 
 		// check component registration
 		if (isregist) {
@@ -52,7 +53,7 @@ namespace Kite {
 						auto lcomp = (KLogicCom *)ent->getComponentByHandle((*comp));
 
 						// inite component and bind it to lua vm (only one time when current script changed with a new script)
-						if (lcomp->getNeedUpdate()) {
+						if (lcomp->getResNeedUpdate()) {
 							if (!catchAndRegist(lcomp, RManager)) return false;
 						}
 
@@ -84,8 +85,9 @@ namespace Kite {
 	}
 
 	bool KLogicSys::inite(void *Data) {
+		auto engien = static_cast<KEngine *>(Data);
 		if (Data != nullptr && !isInite()) {
-			_klvm = static_cast<lua_State *>(Data);
+			_klvm = static_cast<lua_State *>(engien->getLuaState());
 
 			setInite(true);
 			return true;
@@ -125,17 +127,16 @@ namespace Kite {
 
 	bool KLogicSys::catchAndRegist(KLogicCom *Component, KResourceManager *RManager) {
 		// retrive script rsource from resource manager
-		KScript *script = (KScript *)RManager->get(Component->getScript().str);
-		if (script == nullptr) {
+		Component->updateRes();
+		if (!Component->_kscript) {
 			KD_FPRINT("can't load script resource. cname: %s", Component->getName().c_str());
 			return false;
 		}
-		Component->_kscript = script;
 
 		Component->setLuaState(_klvm);
 
 		// bind it to lua with its environment
-		if (script != nullptr && !script->getCode().empty()) {
+		if (!Component->_kscript->getCode().empty()) {
 
 			// first check entiti table 
 			std::string code("_G." + Component->getTName());
@@ -160,8 +161,8 @@ namespace Kite {
 
 			// load chunk and set its environment
 			code.clear();
-			code.reserve(script->getCode().size());
-			code = script->getCode();
+			code.reserve(Component->_kscript->getCode().size());
+			code = Component->_kscript->getCode();
 
 			std::string address(Component->getTName() + "." + Component->getName());
 
@@ -189,8 +190,6 @@ namespace Kite {
 				KD_FPRINT("lua set envirounment error. cname: %s. %s", Component->getTName().c_str(), out);
 				return false;
 			}
-
-			Component->setNeedUpdate(false);
 		}
 		return true;
 	}

@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>382</width>
-    <height>180</height>
+    <width>390</width>
+    <height>231</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -18,14 +18,14 @@
   </property>
   <property name="minimumSize">
    <size>
-    <width>382</width>
-    <height>149</height>
+    <width>390</width>
+    <height>231</height>
    </size>
   </property>
   <property name="maximumSize">
    <size>
-    <width>382</width>
-    <height>1000</height>
+    <width>390</width>
+    <height>231</height>
    </size>
   </property>
   <property name="font">
@@ -41,7 +41,7 @@
    <property name="geometry">
     <rect>
      <x>220</x>
-     <y>150</y>
+     <y>200</y>
      <width>156</width>
      <height>24</height>
     </rect>
@@ -53,232 +53,302 @@
     <set>QDialogButtonBox::Cancel|QDialogButtonBox::Ok</set>
    </property>
   </widget>
-  <widget class="QLineEdit" name="txtTitle">
-   <property name="geometry">
-    <rect>
-     <x>93</x>
-     <y>9</y>
-     <width>281</width>
-     <height>22</height>
-    </rect>
-   </property>
-  </widget>
-  <widget class="QLabel" name="label">
-   <property name="geometry">
-    <rect>
-     <x>9</x>
-     <y>10</y>
-     <width>78</width>
-     <height>16</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>Window Title:</string>
-   </property>
-  </widget>
-  <widget class="QLabel" name="label_2">
-   <property name="geometry">
-    <rect>
-     <x>9</x>
-     <y>40</y>
-     <width>38</width>
-     <height>16</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>Width:</string>
-   </property>
-  </widget>
-  <widget class="QSpinBox" name="spnWidth">
-   <property name="geometry">
-    <rect>
-     <x>93</x>
-     <y>37</y>
-     <width>91</width>
-     <height>22</height>
-    </rect>
-   </property>
-   <property name="frame">
-    <bool>true</bool>
-   </property>
-   <property name="suffix">
-    <string> px</string>
-   </property>
-   <property name="maximum">
-    <number>3000</number>
-   </property>
-   <property name="value">
-    <number>800</number>
-   </property>
-  </widget>
-  <widget class="QLabel" name="label_3">
-   <property name="geometry">
-    <rect>
-     <x>194</x>
-     <y>40</y>
-     <width>41</width>
-     <height>16</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>Height:</string>
-   </property>
-  </widget>
-  <widget class="QSpinBox" name="spnHeight">
-   <property name="geometry">
-    <rect>
-     <x>280</x>
-     <y>37</y>
-     <width>91</width>
-     <height>22</height>
-    </rect>
-   </property>
-   <property name="frame">
-    <bool>true</bool>
-   </property>
-   <property name="suffix">
-    <string> px</string>
-   </property>
-   <property name="maximum">
-    <number>3000</number>
-   </property>
-   <property name="value">
-    <number>600</number>
-   </property>
-  </widget>
-  <widget class="QLabel" name="label_4">
-   <property name="geometry">
-    <rect>
-     <x>9</x>
-     <y>70</y>
-     <width>62</width>
-     <height>16</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>X Position:</string>
-   </property>
-  </widget>
-  <widget class="QSpinBox" name="spnX">
-   <property name="geometry">
-    <rect>
-     <x>93</x>
-     <y>65</y>
-     <width>91</width>
-     <height>22</height>
-    </rect>
-   </property>
-   <property name="frame">
-    <bool>true</bool>
-   </property>
-   <property name="suffix">
-    <string> px</string>
-   </property>
-   <property name="maximum">
-    <number>3000</number>
-   </property>
-   <property name="value">
-    <number>0</number>
-   </property>
-  </widget>
-  <widget class="QLabel" name="label_5">
-   <property name="geometry">
-    <rect>
-     <x>194</x>
-     <y>70</y>
-     <width>64</width>
-     <height>16</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>Y Position:</string>
-   </property>
-  </widget>
-  <widget class="QSpinBox" name="spnY">
-   <property name="geometry">
-    <rect>
-     <x>280</x>
-     <y>65</y>
-     <width>91</width>
-     <height>22</height>
-    </rect>
-   </property>
-   <property name="frame">
-    <bool>true</bool>
-   </property>
-   <property name="suffix">
-    <string> px</string>
-   </property>
-   <property name="maximum">
-    <number>3000</number>
-   </property>
-   <property name="value">
-    <number>0</number>
-   </property>
-  </widget>
-  <widget class="QCheckBox" name="chbCorsor">
-   <property name="geometry">
-    <rect>
-     <x>9</x>
-     <y>93</y>
-     <width>97</width>
-     <height>20</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>Show Cursor</string>
-   </property>
-  </widget>
-  <widget class="QCheckBox" name="chbFScreen">
-   <property name="geometry">
-    <rect>
-     <x>150</x>
-     <y>93</y>
-     <width>83</width>
-     <height>20</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>Fullscreen</string>
-   </property>
-  </widget>
-  <widget class="QCheckBox" name="chbResize">
-   <property name="geometry">
-    <rect>
-     <x>290</x>
-     <y>93</y>
-     <width>80</width>
-     <height>20</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>Resizable</string>
-   </property>
-  </widget>
-  <widget class="QComboBox" name="cmbScene">
-   <property name="geometry">
-    <rect>
-     <x>110</x>
-     <y>120</y>
-     <width>261</width>
-     <height>22</height>
-    </rect>
-   </property>
-  </widget>
-  <widget class="QLabel" name="label_6">
+  <widget class="QTabWidget" name="tabWidget">
    <property name="geometry">
     <rect>
      <x>10</x>
-     <y>123</y>
-     <width>101</width>
-     <height>16</height>
+     <y>10</y>
+     <width>371</width>
+     <height>181</height>
     </rect>
    </property>
-   <property name="text">
-    <string>StartUp Scene:</string>
+   <property name="currentIndex">
+    <number>0</number>
    </property>
+   <property name="documentMode">
+    <bool>false</bool>
+   </property>
+   <property name="tabBarAutoHide">
+    <bool>false</bool>
+   </property>
+   <widget class="QWidget" name="tab">
+    <attribute name="title">
+     <string>Display</string>
+    </attribute>
+    <widget class="QWidget" name="layoutWidget">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>10</y>
+       <width>352</width>
+       <height>141</height>
+      </rect>
+     </property>
+     <layout class="QGridLayout" name="gridLayout" rowstretch="0,0,0,0,0" columnstretch="0,1,0,0,1">
+      <item row="0" column="0">
+       <widget class="QLabel" name="label">
+        <property name="text">
+         <string>Window Title:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="1" colspan="4">
+       <widget class="QLineEdit" name="txtTitle">
+        <property name="maxLength">
+         <number>256</number>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="0">
+       <widget class="QLabel" name="label_2">
+        <property name="text">
+         <string>Width:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="0">
+       <widget class="QLabel" name="label_4">
+        <property name="text">
+         <string>X Position:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="1">
+       <widget class="QSpinBox" name="spnWidth">
+        <property name="frame">
+         <bool>true</bool>
+        </property>
+        <property name="suffix">
+         <string> px</string>
+        </property>
+        <property name="maximum">
+         <number>3000</number>
+        </property>
+        <property name="value">
+         <number>800</number>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="1">
+       <widget class="QSpinBox" name="spnX">
+        <property name="frame">
+         <bool>true</bool>
+        </property>
+        <property name="suffix">
+         <string> px</string>
+        </property>
+        <property name="maximum">
+         <number>3000</number>
+        </property>
+        <property name="value">
+         <number>0</number>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="2">
+       <widget class="QLabel" name="label_3">
+        <property name="text">
+         <string>Height:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="2">
+       <widget class="QLabel" name="label_5">
+        <property name="text">
+         <string>Y Position:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="3" colspan="2">
+       <widget class="QSpinBox" name="spnY">
+        <property name="frame">
+         <bool>true</bool>
+        </property>
+        <property name="suffix">
+         <string> px</string>
+        </property>
+        <property name="maximum">
+         <number>3000</number>
+        </property>
+        <property name="value">
+         <number>0</number>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="3" colspan="2">
+       <widget class="QSpinBox" name="spnHeight">
+        <property name="frame">
+         <bool>true</bool>
+        </property>
+        <property name="suffix">
+         <string> px</string>
+        </property>
+        <property name="maximum">
+         <number>3000</number>
+        </property>
+        <property name="value">
+         <number>600</number>
+        </property>
+       </widget>
+      </item>
+      <item row="3" column="0">
+       <widget class="QCheckBox" name="chbCorsor">
+        <property name="text">
+         <string>Show Cursor</string>
+        </property>
+       </widget>
+      </item>
+      <item row="3" column="1">
+       <widget class="QCheckBox" name="chbFScreen">
+        <property name="text">
+         <string>Fullscreen</string>
+        </property>
+       </widget>
+      </item>
+      <item row="3" column="2" colspan="3">
+       <widget class="QCheckBox" name="chbResize">
+        <property name="text">
+         <string>Resizable</string>
+        </property>
+       </widget>
+      </item>
+      <item row="4" column="0">
+       <widget class="QLabel" name="label_6">
+        <property name="text">
+         <string>StartUp Scene:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="4" column="1" colspan="4">
+       <widget class="QComboBox" name="cmbScene"/>
+      </item>
+     </layout>
+    </widget>
+   </widget>
+   <widget class="QWidget" name="tab_2">
+    <attribute name="title">
+     <string>Render</string>
+    </attribute>
+    <widget class="QWidget" name="layoutWidget">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>10</y>
+       <width>351</width>
+       <height>141</height>
+      </rect>
+     </property>
+     <layout class="QGridLayout" name="gridLayout_2">
+      <item row="0" column="0" colspan="3">
+       <widget class="QCheckBox" name="chbCull">
+        <property name="text">
+         <string>Frustum Culling (Tiles, Static and Dynamic Objects)</string>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="0">
+       <widget class="QLabel" name="label_7">
+        <property name="text">
+         <string>Index Predefined Buffer Size:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="1" colspan="2">
+       <widget class="QSpinBox" name="spnIBuff">
+        <property name="minimum">
+         <number>0</number>
+        </property>
+        <property name="maximum">
+         <number>9999999</number>
+        </property>
+        <property name="singleStep">
+         <number>1</number>
+        </property>
+       </widget>
+      </item>
+      <item row="3" column="0">
+       <widget class="QLabel" name="label_8">
+        <property name="text">
+         <string>Vertex Predefined Buffer Size:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="3" column="1" colspan="2">
+       <widget class="QSpinBox" name="spnVBuff">
+        <property name="minimum">
+         <number>0</number>
+        </property>
+        <property name="maximum">
+         <number>9999999</number>
+        </property>
+        <property name="value">
+         <number>40000</number>
+        </property>
+       </widget>
+      </item>
+      <item row="4" column="0">
+       <widget class="QLabel" name="label_9">
+        <property name="text">
+         <string>Object Predefined Buffer Size:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="4" column="1" colspan="2">
+       <widget class="QSpinBox" name="spnOBuff">
+        <property name="minimum">
+         <number>0</number>
+        </property>
+        <property name="maximum">
+         <number>9999999</number>
+        </property>
+        <property name="value">
+         <number>10000</number>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="0">
+       <widget class="QCheckBox" name="chbZSort">
+        <property name="text">
+         <string>Objects Z Sorting</string>
+        </property>
+        <property name="checked">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="1" colspan="2">
+       <widget class="QCheckBox" name="chbCamSort">
+        <property name="text">
+         <string>Cameras Depth Test</string>
+        </property>
+        <property name="checked">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </widget>
   </widget>
  </widget>
+ <tabstops>
+  <tabstop>tabWidget</tabstop>
+  <tabstop>txtTitle</tabstop>
+  <tabstop>spnWidth</tabstop>
+  <tabstop>spnHeight</tabstop>
+  <tabstop>spnX</tabstop>
+  <tabstop>spnY</tabstop>
+  <tabstop>chbCorsor</tabstop>
+  <tabstop>chbFScreen</tabstop>
+  <tabstop>chbResize</tabstop>
+  <tabstop>cmbScene</tabstop>
+  <tabstop>chbCull</tabstop>
+  <tabstop>chbZSort</tabstop>
+  <tabstop>chbCamSort</tabstop>
+  <tabstop>spnIBuff</tabstop>
+  <tabstop>spnVBuff</tabstop>
+  <tabstop>spnOBuff</tabstop>
+ </tabstops>
  <resources/>
  <connections>
   <connection>

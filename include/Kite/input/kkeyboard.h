@@ -47,7 +47,7 @@ namespace Kite{
 
 		/// returns the last state of the keyboard
 		/// usage: c++ only
-		/// ex: if (KKeyboard::getKeyboardState()[KCT_U]) { u pressed TODO }
+		/// ex: if (KKeyboard::getKeyboardState()[KCT_U]) { u pressed }
 		static const U8 *getKeyboardState();
 
 		/// get the current key modifier state for the keyboard

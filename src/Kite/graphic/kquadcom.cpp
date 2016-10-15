@@ -17,7 +17,9 @@
     Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
     USA
 */
+#include "Kite/core/kresourcemanager.h"
 #include "Kite/graphic/kquadcom.h"
+#include "Kite/graphic/krendercom.h"
 #include "Kite/meta/kmetamanager.h"
 #include "Kite/meta/kmetaclass.h"
 #include "Kite/meta/kmetatypes.h"
@@ -32,15 +34,20 @@ namespace Kite{
 		_kwidth(100),
 		_kheight(100),
 		_kvertex(4),
-		_kindexsize(6)
+		_kindexsize(6),
+		_kshprog(nullptr),
+		_katarray(nullptr)
 	{
 		addDependency(CTypes::RenderInstance);
 		_setDim();
 		setAtlasItem(KAtlasItem());
-		setColor(KColor());
+		setBlendColor(KColor());
 	}
 
-	void KQuadCom::attached(KEntity *Owner) {}
+	void KQuadCom::attached(KEntity *Owner) {
+		auto renderable = (KRenderCom *)Owner->getComponent(CTypes::RenderInstance);
+		renderable->setRenderable(getType());
+	}
 
 	void KQuadCom::deattached(KEntity *Owner) {}
 
@@ -80,6 +87,23 @@ namespace Kite{
 		Output.right = (_kwidth / 2);
 	}
 
+	bool KQuadCom::updateRes() {
+		if (!getResNeedUpdate()) {
+			return true;
+		}
+
+		// load resources
+		if (getRMan()) {
+			_kshprog = (KShaderProgram *)getRMan()->get(_kshprogName.str);
+			_katarray = (KAtlasTextureArray *)getRMan()->get(_ktextureArrayName.str);
+
+			resUpdated();
+			return true;
+		}
+
+		return false;
+	}
+
 	/*void KQuadCom::setUV(const KRectF32 &UV){
 		_kvertex[0].uv = KVector2F32(UV.left, UV.bottom);
 		_kvertex[1].uv = KVector2F32(UV.left, UV.top);
@@ -88,17 +112,18 @@ namespace Kite{
 		_kuv = UV;
 	}*/
 
-	void KQuadCom::setColor(const KColor &Color){
-		_kvertex[0].r = _kvertex[1].r = _kvertex[2].r = _kvertex[3].r = Color.getGLR();
-		_kvertex[0].g = _kvertex[1].g = _kvertex[2].g = _kvertex[3].g = Color.getGLG();
-		_kvertex[0].b = _kvertex[1].b = _kvertex[2].b = _kvertex[3].b = Color.getGLB();
-		_kvertex[0].a = _kvertex[1].a = _kvertex[2].a = _kvertex[3].a = Color.getGLA();
+	void KQuadCom::setBlendColor(const KColor &Color){
+		_kvertex[0].r = _kvertex[1].r = _kvertex[2].r = _kvertex[3].r = Color.getR();
+		_kvertex[0].g = _kvertex[1].g = _kvertex[2].g = _kvertex[3].g = Color.getG();
+		_kvertex[0].b = _kvertex[1].b = _kvertex[2].b = _kvertex[3].b = Color.getB();
+		_kvertex[0].a = _kvertex[1].a = _kvertex[2].a = _kvertex[3].a = Color.getA();
 		_kcolor = Color;
 	}
 
 	void KQuadCom::setShader(const KStringID &Shader) {
-		if (_kshprog.hash != Shader.hash) {
-			_kshprog = Shader;
+		if (_kshprogName.hash != Shader.hash) {
+			_kshprogName = Shader;
+			resNeedUpdate();
 			matNeedUpdate();
 		}
 	}
@@ -106,6 +131,7 @@ namespace Kite{
 	void KQuadCom::setAtlasTextureArraye(const KStringID &TextureArrayName) {
 		if (_ktextureArrayName.hash != TextureArrayName.hash) {
 			_ktextureArrayName = TextureArrayName;
+			resNeedUpdate();
 			matNeedUpdate();
 		}
 	}

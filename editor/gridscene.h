@@ -24,10 +24,11 @@ public:
 	inline auto getView() const { return gview; }
 	inline const auto getStamp() const { return &stamp; }
 	void setSelectable(bool Selectable);
+	void setShowAnchor(bool Show);
 	void setShowGrid(bool Show);
 
 signals:
-	void stampChanged(const Kite::KOrthoTileStamp *Stamp);
+	void stampChanged(const std::vector<Kite::KTileStamp> *Stamp);
 
 protected:
     void drawForeground(QPainter *painter, const QRectF &rect) override;

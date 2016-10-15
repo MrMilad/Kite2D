@@ -21,6 +21,7 @@ USA
 #include "Kite/meta/kmetamanager.h"
 #include "Kite/meta/kmetaclass.h"
 #include "Kite/meta/kmetatypes.h"
+#include "Kite/core/kresourcemanager.h"
 #include "Kite/serialization/types/kstdstring.h"
 #include <luaintf/LuaIntf.h>
 #ifdef KITE_DEV_DEBUG
@@ -68,7 +69,7 @@ namespace Kite {
 		if (ResName.hash != _kscriptName.hash) {
 			removeLuaEnv();
 			_kscriptName = ResName;
-			setNeedUpdate(true);
+			resNeedUpdate();
 		}
 	}
 
@@ -81,6 +82,21 @@ namespace Kite {
 				lref.remove(this->getName().c_str());
 			}
 		}
+	}
+
+	bool KLogicCom::updateRes() {
+		if (!getResNeedUpdate()) {
+			return true;
+		}
+
+		// load resources
+		if (getRMan()) {
+			_kscript = (KScript *)getRMan()->get(_kscriptName.str);
+			resUpdated();
+			return true;
+		}
+
+		return false;
 	}
 
 	void KLogicCom::setLuaState(lua_State *L) {

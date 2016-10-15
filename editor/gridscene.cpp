@@ -49,14 +49,16 @@ void GridScene::drawForeground(QPainter *painter, const QRectF &rect){
 void GridScene::reshape(quint32 Width, quint32 Height, quint32 TileWidth, quint32 TileHeight){
 	this->clear();
 	this->setSceneRect(0, 0, Width + 1, Height + 1);
+	slist.clear();
 	stamp.resetSize(Width, Height, TileWidth, TileHeight);
 
 	marker = new QGraphicsPixmapItem();
-	marker->setZValue(1);
+	marker->setZValue(2);
 
 	QPixmap pm(TileWidth, TileHeight);
 	pm.fill(QColor(21, 193, 255, 60));
 	marker->setPixmap(pm);
+	marker->setZValue(1000);
 	marker->hide();
 	this->addItem(marker);
 
@@ -74,7 +76,6 @@ void GridScene::reshape(quint32 Width, quint32 Height, quint32 TileWidth, quint3
     }
 
 	gview->verticalScrollBar()->setValue(gview->verticalScrollBar()->maximum());
-	drawSelectedTiles();
 	this->update();
 }
 
@@ -95,6 +96,11 @@ void GridScene::setSelectable(bool Selectable) {
 	selectable = Selectable;
 }
 
+void GridScene::setShowAnchor(bool Show) {
+	showAnchor = Show;
+	this->update();
+}
+
 void GridScene::setShowGrid(bool Show) {
 	showGrid = Show;
 	update();
@@ -113,11 +119,15 @@ void GridScene::drawQueriedTiles(bool ClearOnly) {
 	}
 
 	// re draw all queried items
+	auto anchDim = stamp.getTileDimension(stamp.getAnchorID());
 	auto qtiles = stamp.getQueriedItems();
 	for (auto it = qtiles->cbegin(); it != qtiles->cend(); ++it) {
+		int left = anchDim.left + (int)(it->col * stamp.getTileWidth());
+		int bottom = anchDim.bottom - (int)(it->row * stamp.getTileHeight());
+
 		qlist.push_back(new QGraphicsPixmapItem(marker->pixmap().copy(marker->pixmap().rect())));
-		qlist.back()->setZValue(1);
-		qlist.back()->setPos(it->atlas.xpos, it->atlas.ypos);
+		qlist.back()->setZValue(1000);
+		qlist.back()->setPos(left, bottom);
 		addItem(qlist.back());
 	}
 }
@@ -136,10 +146,14 @@ void GridScene::drawSelectedTiles() {
 
 	// re draw all selected items
 	auto stiles = stamp.getSelectedItems();
+	auto anchDim = stamp.getTileDimension(stamp.getAnchorID());
 	for (auto it = stiles->cbegin(); it != stiles->cend(); ++it) {
+		int left = anchDim.left + (int)(it->col * stamp.getTileWidth());
+		int bottom = anchDim.bottom - (int)(it->row * stamp.getTileHeight());
+
 		slist.push_back(new QGraphicsPixmapItem(marker->pixmap().copy(marker->pixmap().rect())));
-		slist.back()->setZValue(1);
-		slist.back()->setPos(it->atlas.xpos, it->atlas.ypos);
+		slist.back()->setZValue(1000);
+		slist.back()->setPos(left, bottom);
 		addItem(slist.back());
 	}
 }
@@ -152,7 +166,7 @@ bool GridScene::event(QEvent *Event) {
 	if (Event->type() == QEvent::GraphicsSceneMousePress && selectable){
 
 		// select tile
-		if (QGuiApplication::mouseButtons() == Qt::MouseButton::LeftButton) {
+		if (QGuiApplication::mouseButtons() != Qt::MouseButton::MidButton ) {
 
 			// retrive tile under cursor
 			QPoint origin = gview->mapFromGlobal(QCursor::pos());
@@ -170,7 +184,7 @@ bool GridScene::event(QEvent *Event) {
 			if (QGuiApplication::keyboardModifiers() != Qt::KeyboardModifier::ControlModifier) {
 				isSelection = true;
 				stamp.resetSelection();
-				if (showAnchor && validTile) {
+				if (validTile) {
 					stamp.setAnchorID(tid);
 				}
 				drawSelectedTiles();
@@ -188,14 +202,14 @@ bool GridScene::event(QEvent *Event) {
 			isPressed = true;
 
 		// change anchor point
-		} else if (QGuiApplication::mouseButtons() == Qt::MouseButton::RightButton && showAnchor) {
+		} else if (QGuiApplication::mouseButtons() == Qt::MouseButton::MidButton && showAnchor) {
 			QPoint origin = gview->mapFromGlobal(QCursor::pos());
 			QPointF pos = gview->mapToScene(origin);
 			Kite::U32 tileID;
 			if (stamp.getTileID(Kite::KVector2F32(pos.x(), pos.y()), tileID)) {
 				stamp.setAnchorID(tileID);
 				update();
-				emit(stampChanged(&stamp));
+				emit(stampChanged(stamp.getSelectedItems()));
 			}
 		}
 
@@ -216,7 +230,7 @@ bool GridScene::event(QEvent *Event) {
 		}
 		drawSelectedTiles();
 		drawQueriedTiles(true); // clear quried tiles
-		emit(stampChanged(&stamp));
+		emit(stampChanged(stamp.getSelectedItems()));
 
 	}else if (Event->type() == QEvent::GraphicsSceneMouseMove) {
 		QPoint origin = gview->mapFromGlobal(QCursor::pos());

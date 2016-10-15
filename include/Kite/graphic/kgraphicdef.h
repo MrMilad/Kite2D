@@ -51,6 +51,35 @@ namespace Kite{
 	/*! \brief Hardware color macros*/
 	#define SETB(col,b)		(((col) & 0xFFFFFF00) + DWORD(b))
 
+	/// color blending macros
+	#define BLEND_Normal(A,B)     ((unsigned char)(A))
+	#define BLEND_Lighten(A,B)    ((unsigned char)((B > A) ? B:A))
+	#define BLEND_Darken(A,B)     ((unsigned char)((B > A) ? A:B))
+	#define BLEND_Multiply(A,B)   ((unsigned char)((A * B) / 255))
+	#define BLEND_Average(A,B)    ((unsigned char)((A + B) / 2))
+	#define BLEND_Add(A,B)        ((unsigned char)(min(255, (A + B))))
+	#define BLEND_Subtract(A,B)   ((unsigned char)((A + B < 255) ? 0:(A + B - 255)))
+	#define BLEND_Difference(A,B) ((unsigned char)(abs(A - B)))
+	#define BLEND_Negation(A,B)   ((unsigned char)(255 - abs(255 - A - B)))
+	#define BLEND_Screen(A,B)     ((unsigned char)(255 - (((255 - A) * (255 - B)) >> 8)))
+	#define BLEND_Exclusion(A,B)  ((unsigned char)(A + B - 2 * A * B / 255))
+	#define BLEND_Overlay(A,B)    ((unsigned char)((B < 128) ? (2 * A * B / 255):(255 - 2 * (255 - A) * (255 - B) / 255)))
+	#define BLEND_SoftLight(A,B)  ((unsigned char)((B < 128)?(2*((A>>1)+64))*((float)B/255):(255-(2*(255-((A>>1)+64))*(float)(255-B)/255))))
+	#define BLEND_HardLight(A,B)  (BLEND_Overlay(B,A))
+	#define BLEND_ColorDodge(A,B) ((unsigned char)((B == 255) ? B:min(255, ((A << 8 ) / (255 - B)))))
+	#define BLEND_ColorBurn(A,B)  ((unsigned char)((B == 0) ? B:max(0, (255 - ((255 - A) << 8 ) / B))))
+	#define BLEND_LinearDodge(A,B)(BLEND_Add(A,B))
+	#define BLEND_LinearBurn(A,B) (BLEND_Subtract(A,B))
+	#define BLEND_LinearLight(A,B)((unsigned char)(B < 128)?BLEND_LinearBurn(A,(2 * B)):BLEND_LinearDodge(A,(2 * (B - 128))))
+	#define BLEND_VividLight(A,B) ((unsigned char)(B < 128)?BLEND_ColorBurn(A,(2 * B)):BLEND_ColorDodge(A,(2 * (B - 128))))
+	#define BLEND_PinLight(A,B)   ((unsigned char)(B < 128)?BLEND_Darken(A,(2 * B)):BLEND_Lighten(A,(2 * (B - 128))))
+	#define BLEND_HardMix(A,B)    ((unsigned char)((BLEND_VividLight(A,B) < 128) ? 0:255))
+	#define BLEND_Reflect(A,B)    ((unsigned char)((B == 255) ? B:min(255, (A * A / (255 - B)))))
+	#define BLEND_Glow(A,B)       (BLEND_Reflect(B,A))
+	#define BLEND_Phoenix(A,B)    ((unsigned char)(min(A,B) - max(A,B) + 255))
+	#define BLEND_Alpha(A,B,O)    ((unsigned char)(O * A + (1 - O) * B))
+	#define BLEND_AlphaF(A,B,F,O) (BLEND_Alpha(F(A,B),A,O))
+
 	/*! \brief Buffer offest*/
 	#define KBUFFER_OFFSET(i) ((void*)(i))
 
@@ -58,10 +87,10 @@ namespace Kite{
 	#define KVATTRIB_XY 0
 	/*! \brief Vertex attribute index*/
 	#define KVATTRIB_UV 1
-	/*! \brief Texture array index attribute index*/
-	#define KVATTRIB_ARRAYINDEX 2
 	/*! \brief Vertex attribute index*/
-	#define KVATTRIB_RGBA 3
+	#define KVATTRIB_RGBA 2
+	/*! \brief Texture array index attribute index*/
+	#define KVATTRIB_ARRAYINDEX 3
 
 	/*!
 		\brief Convert opengl (buttom-left) float coordinate to window (top-left) integer coordinate.

@@ -58,24 +58,24 @@ namespace Kite{
 		KM_PRO_GET(KP_NAME = "height", KP_TYPE = F32, KP_CM = "height of the quad")
 		inline F32 getHeight() const { return _kheight; }
 
-		KM_PRO_SET(KP_NAME = "tint")
-		void setColor(const KColor &Color);
+		KM_PRO_SET(KP_NAME = "blendColor")
+		void setBlendColor(const KColor &Color);
 
-		KM_PRO_GET(KP_NAME = "tint", KP_TYPE = KColor, KP_CM = "tint color")
-		inline const KColor &getTintColor() const { return _kcolor; }
+		KM_PRO_GET(KP_NAME = "blendColor", KP_TYPE = KColor, KP_CM = "blending color")
+		inline const KColor &getBlendColor() const { return _kcolor; }
 
 		KM_PRO_SET(KP_NAME = "shaderProgram")
 		void setShader(const KStringID &ShaderProgram);
 
 		KM_PRO_GET(KP_NAME = "shaderProgram", KP_TYPE = KStringID, KP_CM = "name of the shader program", KP_RES = RTypes::ShaderProgram)
-		inline const KStringID &getShader() const override { return _kshprog; }
+		inline const KStringID &getShader() const { return _kshprogName; }
 
 		KM_PRO_SET(KP_NAME = "textureGroup")
 		void setAtlasTextureArraye(const KStringID &TextureArrayName);
 
 		KM_PRO_GET(KP_NAME = "textureGroup", KP_TYPE = KStringID, KP_CM = "name of the atlas texture group",
 				   KP_RES = RTypes::TextureGroup)
-		inline const KStringID &getAtlasTextureArray() const override { return _ktextureArrayName; }
+		inline const KStringID &getAtlasTextureArray() const { return _ktextureArrayName; }
 
 		KM_PRO_SET(KP_NAME = "textureIndex")
 		void setTextureArrayIndex(U16 Index);
@@ -98,6 +98,8 @@ namespace Kite{
 		KM_FUN()
 		inline void getBoundingRect(KRectF32 &Output) const override;
 
+		bool updateRes() override;
+
 		// shuld defined in particle component
 		//inline void setRelativeTransform(bool Relative) { _krelTrans = Relative; }
 		//inline bool getRelativeTransform() const { return _krelTrans; }
@@ -112,6 +114,8 @@ namespace Kite{
 		inline GLPrimitive getGeoType() const override { return GLPrimitive::TRIANGLES; }
 		inline bool isIndexed() const override { return true; }
 		inline bool isPoint() const override { return false; }
+		inline KShaderProgram *getShaderProg() const override { return _kshprog; }
+		inline KAtlasTextureArray *getATextureArray() const override { return _katarray; }
 
     private:
 		void _setDim();
@@ -123,8 +127,11 @@ namespace Kite{
 		KM_VAR() F32 _kwidth;
 		KM_VAR() F32 _kheight;
 		KM_VAR() KColor _kcolor;
-		KM_VAR() KStringID _kshprog;
+		KM_VAR() KStringID _kshprogName;
 		KM_VAR() KStringID _ktextureArrayName;
+
+		KShaderProgram *_kshprog;
+		KAtlasTextureArray *_katarray;
     };
 }
 

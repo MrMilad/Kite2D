@@ -1,11 +1,12 @@
 #include "mapeditor.h"
 #include "atlaseditor.h"
-#include "mapeditorcmd.h"
 #include "Kite/core/kfistream.h"
 #include "Kite/graphic/katlastexturearray.h"
+#include "Kite/graphic/kgraphicdef.h"
 #include <QtWidgets>
 #include <qundostack.h>
 #include <frmnewmap.h>
+#include <qpixmap.h>
 #include "gridscene.h"
 
 MapEditor::MapEditor(Kite::KResource *Res, KiteInfo *KInfo, QWidget *Parent) :
@@ -15,13 +16,10 @@ MapEditor::MapEditor(Kite::KResource *Res, KiteInfo *KInfo, QWidget *Parent) :
 {}
 
 void MapEditor::inite() {
-	ustack->setUndoLimit(35);
+	ustack->setUndoLimit(50);
 	auto vlayout = new QVBoxLayout(this);
 	vlayout->setMargin(3);
 	vlayout->setSpacing(0);
-
-	//auto hlayTools = new QHBoxLayout();
-	//hlayTools->setMargin(0);
 
 	auto toolbar = new QToolBar(this);
 	toolbar->setStyleSheet("QToolBar {spacing: 3px; border: 0px ; height: 32px}");
@@ -44,7 +42,7 @@ void MapEditor::inite() {
 	btnCreate->setMenu(createMenu);
 	btnCreate->setToolTip("Create New Map ...");
 	btnCreate->setIcon(QIcon(":/icons/add"));
-	btnCreate->setPopupMode(QToolButton::InstantPopup);
+	btnCreate->setPopupMode(QToolButton::ToolButtonPopupMode::InstantPopup);
 	toolbar->addWidget(btnCreate);
 	toolbar->addSeparator();
 
@@ -52,7 +50,6 @@ void MapEditor::inite() {
 	actUndo->setToolTip("Undo");
 	actUndo->setIcon(QIcon(":/icons/undo"));
 	actUndo->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_Z));
-	actUndo->setShortcutContext(Qt::ShortcutContext::WidgetWithChildrenShortcut);
 	this->addAction(actUndo);
 	toolbar->addAction(actUndo);
 
@@ -60,7 +57,6 @@ void MapEditor::inite() {
 	actRedo->setToolTip("Redo");
 	actRedo->setIcon(QIcon(":/icons/redo"));
 	actRedo->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_Y));
-	actRedo->setShortcutContext(Qt::ShortcutContext::WidgetWithChildrenShortcut);
 	this->addAction(actRedo);
 	toolbar->addAction(actRedo);
 	toolbar->addSeparator();
@@ -71,67 +67,91 @@ void MapEditor::inite() {
 	actStamp->setCheckable(true);
 	actStamp->setChecked(true);
 	actStamp->setShortcut(QKeySequence(Qt::Key_B));
-	actStamp->setShortcutContext(Qt::ShortcutContext::WidgetWithChildrenShortcut);
 	this->addAction(actStamp);
 	connect(actStamp, &QAction::toggled, this, &MapEditor::stampTool);
-
-	actSelect = toolbar->addAction(QIcon(":/icons/select"), "Selection Tool");
-	actSelect->setToolTip("Selection Tool (S)");
-	actSelect->setCheckable(true);
-	actSelect->setShortcut(QKeySequence(Qt::Key_S));
-	actSelect->setShortcutContext(Qt::ShortcutContext::WidgetWithChildrenShortcut);
-	this->addAction(actSelect);
-	connect(actSelect, &QAction::toggled, this, &MapEditor::selectTool);
 
 	actEraser = toolbar->addAction(QIcon(":/icons/clr"), "Eraser Tool");
 	actEraser->setToolTip("Eraser Tool (E)");
 	actEraser->setCheckable(true);
 	actEraser->setShortcut(QKeySequence(Qt::Key_E));
-	actEraser->setShortcutContext(Qt::ShortcutContext::WidgetWithChildrenShortcut);
 	this->addAction(actEraser);
 	connect(actEraser, &QAction::toggled, this, &MapEditor::eraserTool);
 	toolbar->addSeparator();
-	
-	// stamp options
-	auto lblStampOption = new QLabel(this);
-	lblStampOption->setText("Stamp Mode: ");
-	toolbar->addWidget(lblStampOption);
 
-	cmbStampMode = new QComboBox(this);
-	cmbStampMode->addItem("Stack");
-	cmbStampMode->addItem("Layer");
-	cmbStampMode->setCurrentIndex(1);
-	toolbar->addWidget(cmbStampMode);
-
-	auto lblLayer = new QLabel(this);
-	lblLayer->setText("Layer: ");
-	toolbar->addWidget(lblLayer);
-
-	spnLayer = new QSpinBox(this);
-	spnLayer->setMinimum(0);
-	spnLayer->setMaximum(1000);
-	toolbar->addWidget(spnLayer);
-	toolbar->addSeparator();
+	actSelect = toolbar->addAction(QIcon(":/icons/select"), "Selection Tool");
+	actSelect->setToolTip("Selection Tool (S)");
+	actSelect->setCheckable(true);
+	actSelect->setShortcut(QKeySequence(Qt::Key_S));
+	this->addAction(actSelect);
+	connect(actSelect, &QAction::toggled, this, &MapEditor::selectTool);
 
 	// modifiers
-	auto btnTint = new QToolButton(this);
-	btnTint->setFixedSize(16, 16);
-	btnTint->setToolTip("Color Tint");
-	btnTint->setStyleSheet("background-color: white;");
-	tint = Qt::white;
-	connect(btnTint, &QToolButton::clicked, this, &MapEditor::selectTintColor);
-	toolbar->addWidget(btnTint);
+	auto actBlend = toolbar->addAction(QIcon(":/icons/cblend"), "Color Blend Tool");
+	actBlend->setToolTip("Set Blending Color (C)");
+	actBlend->setShortcut(QKeySequence(Qt::Key_C));
+	this->addAction(actBlend);
+	connect(actBlend, &QAction::triggered, this, &MapEditor::selectBlend);
+
+	btnBlend = new QToolButton(this);
+	btnBlend->setFixedSize(16, 16);
+	btnBlend->setToolTip("Blend Color Picker");
+	btnBlend->setStyleSheet("background-color: white;");
+	blend = Qt::white;
+	connect(btnBlend, &QToolButton::clicked, this, &MapEditor::blendColorPicker);
+	toolbar->addWidget(btnBlend);
 
 	auto actFliph = toolbar->addAction(QIcon(":/icons/fliph"), "Flip Horizontal");
-	actFliph->setToolTip("Flip Horizontal");
+	actFliph->setObjectName("fliph");
+	actFliph->setToolTip("Flip Horizontal (CTRL + F)");
+	actFliph->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_F));
+	this->addAction(actFliph);
+	connect(actFliph, &QAction::triggered, this, &MapEditor::selectFlip);
 
 	auto actFlipv = toolbar->addAction(QIcon(":/icons/flipv"), "Flip Vertical");
-	actFlipv->setToolTip("Flip Vertical");
+	actFlipv->setObjectName("flipv");
+	actFlipv->setToolTip("Flip Vertical (F)");
+	actFlipv->setShortcut(QKeySequence(Qt::Key_F));
+	this->addAction(actFlipv);
+	connect(actFlipv, &QAction::triggered, this, &MapEditor::selectFlip);
 
 	auto actDuplicate = toolbar->addAction(QIcon(":/icons/dup"), "Duplicate");
-	actDuplicate->setToolTip("Duplicate Selected Area");
+	actDuplicate->setToolTip("Duplicate Selected Area (D)");
+	actDuplicate->setShortcut(QKeySequence(Qt::Key_D));
+	this->addAction(actDuplicate);
+	toolbar->addSeparator();
+	connect(actDuplicate, &QAction::triggered, this, &MapEditor::selectDuplicate);
+
+	auto actAddLayer = toolbar->addAction(QIcon(":/icons/addl"), "Add New Layer");
+	actAddLayer->setToolTip("Add New Layer (N)");
+	actAddLayer->setShortcut(QKeySequence(Qt::Key_N));
+	this->addAction(actAddLayer);
+	connect(actAddLayer, &QAction::triggered, this, &MapEditor::addLayer);
+
+	auto actRemLayer = toolbar->addAction(QIcon(":/icons/reml"), "Remove Last Layer");
+	actRemLayer->setToolTip("Remove Last Layer");
+	actRemLayer->setShortcut(QKeySequence(Qt::Key_Delete));
+	connect(actRemLayer, &QAction::triggered, this, &MapEditor::removeLayer);
+
+	auto actClearLayer = toolbar->addAction(QIcon(":/icons/clayer"), "Clear Current Layer");
+	actClearLayer->setToolTip("Clear Current Layer");
+	//actClearLayer->setShortcut(QKeySequence(Qt::Key_Delete));
+	//actClearLayer->setShortcutContext(Qt::ShortcutContext::WidgetWithChildrenShortcut);
+	connect(actClearLayer, &QAction::triggered, this, &MapEditor::clearLayer);
 	toolbar->addSeparator();
 
+	auto actUpLayer = toolbar->addAction(QIcon(":/icons/uarrow"), "Lower Layer");
+	actUpLayer->setToolTip("Lower Layer");
+	//actUpLayer->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_U));
+	//actUpLayer->setShortcutContext(Qt::ShortcutContext::WidgetWithChildrenShortcut);
+	connect(actUpLayer, &QAction::triggered, this, &MapEditor::lowerLayer);
+
+	auto actDownLayer = toolbar->addAction(QIcon(":/icons/darrow"), "Raise Layer");
+	actDownLayer->setToolTip("Raise Layer");
+	//actDownLayer->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_D));
+	//actDownLayer->setShortcutContext(Qt::ShortcutContext::WidgetWithChildrenShortcut);
+	connect(actDownLayer, &QAction::triggered, this, &MapEditor::raiseLayer);
+
+	toolbar->addSeparator();
 	auto actGrid = toolbar->addAction(QIcon(":/icons/grid"), "Show/Hide Grid");
 	actGrid->setToolTip("Show/Hide Grid");
 	actGrid->setCheckable(true);
@@ -141,6 +161,7 @@ void MapEditor::inite() {
 	gscene->installEventFilter(this);
 	gscene->getView()->setVerticalScrollBarPolicy(Qt::ScrollBarPolicy::ScrollBarAsNeeded);
 	gscene->getView()->setAlignment(Qt::AlignLeft | Qt::AlignBottom);
+	connect(gscene, &GridScene::stampChanged, this, &MapEditor::manageSceneSelection);
 	connect(actGrid, &QAction::toggled, gscene, &GridScene::setShowGrid);
 
 	QList<int> wsizes;
@@ -148,12 +169,29 @@ void MapEditor::inite() {
 	viewSplit->addWidget(gscene->getView());
 	wsizes.append(1000);
 
-	// tab
-	tileset = new QTabWidget(this);
-	tileset->setTabPosition(QTabWidget::TabPosition::South);
-	viewSplit->addWidget(tileset);
+	auto hsplitter = new QSplitter(this);
+	hsplitter->setOrientation(Qt::Orientation::Vertical);
+	viewSplit->addWidget(hsplitter);
 	wsizes.append(250);
 	viewSplit->setSizes(wsizes);
+
+	// layer list
+	layerTable = new QTableWidget(this);
+	layerTable->setColumnCount(1);
+	layerTable->setShowGrid(false);
+	layerTable->setHorizontalHeaderItem(0, new QTableWidgetItem("Layers"));
+	layerTable->horizontalHeader()->setStretchLastSection(true);
+	layerTable->addAction(actRemLayer);
+	layerTable->setAlternatingRowColors(true);
+	layerTable->setSelectionMode(QAbstractItemView::SelectionMode::SingleSelection);
+	layerTable->verticalHeader()->setSectionResizeMode(QHeaderView::ResizeMode::ResizeToContents);
+	connect(layerTable, &QTableWidget::itemChanged, this, &MapEditor::layerItemChanged);
+	hsplitter->addWidget(layerTable);
+	
+	// tileset
+	tileset = new QTabWidget(this);
+	tileset->setTabPosition(QTabWidget::TabPosition::South);
+	hsplitter->addWidget(tileset);
 
 	vlayout->addWidget(viewSplit, 1);
 	vlayout->addSpacing(3);
@@ -178,15 +216,15 @@ bool MapEditor::saveChanges() {
 }
 
 void MapEditor::reload() {
+	disconnect(layerTable, &QTableWidget::itemChanged, this, &MapEditor::layerItemChanged);
 	disconnect(tileset, &QTabWidget::currentChanged, this, &MapEditor::tilesetChanged);
+
 	gscene->reshape(orthoMap->getMapWidth() * orthoMap->getTileWidth(), orthoMap->getMapHeight() * orthoMap->getTileHeight(),
 					orthoMap->getTileWidth(), orthoMap->getTileHeight());
 
-	totalStackedSize = QString::number(orthoMap->getTotalStackedTiles());
-
 	// reset tileset
 	tileset->clear();
-	stampList.clear();
+	markerList.clear();
 
 	// clear all tabs
 	for (auto it = viewPool.begin(); it != viewPool.end(); ++it) {
@@ -194,10 +232,16 @@ void MapEditor::reload() {
 		delete (*it);
 	}
 	viewPool.clear();
+	tilesetPixmap.clear();
+	layerList.clear();
+	layerTable->clear();
+	layerTable->setRowCount(0);
+	layerTable->setHorizontalHeaderItem(0, new QTableWidgetItem("Layers"));
 
 	// re-create tabs
 	if (orthoMap->getTileset()) {
 		auto continer = orthoMap->getTileset()->getContiner();
+		tilesetPixmap.reserve(continer->size());
 		for (auto it = continer->begin(); it != continer->end(); ++it) {
 			if ((*it)) {
 				auto tscene = new GridScene(true, true);
@@ -211,16 +255,20 @@ void MapEditor::reload() {
 				Kite::KAtlasTexture *atlas;
 				emit(atlas = (Kite::KAtlasTexture *)requestRes((*it)->getName().c_str()));
 
+				// inite stamp image
 				if (atlas) {
 					auto tex = atlas->getTexture();
 					if (tex) {
-						tscene->reshape(tex->getWidth(),
-									   tex->getHeight(),
-									   orthoMap->getTileWidth(), orthoMap->getTileHeight());
 						Kite::KImage image;
 						tex->getImage(image);
-						tscene->addPixmap(QPixmap::fromImage(QImage(image.getPixelsData(),
-																	image.getWidth(), image.getHeight(), QImage::Format::Format_RGBA8888)));
+						QImage qimage(image.getPixelsData(), image.getWidth(), image.getHeight(), QImage::Format::Format_RGBA8888);
+
+						// add pixmap to oue vector
+						tilesetPixmap.push_back(QPixmap::fromImage(qimage));
+
+						// redraw tileset
+						tscene->reshape(tex->getWidth(), tex->getHeight(), orthoMap->getTileWidth(), orthoMap->getTileHeight());
+						tscene->addPixmap(tilesetPixmap.back());
 					}
 				}
 
@@ -232,28 +280,36 @@ void MapEditor::reload() {
 		}
 
 		// resolve map tiles
-		std::vector<Kite::KOrthoTile> tlist;
-		QHash<unsigned int, QPixmap> pmMap;
-		for (size_t i = 0; i < orthoMap->getTotalTiles(); ++i) {
-			orthoMap->queryTiles(orthoMap->convertID(i), tlist);
+		std::vector<Kite::KOrthoLayer> tlist;
+		for (size_t i = 0; i < orthoMap->getTilesCount(); ++i) {
+			orthoMap->getTileLayers(orthoMap->convertID(i), tlist);
 
 			for (auto it = tlist.begin(); it != tlist.end(); ++it) {
 				// tile set is ready
-				if (it->textureIndex < viewPool.size()) {
-					auto tset = viewPool[it->textureIndex];
+				if (it->textureID < tilesetPixmap.size()) {
 					auto mdim = orthoMap->getTileDimension(i);
-					auto tdim = tset->getStamp()->getTileDimension(it->atlas.id);
-
-					// search map for pixmap
-					if (pmMap.find(it->textureIndex) == pmMap.end()) {
-						auto tpmitem = (QGraphicsPixmapItem *)tset->items(Qt::SortOrder::AscendingOrder).first();
-						pmMap[it->textureIndex] = tpmitem->pixmap();
-					}
-					
-					auto mainpm = new QGraphicsPixmapItem(pmMap[it->textureIndex]
-														  .copy(tdim.left, tdim.bottom, orthoMap->getTileWidth(), orthoMap->getTileHeight()));
+					auto mainpm = new QGraphicsPixmapItem();
 					mainpm->setPos(mdim.left, mdim.bottom);
-					gscene->addItem(mainpm);
+					initePixmap(mainpm, tilesetPixmap[it->textureID], (*it));
+
+					// set pixmap item pointer
+					orthoMap->setScenePtr(orthoMap->convertID(i), it->layerIndex, (void *)mainpm);
+
+					for (; layerList.size() <= it->layerIndex;) {
+						auto layerGroup = new QGraphicsItemGroup();
+						layerList.push_back(layerGroup);
+						layerGroup->setZValue(layerList.size() - 1);
+						gscene->addItem(layerGroup);
+						gscene->addItem(layerList.back());
+
+						auto name = orthoMap->getMapLayerName(layerList.size() - 1);
+						auto titem = new QTableWidgetItem(name.c_str());
+						titem->setCheckState(Qt::CheckState::Checked);
+						layerTable->insertRow(layerTable->rowCount());
+						layerTable->setItem(layerTable->rowCount() - 1, 0, titem);
+						layerTable->setCurrentItem(titem);
+					}
+					layerList.at(it->layerIndex)->addToGroup(mainpm);
 
 				// there is no tilset with this id
 				} else {
@@ -262,6 +318,7 @@ void MapEditor::reload() {
 			}
 		}
 	}
+	connect(layerTable, &QTableWidget::itemChanged, this, &MapEditor::layerItemChanged);
 	connect(tileset, &QTabWidget::currentChanged, this, &MapEditor::tilesetChanged);
 	gscene->update();
 }
@@ -273,7 +330,7 @@ void MapEditor::onRemoveRes(Kite::RTypes Type) {
 }
 
 void MapEditor::tilesetChanged(int Index) {
-	recreateMarker(viewPool[Index]->getStamp());
+	recreateMarker(viewPool[Index]->getStamp()->getSelectedItems());
 }
 
 void MapEditor::createNew() {
@@ -303,68 +360,163 @@ void MapEditor::createNew() {
 	delete newMapFrm;
 }
 
-void MapEditor::recreateMarker(const Kite::KOrthoTileStamp *Stamp) {
-	// clear stamplist
-	for (auto it = stampList.begin(); it != stampList.end(); ++it) {
-		gscene->removeItem((*it));
-		delete (*it);
+void MapEditor::initeMarkerPixmap(QPixmap *Pixmap, MarkerItem &Marker) {
+	auto pix = Pixmap->copy(Marker.stamp.atlas.xpos, Marker.stamp.atlas.ypos, Marker.stamp.atlas.width, Marker.stamp.atlas.height);
+	if (Marker.stamp.atlas.getFlipH()) {
+		pix = pix.transformed(QTransform().scale(-1, 1));
 	}
-	stampList.clear();
 
-	auto slist = Stamp->getSelectedItems();
-	auto atlasArray = orthoMap->getTileset();
-	Kite::KImage image;
-	atlasArray->getContiner()->at(tileset->currentIndex())->getTexture()->getImage(image);
+	if (Marker.stamp.atlas.getFlipV()) {
+		pix = pix.transformed(QTransform().scale(1, -1));
+	}
 
-	QImage qimage(image.getPixelsData(), image.getWidth(), image.getHeight(), QImage::Format::Format_RGBA8888);
+	//blend
+	if (Marker.stamp.blend != Kite::KColor(Kite::Colors::WHITE) || Marker.stamp.blend.getA() < 255) {
+		QColor col(Marker.stamp.blend.getR(), Marker.stamp.blend.getG(),
+				   Marker.stamp.blend.getB(), Marker.stamp.blend.getA());
 
-	for (auto it = slist->cbegin(); it != slist->cend(); ++it) {
-		stampList.push_back(new QGraphicsPixmapItem(QPixmap::fromImage(
-			qimage.copy(it->atlas.xpos, it->atlas.ypos, it->atlas.width, it->atlas.height))));
-		stampList.back()->setZValue(1);
-		stampList.back()->setOpacity(0.5f);
-		stampList.back()->hide();
-		gscene->addItem(stampList.back());
+		auto image = pix.toImage();
+		auto alpha = image.alphaChannel();
+		for (int x = 0; x != image.width(); ++x) {
+			for (int y(0); y != image.height(); ++y) {
+				if (qAlpha(image.pixel(x, y)) == 0) continue; // transparrent pixels
+
+				QColor icol(image.pixel(x, y));
+				icol.setRed(BLEND_Multiply(icol.red(), col.red()));
+				icol.setBlue(BLEND_Multiply(icol.blue(), col.blue()));
+				icol.setGreen(BLEND_Multiply(icol.green(), col.green()));
+				image.setPixel(x, y, icol.rgb());
+			}
+		}
+		image.setAlphaChannel(alpha);
+		Marker.gitem->setPixmap(QPixmap::fromImage(image));
+	} else {
+		Marker.gitem->setPixmap(pix);
+	}
+}
+
+void MapEditor::recreateMarker(const std::vector<Kite::KTileStamp> *Stamp) {
+	// clear 
+	for (auto it = markerList.begin(); it != markerList.end(); ++it) {
+		gscene->removeItem(it->gitem);
+		delete (it->gitem);
+	}
+	markerList.clear();
+
+	for (auto it = Stamp->cbegin(); it != Stamp->cend(); ++it) {
+		short tindex = tileset->currentIndex();
+
+		// index lower than 0 mean current texture index
+		if (it->textureIndex >= 0) tindex = it->textureIndex;
+
+		MarkerItem mitem;
+		mitem.gitem = new QGraphicsPixmapItem();
+		mitem.stamp = (*it);
+		mitem.blend = it->blend;
+		initeMarkerPixmap(&tilesetPixmap[tindex], mitem);
+
+		mitem.gitem->setZValue(1000);
+		mitem.gitem->setOpacity(0.5f);
+		mitem.gitem->hide();
+
+		gscene->addItem(mitem.gitem);
+		markerList.push_back(mitem);
 	}
 }
 
 void MapEditor::redrawMarker(unsigned int AnchorID, bool OutOfView) {
 	if (OutOfView) {
-		for (auto i = 0; i < stampList.size(); ++i) {
-				stampList[i]->hide();
+		for (auto i = 0; i < markerList.size(); ++i) {
+			markerList[i].gitem->hide();
 		}
 		return;
 	}
 
 	auto anchDim = orthoMap->getTileDimension(AnchorID);
-	auto currTileset = viewPool[tileset->currentIndex()];
-	auto currStamp = currTileset->getStamp()->getSelectedItems();
 
-	int bottom = 0;
-	int left = 0;
-	for (auto i = 0; i < stampList.size(); ++i) {
-		left = anchDim.left + (int)(currStamp->at(i).col * orthoMap->getTileWidth());
-		bottom = anchDim.bottom - (int)(currStamp->at(i).row * orthoMap->getTileHeight());
-		stampList[i]->setPos(left, bottom);
+	for (auto it = markerList.begin(); it != markerList.end(); ++it) {
+		int left = anchDim.left + (int)(it->stamp.col * orthoMap->getTileWidth());
+		int bottom = anchDim.bottom - (int)(it->stamp.row * orthoMap->getTileHeight());
+		it->gitem->setPos(left, bottom);
 
 		// culling 
-		if (left >= orthoMap->getTotalWidthPixelSize() || bottom >= orthoMap->getTotalHeightPixelSize()) {
-			stampList[i]->hide();
+		if (left >= orthoMap->getMapWidthPixel() || bottom >= orthoMap->getMapHeightPixel()) {
+			it->gitem->hide();
 		} else {
-			stampList[i]->show();
+			it->gitem->show();
 		}
 	}
 }
 
-void MapEditor::selectTintColor() {
-	auto btnColor = (QToolButton *)sender();
-	auto tcolor = QColorDialog::getColor(tint, this, "Color Picker", QColorDialog::ShowAlphaChannel | QColorDialog::DontUseNativeDialog);
+void MapEditor::blendColorPicker() {
+	auto tcolor = QColorDialog::getColor(blend, this, "Color Picker", QColorDialog::ShowAlphaChannel | QColorDialog::DontUseNativeDialog);
 	if (tcolor.isValid()) {
-		tint = tcolor;
-		btnColor->setStyleSheet("QToolButton { background-color: rgb("
-								+ QString::number(tint.red()) + ", "
-								+ QString::number(tint.green()) + ", "
-								+ QString::number(tint.blue()) + "); }");
+		blend = tcolor;
+		btnBlend->setStyleSheet("QToolButton { background-color: rgb("
+								+ QString::number(blend.red()) + ", "
+								+ QString::number(blend.green()) + ", "
+								+ QString::number(blend.blue()) + "); }");
+	}
+}
+
+void MapEditor::selectBlend() {
+	if (actSelect->isChecked()
+		&& !gscene->getStamp()->getSelectedItems()->empty()
+		&& layerTable->currentRow() >= 0) {
+		std::vector<Kite::KOrthoLayer> layerList;
+		orthoMap->getTilesLayer(orthoMap->convertID(gscene->getStamp()->getAnchorID()), layerTable->currentRow(), *gscene->getStamp()->getSelectedItems(), layerList);
+		if (!layerList.empty()) {
+			ustack->push(new BlendColorCMD(gscene, orthoMap, &tilesetPixmap,
+										   gscene->getStamp()->getAnchorID(), layerTable->currentRow(),
+										   blend, *gscene->getStamp()->getSelectedItems()));
+		}
+	}
+}
+
+void MapEditor::selectFlip() {
+	auto senderObj = (QAction *)sender();
+	if (actSelect->isChecked() 
+		&& !gscene->getStamp()->getSelectedItems()->empty()
+		&& layerTable->currentRow() >= 0) 
+	{
+		std::vector<Kite::KOrthoLayer> tempList;
+		orthoMap->getTilesLayer(orthoMap->convertID(gscene->getStamp()->getAnchorID()),
+								layerTable->currentRow(), *gscene->getStamp()->getSelectedItems(), tempList);
+		if (!tempList.empty()) {
+			if (senderObj->objectName() == "fliph") {
+				ustack->push(new FlipCMD(gscene, orthoMap, &tilesetPixmap,
+										  gscene->getStamp()->getAnchorID(), layerTable->currentRow(),
+										  *gscene->getStamp()->getSelectedItems(), true));
+			} else {
+				ustack->push(new FlipCMD(gscene, orthoMap, &tilesetPixmap,
+										 gscene->getStamp()->getAnchorID(), layerTable->currentRow(),
+										 *gscene->getStamp()->getSelectedItems(), false));
+			}
+		}
+	}
+}
+
+void MapEditor::selectDuplicate() {
+	if (!gscene->getStamp()->getSelectedItems()->empty()
+		&& layerTable->currentRow() >= 0) {
+
+		auto slist = gscene->getStamp()->getSelectedItems();
+		static std::vector<Kite::KTileStamp> markerList;
+		markerList.clear();
+		Kite::KOrthoLayer layer;
+		for (auto it = slist->cbegin(); it != slist->cend(); ++it) {
+			if (orthoMap->getTileLayer(orthoMap->convertID(it->atlas.id), layerTable->currentRow(), layer)) {
+				markerList.push_back((*it));
+				markerList.back().atlas = layer.atlas;
+				markerList.back().textureIndex = layer.textureID;
+				markerList.back().blend = layer.blend;
+			}
+		}
+
+		if (!markerList.empty()) {
+			recreateMarker(&markerList);
+			actStamp->setChecked(true);
+		}
 	}
 }
 
@@ -383,9 +535,10 @@ void MapEditor::selectTool(bool check) {
 		if (actStamp->isChecked()) actStamp->setChecked(false);
 		if (actEraser->isChecked()) actEraser->setChecked(false);
 		gscene->setSelectable(true);
-
+		gscene->setShowAnchor(true);
 	} else {
 		gscene->setSelectable(false);
+		gscene->setShowAnchor(false);
 	}
 }
 
@@ -396,10 +549,77 @@ void MapEditor::eraserTool(bool Check) {
 	}
 }
 
+void MapEditor::addLayer() {
+	ustack->push(new AddLayerCMD(gscene, orthoMap, layerTable, &layerList));
+}
+
+void MapEditor::removeLayer() {
+	if (layerTable->rowCount() > 0) {
+		ustack->push(new RemoveLayerCMD(gscene, orthoMap, &tilesetPixmap, &layerList, layerTable));
+	}
+}
+
+void MapEditor::clearLayer() {
+	if (layerTable->currentRow() >= 0) {
+		ustack->push(new ClearLayerCMD(gscene, orthoMap, &tilesetPixmap, &layerList, layerTable->currentRow()));
+	}
+}
+
+void MapEditor::lowerLayer() {
+	if (layerTable->currentRow() > 0) {
+		ustack->push(new LowerLayerCMD(gscene, orthoMap, &layerList, layerTable, layerTable->currentRow()));
+	}
+}
+
+void MapEditor::raiseLayer() {
+	if (layerTable->currentRow() < (layerTable->rowCount() - 1)) {
+		ustack->push(new RaiseLayerCMD(gscene, orthoMap, &layerList, layerTable, layerTable->currentRow()));
+	}
+}
+
+void MapEditor::layerItemChanged(QTableWidgetItem * Item) {
+	if (Item->checkState() == Qt::CheckState::Unchecked) {
+		layerList.at(layerTable->row(Item))->setVisible(false);
+
+	} else if (Item->checkState() == Qt::CheckState::Checked) {
+		layerList.at(layerTable->row(Item))->setVisible(true);
+	}
+
+	if (layerTable->currentRow() >= 0) {
+		orthoMap->setMapLayerName(layerTable->currentRow(), layerTable->currentItem()->text().toStdString());
+	}
+}
+
+void MapEditor::manageSceneSelection(const std::vector<Kite::KTileStamp> *Stamp) {
+	if (actStamp->isChecked()) {
+		selectDuplicate();
+		gscene->setSelectable(false);
+	}
+
+
+	if (actEraser->isChecked()) {
+		if (layerTable->currentRow() >= 0
+			&& !gscene->getStamp()->getSelectedItems()->empty()) {
+
+			std::vector<Kite::KOrthoLayer> tempList;
+			orthoMap->getTilesLayer(orthoMap->convertID(gscene->getStamp()->getAnchorID()),
+									layerTable->currentRow(), *gscene->getStamp()->getSelectedItems(), tempList);
+
+			if (!tempList.empty()) {
+				ustack->push(new EraserCMD(gscene, orthoMap, &tilesetPixmap,
+										   &layerList, gscene->getStamp()->getAnchorID(),
+										   layerTable->currentRow(), *gscene->getStamp()->getSelectedItems()));
+			}
+		}
+		gscene->setSelectable(false);
+	}
+}
+
 bool MapEditor::eventFilter(QObject *Obj, QEvent *Event) {
 	static int lastID = -1;
-	static bool pushing = false;
+	static bool stamping = false;
 	static bool erasing = false;
+	static std::vector<Kite::KOrthoLayer> tileList;
 	if (Event->type() == QEvent::GraphicsSceneMouseMove) {
 		QPoint origin = gscene->getView()->mapFromGlobal(QCursor::pos());
 		QPointF pos = gscene->getView()->mapToScene(origin);
@@ -407,25 +627,47 @@ bool MapEditor::eventFilter(QObject *Obj, QEvent *Event) {
 		if (orthoMap->getTileID(Kite::KVector2F32(pos.x(), pos.y()), tileID)) {
 			if (lastID != tileID) {
 				auto dim = orthoMap->getTileDimension(orthoMap->convertID(tileID));
+				// tile info
+				// layer
+				QString layer("empty");
+				if (orthoMap->getTileLayerSize(orthoMap->convertID(tileID)) > 0) layer = QString::number(orthoMap->getTileLayerSize(orthoMap->convertID(tileID)));
 				lblWarning->setText("<font color = \"orange\">Tile ID: </font>" + QString::number(orthoMap->convertID(tileID)) +
-									"<font color = \"orange\"> Layers: </font>" + QString::number(orthoMap->getTileSize(orthoMap->convertID(tileID))) +
+									"<font color = \"orange\"> Layers: </font>" + layer +
 									"<font color = \"orange\"> X: </font>" + QString::number(dim.left) +
-									"<font color = \"orange\"> Y: </font>" + QString::number(dim.bottom) +
-									"<font color = \"orange\"> Used Tiles: </font>" + totalStackedSize);
+									"<font color = \"orange\"> Y: </font>" + QString::number(dim.bottom));
+									//"<font color = \"orange\"> Used Layers: </font>" + QString::number(orthoMap->getTotalUsedLayers()));
+	
+				orthoMap->getTileLayers(orthoMap->convertID(tileID), tileList);
+
+				// blend color
+				/*if (spnLayer->value() < tileList.size()) {
+					auto tileColor = &tileList[spnLayer->value()].blend;
+					blend = QColor(tileColor->getR(), tileColor->getG(), tileColor->getB(), tileColor->getA());
+
+				} else {
+					blend = Qt::white;
+				}
+				btnBlend->setStyleSheet("QToolButton { background-color: rgb("
+										+ QString::number(blend.red()) + ", "
+										+ QString::number(blend.green()) + ", "
+										+ QString::number(blend.blue()) + "); }");*/
 
 				// actions
 				if (actStamp->isChecked()) redrawMarker(tileID, false);
 
-				// push
-				if (pushing) {
-					ustack->push(new PushStampCMD(gscene ,orthoMap, tileset->currentIndex(), tileID,
-											   *viewPool.at(tileset->currentIndex())->getStamp()->getSelectedItems(), tileset->currentIndex()));
+				// stamp
+				if (stamping) {
+						ustack->push(new PushStampLayerCMD(gscene, orthoMap, &tilesetPixmap, &layerList, tileID,
+														   tileset->currentIndex(), layerTable->currentRow(), markerList));
 				}
 
 				// erase
 				if (erasing) {
-					if (orthoMap->getTileSize(orthoMap->convertID(tileID)) > 0) {
-						ustack->push(new EraserCMD(gscene, orthoMap, tileID));
+					Kite::KOrthoLayer ltemp;
+					if (orthoMap->getTileLayer(orthoMap->convertID(tileID), layerTable->currentRow(), ltemp)) {
+						std::vector<Kite::KTileStamp> slist(1, gscene->getStamp()->getStamp(tileID));
+						ustack->push(new EraserCMD(gscene, orthoMap, &tilesetPixmap,
+												   &layerList, gscene->getStamp()->getAnchorID(), layerTable->currentRow(), slist));
 					}
 				}
 			}
@@ -450,24 +692,37 @@ bool MapEditor::eventFilter(QObject *Obj, QEvent *Event) {
 			Kite::U32 tileID;
 			if (orthoMap->getTileID(Kite::KVector2F32(pos.x(), pos.y()), tileID)) {
 
-				// push
-				if (actStamp->isChecked() && !viewPool.at(tileset->currentIndex())->getStamp()->getSelectedItems()->empty()){
-					ustack->push(new PushStampCMD(gscene, orthoMap, tileset->currentIndex(), tileID,
-												  *viewPool.at(tileset->currentIndex())->getStamp()->getSelectedItems(), tileset->currentIndex()));
-					pushing = true;
+				// stamp
+				if (actStamp->isChecked() 
+					&& !viewPool.at(tileset->currentIndex())->getStamp()->getSelectedItems()->empty()
+					&& layerTable->currentRow() >= 0){
+					ustack->push(new PushStampLayerCMD(gscene, orthoMap, &tilesetPixmap, &layerList, tileID,
+														 tileset->currentIndex(), layerTable->currentRow(),
+														markerList));
+					stamping = true;
 				}
 
 				// erase
 				if (actEraser->isChecked()) {
-					if (orthoMap->getTileSize(orthoMap->convertID(tileID)) > 0) {
-						ustack->push(new EraserCMD(gscene, orthoMap, tileID));
+					Kite::KOrthoLayer ltemp;
+					std::vector<Kite::KTileStamp> slist(1, gscene->getStamp()->getStamp(tileID));
+					if (orthoMap->getTileLayer(orthoMap->convertID(tileID), layerTable->currentRow(), ltemp)) {
+						ustack->push(new EraserCMD(gscene, orthoMap, &tilesetPixmap,
+												   &layerList, gscene->getStamp()->getAnchorID(), layerTable->currentRow(), slist));
 					}
 					erasing = true;
 				}
+
+			}
+
+		// selecting
+		} else if (QGuiApplication::mouseButtons() == Qt::RightButton) {
+			if (actStamp->isChecked() || actEraser->isChecked()) {
+				gscene->setSelectable(true);
 			}
 		}
 	} else if (Event->type() == QEvent::GraphicsSceneMouseRelease) {
-		pushing = false;
+		stamping = false;
 		erasing = false;
 	}
 	return false;

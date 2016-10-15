@@ -38,7 +38,11 @@ namespace Kite{
                                 GL_FIXED,
                                 GL_FLOAT};
 
-        DGL_CALL(glVertexAttribPointer(Index, (U8)Count, type[(U8)Type], Normalized, StrideSize, (const GLvoid *)Offset));
+		if (type[(U8)Type] == GL_FLOAT) {
+			DGL_CALL(glVertexAttribPointer(Index, (U8)Count, type[(U8)Type], Normalized, StrideSize, (const GLvoid *)Offset));
+		} else {
+			DGL_CALL(glVertexAttribIPointer(Index, (U8)Count, type[(U8)Type], StrideSize, (const GLvoid *)Offset));
+		}
     }
 
     void KVertexArray::enableAttribute(U16 Index){

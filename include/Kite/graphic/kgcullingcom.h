@@ -48,6 +48,7 @@ namespace Kite {
 		void(*_kcallb)(KGCullingCom *); // cleanup callback
 		void *_ksysptr; // opaque pointer
 		void *_kobjptr;
+		U32 _kobjIndex;
 	};
 }
 

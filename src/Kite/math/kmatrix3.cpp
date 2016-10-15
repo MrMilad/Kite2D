@@ -109,5 +109,10 @@ namespace Kite {
 		return operator*(right); 
 	}
 
+	const KMatrix3 &KMatrix3::getIdentity() {
+		static KMatrix3 identity;
+		return identity;
+	}
+
 	KMETA_KMATRIX3_SOURCE();
 }

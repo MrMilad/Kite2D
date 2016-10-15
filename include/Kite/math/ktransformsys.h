@@ -38,9 +38,6 @@ namespace Kite {
 		bool inite(void *Data) override;
 
 		void destroy() override;
-
-		KM_FUN()
-		void computeMatrix(KTransformCom *Component);
 	};
 }
 

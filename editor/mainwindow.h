@@ -106,7 +106,6 @@ private:
 	Project *curProject;
 	KiteInfo *kinfo;
 	Executer *exec;
-	bool fullscreenIssue;
 };
 
 #endif // MAINWINDOW_H

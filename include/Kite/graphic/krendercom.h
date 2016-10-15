@@ -47,6 +47,15 @@ namespace Kite{
 		void deattached(KEntity *Entity) override;
 
 		RecieveTypes onMessage(KMessage *Message, MessageScope Scope) override;
+
+		KM_PRO_SET(KP_NAME = "renderable")
+		inline void setRenderable(CTypes Type) { _krenderableType = Type; }
+
+		KM_PRO_GET(KP_NAME = "renderable", KP_TYPE = CTypes)
+		inline CTypes getRenderable() const { return _krenderableType; }
+
+	private:
+		CTypes _krenderableType;
     };
 }
 

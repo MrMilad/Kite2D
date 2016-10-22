@@ -19,6 +19,8 @@
 */
 #include "Kite/graphic/kframebuffer.h"
 #include "src/Kite/graphic/glcall.h"
+#include "Kite/graphic/ktexture.h"
+#include "Kite/graphic/katlastexturearray.h"
 
 namespace Kite{
     U32 KFrameBuffer::_klastBufId = 0;
@@ -39,7 +41,6 @@ namespace Kite{
     }
 
     void KFrameBuffer::attachTexture(const KTexture *Texture){
-		// save currently bound buffer then bind our buffer temporary
 		bind();
 
         // attach the texture to FBO color attachment point
@@ -47,8 +48,19 @@ namespace Kite{
                                         GL_TEXTURE_2D, Texture->getGLID(), 0));
 
         // check status
-        KD_ASSERT(GL_FRAMEBUFFER_COMPLETE != glCheckFramebufferStatus(GL_FRAMEBUFFER));
+        KD_ASSERT(GL_FRAMEBUFFER_COMPLETE == glCheckFramebufferStatus(GL_FRAMEBUFFER));
     }
+
+	void KFrameBuffer::attachTextureArray(const KAtlasTextureArray *TextureArray, U32 Index) {
+		bind();
+
+		// attach the texture to FBO color attachment point
+		DGL_CALL(glFramebufferTextureLayer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
+										   TextureArray->getGLID(), 0, Index));
+
+		// check status
+		KD_ASSERT(GL_FRAMEBUFFER_COMPLETE == glCheckFramebufferStatus(GL_FRAMEBUFFER));
+	}
 
     void KFrameBuffer::bind(){
         if (_klastBufId != _kbufId){
@@ -65,8 +77,10 @@ namespace Kite{
     }
 
     void KFrameBuffer::unbindFrameBuffer(){
-        DGL_CALL(glBindFramebuffer(GL_FRAMEBUFFER, 0));
-        _klastBufId = 0;
+		if (_klastBufId != 0) {
+			DGL_CALL(glBindFramebuffer(GL_FRAMEBUFFER, 0));
+			_klastBufId = 0;
+		}
     }
 
 }

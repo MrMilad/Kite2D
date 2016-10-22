@@ -28,6 +28,8 @@
 #include "Kite/graphic/kquadcom.h"
 #include "Kite/graphic/kgcullingsys.h"
 #include "Kite/graphic/korthomapcom.h"
+#include "Kite/graphic/kvertexarray.h"
+#include "Kite/graphic/kvertexbuffer.h"
 #include "Kite/meta/kmetamanager.h"
 #include "Kite/meta/kmetaclass.h"
 #include "Kite/meta/kmetatypes.h"
@@ -36,7 +38,7 @@
 #include <luaintf/LuaIntf.h>
 
 namespace Kite{
-	bool KRenderSys::update(F32 Delta, KEntityManager *EManager, KResourceManager *RManager) {
+	bool KRenderSys::update(F64 Delta, KEntityManager *EManager, KResourceManager *RManager) {
 		EDITOR_STATIC const bool isregist = (EManager->isRegisteredComponent(CTypes::Camera)
 												 && EManager->isRegisteredComponent(CTypes::RenderInstance));
 		
@@ -80,6 +82,19 @@ namespace Kite{
 
 				// check active
 				if (entity->isActive()) {
+					if (!cam->updateRes()) {
+						KD_FPRINT("camera initialization failed. oname: %s", entity->getName().c_str());
+						return false;
+					}
+
+					// check render target (texture or screen)
+					if (!cam->getRenderTexture().str.empty()) {
+						_kfbo->bind();
+						_initeFrameBuffer(cam->_krtexture, cam->_krtextureIndex);
+					} else {
+						_kfbo->unbind();
+						DGL_CALL(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
+					}
 
 					// update camera
 					cam->computeMatrixes();
@@ -120,10 +135,8 @@ namespace Kite{
 						const U8 filter = (U8)GCullingObjectsFilter::TILE 
 							| (U8)GCullingObjectsFilter::DYNAMIC 
 							| (U8)GCullingObjectsFilter::STATIC;
+						_kcullSys->queryObjects(cam, (GCullingObjectsFilter)filter, EManager, objList);
 
-						_kcullSys->queryObjects(cam->getViewRect(), std::bitset<KENTITY_LAYER_SIZE>("01"),
-												(GCullingObjectsFilter)filter,
-												EManager, objList);
 					} else {
 						// culling is disabled
 						_fillRenderList(EManager, objList);
@@ -226,6 +239,10 @@ namespace Kite{
 			return false;
 		}
 
+		// frame buffer object will be initialized in initFrameBuffer()
+		// we inite it only when a reneder to texture operation need 
+		_kfbo = new KFrameBuffer();
+
 		// graphic culling sub-system
 		_kcullSys = nullptr;
 		if (_kconfig.culling) {
@@ -252,6 +269,9 @@ namespace Kite{
 
 		// inite vao
 		_kvao = new KVertexArray();
+
+		// inite fbo in first time
+		_kfbo = new KFrameBuffer();
 
 		// inite index buffer
 		_kvboInd = new KVertexBuffer(BufferTarget::INDEX);
@@ -326,6 +346,7 @@ namespace Kite{
 		delete _kvboInd;
 		delete _kvboPnt;
 		delete _kvao;
+		delete _kfbo;
 		delete _kcullSys;
 		setInite(false);
 	}
@@ -353,6 +374,24 @@ namespace Kite{
 		}
 
 		return true;
+	}
+
+	void KRenderSys::_initeFrameBuffer(KAtlasTextureArray *TextureArray, U32 Index) {
+		TextureArray->inite();
+		TextureArray->bind();
+
+		// attach render texture
+		if (_klastState.lastFBOTextId != TextureArray->getGLID() || _klastState.lastFBOTexInd != Index) {
+			_kfbo->attachTextureArray(TextureArray, Index);
+
+			GLenum DrawBuffers[1] = { GL_COLOR_ATTACHMENT0 };
+			DGL_CALL(glDrawBuffers(1, DrawBuffers));
+
+			_klastState.lastFBOTextId = TextureArray->getGLID();
+			_klastState.lastFBOTexInd = Index;
+		}
+		DGL_CALL(glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE_MINUS_SRC_ALPHA));
+		//DGL_CALL(glBindFramebuffer(GL_FRAMEBUFFER, TextureArray->getGLID()));
 	}
 
 	void KRenderSys::_fillRenderList(KEntityManager *Eman, std::vector<std::pair<KEntity *, KRenderable *>> &Output) {

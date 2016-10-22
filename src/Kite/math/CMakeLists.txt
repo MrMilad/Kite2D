@@ -11,6 +11,7 @@ set(MAT_SRC
     ${SRCROOT}/ktransform.cpp
     ${SRCROOT}/ktransformcom.cpp
     ${SRCROOT}/ktransformsys.cpp
+    ${SRCROOT}/ktween.cpp
     PARENT_SCOPE
 )
 
@@ -19,7 +20,7 @@ set(MAT_INC
     ${INCROOT}/kmath.h
     #${INCROOT}/kgeometric.h
     #${INCROOT}/kinterpolate.h
-    #${INCROOT}/ktween.h
+    ${INCROOT}/ktween.h
     ${INCROOT}/kmathdef.h
     ${INCROOT}/kmathstructs.h
     ${INCROOT}/kmathtypes.h

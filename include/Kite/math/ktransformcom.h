@@ -89,11 +89,11 @@ namespace Kite{
 		KM_PRO_GET(KP_NAME = "skew", KP_TYPE = KVector2F32, KP_CM = "Skew value")
 		inline const KVector2F32 &getSkew() const { return _kskew; }
 
-		KM_PRO_SET(KP_NAME = "ratioIndex")
-		inline void setRatioIndex(I8 Index) { _kratioIndex = Index; }
+		KM_PRO_SET(KP_NAME = "parallaxIndex")
+		inline void setRatioIndex(I32 Index) { _kratioIndex = Index; }
 
-		KM_PRO_GET(KP_NAME = "ratioIndex", KP_TYPE = I8, KP_CM = "Index of Camera Ratio", KP_MIN = -1, KP_MAX = 127)
-		inline I8 getRatioIndex() const { return _kratioIndex; }
+		KM_PRO_GET(KP_NAME = "parallaxIndex", KP_TYPE = I32, KP_CM = "Index of Parallax Ratio", KP_MIN = -1, KP_MAX = 127)
+		inline I32 getRatioIndex() const { return _kratioIndex; }
 
 		/// return the combined matrix
 		KM_FUN()
@@ -109,7 +109,7 @@ namespace Kite{
     private:
         KM_VAR() KVector2F32 _kposition;
 		KM_VAR() F32 _krotation;
-		KM_VAR() I8 _kratioIndex;
+		KM_VAR() I32 _kratioIndex;
 		KM_VAR() KVector2F32 _kscale;
 		KM_VAR() KVector2F32 _kskew;
 		KM_VAR() KVector2F32 _kcenter;

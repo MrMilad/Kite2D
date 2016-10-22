@@ -23,8 +23,6 @@
 #include "Kite/core/kcoredef.h"
 #include "Kite/meta/kmetadef.h"
 #include "Kite/graphic/kgraphicstructs.h"
-#include "Kite/graphic/kvertexarray.h"
-#include "Kite/graphic/kvertexbuffer.h"
 #include <vector>
 #include "krendersys.khgen.h"
 
@@ -40,24 +38,29 @@ namespace Kite{
 	class KRenderCom;
 	class KShaderProgram;
 	class KGCullingSys;
+	class KVertexArray;
+	class KVertexBuffer;
+	class KFrameBuffer;
+	class KTexture;
+	class KAtlasTextureArray;
 
 	KM_CLASS(SYSTEM)
 	class KITE_FUNC_EXPORT KRenderSys : public KSystem{
 		KMETA_KRENDERSYS_BODY();
 	public:
-		bool update(F32 Delta, KEntityManager *EManager, KResourceManager *RManager) override;
+		bool update(F64 Delta, KEntityManager *EManager, KResourceManager *RManager) override;
 
 		bool inite(void *Data) override;
 
 		void destroy() override;
 
 	private:
+		void _initeFrameBuffer(KAtlasTextureArray *Texture, U32 Index); // render to texture
 		void _fillRenderList(KEntityManager *Eman, std::vector<std::pair<KEntity *, KRenderable *>> &Output);
 		bool _initeMaterials(KResourceManager*RMan, KRenderable *Com);
 		bool _checkState(KRenderable *Rendeable);
 		void _initeQuadIndex(std::vector<U16> *Buffer);
 		void _computeParentsTransform(KEntityManager *Eman, KEntity *Entity, KMatrix3 *Matrix);
-		//void _draw(const std::vector<const KBatchObject *> &Objects, U32 VSize, U32 ISize, const KBatchUpdate &Update);
 		//static void _updateInd(void *Data, U32 Offset, U32 DataSize, void *Sender);
 		static void _updateVer(void *Data, U32 Offset, U32 DataSize, void *Sender);
 		//static void _updatePar(void *Data, U32 Offset, U32 DataSize, void *Sender);
@@ -66,6 +69,7 @@ namespace Kite{
 		KVertexBuffer *_kvboInd;		/// index
 		KVertexBuffer *_kvboVer;		/// xy (position)
 		KVertexBuffer *_kvboPnt;		/// point sprite: point size and texture size (usage: Particle)
+		KFrameBuffer *_kfbo;			/// render to texture
 		KRenderState _kconfig;
 
 		Internal::KGLState _klastState;

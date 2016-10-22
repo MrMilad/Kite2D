@@ -36,7 +36,8 @@ namespace Kite {
 
 		virtual ~KSystem();
 
-		virtual bool update(F32 Delta, KEntityManager *EManager, KResourceManager *RManager) = 0;
+		// delta is based seconds
+		virtual bool update(F64 Delta, KEntityManager *EManager, KResourceManager *RManager) = 0;
 
 		virtual bool inite(void *Data) = 0;
 

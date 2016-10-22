@@ -610,13 +610,18 @@ namespace Kite{
 			KVector2I32 lastViewPos;
 			U32 lastTexId;			//!< Last used texture id
 			U32 lastShdId;			//!< Last used shader id
+			U32 lastFBOTextId;
+			U32 lastFBOTexInd;
 			GLPrimitive lastGeo;	//!< Last used geometric type
 
 			//! Default constructors
-			KGLState(U32 LastTextureID = 0, U32 LastSeaderID = 0,
+			KGLState(U32 LastTextureID = 0, U32 LastShaderID = 0,
+					 U32 LastFBOTextId = 0, U32 LastFBOTexInd = 0,
 					   GLPrimitive GeoType = GLPrimitive::TRIANGLES) :
 				lastTexId(LastTextureID),
-				lastShdId(LastSeaderID),
+				lastShdId(LastShaderID),
+				lastFBOTextId(LastFBOTextId),
+				lastFBOTexInd(LastFBOTexInd),
 				lastGeo(GeoType)
 			{}
 			

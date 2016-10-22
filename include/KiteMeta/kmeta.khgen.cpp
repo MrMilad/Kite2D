@@ -14,6 +14,7 @@
 #include "Kite/math/ktransform.h"
 #include "Kite/math/ktransformcom.h"
 #include "Kite/math/ktransformsys.h"
+#include "Kite/math/ktween.h"
 #include "Kite/logic/klogiccom.h"
 #include "Kite/logic/klogicinstancecom.h"
 #include "Kite/logic/klogicsys.h"
@@ -76,11 +77,13 @@ KRect<U32>::registerMeta("KRectU32", MMan, Lua);
 KRect2<F32>::registerMeta("KRect2F32", MMan, Lua);
 KRect2<I32>::registerMeta("KRect2I32", MMan, Lua);
 KRect2<U32>::registerMeta("KRect2U32", MMan, Lua);
-KCameraTransformRatio::registerMeta(MMan, Lua);
+KParallaxRatio::registerMeta(MMan, Lua);
 KMatrix3::registerMeta(MMan, Lua);
 KTransform::registerMeta(MMan, Lua);
 KTransformCom::registerMeta(MMan, Lua);
 KTransformSys::registerMeta(MMan, Lua);
+KTween<F64, F32>::registerMeta("KTweenF32", MMan, Lua);
+KTween<F64, I32>::registerMeta("KTweenI32", MMan, Lua);
 KLogicCom::registerMeta(MMan, Lua);
 KLogicInstanceCom::registerMeta(MMan, Lua);
 KLogicSys::registerMeta(MMan, Lua);

@@ -29,18 +29,13 @@ int main() {
 	sc->window.fullscreen = false;
 	sc->render.camDepth = false;
 	sc->render.zSorting = false;
-	sc->render.culling = false;
+	sc->render.culling = true;
 	//sc->window.resizable = true;
-	sc->dictionary = "C:\\Users\\_M1L4D_\\Desktop\\ff\\dict.kdict";
-	sc->startUpScene = "fr.sce";
+	sc->dictionary = "C:\\Users\\_M1L4D_\\Desktop\\K2D\\examples\\Orthogonal Tiled Map\\dict.kdict";
+	sc->startUpScene = "map.sce";
 
 	auto engine = KEngine::createEngine();
 	engine->inite(sc, false);
-	auto eman = engine->getEntityManager();
-	auto ent = eman->getEntityByName("cam");
-	auto cam = (KCameraCom *)ent->getComponent(CTypes::Camera);
-	cam->addTransformRatio(KCameraTransformRatio(KVector2F32(2.f, 1), 1, 1));
-	//engine->getWindow()->toggleFullscreen();
 
 	engine->start();
 	engine->shutdown();

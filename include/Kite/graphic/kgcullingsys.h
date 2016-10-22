@@ -57,21 +57,21 @@ namespace Kite {
 
 	class KGCullingCom;
 	class KOrthoMapCom;
+	class KCameraCom;
 
 	KM_CLASS(SCRIPTABLE) // sub system
 	class KITE_FUNC_EXPORT KGCullingSys : public KSystem {
 	public:
 		KGCullingSys();
-		bool update(F32 Delta, KEntityManager *EManager, KResourceManager *RManager) override;
+		bool update(F64 Delta, KEntityManager *EManager, KResourceManager *RManager) override;
 
 		bool inite(void *Data) override;
 
 		void destroy() override;
 
 		// return unsorted objects (you can sort output vector directly using std::sort)
-		void queryObjects(const KRectF32 &Area, const std::bitset<KENTITY_LAYER_SIZE> &Layers, GCullingObjectsFilter Filter,
+		void queryObjects(const KCameraCom *Cam, GCullingObjectsFilter Filter,
 						  const KEntityManager *EMan , std::vector<std::pair<KEntity *, KRenderable *>> &Output);
-
 
 	private:
 		struct KQTreeObject {
@@ -87,6 +87,7 @@ namespace Kite {
 
 		static void _removeQTreeObject(KGCullingCom *Com);
 		static void _removeBFObject(KGCullingCom *Com);
+		static void _switchType(KEntity *Ent, KGCullingCom *Com); // switch between static and dynamic
 		void _computeParentPosition(KEntity *Entity, KRectF32 &Output);
 
 		void _addToTree(KEntity *Ent);

@@ -44,9 +44,10 @@ namespace Kite {
 		RecieveTypes onMessage(KMessage *Message, MessageScope Scope) override;
 
 	private:
-		// runtime variables 
-		void(*_kcallb)(KGCullingCom *); // cleanup callback
-		void *_ksysptr; // opaque pointer
+		// runtime variables
+		static void(*_kswitchCallb)(KEntity *, KGCullingCom *); // static/dynamic switch callback
+		static void *_ksysptr; // opaque pointer
+		void(*_kcleanCallb)(KGCullingCom *); // cleanup callback
 		void *_kobjptr;
 		U32 _kobjIndex;
 	};

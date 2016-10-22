@@ -20,66 +20,88 @@
 #ifndef KTWEEN_H
 #define KTWEEN_H
 
-#include "Kite/Core/system/ksystemdef.h"
-#include "Kite/Core/math/kmathdef.h"
-#include "Kite/Core/math/kmathtypes.h"
+#include "Kite/core/kcoredef.h"
+#include "Kite/math/kmathdef.h"
+#include "Kite/meta/kmetadef.h"
+#include "Kite/math/kmathtypes.h"
+#include "Kite/meta/kmetamanager.h"
+#include "Kite/meta/kmetaclass.h"
+#include "Kite/meta/kmetatypes.h"
+#include "Kite/serialization/kbaseserial.h"
+#include "luaintf\LuaIntf.h"
 #include <cmath>
+#include "ktween.khgen.h"
 
 namespace Kite{
 	// TIME: F64 or I64     PARAM: F32 or I32
 	template <typename TIME, typename PARAM>
+	KM_CLASS(POD)
 	class KITE_FUNC_EXPORT KTween{
+		KM_TEM_PARAM(TIME, PARAM);
+		KM_TEM_DEF("KTweenF32", F64, F32);
+		KM_TEM_DEF("KTweenI32", F64, I32);
+
+		KMETA_KTWEEN_BODY();
 	public:
 		// Time = current time
 		// Start = start point
 		// End = end point
 		// Duration = duration between start and end point
-		static inline PARAM linear(TIME Time, PARAM Start, PARAM End, TIME Duration) {
+		KM_FUN()
+		static PARAM linear(TIME Time, PARAM Start, PARAM End, TIME Duration) {
 			Time /= Duration;
 			return (PARAM)((End - Start) * Time + Start);
 		}
 
-		static inline PARAM quadraticIn(TIME Time, PARAM Start, PARAM End, TIME Duration) {
+		KM_FUN()
+		static PARAM quadraticIn(TIME Time, PARAM Start, PARAM End, TIME Duration) {
 			Time /= Duration;
 			return (PARAM)((End - Start) * (Time * Time) + Start);
 		}
 
-
-		static inline PARAM quadraticOut(TIME Time, PARAM Start, PARAM End, TIME Duration) {
+		KM_FUN()
+		static PARAM quadraticOut(TIME Time, PARAM Start, PARAM End, TIME Duration) {
 			Time /= Duration;
 			return ((PARAM)(End - Start) * (Time * (2 - Time)) + Start);
 		}
 
-		static inline PARAM quadraticInOut(TIME Time, PARAM Start, PARAM End, TIME Duration) {
+		KM_FUN()
+		static PARAM quadraticInOut(TIME Time, PARAM Start, PARAM End, TIME Duration) {
 			Time /= Duration / 2;
 			if (Time < 1) return (((End - Start) / 2) * (Time * Time)) + Start;
 			return (PARAM)(-(End - Start) / 2 * (((Time - 2) * (--Time)) - 1) + Start);
 		}
 
-		static inline PARAM sinusoidalIn(TIME Time, PARAM Start, PARAM End, TIME Duration) {
+		KM_FUN()
+		static PARAM sinusoidalIn(TIME Time, PARAM Start, PARAM End, TIME Duration) {
 			Time /= Duration;
 			return (PARAM)(-(End - Start) * cos(Time * KMATH_PI_2) + (End - Start) + Start);
 		}
 
-		static inline PARAM sinusoidalOut(TIME Time, PARAM Start, PARAM End, TIME Duration) {
+		KM_FUN()
+		static PARAM sinusoidalOut(TIME Time, PARAM Start, PARAM End, TIME Duration) {
 			Time /= Duration;
 			return (PARAM)((End - Start) * sin(Time * KMATH_PI_2) + Start);
 		}
 
-		static inline PARAM sinusoidalInOut(TIME Time, PARAM Start, PARAM End, TIME Duration) {
+		KM_FUN()
+		static PARAM sinusoidalInOut(TIME Time, PARAM Start, PARAM End, TIME Duration) {
 			Time /= Duration;
 			return (PARAM)(-(End - Start) / 2 * (cos(KMATH_PI * Time) - 1) + Start);
 		}
 
-		static inline PARAM exponentialIn(TIME Time, PARAM Start, PARAM End, TIME Duration) {
+		KM_FUN()
+		static PARAM exponentialIn(TIME Time, PARAM Start, PARAM End, TIME Duration) {
 			return (PARAM)((Time == 0) ? Start : (End - Start) * pow(2, 10 * (Time / Duration - 1)) + Start);
 		}
 
-		static inline PARAM exponentialOut(TIME Time, PARAM Start, PARAM End, TIME Duration) {
+		KM_FUN()
+		static PARAM exponentialOut(TIME Time, PARAM Start, PARAM End, TIME Duration) {
 			return (PARAM)((Time == Duration) ? Start + (End - Start) : (End - Start) * (-pow(2, -10 * Time / Duration) + 1) + Start);
 		}
 
-		static inline PARAM exponentialInOut(TIME Time, PARAM Start, PARAM End, TIME Duration) {
+		KM_FUN()
+		static PARAM exponentialInOut(TIME Time, PARAM Start, PARAM End, TIME Duration) {
 			if (Time == 0) return Start;
 			if (Time == Duration) return Start + (End - Start);
 			if ((Time /= Duration / 2) < 1) return (End - Start) / 2 * pow(2, 10 * (Time - 1)) + Start;

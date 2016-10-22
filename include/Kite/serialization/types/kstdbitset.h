@@ -17,33 +17,30 @@ License along with this library; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 USA
 */
-#ifndef KLOGICSYS_H
-#define KLOGICSYS_H
+#ifndef KSTDBITSET_H
+#define KSTDBITSET_H
 
 #include "Kite/core/kcoredef.h"
-#include "Kite/core/ksystem.h"
-#include "Kite/meta/kmetadef.h"
-#include "klogicsys.khgen.h"
+#include "Kite/serialization/kbaseserial.h"
+#include "Kite/serialization/kserialization.h"
+#include "Kite/serialization/types/kstdstring.h"
+#include <bitset>
 
-KMETA
 namespace Kite {
-	class KLogicCom;
-	KM_CLASS(SYSTEM)
-	class KITE_FUNC_EXPORT KLogicSys : public KSystem {
-		KMETA_KLOGICSYS_BODY();
-	public:
-		bool update(F64 Delta, KEntityManager *EManager, KResourceManager *RManager) override;
 
-		bool inite(void *Data) override;
+	template<SIZE T1>
+	KBaseSerial &operator<<(KBaseSerial &Out, const std::bitset<T1> &Value) {
+		Out << Value.to_string();
+		return Out;
+	}
 
-		void destroy() override;
-
-	private:
-		bool catchAndRegist(KLogicCom *Component, KResourceManager *RManager);
-		bool initeComp(KEntity *Self, KLogicCom *Comp);
-		bool startComp(KEntity *Self, KLogicCom *Comp);
-		bool updateComp(F64 Delta, KEntity *Self, KLogicCom *Comp);
-		lua_State *_klvm;
-	};
+	template<SIZE T1>
+	KBaseSerial &operator>>(KBaseSerial &In, std::bitset<T1> &Value) {
+		std::string val;
+		In >> val;
+		Value = std::bitset<T1>(val);
+		return In;
+	}
 }
-#endif // KLOGICSYS_H
+
+#endif // KSTDBITSET_H

@@ -31,7 +31,7 @@ USA
 #endif
 
 namespace Kite {
-	bool KLogicSys::update(F32 Delta, KEntityManager *EManager, KResourceManager *RManager) {
+	bool KLogicSys::update(F64 Delta, KEntityManager *EManager, KResourceManager *RManager) {
 		EDITOR_STATIC const bool isregist = EManager->isRegisteredComponent(CTypes::LogicInstance);
 
 		// check component registration
@@ -98,7 +98,7 @@ namespace Kite {
 
 	void KLogicSys::destroy() { setInite(false); }
 
-	bool KLogicSys::updateComp(F32 Delta, KEntity *Self, KLogicCom *Comp) {
+	bool KLogicSys::updateComp(F64 Delta, KEntity *Self, KLogicCom *Comp) {
 		std::string address(Comp->getTName() + "." + Comp->getName() + ".update");
 
 #ifdef KITE_DEV_DEBUG

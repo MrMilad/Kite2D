@@ -265,10 +265,11 @@ namespace Kite{
 			\brief (Internal use)
 		*/
 		enum KGLBindGuardTypes{
-			KBG_NONE = 0,	//!< None
-			KBG_TEXTURE,	//!< Texture
-			KBG_VBUFFER,	//!< Vertex buffer
-			KBG_FBUFFER		//!< Frame buffer
+			KBG_NONE = 0,		//!< None
+			KBG_TEXTURE,		//!< Texture
+			KBG_TEXTURE_ARRAY,	//!< Texture Array
+			KBG_VBUFFER,		//!< Vertex buffer
+			KBG_FBUFFER			//!< Frame buffer
 		};
     }
 

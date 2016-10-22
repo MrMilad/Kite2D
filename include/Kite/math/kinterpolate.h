@@ -20,9 +20,9 @@ USA
 #ifndef KINTERPOLATE_H
 #define KINTERPOLATE_H
 
-#include "Kite/Core/system/ksystemdef.h"
-#include "Kite/Core/math/kmathdef.h"
-#include "kite/Core/math/ktween.h"
+#include "Kite/core/kcoredef.h"
+#include "Kite/math/kmathdef.h"
+#include "kite/math/ktween.h"
 
 namespace Kite {
 

@@ -18,11 +18,15 @@
     USA
 */
 #include "Kite/graphic/kcameracom.h"
+#include "Kite/graphic/katlastexturearray.h"
 #include "Kite/math/kmathdef.h"
 #include "Kite/meta/kmetamanager.h"
 #include "Kite/meta/kmetaclass.h"
 #include "Kite/meta/kmetatypes.h"
+#include "Kite/graphic/ktexture.h"
 #include "Kite/serialization/types/kstdstring.h"
+#include "Kite/serialization/types/kstdpair.h"
+#include "Kite/serialization/types/kstdbitset.h"
 #include <luaintf/LuaIntf.h>
 #include <cmath>
 
@@ -31,13 +35,20 @@ namespace Kite{
 		KComponent(Name),
 		_kdepth(0),
 		_kclearView(true),
+		_kparaReset(true),
 		_kflipx(false),
 		_kflipy(false),
+		_krtextureIndex(0),
 		_kcenter(0.0f, 0.0f),
+		_kmoveDelta(0.0f, 0.0f),
 		_kposition(0, 0),
-        _krotation(0.0f),
-        _kzoom(1.0f),
-		_kcompute(true)
+		_krotation(0.0f),
+		_krotateDelta(0),
+		_kzoomFactor(1.0f),
+		_kzoomDelta(0),
+		_klayers("01"),
+		_kcompute(true),
+		_krtexture(nullptr)
     {}
 
 	void KCameraCom::attached(KEntity *Entity) {}
@@ -46,6 +57,21 @@ namespace Kite{
 
 	RecieveTypes KCameraCom::onMessage(KMessage *Message, MessageScope Scope) {
 		return RecieveTypes::IGNORED;
+	}
+
+	bool KCameraCom::updateRes() {
+		if (!getResNeedUpdate()) {
+			return true;
+		}
+
+		// load resources
+		if (getRMan()) {
+			_krtexture = (KAtlasTextureArray *)getRMan()->get(_krtextureName.str);
+			resUpdated();
+			return true;
+		}
+
+		return false;
 	}
 
 	void KCameraCom::setSize(const KVector2U32 &Size) {
@@ -59,41 +85,82 @@ namespace Kite{
 		if (Position != _kposition) {
 			_kposition = Position;
 			_kcompute = true;
+			_kparaReset = true;
 		}
 	}
 
 	void KCameraCom::setCenter(const KVector2F32 &Center) {
 		if (Center != _kcenter) {
 			_kcenter = Center;
+			_kmoveDelta = KVector2F32(0, 0);
 			_kcompute = true;
+			_kparaReset = true;
 		}
 	}
 
 	void KCameraCom::move(const KVector2F32 &Move) {
 		if (Move != KVector2F32(0, 0)) {
-			_kcenter += Move;
+			_kmoveDelta += Move;
 			_kcompute = true;
+			_kparaReset = true;
+		}
+	}
+
+	void KCameraCom::parallaxMove(const KVector2F32 &Move) {
+		if (Move != KVector2F32(0, 0)) {
+			_kmoveDelta += Move;
+			_kcompute = true;
+			_kparaReset = false;
 		}
 	}
 
 	void KCameraCom::setRotation(F32 Angle) {
 		if (Angle != _krotation) {
 			_krotation = Angle;
+			_krotateDelta = 0;
 			_kcompute = true;
+			_kparaReset = true;
 		}
 	}
 
 	void KCameraCom::rotate(F32 Angle) {
 		if (Angle != 0) {
-			_krotation += Angle;
+			_krotateDelta += Angle;
 			_kcompute = true;
+			_kparaReset = true;
+		}
+	}
+
+	void KCameraCom::parallaxRotate(F32 Angle) {
+		if (Angle != 0) {
+			_krotateDelta += Angle;
+			_kcompute = true;
+			_kparaReset = false;
 		}
 	}
 
 	void KCameraCom::setZoom(F32 Factor) {
-		if (Factor != _kzoom) {
-			_kzoom = Factor;
+		if (Factor != _kzoomFactor) {
+			_kzoomFactor = Factor;
+			_kzoomDelta = 0;
 			_kcompute = true;
+			_kparaReset = true;
+		}
+	}
+
+	void KCameraCom::zoom(F32 Value) {
+		if (Value != 0) {
+			_kzoomDelta += Value;
+			_kcompute = true;
+			_kparaReset = true;
+		}
+	}
+
+	void KCameraCom::parallaxZoom(F32 Value) {
+		if (Value != 0) {
+			_kzoomDelta += Value;
+			_kcompute = true;
+			_kparaReset = false;
 		}
 	}
 
@@ -111,20 +178,60 @@ namespace Kite{
 		}
 	}
 
-	KRectF32 KCameraCom::getViewRect() const {
-		auto halfWidth = _ksize.x / 2;
-		auto halfHeight = _ksize.y / 2;
-		return KRectF32(_kcenter.x - halfWidth, _kcenter.x + halfWidth, _kcenter.y - halfHeight, _kcenter.y + halfHeight);
+	void KCameraCom::setLayer(U32 Index, bool Enable) {
+		if (Index < KENTITY_LAYER_SIZE) {
+			_klayers.set(Index, Enable);
+		}
 	}
 
-	const KMatrix3 &KCameraCom::getRatioMatrix(I8 Index) const {
-		if (Index < 0) {
-			return _kdefMat;
+	bool KCameraCom::checkLayer(U32 Index) {
+		if (Index < KENTITY_LAYER_SIZE) {
+			return _klayers.test(Index);
+		}
+		KD_FPRINT("layer index is out of range");
+		return false;
+	}
+
+	void KCameraCom::setLayers(bool Enable) {
+		if (Enable) {
+			_klayers.set();
+		} else {
+			_klayers.reset();
+		}
+	}
+
+	void KCameraCom::setRenderTexture(const KStringID &Texture) {
+		if (_krtextureName.hash != Texture.hash) {
+			_krtextureName = Texture;
+			resNeedUpdate();
+		}
+	}
+
+	KRectF32 KCameraCom::getViewRect(I32 ParallaxIndex) const {
+		auto halfWidth = _ksize.x / 2;
+		auto halfHeight = _ksize.y / 2;
+		F32 cx = _kcenter.x + _kmoveDelta.x;
+		F32 cy = _kcenter.y + _kmoveDelta.y;
+
+		if (ParallaxIndex < (I32)_kmatList.size()) {
+			if (ParallaxIndex >= 0 && !_kparaReset) {
+				auto ratio = _kmatList[ParallaxIndex].second;
+				cx = _kcenter.x + (_kmoveDelta.x * ratio.center.x);
+				cy = _kcenter.y + (_kmoveDelta.y * ratio.center.y);
+			}
 		}
 
+		return KRectF32(cx - halfWidth, cx + halfWidth, cy - halfHeight, cy + halfHeight);
+	}
+
+	const KMatrix3 &KCameraCom::getRatioMatrix(I32 Index) const {
 		// check range
-		if (Index < _kmatList.size()) {
-			return _kmatList[Index];
+		if (Index < (I32)_kmatList.size()) {
+			if (Index < 0 || _kparaReset) {
+				return _kdefMat;
+			}
+
+			return _kmatList[Index].first;
 		}
 
 		// out of range (return identity matrix)
@@ -132,99 +239,100 @@ namespace Kite{
 		return _kdefMat;
 	}
 
-	I8 KCameraCom::addTransformRatio(const KCameraTransformRatio &Ratio) {
+	I32 KCameraCom::addParallaxRatio(const KParallaxRatio &Ratio) {
 		// compare with default ratio
-		if (KCameraTransformRatio() == Ratio) {
+		if (KParallaxRatio() == Ratio) {
 			KD_PRINT("try to add duplicate ratio (default)");
 			return -1;
 		}
 
 		// serch list
-		for (SIZE i = 0; i < _kratList.size(); ++i) {
-			if (_kratList.at(i) == Ratio) {
+		for (SIZE i = 0; i < _kmatList.size(); ++i) {
+			if (_kmatList.at(i).second == Ratio) {
 				KD_PRINT("try to add duplicate ratio");
 				return i;
 			}
 		}
 
 		// add new ratio to list
-		_kratList.push_back(Ratio);
-		_kmatList.push_back(KMatrix3());
+		_kmatList.push_back({ KMatrix3(), Ratio });
 
 		// compute new tarnsform
-		computeMatrix(_kmatList.back(), _kratList.back());
+		computeMatrix(_kmatList.back().first, Ratio);
 
 		// return index
-		return _kratList.size() - 1;
+		return _kmatList.size() - 1;
 	}
 
-	bool KCameraCom::setTransformRatio(I8 Index, const KCameraTransformRatio &Ratio) {
+	bool KCameraCom::setParallaxRatio(I32 Index, const KParallaxRatio &Ratio) {
 		// check range
-		if (Index >= _kmatList.size() || Index < 0) {
+		if (Index >= (I32)_kmatList.size() || Index < 0) {
 			KD_PRINT("index of transform ratio is out of range.");
 			return false;
 		}
 
 		// compare with default ratio
-		if (KCameraTransformRatio() == Ratio) {
+		if (KParallaxRatio() == Ratio) {
 			KD_PRINT("try to set duplicate ratio (default)");
 			return false;
 		}
 
 		// serch list
-		for (SIZE i = 0; i < _kratList.size(); ++i) {
+		for (SIZE i = 0; i < _kmatList.size(); ++i) {
 			KD_PRINT("try to set duplicate ratio");
-			if (_kratList.at(i) == Ratio) {
+			if (_kmatList.at(i).second == Ratio) {
 				KD_PRINT("try to set duplicate ratio");
 				return false;
 			}
 		}
 
 		// set new ratio
-		_kratList[Index] = Ratio;
+		_kmatList[Index].second = Ratio;
 
 		// recompute matrix
-		computeMatrix(_kmatList[Index], _kratList[Index]);
+		computeMatrix(_kmatList[Index].first, _kmatList[Index].second);
+		return true;
 	}
 
-	const KCameraTransformRatio &KCameraCom::getTransformRatio(I8 Index) const {
+	KParallaxRatio KCameraCom::getParallaxRatio(I32 Index) const {
 		if (Index < 0) {
-			return KCameraTransformRatio();
+			return KParallaxRatio();
 		}
 
 		// check range
-		if (Index < _kmatList.size()) {
-			return _kratList[Index];
+		if (Index < (I32)_kmatList.size()) {
+			return _kmatList[Index].second;
 		}
 
 		KD_PRINT("index of transform ratio is out of range.");
-		return KCameraTransformRatio();
+		return KParallaxRatio();
 	}
 
 	void KCameraCom::clearRatio() {
 		_kmatList.clear();
-		_kratList.clear();
 	}
 
 	void KCameraCom::computeMatrixes() {
 		if (_kcompute) {
 			// default matrix
-			computeMatrix(_kdefMat, KCameraTransformRatio());
+			computeMatrix(_kdefMat, KParallaxRatio());
 
 			// ratios mats
-			for (SIZE i = 0; i < _kratList.size(); ++i) {
-				computeMatrix(_kmatList[i], _kratList[i]);
+			if (!_kparaReset) {
+				for (auto it = _kmatList.begin(); it != _kmatList.end(); ++it) {
+					computeMatrix(it->first, it->second);
+				}
 			}
 
 			_kcompute = false;
 		}
 	}
 
-	void KCameraCom::computeMatrix(KMatrix3 &Mat, const KCameraTransformRatio &Rat) {
+	void KCameraCom::computeMatrix(KMatrix3 &Mat, const KParallaxRatio &Rat) {
 		// set ratio
-		auto rotateRat = _krotation * Rat.rotation;
-		auto centerRat = _kcenter * Rat.center;
-		auto zoomRat = _kzoom * Rat.zoom;
+		auto rotateRat = _krotation + (_krotateDelta * Rat.rotation);
+		auto centerRat = _kcenter + (_kmoveDelta * Rat.center);
+		auto zoomRat = _kzoomFactor + (_kzoomDelta * Rat.zoom);
 
 		// compute matrix
 		F32 flipy = 1.0f;

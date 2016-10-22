@@ -238,13 +238,24 @@ namespace Kite {
 		KD_PRINT("layer id is out of range");
 	}
 
+	void KEntity::setStatic(bool Static) {
+		if (_kstatic != Static) {
+			_kstatic = Static;
+
+			// send message about this change
+			KMessage msg;
+			msg.setType("STATIC_CHANGED");
+			msg.setData(this, sizeof(this));
+
+			postMessage(&msg, MessageScope::ALL);
+		}
+	}
+
 	KComponent *KEntity::addComponent(CTypes Type, const std::string &CName) {
 		// cehck storage
 		if (_kcstorage == nullptr) {
 			KD_PRINT("set component storage at first");
 			return nullptr;
-
-		// check component type
 		}
 		
 		// this component is already exist

@@ -85,12 +85,6 @@ namespace Kite {
 		KM_PRO_SET(KP_NAME = "isActive")
 		void setActive(bool Active);
 
-		KM_PRO_GET(KP_NAME = "isStatic", KP_TYPE = bool, KP_CM = "is static")
-		inline bool isStatic() const { return _kstatic; }
-
-		KM_PRO_SET(KP_NAME = "isStatic")
-		inline void setStatic(bool Static) { _kstatic = Static; }
-
 		KM_PRO_GET(KP_NAME = "isRemoved", KP_TYPE = bool, KP_CM = "is removed")
 		inline bool isRemoved() const { return _kdeleted; }
 
@@ -109,8 +103,13 @@ namespace Kite {
 		KM_PRO_SET(KP_NAME = "layer")
 		void setLayer(U8 LayerID);
 
+		KM_PRO_GET(KP_NAME = "static", KP_TYPE = bool, KP_CM = "is static")
+		inline bool getStatic() const { return _kstatic; }
+
+		KM_PRO_SET(KP_NAME = "static")
+		void setStatic(bool Static);
+
 		// dont add multiple graphics component on the same entity. (undefined behavior)
-		// dont reuse entity with multiple graphics components. (e.g. remove current type and add another type. just dont do it)
 		// use an new entity
 		KM_FUN()
 		KComponent *addComponent(CTypes Type, const std::string &CName = "");

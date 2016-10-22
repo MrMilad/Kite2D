@@ -26,7 +26,7 @@ USA
 #include <luaintf/LuaIntf.h>
 
 namespace Kite {
-	bool KInputSys::update(F32 Delta, KEntityManager *EManager, KResourceManager *RManager) {
+	bool KInputSys::update(F64 Delta, KEntityManager *EManager, KResourceManager *RManager) {
 		EDITOR_STATIC const bool isregist = EManager->isRegisteredComponent(CTypes::Input);
 
 		if (isregist) {

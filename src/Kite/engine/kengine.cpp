@@ -24,6 +24,7 @@ USA
 #include "Kite/serialization/kserialization.h"
 #include "Kite/serialization/types/kstdstring.h"
 #include <luaintf\LuaIntf.h>
+#include <chrono>
 
 namespace Kite {
 	KMETA_KCONFIG_SOURCE();
@@ -56,6 +57,7 @@ namespace Kite {
 	}
 
 	bool KEngine::inite(const KConfig *Config, bool IniteMeta) {
+		if (!Config) return false;
 		_kconfig = *Config;
 		// inite lua vm
 		_klstate = luaL_newstate();
@@ -94,8 +96,15 @@ namespace Kite {
 
 		// sort systems by priority
 		for (auto it = _ksys.begin(); it != _ksys.end(); ++it) {
+			// first
 			if ((*it)->getClassName() == "KInputSys") {
 				std::iter_swap(it, _ksys.begin());
+
+			// second
+			}else if ((*it)->getClassName() == "KLogicSys") {
+					std::iter_swap(it, _ksys.begin() + 1);
+
+			// last
 			} else if ((*it)->getClassName() == "KRenderSys") {
 				std::iter_swap(it, --_ksys.end());
 			}
@@ -145,8 +154,14 @@ namespace Kite {
 			return;
 		}
 
+		// start off assuming an ideal frame time (60 FPS). 
+		F64 delta = 1.0 / 60.0;
+
+		// Prime the pump by reading the current time.
+		auto begin_ticks = std::chrono::high_resolution_clock::now();
+
 		while (_kwindow->update()) {
-#if defined(KITE_EDITOR) && defined (KITE_DEV_DEBUG)
+#if defined(KITE_EDITOR) && defined(KITE_DEV_DEBUG)
 			std::unique_lock<std::mutex> lk(mx);
 			if (pauseFlag.load()) { cv.wait(lk); }
 			if (exitFlag.load()) { break; }
@@ -155,22 +170,32 @@ namespace Kite {
 			for (auto it = _ksys.begin(); it != _ksys.end(); ++it) {
 				_keman = _ksman->getActiveScene()->getEManager();
 				
-				if (!((*it)->update(0, _ksman->getActiveScene()->getEManager(), _krman))) {
+				if (!((*it)->update(delta, _ksman->getActiveScene()->getEManager(), _krman))) {
 					KD_FPRINT("updating systems failed. sname: %s", (*it)->getClassName().c_str());
 					return;
 				}
 			}
 
+			// display render output
+			_kwindow->display();
+
 			// clear trash list
 			_ksman->getActiveScene()->getEManager()->postWork();
 
-			// display render output
-			_kwindow->display();
+			// end ticks
+			auto end_ticks = std::chrono::high_resolution_clock::now();
+
+			// convert to seconds
+			delta = (F64)std::chrono::duration_cast<std::chrono::milliseconds>(end_ticks - begin_ticks).count() / 1000.0;
+
+			// Use end_ticks as the new begin_ticks for next frame
+			begin_ticks = end_ticks;
 		}
 	}
 
 	void KEngine::shutdown() {
 		lua_close(_klstate);
+		_klstate = nullptr;
 
 		// destroy systems
 		// graphic sustem must destroy before closing window

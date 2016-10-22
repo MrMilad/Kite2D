@@ -25,10 +25,12 @@ USA
 #include <luaintf/LuaIntf.h>
 
 namespace Kite {
+	void(*KGCullingCom::_kswitchCallb)(KEntity *, KGCullingCom *) = nullptr;
+	void *KGCullingCom::_ksysptr = nullptr;
+
 	KGCullingCom::KGCullingCom(const std::string &Name):
 		KComponent(Name),
-		_kcallb(nullptr),
-		_ksysptr(nullptr),
+		_kcleanCallb(nullptr),
 		_kobjptr(nullptr),
 		_kobjIndex(0)
 	{
@@ -42,16 +44,29 @@ namespace Kite {
 		if (!Owner->hasComponentType(CTypes::RegisterGCulling)) {
 			Owner->addComponent(CTypes::RegisterGCulling);
 		}
+
+		// subscrib for static change message
+		Owner->subscribe(*this, "STATIC_CHANGED");
 	}
 
 	void KGCullingCom::deattached(KEntity *Owner) {
 		// cleanup callback
-		if (_kcallb != nullptr) {
-			(_kcallb)(this);
+		if (_kcleanCallb) {
+			(_kcleanCallb)(this);
 		}
 	}
 
 	RecieveTypes KGCullingCom::onMessage(KMessage *Message, MessageScope Scope) {
+		if (Message->getType() == "STATIC_CHANGED") {
+			auto ent = (KEntity *)Message->getData();
+
+			// is registered in culling system
+			if (_kcleanCallb) {
+				// switch state
+				(_kswitchCallb)(ent, this);
+			}
+		}
+
 		return RecieveTypes::IGNORED;
 	}
 	KMETA_KGCULLINGCOM_SOURCE();

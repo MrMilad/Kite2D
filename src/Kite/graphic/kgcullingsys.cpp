@@ -23,6 +23,7 @@ USA
 #include "Kite/graphic/krendercom.h"
 #include "Kite/graphic/kquadcom.h"
 #include "Kite/graphic/korthomapcom.h"
+#include "Kite/graphic/kcameracom.h"
 #include <LooseQuadtree.h>
 
 namespace Kite {
@@ -33,7 +34,7 @@ namespace Kite {
 		_kqtree(nullptr)
 	{}
 	
-	bool KGCullingSys::update(F32 Delta, KEntityManager *EManager, KResourceManager *RManager) {
+	bool KGCullingSys::update(F64 Delta, KEntityManager *EManager, KResourceManager *RManager) {
 		EDITOR_STATIC const bool isregist = EManager->isRegisteredComponent(CTypes::RegisterGCulling);
 
 		_krman = RManager;
@@ -58,7 +59,7 @@ namespace Kite {
 				if (entity->isActive()) {
 
 					// static objects will be added to quad tree
-					if (entity->isStatic()) {
+					if (entity->getStatic()) {
 						_addToTree(entity);
 
 					// dynamic objects will be added to brute force culling list
@@ -80,6 +81,9 @@ namespace Kite {
 		_kqtree = new loose_quadtree::LooseQuadtree<F32, KQTreeObject, KGCullingSys>();
 
 		_kbflist.reserve(KGCULLING_MEM_CHUNK);
+
+		KGCullingCom::_kswitchCallb = _switchType;
+		KGCullingCom::_ksysptr = this;
 
 		setInite(true);
 		return true;
@@ -111,15 +115,12 @@ namespace Kite {
 			obj->com = renderCom->getHandle();
 
 			// set remove callback
-			gcom->_kcallb = _removeQTreeObject;
-			gcom->_ksysptr = this;
+			gcom->_kcleanCallb = _removeQTreeObject;
 			gcom->_kobjptr = obj;
 
 			_kqtree->Insert(obj);
 			_kquadChanged = true;
 		}
-
-		// check other components ...
 	}
 
 	void KGCullingSys::_addToBFList(KEntity *Ent) {
@@ -129,7 +130,7 @@ namespace Kite {
 		// check renderables
 		auto com = (KRenderCom *)Ent->getComponent(CTypes::RenderInstance);
 
-		// ignore tiles
+		// ignore tile-maps
 		if (com->getRenderable() == CTypes::OrthogonalMapView) return;
 
 		// restrive renderable component
@@ -140,10 +141,8 @@ namespace Kite {
 			obj.com = renderCom->getHandle();
 
 			// set remove callback
-			gcom->_kcallb = _removeBFObject;
-			gcom->_ksysptr = this;
-			gcom->_kobjptr = nullptr;
-			gcom->_kobjIndex = _kbflist.size() - 1;
+			gcom->_kcleanCallb = _removeBFObject;
+			gcom->_kobjIndex = _kbflist.size();
 			_kbflist.push_back(obj);
 		}
 	}
@@ -164,6 +163,23 @@ namespace Kite {
 		thisptr->_kbflist.pop_back();
 	}
 
+	void KGCullingSys::_switchType(KEntity *Ent, KGCullingCom *Com) {
+		auto thisptr = (KGCullingSys *)Com->_ksysptr;
+		if (Ent->getStatic()) {
+			// remove from bf list
+			_removeBFObject(Com);
+
+			// add to static list
+			thisptr->_addToTree(Ent);
+		} else {
+			// remove from static list
+			_removeQTreeObject(Com);
+
+			// add to static list
+			thisptr->_addToBFList(Ent);
+		}
+	}
+
 	void KGCullingSys::_computeParentPosition(KEntity *Entity, KRectF32 &Output){
 		auto trcom = (KTransformCom *)Entity->getComponent(CTypes::Transform, "");
 		if (Entity->getParentHandle() != _klastEman->getRoot()) {
@@ -175,9 +191,13 @@ namespace Kite {
 		}
 	}
 
-	void KGCullingSys::queryObjects(const KRectF32 &Area, const std::bitset<KENTITY_LAYER_SIZE> &Layers, GCullingObjectsFilter Filter,
+	void KGCullingSys::queryObjects(const KCameraCom *Cam, GCullingObjectsFilter Filter,
 									const KEntityManager *EMan, std::vector<std::pair<KEntity *, KRenderable *>> &Output) {
 		Output.resize(0);
+
+		// there is no selected layer
+		if (Cam->_klayers.none()) return;
+
 		if (_klastEman != nullptr && _klastEman == EMan) {
 			// tilemaps
 			if (((U8)Filter & (U8)GCullingObjectsFilter::TILE) == (U8)GCullingObjectsFilter::TILE) {
@@ -188,71 +208,24 @@ namespace Kite {
 					auto owner = _klastEman->getEntity(it->getOwnerHandle());
 					if (owner->isActive() && it->isVisible()) {
 						// check layer
-						if (Layers.test(owner->getLayer())) {
-
+						if (Cam->_klayers.test(owner->getLayer())) {
 							it->updateRes();
 
 							// check bounding rect
 							KRectF32 brect;
 							it->getBoundingRect(brect);
 							_computeParentPosition(owner, brect);
-							if (Area.overlapRect(brect)) {
-								auto trcom = (KTransformCom *)owner->getComponent(CTypes::Transform);
 
+							auto trcom = (KTransformCom *)owner->getComponent(CTypes::Transform, "");
+							auto camRect = Cam->getViewRect(trcom->getRatioIndex());
+							if (camRect.overlapRect(brect)) {
 								// set culling area
-								it->setCullingArea(Area - trcom->getPosition());
+								it->setCullingArea(camRect - trcom->getPosition());
 
 								Output.push_back({ owner, dynamic_cast<KRenderable *>(&(*it)) });
 							}
 						}
 					}
-				}
-			}
-
-			// static objects
-			if (((U8)Filter & (U8)GCullingObjectsFilter::STATIC) == (U8)GCullingObjectsFilter::STATIC &&
-				!_kqtree->IsEmpty()) {
-				// inite query area
-				static auto lastArea = Area;
-				static std::vector<std::pair<KEntity *, KRenderable *>> lastCatch(100);
-
-				loose_quadtree::BoundingBox<F32> region(Area.left, Area.bottom, Area.right - Area.left, Area.top - Area.bottom);
-
-				
-				if (lastArea == Area && !_kquadChanged) {
-					// using catched objects if there are no changes
-					for (auto it = lastCatch.begin(); it != lastCatch.end(); ++it) {
-						Output.push_back(*it);
-					}
-					return;
-				} 
-
-				// query tree
-				auto query = _kqtree->QueryIntersectsRegion(region);
-				_kquadChanged = false;
-				lastArea = Area;
-				lastCatch.resize(0);
-
-				// iterate over queried objects
-				while (!query.EndOfQuery()) {
-					auto it = query.GetCurrent();
-					auto ent = _klastEman->getEntity(it->ent);
-
-					if (ent->isActive()) {
-						// check layer
-						if (Layers.test(ent->getLayer())) {
-							auto com = ent->getComponentByHandle(it->com);
-							auto graphicCom = dynamic_cast<KRenderable *>(com);
-							auto transformCom = (KTransformCom *)ent->getComponent(CTypes::Transform);
-
-							if (graphicCom->isVisible() && graphicCom->getIndexSize() > 0) {
-								com->updateRes();
-								Output.push_back({ ent, graphicCom });
-								lastCatch.push_back({ ent, graphicCom });
-							}
-						}
-					}
-					query.Next();
 				}
 			}
 
@@ -265,10 +238,10 @@ namespace Kite {
 					if (ent->isActive()) {
 
 						// check layer
-						if (Layers.test(ent->getLayer())) {
+						if (Cam->_klayers.test(ent->getLayer())) {
 							auto com = ent->getComponentByHandle(it->com);
 							auto graphicCom = dynamic_cast<KRenderable *>(com);
-							auto transformCom = (KTransformCom *)ent->getComponent(CTypes::Transform);
+							auto trcom = (KTransformCom *)ent->getComponent(CTypes::Transform);
 
 							if (graphicCom->isVisible() && graphicCom->getIndexSize() > 0) {
 								com->updateRes();
@@ -277,12 +250,63 @@ namespace Kite {
 								KRectF32 brect;
 								graphicCom->getBoundingRect(brect);
 								_computeParentPosition(ent, brect);
-								if (Area.overlapRect(brect)) {
+
+								auto camRect = Cam->getViewRect(trcom->getRatioIndex());
+								if (camRect.overlapRect(brect)) {
 									Output.push_back({ ent, graphicCom });
 								}
 							}
 						}
 					}
+				}
+			}
+
+			// static objects
+			// static objects always culled with default view rect and cant work with parallax
+			if (((U8)Filter & (U8)GCullingObjectsFilter::STATIC) == (U8)GCullingObjectsFilter::STATIC &&
+				!_kqtree->IsEmpty()) {
+				// inite query area
+				static auto lastArea = Cam->getViewRect(-1);
+				static std::vector<std::pair<KEntity *, KRenderable *>> lastCatch(100);
+				auto area = Cam->getViewRect(-1);
+
+				loose_quadtree::BoundingBox<F32> region(area.left, area.bottom, area.right - area.left, area.top - area.bottom);
+
+				
+				if (lastArea == area && !_kquadChanged) {
+					// using catched objects if there are no changes
+					for (auto it = lastCatch.begin(); it != lastCatch.end(); ++it) {
+						Output.push_back(*it);
+					}
+					return;
+				} 
+
+				// query tree
+				auto query = _kqtree->QueryIntersectsRegion(region);
+				_kquadChanged = false;
+				lastArea = area;
+				lastCatch.resize(0);
+
+				// iterate over queried objects
+				while (!query.EndOfQuery()) {
+					auto it = query.GetCurrent();
+					auto ent = _klastEman->getEntity(it->ent);
+
+					if (ent->isActive()) {
+						// check layer
+						if (Cam->_klayers.test(ent->getLayer())) {
+							auto com = ent->getComponentByHandle(it->com);
+							auto graphicCom = dynamic_cast<KRenderable *>(com);
+							auto transformCom = (KTransformCom *)ent->getComponent(CTypes::Transform);
+
+							if (graphicCom->isVisible() && graphicCom->getIndexSize() > 0) {
+								com->updateRes();
+								Output.push_back({ ent, graphicCom });
+								lastCatch.push_back({ ent, graphicCom });
+							}
+						}
+					}
+					query.Next();
 				}
 			}
 			return;

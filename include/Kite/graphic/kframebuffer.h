@@ -23,12 +23,14 @@
 /*! \file kframebuffer.h */
 
 #include "Kite/core/kcoredef.h"
-#include "Kite/graphic/ktexture.h"
 
 /*! \namespace Kite
 	\brief Public namespace.
 */
 namespace Kite{
+
+	class KTexture;
+	class KAtlasTextureArray;
 
 	//! The KFrameBuffer class encapsulate OpenGL framebuffer object (FBO).
 	/*!
@@ -50,6 +52,9 @@ namespace Kite{
 			\param Texture Pointer to a initialized texture.
 		*/
         void attachTexture(const KTexture *Texture);
+
+
+		void attachTextureArray(const KAtlasTextureArray *, U32 Index);
 
 		//! Bind the framebuffer object.
 		/*!

@@ -157,7 +157,7 @@ namespace Kite {
 						   TextureFilter Filter, TextureWrap Wrap, KAtlasTextureArray *Instance) {
 
 		// save currently binded texture then bind our texture temporary
-		Internal::GLBindGuard guard(Internal::KBG_TEXTURE, _klastTexId, Instance->_ktexId);
+		Internal::GLBindGuard guard(Internal::KBG_TEXTURE_ARRAY, _klastTexId, Instance->_ktexId);
 		DGL_CALL(glBindTexture(GL_TEXTURE_2D_ARRAY, Instance->_ktexId));
 
 		// allocate the storage.
@@ -204,7 +204,7 @@ namespace Kite {
 		if (_ktexId > 0) {
 			if (Filter != _kfilter) {
 				// save currently bound texture then bind our texture temporary
-				Internal::GLBindGuard guard(Internal::KBG_TEXTURE, _klastTexId, _ktexId);
+				Internal::GLBindGuard guard(Internal::KBG_TEXTURE_ARRAY, _klastTexId, _ktexId);
 				DGL_CALL(glBindTexture(GL_TEXTURE_2D_ARRAY, _ktexId));
 
 				// set filter type
@@ -220,7 +220,7 @@ namespace Kite {
 		if (_ktexId > 0) {
 			if (Wrap != _kwrap) {
 				// save currently bound texture then bind our texture temporary
-				Internal::GLBindGuard guard(Internal::KBG_TEXTURE, _klastTexId, _ktexId);
+				Internal::GLBindGuard guard(Internal::KBG_TEXTURE_ARRAY, _klastTexId, _ktexId);
 				DGL_CALL(glBindTexture(GL_TEXTURE_2D_ARRAY, _ktexId));
 
 				// setup texture parameters
@@ -248,8 +248,10 @@ namespace Kite {
 	}
 
 	void KAtlasTextureArray::unbindTextureArray() {
-		DGL_CALL(glBindTexture(GL_TEXTURE_2D_ARRAY, 0));
-		_klastTexId = 0;
+		if (_klastTexId != 0) {
+			DGL_CALL(glBindTexture(GL_TEXTURE_2D_ARRAY, 0));
+			_klastTexId = 0;
+		}
 	}
 
 	KMETA_KATLASTEXTUREARRAY_SOURCE();

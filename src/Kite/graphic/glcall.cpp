@@ -98,6 +98,9 @@ namespace Internal{
 			case KBG_TEXTURE:
 				DGL_CALL(glBindTexture(GL_TEXTURE_2D, _kglLastObj));
 				break;
+			case KBG_TEXTURE_ARRAY:
+				DGL_CALL(glBindTexture(GL_TEXTURE_2D_ARRAY, _kglLastObj));
+				break;
 			case KBG_VBUFFER:
 				DGL_CALL(glBindBuffer(GL_ARRAY_BUFFER_ARB, _kglLastObj));
 				break;

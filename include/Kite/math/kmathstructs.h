@@ -357,21 +357,21 @@ namespace Kite{
 	typedef KRect2<F64> KRect2F64;
 
 	KM_CLASS(POD)
-	struct KCameraTransformRatio {
-		KMETA_KCAMERATRANSFORMRATIO_BODY();
+	struct KParallaxRatio {
+		KMETA_KPARALLAXRATIO_BODY();
 
 		KM_VAR() KVector2F32 center;
 		KM_VAR() F32 zoom;
 		KM_VAR() F32 rotation;
 
-		KCameraTransformRatio(KVector2F32 Center , F32 Zoom, F32 Rotation) :
+		KParallaxRatio(KVector2F32 Center , F32 Zoom, F32 Rotation) :
 			center(Center), zoom(Zoom), rotation(Rotation) {}
 
 		KM_CON()
-			KCameraTransformRatio() :
+			KParallaxRatio() :
 			center(1,1), zoom(1), rotation(1) {} // normal ratio
 
-		bool operator==(const KCameraTransformRatio &Right) {
+		bool operator==(const KParallaxRatio &Right) {
 			if (center != Right.center) return false;
 			if (zoom != Right.zoom) return false;
 			if (rotation != Right.rotation) return false;

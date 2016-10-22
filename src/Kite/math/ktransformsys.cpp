@@ -27,7 +27,7 @@ USA
 
 namespace Kite {
 
-	bool KTransformSys::update(F32 Delta, KEntityManager *EManager, KResourceManager *RManager) {
+	bool KTransformSys::update(F64 Delta, KEntityManager *EManager, KResourceManager *RManager) {
 		EDITOR_STATIC const bool isregist = EManager->isRegisteredComponent(CTypes::Transform);
 		if (isregist) {
 			auto continer = EManager->getComponentStorage<KTransformCom>(CTypes::Transform);

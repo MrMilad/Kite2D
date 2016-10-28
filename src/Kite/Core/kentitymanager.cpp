@@ -235,12 +235,15 @@ namespace Kite {
 	}
 
 	void KEntityManager::postWork() {
+		// clear components 
+		KEntity::postWork(_kcstorage);
+
 		// iterarte over all handle in our trash list
 		for (auto it = _ktrash.begin(); it != _ktrash.end(); ++it) {
 			auto ent = _kestorage.get((*it));
 
 			if (ent != nullptr) {
-				ent->clearComponents(); 
+				ent->postClearComponents();
 				_kestorage.remove((*it));
 			}
 		}

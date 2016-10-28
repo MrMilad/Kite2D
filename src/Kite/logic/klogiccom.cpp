@@ -18,6 +18,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 USA
 */
 #include "Kite/logic/klogiccom.h"
+#include "Kite/logic/kreglogiccom.h"
 #include "Kite/meta/kmetamanager.h"
 #include "Kite/meta/kmetaclass.h"
 #include "Kite/meta/kmetatypes.h"
@@ -31,13 +32,23 @@ USA
 namespace Kite {
 	KLogicCom::KLogicCom(const std::string &Name) :
 		KComponent(Name),
-		_kinite(false), _kstart(false), _klstate(nullptr)
+		_klstate(nullptr)
 	{
-		addDependency(CTypes::LogicInstance);
+		addDependency(CTypes::RegisterLogic);
 	}
 
 	void KLogicCom::attached(KEntity *Entity) {
 		_ktname = Entity->getLuaTName();
+
+		// entity manager will not create 'register components' on deserial because they are removed by systems after registration phase
+		// so we will add it at runtime
+		if (!Entity->hasComponentType(CTypes::RegisterLogic)) {
+			Entity->addComponent(CTypes::RegisterLogic);
+		}
+
+		// add to inite list for initialization
+		auto regCom = (KRegLogicCom *)Entity->getComponent(CTypes::RegisterLogic);
+		regCom->addToIniteList(getHandle());
 	}
 
 	void KLogicCom::deattached(KEntity *Entity) {
@@ -45,19 +56,18 @@ namespace Kite {
 	}
 
 	RecieveTypes KLogicCom::onMessage(KMessage *Message, MessageScope Scope) {
-		 std::string ctable = "_G." + _ktname + "." + getName() + ".onMessage";
 		if (_klstate != nullptr) {
-			LuaIntf::LuaRef lref(_klstate, ctable.c_str());
+			LuaIntf::LuaRef lref(_klstate, "_G.hooks.callDirect");
 			if (lref.isFunction()) {
 #ifdef KITE_DEV_DEBUG
 				try {
-					lref(getOwnerHandle(), Message);
+					lref("onGameMessage", getHandle(), Message);
 				} catch (std::exception& e) {
-					KD_FPRINT("onMessage function failed. %s", e.what());
+					KD_FPRINT("onGameMessage function failed. %s", e.what());
 					return RecieveTypes::IGNORED;
 				}
 #else
-				lref(getOwnerHandle(), Message);
+				lref("onGameMessage", getHandle(), Message);
 #endif
 				return RecieveTypes::RECEIVED;
 			}
@@ -74,9 +84,13 @@ namespace Kite {
 	}
 
 	void KLogicCom::removeLuaEnv() {
-		// remove environment table from lua
-		std::string ctable = "_G." + _ktname;
+		std::string ctable = "_G.ENT." + _ktname;
 		if (_klstate != nullptr) {
+			// unhook
+			LuaIntf::LuaRef hooks(_klstate, "_G.hooks.remove");
+			hooks(getHandle());
+
+			// remove environment table from lua
 			LuaIntf::LuaRef lref(_klstate, ctable.c_str());
 			if (lref.isTable()) {
 				lref.remove(this->getName().c_str());

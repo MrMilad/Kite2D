@@ -27,22 +27,20 @@ USA
 
 namespace Kite {
 	bool KInputSys::update(F64 Delta, KEntityManager *EManager, KResourceManager *RManager) {
-		EDITOR_STATIC const bool isregist = EManager->isRegisteredComponent(CTypes::Input);
+		//EDITOR_STATIC const bool isregist = EManager->isRegisteredComponent(CTypes::Input);
 
-		if (isregist) {
-			auto continer = EManager->getComponentStorage<KInputCom>(CTypes::Input);
-			for (auto it = continer->begin(); it != continer->end(); ++it) {
-				auto EHandle = it->getOwnerHandle();
-				auto entity = EManager->getEntity(EHandle);
-				if (entity->isActive()) {
-					if (it->getEnableKeyboard() && KKeyboard::isAnyKeyDown()) {
-						KMessage msg("KEY_DOWN");
-						entity->onMessage(&msg, MessageScope::ALL);
-					}
-					if (it->getEnableMouse() && KMouse::isAnyKeyDown()) {
-						KMessage msg("MOUSE_DOWN");
-						entity->onMessage(&msg, MessageScope::ALL);
-					}
+		auto continer = EManager->getComponentStorage<KInputCom>(CTypes::Input);
+		for (auto it = continer->begin(); it != continer->end(); ++it) {
+			auto EHandle = it->getOwnerHandle();
+			auto entity = EManager->getEntity(EHandle);
+			if (entity->isActive()) {
+				if (it->getEnableKeyboard() && KKeyboard::isAnyKeyDown()) {
+					KMessage msg("KEY_DOWN");
+					entity->onMessage(&msg, MessageScope::ALL);
+				}
+				if (it->getEnableMouse() && KMouse::isAnyKeyDown()) {
+					KMessage msg("MOUSE_DOWN");
+					entity->onMessage(&msg, MessageScope::ALL);
 				}
 			}
 		}

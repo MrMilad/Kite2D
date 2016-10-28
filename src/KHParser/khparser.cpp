@@ -84,7 +84,8 @@ enum MOperatorType {
 	OT_ADD = 0,
 	OT_SUB,
 	OT_MUL,
-	OT_DIV
+	OT_DIV,
+	OT_EQ
 };
 
 /*struct MFParam {
@@ -1209,6 +1210,14 @@ bool procOper(std::vector<MOperator> &Oprs, const std::vector<MFunction> &Funs) 
 			Oprs.push_back(opr);
 			continue;
 		}
+
+		if (param[0].first == "KO_EQ") {
+			MOperator opr;
+			opr.fun = Funs[i];
+			opr.type = OT_EQ;
+			Oprs.push_back(opr);
+			continue;
+		}
 	}
 
 	return true;
@@ -1809,6 +1818,11 @@ void createTemplMacro(const MClass &Cls, std::string &Output) {
 			Output.append(".addFunction(\"__div\", &" + Cls.name + "<" + Cls.templType + ">::" + Cls.opes[count].fun.name + ")\\\n");
 			continue;
 		}
+
+		if (Cls.opes[count].type == OT_EQ) {
+			Output.append(".addFunction(\"__eq\", &" + Cls.name + "<" + Cls.templType + ">::" + Cls.opes[count].fun.name + ")\\\n");
+			continue;
+		}
 	}
 
 	// variables
@@ -2281,6 +2295,11 @@ void createMacros(const std::vector<MClass> &Cls, const std::vector<MEnum> &Enms
 
 				if (Cls[i].opes[count].type == OT_DIV) {
 					Output.append(".addFunction(\"__div\", &" + Cls[i].name + "::" + Cls[i].opes[count].fun.name + ")\\\n");
+					continue;
+				}
+
+				if (Cls[i].opes[count].type == OT_EQ) {
+					Output.append(".addFunction(\"__eq\", &" + Cls[i].name + "::" + Cls[i].opes[count].fun.name + ")\\\n");
 					continue;
 				}
 			}

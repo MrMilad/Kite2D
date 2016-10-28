@@ -301,6 +301,29 @@ namespace Kite{
 		KM_VAR(UNBIND) bool _kflipv;
 	};
 
+	KM_CLASS(POD)
+	struct KGlyphMarker {
+		KMETA_KGLYPHMARKER_BODY();
+
+		KM_VAR() char character;
+		KM_VAR() U32 atlasID;
+		KM_VAR() U32 lenght;
+
+		/// select all standard ascii chars by default
+		KM_CON(char, U32, U32)
+		KGlyphMarker(char Character = '!', U32 AtlasID = 0, U32 Lenght = 94):
+			character(Character), atlasID(AtlasID), lenght(Lenght)
+		{}
+
+		bool operator==(const KGlyphMarker &Other) const {
+			return (character == Other.character && atlasID == Other.atlasID && lenght == Other.lenght);
+		}
+
+		bool operator!=(const KGlyphMarker &Other) const {
+			return !(*this == Other);
+		}
+	};
+
 	/*struct KAnimeKey {
 		F32 time;
 		std::string name;

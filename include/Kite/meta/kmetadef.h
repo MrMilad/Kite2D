@@ -42,6 +42,7 @@ USA
 #define KO_MUL
 #define KO_SUB
 #define KO_DIV
+#define KO_EQ
 
 // property tags
 #define KP_NAME // name of the property

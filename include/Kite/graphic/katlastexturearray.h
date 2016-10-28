@@ -55,7 +55,7 @@ namespace Kite {
 
 		bool addItem(KAtlasTexture *Atlas);
 
-		inline const KAtlasTexture *getItem(U32 ID) const { return _karray.at(ID); }
+		inline const KAtlasTexture *getItem(U32 ID) const { if (ID < _karray.size()) return _karray.at(ID); return nullptr; }
 
 		inline void clearItems() { _karray.clear(); }
 

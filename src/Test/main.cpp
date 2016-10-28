@@ -31,8 +31,8 @@ int main() {
 	sc->render.zSorting = false;
 	sc->render.culling = true;
 	//sc->window.resizable = true;
-	sc->dictionary = "C:\\Users\\_M1L4D_\\Desktop\\K2D\\examples\\Orthogonal Tiled Map\\dict.kdict";
-	sc->startUpScene = "map.sce";
+	sc->dictionary = "C:\\Users\\_M1L4D_\\Desktop\\ff\\dict.kdict";
+	sc->startUpScene = "sc.sce";
 
 	auto engine = KEngine::createEngine();
 	engine->inite(sc, false);

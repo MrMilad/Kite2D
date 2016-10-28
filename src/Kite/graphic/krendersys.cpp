@@ -39,192 +39,189 @@
 
 namespace Kite{
 	bool KRenderSys::update(F64 Delta, KEntityManager *EManager, KResourceManager *RManager) {
-		EDITOR_STATIC const bool isregist = (EManager->isRegisteredComponent(CTypes::Camera)
-												 && EManager->isRegisteredComponent(CTypes::RenderInstance));
-		
-		if (isregist) {
-			// update culling system
-			if (_kconfig.culling) {
-				_kcullSys->update(0, EManager, RManager);
+		//EDITOR_STATIC const bool isregist = (EManager->isRegisteredComponent(CTypes::Camera)
+												 //&& EManager->isRegisteredComponent(CTypes::RenderInstance));
+		// update culling system
+		if (_kconfig.culling) {
+			_kcullSys->update(0, EManager, RManager);
+		}
+
+		// get camera continer
+		auto camContiner = EManager->getComponentStorage<KCameraCom>(CTypes::Camera);
+		U32 camIndex = 0;
+		U32 camSize = camContiner->size();
+		static std::vector<std::pair<U32, U32>> sortedIndex(KRENDER_CAMERA_SIZE); // reserve 10 pre-defined camera
+
+		// sort camera(s) (based depth)
+		if (_kconfig.camDepth) {
+			// collect depth of all camera(s)
+			sortedIndex.resize(0);
+			for (SIZE i = 0; i < camContiner->size(); ++i) {
+				sortedIndex.push_back({ i, camContiner->at(i).getDepth() });
 			}
 
-			// get camera continer
-			auto camContiner = EManager->getComponentStorage<KCameraCom>(CTypes::Camera);
-			U32 camIndex = 0;
-			U32 camSize = camContiner->size();
-			static std::vector<std::pair<U32, U32>> sortedIndex(KRENDER_CAMERA_SIZE); // reserve 10 pre-defined camera
+			// sort depth list
+			std::sort(sortedIndex.begin(), sortedIndex.end(),
+						[](const std::pair<U32, U32> &left, const std::pair<U32, U32> &right) {
+				return left.second < right.second;
+			});
+		}
 
-			// sort camera(s) (based depth)
-			if (_kconfig.camDepth) {
-				// collect depth of all camera(s)
-				sortedIndex.resize(0);
-				for (SIZE i = 0; i < camContiner->size(); ++i) {
-					sortedIndex.push_back({ i, camContiner->at(i).getDepth() });
+		// update all active camera(s) (sorted)
+		for (SIZE camCounter = 0; camCounter < camSize; ++camCounter) {
+			// camera index based depth or in order
+			if (_kconfig.camDepth) { camIndex = sortedIndex.at(camCounter).first; }
+			else { camIndex = camCounter; }
+			auto cam = &camContiner->at(camIndex);
+
+			_kupdata.clear();
+			auto ehandle = cam->getOwnerHandle();
+			auto entity = EManager->getEntity(ehandle);
+
+			// check active
+			if (entity->isActive()) {
+				if (!cam->updateRes()) {
+					KD_FPRINT("camera initialization failed. oname: %s", entity->getName().c_str());
+					return false;
 				}
 
-				// sort depth list
-				std::sort(sortedIndex.begin(), sortedIndex.end(),
-						  [](const std::pair<U32, U32> &left, const std::pair<U32, U32> &right) {
-					return left.second < right.second;
-				});
-			}
+				// check render target (texture or screen)
+				if (!cam->getRenderTexture().str.empty()) {
+					_kfbo->bind();
+					_initeFrameBuffer(cam->_krtexture, cam->_krtextureIndex);
+				} else {
+					_kfbo->unbind();
+					DGL_CALL(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
+				}
 
-			// update all active camera(s) (sorted)
-			for (SIZE camCounter = 0; camCounter < camSize; ++camCounter) {
-				// camera index based depth or in order
-				if (_kconfig.camDepth) { camIndex = sortedIndex.at(camCounter).first; }
-				else { camIndex = camCounter; }
-				auto cam = &camContiner->at(camIndex);
+				// update camera
+				cam->computeMatrixes();
 
-				_kupdata.clear();
-				auto ehandle = cam->getOwnerHandle();
-				auto entity = EManager->getEntity(ehandle);
+				// update viewport and scissor
+				if (_klastState.lastViewSize != cam->_ksize || _klastState.lastViewPos != cam->_kposition) {
+					DGL_CALL(glViewport(cam->_kposition.x, cam->_kposition.y, cam->_ksize.x, cam->_ksize.y));
+					_klastState.lastViewSize = cam->_ksize;
+					_klastState.lastViewPos = cam->_kposition;
 
-				// check active
-				if (entity->isActive()) {
-					if (!cam->updateRes()) {
-						KD_FPRINT("camera initialization failed. oname: %s", entity->getName().c_str());
-						return false;
-					}
+					DGL_CALL(glScissor(cam->_kposition.x, cam->_kposition.y, cam->_ksize.x, cam->_ksize.y));
+				}
 
-					// check render target (texture or screen)
-					if (!cam->getRenderTexture().str.empty()) {
-						_kfbo->bind();
-						_initeFrameBuffer(cam->_krtexture, cam->_krtextureIndex);
-					} else {
-						_kfbo->unbind();
-						DGL_CALL(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
-					}
+				// update clear color
+				if (cam->_kclearCol != _klastState.lastColor) {
+					DGL_CALL(glClearColor((GLclampf)(cam->_kclearCol.getGLR()),
+											(GLclampf)(cam->_kclearCol.getGLG()),
+											(GLclampf)(cam->_kclearCol.getGLB()),
+											(GLclampf)(cam->_kclearCol.getGLA())));
+					_klastState.lastColor = cam->_kclearCol;
+				}
 
-					// update camera
-					cam->computeMatrixes();
+				// clear scene 
+				if (cam->_kclearView) {
+					DGL_CALL(glClear(GL_COLOR_BUFFER_BIT));
+				}
 
-					// update viewport and scissor
-					if (_klastState.lastViewSize != cam->_ksize || _klastState.lastViewPos != cam->_kposition) {
-						DGL_CALL(glViewport(cam->_kposition.x, cam->_kposition.y, cam->_ksize.x, cam->_ksize.y));
-						_klastState.lastViewSize = cam->_ksize;
-						_klastState.lastViewPos = cam->_kposition;
+				U32 indSize = 0;
+				U32 verSize = 0;
 
-						DGL_CALL(glScissor(cam->_kposition.x, cam->_kposition.y, cam->_ksize.x, cam->_ksize.y));
-					}
+				KRenderable *material = nullptr;
+				static std::vector<std::pair<KEntity *, KRenderable *>> objList;
+				objList.reserve(_kconfig.objectSize);
 
-					// update clear color
-					if (cam->_kclearCol != _klastState.lastColor) {
-						DGL_CALL(glClearColor((GLclampf)(cam->_kclearCol.getGLR()),
-											  (GLclampf)(cam->_kclearCol.getGLG()),
-											  (GLclampf)(cam->_kclearCol.getGLB()),
-											  (GLclampf)(cam->_kclearCol.getGLA())));
-						_klastState.lastColor = cam->_kclearCol;
-					}
+				// update and draw renderables
+				// culling is enabled
+				if (_kconfig.culling) {
+					const U8 filter = (U8)GCullingObjectsFilter::TILE 
+						| (U8)GCullingObjectsFilter::DYNAMIC 
+						| (U8)GCullingObjectsFilter::STATIC;
+					_kcullSys->queryObjects(cam, (GCullingObjectsFilter)filter, EManager, objList);
 
-					// clear scene 
-					if (cam->_kclearView) {
-						DGL_CALL(glClear(GL_COLOR_BUFFER_BIT));
-					}
+				} else {
+					// culling is disabled
+					_fillRenderList(EManager, objList);
+				}
 
-					U32 indSize = 0;
-					U32 verSize = 0;
-
-					KRenderable *material = nullptr;
-					static std::vector<std::pair<KEntity *, KRenderable *>> objList;
-					objList.reserve(_kconfig.objectSize);
-
-					// update and draw renderables
-					// culling is enabled
-					if (_kconfig.culling) {
-						const U8 filter = (U8)GCullingObjectsFilter::TILE 
-							| (U8)GCullingObjectsFilter::DYNAMIC 
-							| (U8)GCullingObjectsFilter::STATIC;
-						_kcullSys->queryObjects(cam, (GCullingObjectsFilter)filter, EManager, objList);
-
-					} else {
-						// culling is disabled
-						_fillRenderList(EManager, objList);
-					}
-
-					// sort objects
-					if (_kconfig.zSorting) {
-						// sort using a lambda expression 
-						std::sort(objList.begin(), objList.end(), [](const std::pair<KEntity *, KRenderable *> &A,
-																   const std::pair<KEntity *, KRenderable *> &B) {
-							return B.first->getZOrder() < A.first->getZOrder();
-						});
-					}
+				// sort objects
+				if (_kconfig.zSorting) {
+					// sort using a lambda expression 
+					std::sort(objList.begin(), objList.end(), [](const std::pair<KEntity *, KRenderable *> &A,
+																const std::pair<KEntity *, KRenderable *> &B) {
+						return B.first->getZOrder() < A.first->getZOrder();
+					});
+				}
 						
-					// render objects list
-					for (auto oit = objList.begin(); oit != objList.end(); ++oit){
-						auto ent = oit->first;
+				// render objects list
+				for (auto oit = objList.begin(); oit != objList.end(); ++oit){
+					auto ent = oit->first;
 
-						// inite materials
-						if (oit->second->getMatNeedUpdate()) {
-							if (!_initeMaterials(RManager, oit->second)) {
-								KD_FPRINT("cant init material. entity name: %s", ent->getName().c_str());
-								return false;
+					// inite materials
+					if (oit->second->getMatNeedUpdate()) {
+						if (!_initeMaterials(RManager, oit->second)) {
+							KD_FPRINT("cant init material. entity name: %s", ent->getName().c_str());
+							return false;
+						}
+					}
+
+					// inite state
+					if (oit == objList.begin()) {
+						_checkState(oit->second);
+					}
+
+					// check material (render shared materials in a single batch)
+					if (_checkState(oit->second)) {
+
+						// check available buffer size
+						if ((indSize + oit->second->getIndexSize()) < _kconfig.indexSize) {
+							// compute (parent * child * camera) matrix
+							// catch object with its matrix
+							auto trcom = (KTransformCom *)ent->getComponent(CTypes::Transform, "");
+							_kupdata.matrix.push_back((*cam).getRatioMatrix(trcom->getRatioIndex()));
+							_computeParentsTransform(EManager, ent, &_kupdata.matrix.back());
+							_kupdata.objects.push_back(oit->second);
+							material = oit->second;
+
+							// increase buffers size
+							indSize += oit->second->getIndexSize();
+							verSize += oit->second->getVertex()->size();
+
+							// check next object if any
+							if (oit != --objList.end()) {
+								continue;
 							}
-						}
+						} 
+					} else {
+						--oit;
+					}
 
-						// inite state
-						if (oit == objList.begin()) {
-							_checkState(oit->second);
-						}
+					// render 
+					if (!_kupdata.objects.empty()) {
+						// update vetex
+						_kvboVer->update(0, sizeof(KGLVertex) * verSize, false, (void *)&_kupdata);
 
-						// check material (render shared materials in a single batch)
-						if (_checkState(oit->second)) {
+						// bind quad vao
+						_kvao->bind();
 
-							// check available buffer size
-							if ((indSize + oit->second->getIndexSize()) < _kconfig.indexSize) {
-								// compute (parent * child * camera) matrix
-								// catch object with its matrix
-								auto trcom = (KTransformCom *)ent->getComponent(CTypes::Transform, "");
-								_kupdata.matrix.push_back((*cam).getRatioMatrix(trcom->getRatioIndex()));
-								_computeParentsTransform(EManager, ent, &_kupdata.matrix.back());
-								_kupdata.objects.push_back(oit->second);
-								material = oit->second;
-
-								// increase buffers size
-								indSize += oit->second->getIndexSize();
-								verSize += oit->second->getVertex()->size();
-
-								// check next object if any
-								if (oit != --objList.end()) {
-									continue;
-								}
-							} 
-						} else {
-							--oit;
-						}
-
-						// render 
-						if (!_kupdata.objects.empty()) {
-							// update vetex
-							_kvboVer->update(0, sizeof(KGLVertex) * verSize, false, (void *)&_kupdata);
-
-							// bind quad vao
-							_kvao->bind();
-
-							// bind materials
-							material->getShaderProg()->bind();
-							auto atlas = material->getATextureArray();
-							if (atlas) {
-								if (atlas->isInite()) {
-									atlas->bind();
-								} else {
-									KAtlasTextureArray::unbindTextureArray();
-								}
+						// bind materials
+						material->getShaderProg()->bind();
+						auto atlas = material->getATextureArray();
+						if (atlas) {
+							if (atlas->isInite()) {
+								atlas->bind();
 							} else {
 								KAtlasTextureArray::unbindTextureArray();
 							}
-
-							// draw 
-							DGL_CALL(glDrawElements(GL_TRIANGLES, indSize, GL_UNSIGNED_SHORT, (U16 *)0));
-
-							// clear list after render
-							_kupdata.clear();
-							indSize = 0;
-							verSize = 0;
+						} else {
+							KAtlasTextureArray::unbindTextureArray();
 						}
-						
+
+						// draw 
+						DGL_CALL(glDrawElements(GL_TRIANGLES, indSize, GL_UNSIGNED_SHORT, (U16 *)0));
+
+						// clear list after render
+						_kupdata.clear();
+						indSize = 0;
+						verSize = 0;
 					}
+						
 				}
 			}
 		}

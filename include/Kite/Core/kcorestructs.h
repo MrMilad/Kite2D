@@ -134,6 +134,80 @@ namespace Kite{
 		KStringID(const std::string &String);
 	};
 
+	/// dynamic version of std::bitset with lua binding
+	/// this class can only read/write from/to an already exist std::bitset 
+	/// and can't create a new std::bitset
+	KM_CLASS(POD)
+	struct KITE_FUNC_EXPORT KBitset {
+		KMETA_KBITSET_BODY();
+
+		KM_CON(U32, std::string)
+		KBitset(U32 Size, const std::string &Value);
+
+		KM_FUN()
+		bool test(U32 Pos) const;
+
+		KM_FUN()
+		inline bool all() const { return _kall; }
+
+		KM_FUN()
+		inline bool any() const { return _kany; }
+
+		KM_FUN()
+		inline bool none() const { return _knone; }
+
+		KM_FUN()
+		inline U32 count() const { return _kcount; }
+
+		KM_FUN()
+		inline U32 size() const { return _kvalue.size(); }
+
+		KM_FUN()
+		void andWith(const KBitset &Other);
+
+		KM_FUN()
+		void orWith(const KBitset &Other);
+
+		KM_FUN()
+		void xorWith(const KBitset &Other);
+
+		KM_FUN()
+		void notWith(const KBitset &Other);
+
+		KM_FUN()
+		void setAll(bool Value);
+
+		KM_FUN()
+		void set(U32 Pos, bool Value);
+
+		KM_FUN()
+		void flipAll();
+
+		KM_FUN()
+		void flip(U32 Pos);
+
+		KM_FUN()
+		inline const std::string &toString() const { return _kvalue; }
+
+		inline bool operator==(const KBitset &right) const {
+			return (_kvalue == right._kvalue);
+		}
+
+	private:
+		void proc();
+
+		KM_OPE(KO_EQ)
+		bool luaEqOper(const KBitset &right) const {
+			return operator==(right);
+		}
+
+		KM_VAR(UNBIND) bool _kall;
+		KM_VAR(UNBIND) bool _kany;
+		KM_VAR(UNBIND) bool _knone;
+		KM_VAR(UNBIND) U32 _kcount;
+		KM_VAR(UNBIND) std::string _kvalue;
+	};
+
 	class KStringIDHasher {
 	public:
 		size_t operator() (KStringID const& key) const {

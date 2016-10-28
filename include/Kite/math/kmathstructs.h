@@ -128,11 +128,11 @@ namespace Kite{
 			return *this;
 		}
 
-		inline bool operator==(const KVector2<T>& right) const {
+		inline bool operator==(const KVector2<T> &right) const {
 			return (x == right.x) && (y == right.y);
 		}
 
-		inline bool operator!=(const KVector2<T>& right) const {
+		inline bool operator!=(const KVector2<T> &right) const {
 			return (x != right.x) || (y != right.y);
 		}
 
@@ -190,6 +190,9 @@ namespace Kite{
 
 			KM_OPE(KO_DIV)
 				KVector2<T> luaDivOpr(const KVector2<T> &right) const { return operator/(right); }
+
+			KM_OPE(KO_EQ)
+				bool luaEqOpr(const KVector2<T> &right) const { return operator==(right); }
 	}; 
 
 	typedef KVector2<U8>  KVector2U8;

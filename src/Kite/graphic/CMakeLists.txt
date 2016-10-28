@@ -27,6 +27,7 @@ set(GFX_SRC
     ${SRCROOT}/korthomapcom.cpp
     ${SRCROOT}/katlastexturearray.cpp
     ${SRCROOT}/korthotilestamp.cpp
+    ${SRCROOT}/kbitmaptextcom.cpp
     PARENT_SCOPE
 )
 
@@ -58,6 +59,7 @@ set(GFX_INC
     ${INCROOT}/korthomapcom.h
     ${INCROOT}/katlastexturearray.h
     ${INCROOT}/korthotilestamp.h
+    ${INCROOT}/kbitmaptextcom.h
     PARENT_SCOPE
 )
 

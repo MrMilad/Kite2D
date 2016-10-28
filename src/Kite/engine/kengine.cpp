@@ -179,8 +179,7 @@ namespace Kite {
 			// display render output
 			_kwindow->display();
 
-			// clear trash list
-			_ksman->getActiveScene()->getEManager()->postWork();
+			// clear trash list and post works will executed in logic system
 
 			// end ticks
 			auto end_ticks = std::chrono::high_resolution_clock::now();

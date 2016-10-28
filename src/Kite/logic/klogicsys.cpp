@@ -17,12 +17,13 @@ License along with this library; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 USA
 */
+#include "Kite/logic/klogicdef.h"
 #include "Kite/logic/klogicsys.h"
 #include <vector>
 #include "Kite/meta/kmetamanager.h"
 #include "Kite/meta/kmetaclass.h"
 #include "Kite/meta/kmetatypes.h"
-#include "Kite/logic/klogicinstancecom.h"
+#include "Kite/logic/kreglogiccom.h"
 #include "Kite/logic/klogiccom.h"
 #include "Kite/engine/kengine.h"
 #include <luaintf/LuaIntf.h>
@@ -32,55 +33,38 @@ USA
 
 namespace Kite {
 	bool KLogicSys::update(F64 Delta, KEntityManager *EManager, KResourceManager *RManager) {
-		EDITOR_STATIC const bool isregist = EManager->isRegisteredComponent(CTypes::LogicInstance);
+		// iterate over objects with at least 1 Logic component
+		auto continer = EManager->getComponentStorage<KRegLogicCom>(CTypes::RegisterLogic);
+		bool haveReg = false;
+		for (auto it = continer->begin(); it != continer->end(); ++it) {
+			haveReg = true;
+			auto ent = EManager->getEntity(it->getOwnerHandle());
+			// iterate over all new logic components and inite them
+			for (auto comp = it->_kiniteList.begin(); comp != it->_kiniteList.end(); ++comp) {
+				auto lcomp = (KLogicCom *)ent->getComponentByHandle((*comp));
 
-		// check component registration
-		if (isregist) {
-
-			// iterate over objects with at least 1 Logic component
-			auto continer = EManager->getComponentStorage<KLogicInstanceCom>(CTypes::LogicInstance);
-			for (auto it = continer->begin(); it != continer->end(); ++it) {
-
-				auto ent = EManager->getEntity(it->getOwnerHandle());
-				if (ent->isActive()) {
-
-					// retrive all script components from entity
-					static std::vector<KHandle> components;
-					ent->getScriptComponents(components);
-
-					// iterate over all logic components and inite/update them
-					for (auto comp = components.begin(); comp != components.end(); ++comp) {
-						auto lcomp = (KLogicCom *)ent->getComponentByHandle((*comp));
-
-						// inite component and bind it to lua vm (only one time when current script changed with a new script)
-						if (lcomp->getResNeedUpdate()) {
-							if (!catchAndRegist(lcomp, RManager)) return false;
-						}
-
-						// inite component (calling inite, only 1 time befor start)
-						if (!lcomp->_kinite) {
-							if (!initeComp(ent, lcomp)) return false;
-							lcomp->_kinite = true;
-							continue;
-						}
-
-						// start component (calling start, only 1 time befor update)
-						if (!lcomp->_kstart) {
-							if (!startComp(ent, lcomp)) return false;
-							lcomp->_kstart = true;
-							continue;
-						}
-
-						// update component (calling update, per frame)
-						if (!updateComp(Delta, ent, lcomp)) return false;
-
-						// performs a full garbage-collection cycle. 
-						// lua garbage collection will eat memory so we shuld use lua_gc() in a period
-						lua_gc(_klvm, LUA_GCCOLLECT, 0);
-					}
+				// inite component and bind it to lua vm (only one time when current script changed with a new script)
+				if (lcomp->getResNeedUpdate()) {
+					if (!catchAndRegist(lcomp, RManager)) return false;
 				}
+
+				// inite component (calling inite, only 1 time befor start)
+				if (!initeComp(ent, lcomp)) return false;
 			}
 		}
+
+		// clear storage after registration
+		if (haveReg) EManager->clearComponentStorage<KRegLogicCom>(CTypes::RegisterLogic);
+
+		// update components (per frame)
+		if (!updateAll(Delta)) return false;
+
+		// performs a full garbage-collection cycle. 
+		// lua garbage collection will eat memory so we shuld use lua_gc() in a period
+		lua_gc(_klvm, LUA_GCCOLLECT, 0);
+
+		// clear trash list and post works
+		EManager->postWork();
 		return true;
 	}
 
@@ -88,6 +72,25 @@ namespace Kite {
 		auto engien = static_cast<KEngine *>(Data);
 		if (Data != nullptr && !isInite()) {
 			_klvm = static_cast<lua_State *>(engien->getLuaState());
+
+			auto table = LuaIntf::LuaRef::createTable(_klvm);
+			LuaIntf::LuaRef(_klvm, "_G").set("ENT", table);
+
+			// implement hook system
+			const std::string updateFunc(KLUA_HOOK);
+			if (luaL_dostring(_klvm, updateFunc.c_str()) != 0) {
+				const char *out = lua_tostring(_klvm, -1);
+				lua_pop(_klvm, 1);
+				KD_FPRINT("lua load string error: %s", out);
+				return false;
+			}
+
+			// create logic hooks
+			table = LuaIntf::LuaRef::createTable(_klvm);
+			LuaIntf::LuaRef(_klvm, "_G.hooks.funcs").set("onGameMessage", table);
+
+			table = LuaIntf::LuaRef::createTable(_klvm);
+			LuaIntf::LuaRef(_klvm, "_G.hooks.funcs").set("onUpdate", table);
 
 			setInite(true);
 			return true;
@@ -97,33 +100,6 @@ namespace Kite {
 	}
 
 	void KLogicSys::destroy() { setInite(false); }
-
-	bool KLogicSys::updateComp(F64 Delta, KEntity *Self, KLogicCom *Comp) {
-		std::string address(Comp->getTName() + "." + Comp->getName() + ".update");
-
-#ifdef KITE_DEV_DEBUG
-		std::string tname(Comp->getTName());	// copy tname because we need it for showing message in the catch section
-									// and we can't use a string refrence in that section
-		std::string ename(Self->getName());
-#endif
-
-		// call update function
-		LuaIntf::LuaRef ctable(_klvm, address.c_str());
-		if (ctable.isFunction()) {
-#ifdef KITE_DEV_DEBUG
-			try {
-				ctable(Self->getHandle(), Delta); 
-			} catch (std::exception& e) {
-				KD_FPRINT("update function failed. ename: %s. cname: %s. %s", ename.c_str(), tname.c_str(), e.what());
-				return false;
-			}
-#else
-			ctable(Self, Delta);
-#endif
-		}
-
-		return true;
-	}
 
 	bool KLogicSys::catchAndRegist(KLogicCom *Component, KResourceManager *RManager) {
 		// retrive script rsource from resource manager
@@ -139,32 +115,33 @@ namespace Kite {
 		if (!Component->_kscript->getCode().empty()) {
 
 			// first check entiti table 
-			std::string code("_G." + Component->getTName());
+			std::string code("_G.ENT." + Component->getTName());
 			LuaIntf::LuaRef etable(_klvm, code.c_str());
 
 			// there isn't a table for entity
 			// we create it
 			if (!etable.isTable()) {
 				etable = LuaIntf::LuaRef::createTable(_klvm);
-				LuaIntf::LuaRef(_klvm, "_G").set(Component->getTName().c_str(), etable);
+				LuaIntf::LuaRef(_klvm, "_G.ENT").set(Component->getTName().c_str(), etable);
 			}
 
 			// create a table for its component
 			code.clear();
-			code = "_G." + Component->getTName();
+			code = "_G.ENT." + Component->getTName();
 			auto ctable = LuaIntf::LuaRef::createTable(_klvm);
 			LuaIntf::LuaRef(_klvm, code.c_str()).set(Component->getName(), ctable);
 
 			// set envirunmet values
 			ctable["global"] = LuaIntf::LuaRef::globals(_klvm);
 			ctable["kite"] = LuaIntf::LuaRef(_klvm, "_G.kite");
+			ctable["self"] = Component->getOwnerHandle();
 
 			// load chunk and set its environment
 			code.clear();
 			code.reserve(Component->_kscript->getCode().size());
 			code = Component->_kscript->getCode();
 
-			std::string address(Component->getTName() + "." + Component->getName());
+			std::string address("ENT." + Component->getTName() + "." + Component->getName());
 
 			if (luaL_loadstring(_klvm, code.c_str()) != 0) {
 				const char *out = lua_tostring(_klvm, -1);
@@ -196,7 +173,7 @@ namespace Kite {
 
 	bool KLogicSys::initeComp(KEntity *Self, KLogicCom *Comp) {
 		// call inite function of component
-		std::string address(Comp->getTName() + "." + Comp->getName());
+		std::string address("ENT." + Comp->getTName() + "." + Comp->getName());
 		address.append(".inite");
 
 #ifdef KITE_DEV_DEBUG
@@ -205,12 +182,11 @@ namespace Kite {
 		std::string ename(Self->getName());
 #endif
 
-		
 		LuaIntf::LuaRef ctable(_klvm, address.c_str());
 		if (ctable.isFunction()) {
 #ifdef KITE_DEV_DEBUG
 		try{
-			ctable(Self->getHandle());
+			ctable();
 		} catch (std::exception& e) {
 			KD_FPRINT("inite function failed. ename: %s. cname: %s. %s", ename.c_str(), tname.c_str(), e.what());
 			return false;
@@ -222,30 +198,24 @@ namespace Kite {
 		return true;
 	}
 
-	bool KLogicSys::startComp(KEntity *Self, KLogicCom *Comp) {
-		// call start function of component
-		std::string address(Comp->getTName() + "." + Comp->getName());
-		address.append(".start");
-
-#ifdef KITE_DEV_DEBUG
-		std::string tname(Comp->getTName());	// copy tname because we need it for showing message in the catch section
-												// and we can't use a string refrence in that section
-		std::string ename(Self->getName());
-#endif
-
-		LuaIntf::LuaRef ctable(_klvm, address.c_str());
+	bool KLogicSys::updateAll(F64 Delta) {
+		LuaIntf::LuaRef ctable(_klvm, "_G.hooks.call");
 		if (ctable.isFunction()) {
 #ifdef KITE_DEV_DEBUG
 			try {
-				ctable(Self->getHandle());
+				ctable("onUpdate", Delta);
 			} catch (std::exception& e) {
-				KD_FPRINT("start function failed. ename: %s. cname: %s. %s", ename.c_str(), tname.c_str(), e.what());
+				KD_FPRINT("update function failed: %s", e.what());
 				return false;
 			}
 #else
-			ctable(Self);
+			_kupdate(Delta);
 #endif
+		} else {
+			KD_PRINT("engine hooks system is corrupted");
+			return false;
 		}
+
 		return true;
 	}
 

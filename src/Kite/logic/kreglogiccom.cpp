@@ -17,21 +17,29 @@ License along with this library; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 USA
 */
-#include "Kite/graphic/kgraphicstructs.h"
+#include "Kite/logic/kreglogiccom.h"
 #include "Kite/meta/kmetamanager.h"
 #include "Kite/meta/kmetaclass.h"
-#include "Kite/serialization/kbaseserial.h"
-#include "Kite/serialization/types/kstdstring.h"
-#include <luaintf\LuaIntf.h>
-#include <kgraphicstructs.khgen.h>
+#include "Kite/meta/kmetatypes.h"
+#include <luaintf/LuaIntf.h>
 
 namespace Kite {
-	KMETA_KRENDERSTATE_SOURCE();
-	KMETA_KCOLOR_SOURCE();
-	KMETA_KATLASITEM_SOURCE();
-	KMETA_KGLYPHMARKER_SOURCE();
-	KMETA_KORTHOLAYER_SOURCE();
-	KMETA_KORTHONODE_SOURCE();
-	KMETA_KROOTTILEMAP_SOURCE();
-	KMETA_KTILESTAMP_SOURCE();
+	KRegLogicCom::KRegLogicCom(const std::string &Name) :
+		KComponent(Name) 
+	{
+		setRemoveOnDepZero(true);
+	}
+
+	void KRegLogicCom::attached(KEntity *Entity) {}
+
+	void KRegLogicCom::deattached(KEntity *Entity) {}
+
+	RecieveTypes KRegLogicCom::onMessage(KMessage *Message, MessageScope Scope) {
+		return RecieveTypes::IGNORED;
+	}
+
+	void KRegLogicCom::addToIniteList(const KHandle &Logic) {
+		_kiniteList.push_back(Logic);
+	}
+	KMETA_KREGLOGICCOM_SOURCE();
 }

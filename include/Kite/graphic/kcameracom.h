@@ -156,17 +156,11 @@ namespace Kite{
 		KM_PRO_GET(KP_NAME = "flipX", KP_TYPE = bool, KP_CM = "flip screen coordinate")
 		inline bool getFlipX() const { return _kflipx; }
 
-		/// enable/disable a layer
-		KM_FUN()
-		void setLayer(U32 Index, bool Enable);
+		KM_PRO_SET(KP_NAME = "layerMask")
+		void setLayerMask(const KBitset &Mask);
 
-		/// check state of a layer (is enabled/disabled)
-		KM_FUN()
-		bool checkLayer(U32 Index);
-
-		/// enable/disable all layers
-		KM_FUN()
-		void setLayers(bool Enable);
+		KM_PRO_GET(KP_NAME = "layerMask", KP_TYPE = KBitset, KP_CM = "camera layer mask")
+		KBitset getLayerMask() const;
 
 		/// for culling purpose
 		KM_FUN()

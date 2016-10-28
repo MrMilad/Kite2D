@@ -35,43 +35,37 @@ namespace Kite {
 	{}
 	
 	bool KGCullingSys::update(F64 Delta, KEntityManager *EManager, KResourceManager *RManager) {
-		EDITOR_STATIC const bool isregist = EManager->isRegisteredComponent(CTypes::RegisterGCulling);
-
+		//EDITOR_STATIC const bool isregist = EManager->isRegisteredComponent(CTypes::RegisterGCulling);
 		_krman = RManager;
-
-		if (isregist) {
-			// check if scene changed. so we need to clear quad tree
-			if (_klastEman != nullptr && _klastEman != EManager) {
-				_kqtree->Clear();
-				delete _kobjpool;
-				_kobjpool = new memory::memory_pool<>(sizeof(KQTreeObject), KGCULLING_MEM_CHUNK * sizeof(KQTreeObject));
-			}
-			_klastEman = EManager;
-
-			// registering phase. register new objects to system (static -> qtree and dynamic -> bf list)
-			// we cant use static pointer to the continer because every scene has its own entity manager and continers.
-			auto continer = EManager->getComponentStorage<KRegGCullingCom>(CTypes::RegisterGCulling);
-			bool haveReg = false;
-			for (auto it = continer->begin(); it != continer->end(); ++it) {
-				haveReg = true;
-				auto EHandle = it->getOwnerHandle();
-				auto entity = EManager->getEntity(EHandle);
-				if (entity->isActive()) {
-
-					// static objects will be added to quad tree
-					if (entity->getStatic()) {
-						_addToTree(entity);
-
-					// dynamic objects will be added to brute force culling list
-					} else {
-						_addToBFList(entity);
-					}
-				}
-			}
-
-			// clear storage after registration
-			if (haveReg) EManager->clearComponentStorage<KRegGCullingCom>(CTypes::RegisterGCulling);
+		// check if scene changed. so we need to clear quad tree
+		if (_klastEman != nullptr && _klastEman != EManager) {
+			_kqtree->Clear();
+			delete _kobjpool;
+			_kobjpool = new memory::memory_pool<>(sizeof(KQTreeObject), KGCULLING_MEM_CHUNK * sizeof(KQTreeObject));
 		}
+		_klastEman = EManager;
+
+		// registering phase. register new objects to system (static -> qtree and dynamic -> bf list)
+		// we cant use static pointer to the continer because every scene has its own entity manager and continers.
+		auto continer = EManager->getComponentStorage<KRegGCullingCom>(CTypes::RegisterGCulling);
+		bool haveReg = false;
+		for (auto it = continer->begin(); it != continer->end(); ++it) {
+			haveReg = true;
+			auto EHandle = it->getOwnerHandle();
+			auto entity = EManager->getEntity(EHandle);
+
+			// static objects will be added to quad tree
+			if (entity->getStatic()) {
+				_addToTree(entity);
+
+			// dynamic objects will be added to brute force culling list
+			} else {
+				_addToBFList(entity);
+			}
+		}
+
+		// clear storage after registration
+		if (haveReg) EManager->clearComponentStorage<KRegGCullingCom>(CTypes::RegisterGCulling);
 		return true;
 	}
 
@@ -240,12 +234,11 @@ namespace Kite {
 						// check layer
 						if (Cam->_klayers.test(ent->getLayer())) {
 							auto com = ent->getComponentByHandle(it->com);
+							com->updateRes();
 							auto graphicCom = dynamic_cast<KRenderable *>(com);
 							auto trcom = (KTransformCom *)ent->getComponent(CTypes::Transform);
 
 							if (graphicCom->isVisible() && graphicCom->getIndexSize() > 0) {
-								com->updateRes();
-
 								// check bouning rect
 								KRectF32 brect;
 								graphicCom->getBoundingRect(brect);
@@ -296,11 +289,11 @@ namespace Kite {
 						// check layer
 						if (Cam->_klayers.test(ent->getLayer())) {
 							auto com = ent->getComponentByHandle(it->com);
+							com->updateRes();
 							auto graphicCom = dynamic_cast<KRenderable *>(com);
 							auto transformCom = (KTransformCom *)ent->getComponent(CTypes::Transform);
 
 							if (graphicCom->isVisible() && graphicCom->getIndexSize() > 0) {
-								com->updateRes();
 								Output.push_back({ ent, graphicCom });
 								lastCatch.push_back({ ent, graphicCom });
 							}

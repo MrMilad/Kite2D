@@ -41,8 +41,7 @@ namespace Kite {
 	private:
 		bool catchAndRegist(KLogicCom *Component, KResourceManager *RManager);
 		bool initeComp(KEntity *Self, KLogicCom *Comp);
-		bool startComp(KEntity *Self, KLogicCom *Comp);
-		bool updateComp(F64 Delta, KEntity *Self, KLogicCom *Comp);
+		bool updateAll(F64 Delta);
 		lua_State *_klvm;
 	};
 }

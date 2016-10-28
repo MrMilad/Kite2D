@@ -17,8 +17,8 @@ License along with this library; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 USA
 */
-#ifndef KLOGICCOM_H
-#define KLOGICCOM_H
+#ifndef KLOGICINSTANCECOM_H
+#define KLOGICINSTANCECOM_H
 
 #include "Kite/core/kcoredef.h"
 #include "Kite/core/kcomponent.h"
@@ -26,47 +26,32 @@ USA
 #include "Kite/logic/kscript.h"
 #include "Kite/core/kentity.h"
 #include <string>
-#include "klogiccom.khgen.h"
+#include "kreglogiccom.khgen.h"
 
 KMETA
 namespace Kite {
 	KM_CLASS(COMPONENT)
-	class KITE_FUNC_EXPORT KLogicCom : public KComponent {
+	class KITE_FUNC_EXPORT KRegLogicCom : public KComponent {
 		friend class KLogicSys;
-		KM_INFO(KI_NAME = "Logic");
-		KMETA_KLOGICCOM_BODY();
+		KM_INFO(KI_SHOW = false);
+		KM_INFO(KI_NAME = "RegisterLogic");
+		KMETA_KREGLOGICCOM_BODY();
 
 	public:
-		KLogicCom(const std::string &Name = "");
+		KRegLogicCom(const std::string &Name = "");
 
 		void attached(KEntity *Entity) override;
 
 		/// remove this script from entity
 		void deattached(KEntity *Entity) override;
 
-		KM_FUN()
 		RecieveTypes onMessage(KMessage *Message, MessageScope Scope) override;
 
-		KM_PRO_SET(KP_NAME = "script")
-		void setScript(const KStringID &ResName);
-		
-		KM_PRO_GET(KP_NAME = "script", KP_TYPE = KStringID, KP_CM = "name of the lua script resource", KP_RES = RTypes::Script)
-		inline const KStringID &getScript() const { return _kscriptName; }
-
-		bool updateRes() override;
-
+		void addToIniteList(const KHandle &Logic);
 	private:
-		inline const std::string &getTName() { return _ktname; }
-		void removeLuaEnv();
-		void setLuaState(lua_State *L);
-
-		KM_VAR() KStringID _kscriptName;
-		KM_VAR() std::string _ktname;
-
-		KScript *_kscript;
-		lua_State *_klstate;
+		std::vector<KHandle> _kiniteList;
 	};
 }
 
 
-#endif // KLOGICCOM_H
+#endif // KLOGICINSTANCECOM_H

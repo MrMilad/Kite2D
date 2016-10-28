@@ -178,26 +178,13 @@ namespace Kite{
 		}
 	}
 
-	void KCameraCom::setLayer(U32 Index, bool Enable) {
-		if (Index < KENTITY_LAYER_SIZE) {
-			_klayers.set(Index, Enable);
-		}
+	void KCameraCom::setLayerMask(const KBitset &Mask) {
+		_klayers = std::bitset<KENTITY_LAYER_SIZE>(Mask.toString());
 	}
 
-	bool KCameraCom::checkLayer(U32 Index) {
-		if (Index < KENTITY_LAYER_SIZE) {
-			return _klayers.test(Index);
-		}
-		KD_FPRINT("layer index is out of range");
-		return false;
-	}
-
-	void KCameraCom::setLayers(bool Enable) {
-		if (Enable) {
-			_klayers.set();
-		} else {
-			_klayers.reset();
-		}
+	KBitset KCameraCom::getLayerMask() const {
+		KBitset mask(KENTITY_LAYER_SIZE, _klayers.to_string());
+		return mask;
 	}
 
 	void KCameraCom::setRenderTexture(const KStringID &Texture) {

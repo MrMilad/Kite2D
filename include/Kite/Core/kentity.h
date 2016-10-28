@@ -170,6 +170,9 @@ namespace Kite {
 		void forceRemoveCom(CTypes Type); // force remove components and ignore dependency. (only fixed types)
 		void initeComponents(); // initialize (call attach()) all components whene deserial entity manager
 
+		void postClearComponents(); // clear all components immediately
+		static void postWork(Internal::BaseCHolder<KComponent> **Storage);
+
 		// internal script function (copy,cut,paste)
 		KM_FUN()
 			inline void setPrefabName(const std::string &Name) { _kprefabName = Name; _kisPrefab = true; }
@@ -190,6 +193,7 @@ namespace Kite {
 		KM_VAR() std::unordered_map<std::string, KHandle> _klogicComp;	// dynamic components (logic components)
 		KM_VAR() std::vector<KHandle> _klogicOrder;						// logic components queue by order
 		KM_VAR() std::vector<KHandle> _kchilds;							// children list
+		static std::vector<KHandle> _ktrashList;						// components trash list
 
 		// runtime variables (
 		Internal::BaseCHolder<KComponent> **_kcstorage;

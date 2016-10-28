@@ -30,6 +30,7 @@ USA
 
 namespace Kite {
 
+	std::vector<KHandle> KEntity::_ktrashList;
 	KEntity::KEntity(const std::string &Name):
 #ifdef KITE_EDITOR
 		 _kaddCallb(nullptr),
@@ -185,6 +186,49 @@ namespace Kite {
 			auto com = getComponentByHandle((*it));
 			com->attached(this);
 		}
+	}
+
+	void KEntity::postClearComponents() {
+		// cehck storage
+		if (_kcstorage != nullptr) {
+			// first remove all script components
+			for (auto it = _klogicOrder.begin(); it != _klogicOrder.end(); ++it) {
+
+				// call deattach on all components
+				auto comPtr = _kcstorage[(SIZE)CTypes::Logic]->get((*it));
+				comPtr->deattached(this);
+
+				_kcstorage[(SIZE)CTypes::Logic]->remove((*it));
+			}
+			_klogicComp.clear();
+			_klogicOrder.clear();
+
+			// fixed components
+			for (SIZE i = 0; i < (SIZE)CTypes::maxSize; ++i) {
+				if (_kfixedComp[i] == KHandle()) {
+					continue;
+				}
+
+				auto storage = _kcstorage[i];
+
+				// call deattach on all components
+				auto comPtr = storage->get(_kfixedComp[i]);
+				comPtr->deattached(this);
+
+				// remove from storage
+				storage->remove(_kfixedComp[i]);
+				_kfixedComp[i] = KHandle();
+			}
+		}
+
+	}
+
+	void KEntity::postWork(Internal::BaseCHolder<KComponent> **Storage) {
+		for (auto it = _ktrashList.begin(); it != _ktrashList.end(); ++it) {
+			Storage[(SIZE)it->type]->remove((*it));
+		}
+
+		_ktrashList.clear();
 	}
 
 	void KEntity::addChild(const KHandle &EHandle) {
@@ -420,8 +464,8 @@ namespace Kite {
 			}
 		}
 
-		// and remove component itself from storage
-		_kcstorage[(SIZE)Type]->remove(hndl);
+		// and remove component itself from storage (add to trash list for avoiding pointer dangling)
+		_ktrashList.push_back(hndl);
 	}
 
 	void KEntity::clearComponents() {
@@ -434,7 +478,8 @@ namespace Kite {
 				auto comPtr = _kcstorage[(SIZE)CTypes::Logic]->get((*it));
 				comPtr->deattached(this);
 
-				_kcstorage[(SIZE)CTypes::Logic]->remove((*it));
+				// add to trash list
+				_ktrashList.push_back((*it));
 			}
 			_klogicComp.clear();
 			_klogicOrder.clear();
@@ -451,8 +496,10 @@ namespace Kite {
 				auto comPtr = storage->get(_kfixedComp[i]);
 				comPtr->deattached(this);
 
+				// add to trash list
+				_ktrashList.push_back(_kfixedComp[i]);
+
 				// remove from storage
-				storage->remove(_kfixedComp[i]);
 				_kfixedComp[i] = KHandle();
 			}
 		}

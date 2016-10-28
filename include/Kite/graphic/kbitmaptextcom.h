@@ -17,8 +17,8 @@
     Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
     USA
 */
-#ifndef KQUADCOM_H
-#define KQUADCOM_H
+#ifndef KBITMAPTEXTCOM_H
+#define KBITMAPTEXTCOM_H
 
 #include "Kite/core/kcoredef.h"
 #include "Kite/core/kcomponent.h"
@@ -28,17 +28,17 @@
 #include "krenderable.h"
 #include <string>
 #include <vector>
-#include <kquadcom.khgen.h>
+#include "kbitmaptextcom.khgen.h"
 
 KMETA
 namespace Kite{
 	KM_CLASS(COMPONENT)
-    class KITE_FUNC_EXPORT KQuadCom : public KComponent, public KRenderable{
+    class KITE_FUNC_EXPORT KBitmapTextCom : public KComponent, public KRenderable {
 		friend class KRenderSys;
-		KM_INFO(KI_NAME = "Quad");
-		KMETA_KQUADCOM_BODY();
-    public:
-		KQuadCom(const std::string &Name = "");
+		KM_INFO(KI_NAME = "BitmapText"); 
+		KMETA_KBITMAPTEXTCOM_BODY();
+	public:
+		KBitmapTextCom(const std::string &Name = "");
 
 		void attached(KEntity *Owner) override;
 
@@ -46,23 +46,37 @@ namespace Kite{
 
 		RecieveTypes onMessage(KMessage *Message, MessageScope Scope) override;
 
-		KM_PRO_SET(KP_NAME = "width")
-		void setWidth(F32 Width);
+		bool updateRes() override;
 
-		KM_PRO_GET(KP_NAME = "width", KP_TYPE = F32, KP_CM = "width of the quad")
-		inline F32 getWidth() const { return _kwidth; }
+		/// can use color index with this format:
+		/// #n>     (n = index of color)
+		/// double sharp will ignored and treated as single sharp for rendering
+		KM_PRO_SET(KP_NAME = "text")
+		void setText(const std::string &Text);
 
-		KM_PRO_SET(KP_NAME = "height")
-		void setHeight(F32 Height);
+		KM_PRO_GET(KP_NAME = "text", KP_TYPE = std::string, KP_CM = "text")
+		inline const std::string &getText() const { return _ktext; }
 
-		KM_PRO_GET(KP_NAME = "height", KP_TYPE = F32, KP_CM = "height of the quad")
-		inline F32 getHeight() const { return _kheight; }
+		/// 30 by default
+		KM_PRO_SET(KP_NAME = "paragraphSize")
+		void setParagraphSize(U32 Size);
 
-		KM_PRO_SET(KP_NAME = "blendColor")
-		void setBlendColor(const KColor &Color);
+		KM_PRO_GET(KP_NAME = "paragraphSize", KP_TYPE = U32, KP_CM = "empty space between two paragraph")
+		inline U32 getParagraphSize() const { return _kpgraph; }
 
-		KM_PRO_GET(KP_NAME = "blendColor", KP_TYPE = KColor, KP_CM = "blending color")
-		inline const KColor &getBlendColor() const { return _kcolor; }
+		/// 0 by default
+		KM_PRO_SET(KP_NAME = "strideSize")
+		void setStrideSize(U32 Size);
+
+		KM_PRO_GET(KP_NAME = "strideSize", KP_TYPE = U32, KP_CM = "size ofempty space between two digits")
+		inline U32 getStrideSize() const { return _kmid; }
+
+		/// 15 by default
+		KM_PRO_SET(KP_NAME = "spaceSize")
+		void setSpaceSize(U32 Size);
+
+		KM_PRO_GET(KP_NAME = "spaceSize", KP_TYPE = U32, KP_CM = "size of space character")
+		inline U32 getSpaceSize() const { return _kspace; }
 
 		KM_PRO_SET(KP_NAME = "shaderProgram")
 		void setShader(const KStringID &ShaderProgram);
@@ -83,11 +97,11 @@ namespace Kite{
 		KM_PRO_GET(KP_NAME = "textureIndex", KP_TYPE = U16, KP_CM = "index of the texture group")
 		inline U16 getTextureArrayIndex() const { return _ktindex; }
 
-		KM_PRO_GET(KP_NAME = "atlasID", KP_TYPE = KAtlasItem, KP_CM = "id of the atlas item")
-		inline const KAtlasItem &getAtlasItem() const { return _katlasItem; }
+		KM_PRO_SET(KP_NAME = "glyphMarker")
+		void setGlyphMarker(const KGlyphMarker &Marker);
 
-		KM_PRO_SET(KP_NAME = "atlasID")
-		void setAtlasItem(const KAtlasItem &AtlasItem);
+		KM_PRO_GET(KP_NAME = "glyphMarker", KP_TYPE = KGlyphMarker, KP_CM = "glyph marker in atlas texture")
+		inline const KGlyphMarker &getGlyphMarker() const { return _kmarker; }
 
 		KM_PRO_SET(KP_NAME = "visible")
 		inline void setVisible(bool Visible) { _kisVisible = Visible; }
@@ -95,16 +109,15 @@ namespace Kite{
 		KM_PRO_GET(KP_NAME = "visible", KP_TYPE = bool, KP_CM = "object visibility")
 		inline bool isVisible() const override { return _kisVisible; }
 
+		/// return color index
 		KM_FUN()
-		inline void getBoundingRect(KRectF32 &Output) const override;
+		U32 addColor(const KColor &Color);
 
-		bool updateRes() override;
+		KM_FUN()
+		void clearColors();
 
-		// shuld defined in particle component
-		//inline void setRelativeTransform(bool Relative) { _krelTrans = Relative; }
-		//inline bool getRelativeTransform() const { return _krelTrans; }
-		//inline void setReverseRender(bool Reverse) { _kreverse = Reverse; }
-		//inline bool getReverseRender() const { return _kreverse; }
+		KM_FUN()
+		void getBoundingRect(KRectF32 &Output) const override;
 
 	protected:
 		/// renderable interface
@@ -118,21 +131,25 @@ namespace Kite{
 		inline KAtlasTextureArray *getATextureArray() const override { return _katarray; }
 
     private:
-		void _setDim();
-		KM_VAR() U16 _ktindex;
-		KM_VAR() KAtlasItem _katlasItem;
 		KM_VAR() bool _kisVisible;
-		KM_VAR() U32 _kindexsize;
-		KM_VAR() std::vector<KGLVertex> _kvertex;
-		KM_VAR() F32 _kwidth;
-		KM_VAR() F32 _kheight;
-		KM_VAR() KColor _kcolor;
 		KM_VAR() KStringID _kshprogName;
 		KM_VAR() KStringID _ktextureArrayName;
+		KM_VAR() U16 _ktindex;
+		KM_VAR() KGlyphMarker _kmarker;
+        KM_VAR() std::string _ktext;
+		KM_VAR() F32 _kwidth;
+		KM_VAR() F32 _kheight;
+		KM_VAR() U32 _kmid;
+		KM_VAR() U32 _kspace;
+		KM_VAR() U32 _kindexsize;
+		KM_VAR() U32 _kpgraph;
+		KM_VAR() std::vector<KColor> _kcolors;
+		KM_VAR() std::vector<KGLVertex> _kvertex;
 
+		bool _kneedRedraw;
 		KShaderProgram *_kshprog;
 		KAtlasTextureArray *_katarray;
     };
 }
 
-#endif // KQUADCOM_H
+#endif // KBITMAPTEXTCOM_H

@@ -16,8 +16,8 @@
 #include "Kite/math/ktransformsys.h"
 #include "Kite/math/ktween.h"
 #include "Kite/logic/klogiccom.h"
-#include "Kite/logic/klogicinstancecom.h"
 #include "Kite/logic/klogicsys.h"
+#include "Kite/logic/kreglogiccom.h"
 #include "Kite/logic/kscript.h"
 #include "Kite/input/kinputcom.h"
 #include "Kite/input/kinputsys.h"
@@ -26,6 +26,7 @@
 #include "Kite/input/kmouse.h"
 #include "Kite/graphic/katlastexture.h"
 #include "Kite/graphic/katlastexturearray.h"
+#include "Kite/graphic/kbitmaptextcom.h"
 #include "Kite/graphic/kcameracom.h"
 #include "Kite/graphic/kgcullingcom.h"
 #include "Kite/graphic/kgcullingsys.h"
@@ -85,8 +86,8 @@ KTransformSys::registerMeta(MMan, Lua);
 KTween<F64, F32>::registerMeta("KTweenF32", MMan, Lua);
 KTween<F64, I32>::registerMeta("KTweenI32", MMan, Lua);
 KLogicCom::registerMeta(MMan, Lua);
-KLogicInstanceCom::registerMeta(MMan, Lua);
 KLogicSys::registerMeta(MMan, Lua);
+KRegLogicCom::registerMeta(MMan, Lua);
 KScript::registerMeta(MMan, Lua);
 KInputCom::registerMeta(MMan, Lua);
 KInputSys::registerMeta(MMan, Lua);
@@ -94,12 +95,14 @@ KKeyboard::registerMeta(MMan, Lua);
 KMouse::registerMeta(MMan, Lua);
 KAtlasTexture::registerMeta(MMan, Lua);
 KAtlasTextureArray::registerMeta(MMan, Lua);
+KBitmapTextCom::registerMeta(MMan, Lua);
 KCameraCom::registerMeta(MMan, Lua);
 KGCullingCom::registerMeta(MMan, Lua);
 KGCullingSys::registerMeta(MMan, Lua);
 KRenderState::registerMeta(MMan, Lua);
 KColor::registerMeta(MMan, Lua);
 KAtlasItem::registerMeta(MMan, Lua);
+KGlyphMarker::registerMeta(MMan, Lua);
 KOrthoLayer::registerMeta(MMan, Lua);
 KOrthoNode::registerMeta(MMan, Lua);
 KRootTileMap::registerMeta(MMan, Lua);
@@ -119,6 +122,7 @@ KEngine::registerMeta(MMan, Lua);
 KComponent::registerMeta(MMan, Lua);
 KHandle::registerMeta(MMan, Lua);
 KStringID::registerMeta(MMan, Lua);
+KBitset::registerMeta(MMan, Lua);
 KLayerInfo::registerMeta(MMan, Lua);
 KEntity::registerMeta(MMan, Lua);
 KEntityManager::registerMeta(MMan, Lua);
@@ -168,8 +172,9 @@ Internal::RegisterOStreamTypes::registerMeta(MMan, Lua);
 void registerCTypes(KEntityManager *EMan){
 EMan->registerComponent<KTransformCom>(CTypes::Transform);
 EMan->registerComponent<KLogicCom>(CTypes::Logic);
-EMan->registerComponent<KLogicInstanceCom>(CTypes::LogicInstance);
+EMan->registerComponent<KRegLogicCom>(CTypes::RegisterLogic);
 EMan->registerComponent<KInputCom>(CTypes::Input);
+EMan->registerComponent<KBitmapTextCom>(CTypes::BitmapText);
 EMan->registerComponent<KCameraCom>(CTypes::Camera);
 EMan->registerComponent<KGCullingCom>(CTypes::GCulling);
 EMan->registerComponent<KOrthoMapCom>(CTypes::OrthogonalMapView);

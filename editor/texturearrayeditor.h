@@ -12,18 +12,18 @@ class QFrame;
 
 class TextureArrayEditor : public TabWidget{
 public:
-	TextureArrayEditor(Kite::KResource *Res, KiteInfo *KInfo, QWidget *Parent = nullptr);
+	TextureArrayEditor(Kite::KResource *Res, Kite::KIStream *Stream, KiteInfo *KInfo, QWidget *Parent = nullptr);
 
 	void inite() override;
-	bool saveChanges() override;
+	void saveChanges() override;
 	void reload() override;
 
-	static TabWidget *factory(Kite::KResource *Res, KiteInfo *KInfo, QWidget *Parent = nullptr) {
-		return new TextureArrayEditor(Res, KInfo, Parent);
+	static TabWidget *factory(Kite::KResource *Res, Kite::KIStream *Stream, KiteInfo *KInfo, QWidget *Parent = nullptr) {
+		return new TextureArrayEditor(Res, Stream, KInfo, Parent);
 	}
 
-	void onRemoveRes(Kite::RTypes Type) override;
-	void onAddRes(const Kite::KResource *Res) override;
+	void onRemoveRes(const QString &Name, Kite::RTypes Type) override;
+	void onAddRes(const QString &Name, Kite::RTypes Type) override;
 
 private slots:
 void createNew();
@@ -54,7 +54,7 @@ public:
 		auto tarray = (Kite::KAtlasTextureArray *)Self;
 		auto alist = tarray->getContiner();
 		if (RemovedRes->getType() == Kite::RTypes::AtlasTexture) {
-			for (auto i = 0; i < alist->size(); ++i) {
+			for (size_t i = 0; i < alist->size(); ++i) {
 				if (alist->operator[](i) == (Kite::KAtlasTexture *)RemovedRes) {
 					alist->operator[](i) = nullptr;
 					break;

@@ -23,33 +23,58 @@ USA
 #include "Kite/meta/kmetatypes.h"
 #include "Kite/meta/kmetamanager.h"
 #include "Kite/meta/kmetaclass.h"
+#include "Kite/engine/kengine.h"
 #include <luaintf/LuaIntf.h>
 
 namespace Kite {
 	bool KInputSys::update(F64 Delta, KEntityManager *EManager, KResourceManager *RManager) {
 		//EDITOR_STATIC const bool isregist = EManager->isRegisteredComponent(CTypes::Input);
-
-		auto continer = EManager->getComponentStorage<KInputCom>(CTypes::Input);
-		for (auto it = continer->begin(); it != continer->end(); ++it) {
-			auto EHandle = it->getOwnerHandle();
-			auto entity = EManager->getEntity(EHandle);
-			if (entity->isActive()) {
-				if (it->getEnableKeyboard() && KKeyboard::isAnyKeyDown()) {
-					KMessage msg("KEY_DOWN");
-					entity->onMessage(&msg, MessageScope::ALL);
+		LuaIntf::LuaRef ctable(_klvm, "_G.hooks.post");
+		if (ctable.isFunction()) {
+#ifdef KITE_DEV_DEBUG
+			try {
+				if (KKeyboard::isAnyKeyDown()) {
+					KMessage msg("onKeyDown");
+					ctable("onKeyDown", msg);
 				}
-				if (it->getEnableMouse() && KMouse::isAnyKeyDown()) {
-					KMessage msg("MOUSE_DOWN");
-					entity->onMessage(&msg, MessageScope::ALL);
+				if (KMouse::isAnyKeyDown()) {
+					KMessage msg("onMouseDown");
+					ctable("onMouseDown", msg);
 				}
+				
+			} catch (std::exception& e) {
+				KD_FPRINT("input function failed: %s", e.what());
+				return false;
 			}
+#else
+			if (KKeyboard::isAnyKeyDown()) {
+				KMessage msg("onKeyDown");
+				ctable("onKeyDown", msg);
+			}
+			if (KMouse::isAnyKeyDown()) {
+				KMessage msg("onMouseDown");
+				ctable("onMouseDown", msg);
+			}
+#endif
+		} else {
+			KD_PRINT("engine hooks system is corrupted");
+			return false;
 		}
+
 		return true;
 	}
 
-	bool KInputSys::inite(void *Opaque) {
-		setInite(true);
-		return true;
+	bool KInputSys::inite(void *Data) {
+		if (!Data) return false;
+		auto engien = static_cast<KEngine *>(Data);
+
+		if (!isInite()) {
+			_klvm = static_cast<lua_State *>(engien->getLuaState());
+
+			setInite(true);
+		}
+		
+		return isInite();
 	}
 
 	void KInputSys::destroy() { setInite(false); }

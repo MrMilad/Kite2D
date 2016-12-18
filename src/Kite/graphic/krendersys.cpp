@@ -292,7 +292,7 @@ namespace Kite{
 
 		// fill index buffer
 		_kvboInd->bind();
-		_kvboInd->fill(&ind[0], sizeof(U16) * _kconfig.indexSize, VBufferType::STREAM);
+		_kvboInd->fill(&ind[0], sizeof(U16) * _kconfig.indexSize, VBufferType::STATIC);
 		//_kvboInd->setUpdateHandle(_updateInd);
 
 		// fill vertex buffer

@@ -45,10 +45,7 @@ namespace Kite {
 		KM_PRO_GET(KP_NAME = "type", KP_TYPE = std::string, , KP_CM = "message type")
 		inline const std::string &getType() const { return _ktype; }
 
-		KM_PRO_GET(KP_NAME = "getHash", KP_TYPE = U32, KP_CM = "32 bit hash code of message type")
-		inline U32 getHash() const { return _khash; }
-
-		KM_PRO_GET(KP_NAME = "getConsume", KP_TYPE = bool, KP_CM = "consume state of message")
+		KM_PRO_GET(KP_NAME = "consumed", KP_TYPE = bool, KP_CM = "consume state of message")
 		inline bool getConsume() const { return _kconsume; }
 
 		KM_FUN()
@@ -59,20 +56,19 @@ namespace Kite {
 		inline void use() { ++_kused; }
 
 		// set massege data. (lua only)
-		KM_FUN()
+		KM_PRO_SET(KP_NAME = "dataTable")
 		void setDataTable(LuaIntf::LuaRef &Table);
 
-		KM_FUN()
+		KM_PRO_GET(KP_NAME = "dataTable", KP_TYPE = LuaIntf::LuaRef, KP_CM = "lua data table")
 		inline LuaIntf::LuaRef &getDataTable() { return _kdtable; }
 
-		KM_PRO_GET(KP_NAME = "getUse", KP_TYPE = U32, KP_CM = "use counter")
+		KM_PRO_GET(KP_NAME = "used", KP_TYPE = U32, KP_CM = "use counter")
 		inline U32 getUse() const { return _kused; }
 
-		KM_PRO_GET(KP_NAME = "getSize", KP_TYPE = U32, KP_CM = "size of message")
-		inline U32 getSize() const { return _ksize; }
-
-		// c++ only
+		KM_PRO_GET(KP_NAME = "data", KP_TYPE = void *, KP_CM = "size of the data")
 		inline void *getData() const { return _kdata; }
+
+		KM_PRO_GET(KP_NAME = "dataSize", KP_TYPE = U32, KP_CM = "size of the data")
 		inline SIZE getDataSize() const { return _ksize; }
 
 		// set massege data. (c++ only)
@@ -82,7 +78,6 @@ namespace Kite {
 		KMessage& operator=(const KMessage& other);
 
 	private:
-		U32 _khash;
 		U32 _kused;
 		SIZE _ksize;
 		void *_kdata;

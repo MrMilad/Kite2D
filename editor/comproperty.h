@@ -83,7 +83,11 @@ namespace priv {
 
 		void reset(Kite::KComponent *Comp) override {
 			auto val = Comp->getProperty(pname.toStdString());
+			combo->blockSignals(true);
+
 			combo->setCurrentIndex(val.asFreeCast<int>());
+
+			combo->blockSignals(false);
 		}
 
 signals:
@@ -98,6 +102,274 @@ signals:
 
 	private:
 		QComboBox *combo;
+		QString pname;
+	};
+
+	// kglyphmarker
+	class KGMARKER : public KProp {
+		Q_OBJECT
+	public:
+		KGMARKER(Kite::KComponent *Comp, const QString &PName, QWidget *Parent, bool ROnly = false) :
+			KProp(Parent), pname(PName) {
+
+			auto vlayout = new QVBoxLayout();
+			vlayout->setMargin(0);
+			vlayout->setSpacing(0);
+
+			auto clayout = new QHBoxLayout();
+			clayout->setMargin(0);
+			clayout->setSpacing(0);
+
+			auto lblChar = new QLabel(this);
+			lblChar->setText("character");
+			lblChar->setToolTip("character");
+			lblChar->setStyleSheet("QLabel {background-color: #7e7e7e; color: white;"
+								  "border-top-left-radius: 4px;"
+								  "border-bottom-left-radius: 4px;"
+								  "border-bottom-right-radius: 0px;"
+								  "margin-left: 2px;}");
+			clayout->addWidget(lblChar);
+
+			cmbChar = new QComboBox(this);
+			cmbChar->setEditable(true);
+			cmbChar->lineEdit()->setMaxLength(1);
+			cmbChar->setInsertPolicy(QComboBox::InsertPolicy::NoInsert);
+			for (auto i = '!'; i <= '~'; ++i) {
+				cmbChar->addItem(QString((char)i));
+			}
+			clayout->addWidget(cmbChar, 1);
+			vlayout->addLayout(clayout);
+
+			auto dlayout = new QHBoxLayout();
+			dlayout->setMargin(0);
+			dlayout->setSpacing(0);
+
+			auto lblId = new QLabel(this);
+			lblId->setText("atlasID");
+			lblId->setToolTip("atlasID");
+			lblId->setStyleSheet("QLabel {background-color: #7e7e7e; color: white;"
+								   "border-top-left-radius: 4px;"
+								   "border-bottom-left-radius: 4px;"
+								   "border-bottom-right-radius: 0px;"
+								   "margin-left: 2px;}");
+			dlayout->addWidget(lblId);
+
+			spnId = new QSpinBox(this);
+			spnId->setMinimum(0);
+			spnId->setMaximum(99999);
+			spnId->setToolTip("atlasID");
+			dlayout->addWidget(spnId, 1);
+
+			auto lblLen = new QLabel(this);
+			lblLen->setText("len");
+			lblLen->setToolTip("lenght");
+			lblLen->setStyleSheet("QLabel {background-color: #7e7e7e; color: white;"
+								   "border-top-left-radius: 4px;"
+								   "border-bottom-left-radius: 4px;"
+								   "border-bottom-right-radius: 0px;"
+								   "margin-left: 2px;}");
+			dlayout->addWidget(lblLen);
+
+			spnLen = new QSpinBox(this);
+			spnLen->setMinimum(0);
+			spnLen->setMaximum(999);
+			spnLen->setToolTip("lenght");
+			dlayout->addWidget(spnLen, 1);
+			vlayout->addLayout(dlayout);
+
+			connect(cmbChar, static_cast<void(QComboBox::*)(int)>(&QComboBox::currentIndexChanged),
+					this, &KGMARKER::valueChanged);
+			connect(spnId, static_cast<void(QSpinBox::*)(int)>(&QSpinBox::valueChanged), this, &KGMARKER::valueChanged);
+			connect(spnLen, static_cast<void(QSpinBox::*)(int)>(&QSpinBox::valueChanged), this, &KGMARKER::valueChanged);
+
+			auto mainLayout = new QHBoxLayout(this);
+			mainLayout->setMargin(0);
+			mainLayout->setSpacing(0);
+			mainLayout->addLayout(vlayout);
+
+			if (ROnly) {
+				spnId->setDisabled(true);
+				spnLen->setDisabled(true);
+				cmbChar->setDisabled(true);
+
+				auto lblROnly = new QLabel(this);
+				lblROnly->setText("<img src=\":/icons/lock\" height=\"12\" width=\"12\" >");
+				lblROnly->setToolTip("Read-Only Property");
+				mainLayout->addSpacing(2);
+				mainLayout->addWidget(lblROnly);
+			}
+		}
+
+		void reset(Kite::KComponent *Comp) override {
+			auto initeVal = Comp->getProperty(pname.toStdString());
+			Kite::KGlyphMarker gmarker = initeVal.as<Kite::KGlyphMarker>();
+
+			cmbChar->blockSignals(true);
+			spnId->blockSignals(true);
+			spnLen->blockSignals(true);
+			
+			spnId->setValue(gmarker.atlasID);
+			spnLen->setValue(gmarker.lenght);
+			cmbChar->setCurrentText(QString(gmarker.character));
+
+			cmbChar->blockSignals(false);
+			spnId->blockSignals(false);
+			spnLen->blockSignals(false);
+		}
+
+signals:
+		void propertyEdited(const QString &PName, QVariant &Val);
+
+		private slots :
+		void valueChanged(int Val) {
+			Kite::KGlyphMarker gmarker(cmbChar->currentText().toStdString()[0], spnId->value(), spnLen->value());
+			Kite::KAny pval(gmarker, true);
+			QVariant v = qVariantFromValue((void *)&pval);
+			emit(propertyEdited(pname, v));
+		}
+
+	private:
+		QComboBox *cmbChar;
+		QSpinBox *spnId;
+		QSpinBox *spnLen;
+		QString pname;
+	};
+
+	// kbitset
+	class KBITSET : public KProp {
+		Q_OBJECT
+	public:
+		KBITSET(Kite::KComponent *Comp, const QString &PName, QWidget *Parent,
+			  bool ROnly = false) :
+			KProp(Parent), pname(PName), bset(1, "1") {
+			auto hlayout = new QHBoxLayout(this);
+			hlayout->setMargin(0);
+			hlayout->setSpacing(0);
+
+			auto initeVal = Comp->getProperty(PName.toStdString());
+			bset = initeVal.as<Kite::KBitset>();
+
+			list = new QListWidget(this);
+			list->setFixedHeight(17);
+			list->setHorizontalScrollBarPolicy(Qt::ScrollBarPolicy::ScrollBarAlwaysOff);
+			list->setVerticalScrollBarPolicy(Qt::ScrollBarPolicy::ScrollBarAlwaysOn);
+			list->setStyleSheet("selection-background-color: transparent;");
+
+			for (unsigned int i = 0; i < bset.size(); ++i) {
+				auto item = new QListWidgetItem("Layer " + QString::number(i));
+				if (bset.test(i)) {
+					item->setCheckState(Qt::CheckState::Checked);
+				} else {
+					item->setCheckState(Qt::CheckState::Unchecked);
+				}
+
+				list->addItem(item);
+			}
+			
+
+			if (ROnly) {
+				list->setDisabled(true);
+			}
+			connect(list, &QListWidget::itemChanged, this, &KBITSET::valueChanged);
+			hlayout->addWidget(list);
+			hlayout->addSpacing(3);
+
+			// all button 
+			auto btnAll = new QToolButton(this);
+			btnAll->setToolTip("Select All");
+			btnAll->setAutoRaise(true);
+			btnAll->setIcon(QIcon(":/icons/lall"));
+			connect(btnAll, &QToolButton::clicked, this, &KBITSET::selectAll);
+			hlayout->addWidget(btnAll);
+
+			// none button 
+			auto btnNone = new QToolButton(this);
+			btnNone->setToolTip("Deselect All");
+			btnNone->setAutoRaise(true);
+			btnNone->setIcon(QIcon(":/icons/lnone"));
+			connect(btnNone, &QToolButton::clicked, this, &KBITSET::deselectAll);
+			hlayout->addWidget(btnNone);
+
+			if (ROnly) {
+				auto lblROnly = new QLabel(this);
+				lblROnly->setText("<img src=\":/icons/lock\" height=\"12\" width=\"12\" >");
+				lblROnly->setToolTip("Read-Only Property");
+				hlayout->addSpacing(2);
+				hlayout->addWidget(lblROnly);
+			}
+		}
+
+		void reset(Kite::KComponent *Comp) override {
+			list->blockSignals(true);
+			auto val = Comp->getProperty(pname.toStdString());
+			bset = val.as<Kite::KBitset>();
+			list->clear();
+
+			for (unsigned int i = 0; i < bset.size(); ++i) {
+				auto item = new QListWidgetItem("Layer " + QString::number(i));
+				if (bset.test(i)) {
+					item->setCheckState(Qt::CheckState::Checked);
+				} else {
+					item->setCheckState(Qt::CheckState::Unchecked);
+				}
+
+				list->addItem(item);
+			}
+			
+			list->blockSignals(false);
+		}
+
+signals:
+		void propertyEdited(const QString &PName, QVariant &Val);
+
+	private slots :
+		void valueChanged(QListWidgetItem *item) {
+			auto row = list->row(item);
+
+			if (item->checkState() == Qt::CheckState::Checked) {
+				bset.set(row, true);
+			} else {
+				bset.set(row, false);
+			}
+
+			Kite::KAny pval(bset, true);
+			QVariant v = qVariantFromValue((void *)&pval);
+			emit(propertyEdited(pname, v));
+		}
+
+		void selectAll() {
+			list->blockSignals(true);
+
+			for (int i = 0; i < list->count(); ++i) {
+				list->item(i)->setCheckState(Qt::CheckState::Checked);
+			}
+
+			bset.setAll(true);
+			Kite::KAny pval(bset, true);
+			QVariant v = qVariantFromValue((void *)&pval);
+			emit(propertyEdited(pname, v));
+
+			list->blockSignals(false);
+		}
+
+		void deselectAll() {
+			list->blockSignals(true);
+
+			for (int i = 0; i < list->count(); ++i) {
+				list->item(i)->setCheckState(Qt::CheckState::Unchecked);
+			}
+
+			bset.setAll(false);
+			Kite::KAny pval(bset, true);
+			QVariant v = qVariantFromValue((void *)&pval);
+			emit(propertyEdited(pname, v));
+
+			list->blockSignals(false);
+		}
+
+	private:
+		Kite::KBitset bset;
+		QListWidget *list;
 		QString pname;
 	};
 
@@ -219,7 +491,11 @@ signals:
 
 		void reset(Kite::KComponent *Comp) override {
 			auto val = Comp->getProperty(pname.toStdString());
+			check->blockSignals(true);
+
 			check->setChecked(val.as<bool>());
+
+			check->blockSignals(false);
 		}
 
 signals:
@@ -307,9 +583,9 @@ signals:
 		void reset(Kite::KComponent *Comp) override {
 			auto val = Comp->getProperty(pname.toStdString());
 			currItem = val.as<Kite::KAtlasItem>();
-			disconnect(combo, 0, 0, 0);
-			disconnect(btnFlipv, 0, 0, 0);
-			disconnect(btnFliph, 0, 0, 0);
+			combo->blockSignals(true);
+			btnFlipv->blockSignals(true);
+			btnFliph->blockSignals(true);
 
 			btnFliph->setChecked(currItem.getFlipH());
 			btnFlipv->setChecked(currItem.getFlipV());
@@ -317,11 +593,10 @@ signals:
 			fh = currItem.getFlipH();
 
 			combo->setCurrentIndex(refillCombo(currItem));
-			connect(combo, static_cast<void(QComboBox::*)(int)>(&QComboBox::currentIndexChanged),
-					this, &KATLASITEM::valueChanged);
 
-			connect(btnFlipv, &QToolButton::clicked, this, &KATLASITEM::flipv);
-			connect(btnFliph, &QToolButton::clicked, this, &KATLASITEM::fliph);
+			combo->blockSignals(false);
+			btnFlipv->blockSignals(false);
+			btnFliph->blockSignals(false);
 		}
 
 	signals:
@@ -371,10 +646,9 @@ signals:
 		bool eventFilter(QObject *Obj, QEvent *Event) {
 			static QStringList resList;
 			if (Event->type() == QEvent::MouseButtonPress) {
-				disconnect(combo, 0, 0, 0);
+				combo->blockSignals(true);
 				combo->setCurrentIndex(refillCombo(currItem));
-				connect(combo, static_cast<void(QComboBox::*)(int)>(&QComboBox::currentIndexChanged),
-						this, &KATLASITEM::valueChanged);
+				combo->blockSignals(false);
 			}
 			return false;
 		}
@@ -501,17 +775,24 @@ signals:
 
 		void reset(Kite::KComponent *Comp) override {
 			auto val = Comp->getProperty(pname.toStdString());
-			combo->clear();
 			if (restype != Kite::RTypes::maxSize) {
+				combo->blockSignals(true);
+				combo->clear();
 				if (val.as<Kite::KStringID>().str.empty()) {
+
 					combo->addItem("");
 					combo->setCurrentText("");
 				} else {
 					combo->addItem(val.as<Kite::KStringID>().str.c_str());
 					combo->setCurrentText(val.as<Kite::KStringID>().str.c_str());
 				}
+				combo->blockSignals(false);
 			} else {
+				ledit->blockSignals(true);
+
 				ledit->setText(val.as<Kite::KStringID>().str.c_str());
+
+				ledit->blockSignals(false);
 			}
 		}
 
@@ -530,7 +811,7 @@ signals:
 		bool eventFilter(QObject *Obj, QEvent *Event) {
 			static QStringList resList;
 			if (Event->type() == QEvent::MouseButtonPress) {
-				disconnect(combo, 0, 0, 0);
+				combo->blockSignals(true);
 
 				auto text = combo->currentText();
 				combo->clear();
@@ -541,8 +822,7 @@ signals:
 				combo->addItems(resList);
 				combo->setCurrentText(text);
 
-				connect(combo, static_cast<void(QComboBox::*)(const QString &)>(&QComboBox::currentIndexChanged),
-						this, &KSTRID::valueChanged);
+				combo->blockSignals(false);
 			}
 			return false;
 		}
@@ -567,9 +847,13 @@ signals:
 
 			auto initeVal = Comp->getProperty(PName.toStdString());
 			ledit = new QLineEdit(Parent);
-			ledit->setStyleSheet("color: orange;");
 			ledit->setText(initeVal.as<std::string>().c_str());
 			ledit->setReadOnly(ROnly);
+
+			auto multiLineAct = new QAction(QIcon(":/icons/lines"), "Multi-Line Edit", ledit);
+			multiLineAct->setToolTip("Multi-Line Edit");
+			ledit->addAction(multiLineAct, QLineEdit::ActionPosition::TrailingPosition);
+
 			if (ROnly) {
 				ledit->setStyleSheet("color: orange;"
 									 "border: none;");
@@ -590,7 +874,11 @@ signals:
 
 		void reset(Kite::KComponent *Comp) override {
 			auto val = Comp->getProperty(pname.toStdString());
+			ledit->blockSignals(true);
+
 			ledit->setText(val.as<std::string>().c_str());
+
+			ledit->blockSignals(false);
 		}
 
 signals:
@@ -665,7 +953,11 @@ signals:
 		}
 
 		void reset(Kite::KComponent *Comp) override {
+			imp.spin->blockSignals(true);
+
 			imp.reset(Comp, pname);
+
+			imp.spin->blockSignals(false);
 		}
 
 signals:
@@ -695,7 +987,9 @@ signals:
 		}
 
 		void reset(Kite::KComponent *Comp) override {
+			imp.spin->blockSignals(true);
 			imp.reset(Comp, pname);
+			imp.spin->blockSignals(false);
 		}
 
 signals:
@@ -725,7 +1019,9 @@ signals:
 		}
 
 		void reset(Kite::KComponent *Comp) override {
+			imp.spin->blockSignals(true);
 			imp.reset(Comp, pname);
+			imp.spin->blockSignals(false);
 		}
 
 signals:
@@ -755,7 +1051,9 @@ signals:
 		}
 
 		void reset(Kite::KComponent *Comp) override {
+			imp.spin->blockSignals(true);
 			imp.reset(Comp, pname);
+			imp.spin->blockSignals(false);
 		}
 
 signals:
@@ -786,7 +1084,9 @@ signals:
 		}
 
 		void reset(Kite::KComponent *Comp) override {
+			imp.spin->blockSignals(true);
 			imp.reset(Comp, pname);
+			imp.spin->blockSignals(false);
 		}
 
 signals:
@@ -860,10 +1160,14 @@ signals:
 
 		void reset(Kite::KComponent *Comp) override {
 			auto val = Comp->getProperty(pname.toStdString());
+			spin->blockSignals(true);
 			spin->setValue(val.asFreeCast<float>());
 			if (slider != nullptr) {
+				slider->blockSignals(true);
 				slider->setValue(val.asFreeCast<float>() * 100);
+				slider->blockSignals(false);
 			}
+			spin->blockSignals(false);
 		}
 
 signals:
@@ -963,8 +1267,14 @@ signals:
 		void reset(Kite::KComponent *Comp) override {
 			auto val = Comp->getProperty(pname.toStdString());
 			value = val.as<Kite::KVector2I32>();
+			xspin->blockSignals(true);
+			yspin->blockSignals(true);
+
 			xspin->setValue(val.as<Kite::KVector2I32>().x);
 			yspin->setValue(val.as<Kite::KVector2I32>().y);
+
+			xspin->blockSignals(false);
+			yspin->blockSignals(false);
 		}
 
 signals:
@@ -1056,8 +1366,15 @@ signals:
 		void reset(Kite::KComponent *Comp) override {
 			auto val = Comp->getProperty(pname.toStdString());
 			value = val.as<Kite::KVector2U32>();
+
+			xspin->blockSignals(true);
+			yspin->blockSignals(true);
+
 			xspin->setValue(val.as<Kite::KVector2U32>().x);
 			yspin->setValue(val.as<Kite::KVector2U32>().y);
+
+			xspin->blockSignals(false);
+			yspin->blockSignals(false);
 		}
 
 signals:
@@ -1149,8 +1466,15 @@ signals:
 		void reset(Kite::KComponent *Comp) override {
 			auto val = Comp->getProperty(pname.toStdString());
 			value = val.as<Kite::KVector2F32>();
+
+			xspin->blockSignals(true);
+			yspin->blockSignals(true);
+
 			xspin->setValue(val.as<Kite::KVector2F32>().x);
 			yspin->setValue(val.as<Kite::KVector2F32>().y);
+
+			xspin->blockSignals(false);
+			yspin->blockSignals(false);
 		}
 
 signals:
@@ -1203,6 +1527,7 @@ signals:
 			// left
 			auto leftlbl = new QLabel(this);
 			leftlbl->setText("L");
+			leftlbl->setToolTip("left");
 			leftlbl->setStyleSheet("QLabel {background-color: #7e7e7e; color: white;"
 								  "border-top-left-radius: 4px;"
 								  "border-bottom-left-radius: 4px;"
@@ -1217,7 +1542,7 @@ signals:
 			leftspin->setReadOnly(ROnly);
 			leftspin->setDecimals(2);
 			leftspin->setSingleStep(0.1);
-			leftspin->setToolTip("Left");
+			leftspin->setToolTip("left");
 			connect(leftspin, static_cast<void(QDoubleSpinBox::*)(double)>(&QDoubleSpinBox::valueChanged), this, &KRF32::valueChanged);
 			lrlayout->addWidget(leftspin, 1);
 			lrlayout->addSpacing(5);
@@ -1225,6 +1550,7 @@ signals:
 			// bottom
 			auto botlbl = new QLabel(this);
 			botlbl->setText("B");
+			botlbl->setToolTip("bottom");
 			botlbl->setStyleSheet("QLabel {background-color: #7e7e7e; color: white;"
 								  "border-top-left-radius: 4px;"
 								  "border-bottom-left-radius: 4px;"
@@ -1237,7 +1563,7 @@ signals:
 			botspin->setReadOnly(ROnly);
 			botspin->setDecimals(2);
 			botspin->setSingleStep(0.1);
-			botspin->setToolTip("Bottom");
+			botspin->setToolTip("bottom");
 			connect(botspin, static_cast<void(QDoubleSpinBox::*)(double)>(&QDoubleSpinBox::valueChanged), this, &KRF32::valueChanged);
 			btlayout->addWidget(botspin, 1);
 			btlayout->addSpacing(5);
@@ -1250,6 +1576,7 @@ signals:
 								  "border-bottom-left-radius: 4px;"
 								  "border-bottom-right-radius: 0px;"
 								  "margin-left: 2px;}");
+			rightlbl->setToolTip("right");
 			lrlayout->addWidget(rightlbl);
 
 			rightspin = singleSpin<QDoubleSpinBox>();
@@ -1257,7 +1584,7 @@ signals:
 			rightspin->setReadOnly(ROnly);
 			rightspin->setDecimals(2);
 			rightspin->setSingleStep(0.1);
-			rightspin->setToolTip("Right");
+			rightspin->setToolTip("right");
 			connect(rightspin, static_cast<void(QDoubleSpinBox::*)(double)>(&QDoubleSpinBox::valueChanged), this, &KRF32::valueChanged);
 			lrlayout->addWidget(rightspin, 1);
 
@@ -1269,6 +1596,7 @@ signals:
 								  "border-bottom-left-radius: 4px;"
 								  "border-bottom-right-radius: 0px;"
 								  "margin-left: 2px;}");
+			toplbl->setToolTip("top");
 			btlayout->addWidget(toplbl);
 
 			topspin = singleSpin<QDoubleSpinBox>();
@@ -1276,7 +1604,7 @@ signals:
 			topspin->setReadOnly(ROnly);
 			topspin->setDecimals(2);
 			topspin->setSingleStep(0.1);
-			topspin->setToolTip("Top");
+			topspin->setToolTip("top");
 			connect(topspin, static_cast<void(QDoubleSpinBox::*)(double)>(&QDoubleSpinBox::valueChanged), this, &KRF32::valueChanged);
 			btlayout->addWidget(topspin, 1);
 
@@ -1302,10 +1630,20 @@ signals:
 		void reset(Kite::KComponent *Comp) override {
 			auto val = Comp->getProperty(pname.toStdString());
 			value = val.as<Kite::KRectF32>();
+			leftspin->blockSignals(true);
+			botspin->blockSignals(true);
+			topspin->blockSignals(true);
+			rightspin->blockSignals(true);
+
 			topspin->setValue(val.as<Kite::KRectF32>().top);
 			botspin->setValue(val.as<Kite::KRectF32>().bottom);
 			leftspin->setValue(val.as<Kite::KRectF32>().left);
 			rightspin->setValue(val.as<Kite::KRectF32>().right);
+
+			leftspin->blockSignals(false);
+			botspin->blockSignals(false);
+			topspin->blockSignals(false);
+			rightspin->blockSignals(false);
 		}
 
 signals:

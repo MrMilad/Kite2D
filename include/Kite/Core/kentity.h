@@ -128,12 +128,6 @@ namespace Kite {
 		void getScriptComponents(std::vector<KHandle> &Output);
 
 		KM_FUN()
-		void reorderScriptComponent(const KHandle &CHandle, U32 NewOrder);
-
-		KM_FUN()
-		void reorderScriptComponentByName(const std::string &CName, U32 NewOrder);
-
-		KM_FUN()
 		bool hasComponent(CTypes Type, const std::string &Name = "");
 
 		KM_FUN()
@@ -146,6 +140,9 @@ namespace Kite {
 		void removeComponent(CTypes Type, const std::string &ComponentName = "");
 
 		KM_FUN()
+		void removeComponentByHandle(const KHandle &CHandle);
+
+		KM_FUN()
 		void clearComponents();
 
 		KM_FUN()
@@ -153,6 +150,9 @@ namespace Kite {
 
 		KM_FUN()
 		bool hasChild() const;
+
+		KM_FUN()
+		static KEntity *toEntity(void *Data);
 
 		inline const auto childList() const { return &_kchilds; }
 
@@ -191,7 +191,6 @@ namespace Kite {
 		KM_VAR() U32 _kzorder;
 		KM_VAR() KHandle _kfixedComp[(SIZE)CTypes::maxSize];			// fixed components slots (built-in components)
 		KM_VAR() std::unordered_map<std::string, KHandle> _klogicComp;	// dynamic components (logic components)
-		KM_VAR() std::vector<KHandle> _klogicOrder;						// logic components queue by order
 		KM_VAR() std::vector<KHandle> _kchilds;							// children list
 		static std::vector<KHandle> _ktrashList;						// components trash list
 

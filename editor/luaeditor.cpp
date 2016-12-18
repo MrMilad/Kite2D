@@ -7,8 +7,8 @@
 
 Completer *LuaEditor::completer = new Completer();
 
-LuaEditor::LuaEditor(Kite::KResource *Res, KiteInfo * KInfo, QWidget *Parent):
-	TabWidget(Res, KInfo, Parent),
+LuaEditor::LuaEditor(Kite::KResource *Res, Kite::KIStream *Stream, KiteInfo * KInfo, QWidget *Parent):
+	TabWidget(Res, Stream, Parent),
 	editor(nullptr),
 	script((Kite::KScript *)Res),
 	kinfo(KInfo)
@@ -35,45 +35,24 @@ void LuaEditor::inite() {
 
 	vlayout->addWidget(editor);
 
-	// set editor text
-	editor->clear();
-	if (script->getCode().empty()) {
-		editor->setPlainText("function inite(self)\n"
-							 "\t\nend\n"
-							 "\nfunction start(self)\n"
-							 "\t\nend\n"
-							 "\nfunction update(self, delta)\n"
-							 "\t\nend\n"
-							 "\nfunction onMessage(self, msg)\n"
-							 "\t\nend\n");
-	} else {
-		editor->appendPlainText(script->getCode().c_str());
-	}
-	editor->show();
-
+	reload();
+	
 	// connect completer 
 	connect(completer, SIGNAL(activated(QString)),
 			editor, SLOT(insertCompletion(QString)));
 }
 
-bool LuaEditor::saveChanges() {
+void LuaEditor::saveChanges() {
 	script->setCode(editor->document()->toPlainText().toStdString());
-	script->setModified(true);
-	return true;
 }
 
 void LuaEditor::reload() {
+	editor->clear();
 	if (script->getCode().empty()) {
-		editor->setPlainText("function inite(self)\n"
-							 "\t\nend\n"
-							 "\nfunction start(self)\n"
-							 "\t\nend\n"
-							 "\nfunction update(self, delta)\n"
-							 "\t\nend\n"
-							 "\nfunction onMessage(self, msg)\n"
-							 "\t\nend\n");
+		editor->setPlainText("--local eman = engine:getEntityManager()\n"
+							 "function onInite()\n\t\nend\n");
 	} else {
-		editor->appendPlainText(script->getCode().c_str());
+		editor->setPlainText(script->getCode().c_str());
 	}
 }
 
@@ -96,7 +75,8 @@ void LuaEditor::initeModel() {
 			<< "else" << "elseif" << "in"
 			<< "goto" << "if" << "return"
 			<< "or" << "repeat" << "while"
-			<< "end";
+			<< "end" << "engine" << "self"
+			<< "owner" << "global" << "messenger";
 
 		for (auto it = luaKeys.begin(); it != luaKeys.end(); ++it) {
 			model->appendRow(new QStandardItem(QIcon(":/icons/key16"), (*it)));

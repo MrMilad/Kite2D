@@ -46,7 +46,7 @@ namespace Kite {
 		}
 
 		// subscrib for static change message
-		Owner->subscribe(*this, "STATIC_CHANGED");
+		Owner->invoke(this, "onStaticChange");
 	}
 
 	void KGCullingCom::deattached(KEntity *Owner) {

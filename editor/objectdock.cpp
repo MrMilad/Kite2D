@@ -3,9 +3,16 @@
 #include <qinputdialog.h>
 #include "frmaddobj.h"
 #include <kmeta.khgen.h>
+#include <qundostack.h>
+#include <qaction.h>
+#include <Kite/core/kscene.h>
+#include <Kite/core/kentity.h>
+#include <Kite/core/klistener.h>
+#include <Kite/core/kentitymanager.h>
 
-ObjectDock::ObjectDock(QWidget *parent) :
+ObjectDock::ObjectDock(QUndoGroup *UndoGroup, QWidget *parent) :
 	QDockWidget("Hierarchy", parent),
+	undoStack(new QUndoStack(UndoGroup)),
 	currRes(nullptr),
 	currEman(nullptr),
 	preEman(nullptr)
@@ -17,8 +24,9 @@ ObjectDock::ObjectDock(QWidget *parent) :
 
 	setupTree();
 	setupActions();
-	actionsControl(AS_ON_INITE);
 	setupHTools();
+
+	this->setDisabled(true);
 }
 
 ObjectDock::~ObjectDock() {}
@@ -37,77 +45,95 @@ Kite::RecieveTypes ObjectDock::onMessage(Kite::KMessage *Message, Kite::MessageS
 	return Kite::RecieveTypes::IGNORED;
 }
 
+void ObjectDock::initePanel() {
+	connect(objTree, &QTreeWidget::itemSelectionChanged, this, &ObjectDock::clicked);
+	connect(objTree, &QTreeWidget::customContextMenuRequested, this, &ObjectDock::rightClicked);
+
+	this->setDisabled(false);
+}
+
+void ObjectDock::clearPanel() {
+	// disconnect all connections
+	disconnect(objTree, &QTreeWidget::itemSelectionChanged, this, &ObjectDock::clicked);
+	disconnect(objTree, &QTreeWidget::customContextMenuRequested, this, &ObjectDock::rightClicked);
+
+	currRes = nullptr;
+	currEman = nullptr;
+	preEman = nullptr;
+
+	objTree->clear();
+	this->setDisabled(true);
+}
+
 void ObjectDock::setupTree() {
 	objTree = new QTreeWidget(this);
 	objTree->setColumnCount(1);
 	objTree->setHeaderHidden(true);
 	objTree->setSelectionMode(QAbstractItemView::SingleSelection);
 	objTree->setContextMenuPolicy(Qt::CustomContextMenu);
-	connect(objTree, &QTreeWidget::itemSelectionChanged, this, &ObjectDock::actClicked);
-	connect(objTree, &QTreeWidget::customContextMenuRequested, this, &ObjectDock::actRClicked);
 	setWidget(objTree);
 }
 
 void ObjectDock::setupActions() {
-	addRootObj = new QAction(QIcon(":/icons/add"), "Add New Object", this);
-	addRootObj->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_N));
-	addRootObj->setShortcutContext(Qt::WidgetWithChildrenShortcut);
-	connect(addRootObj, &QAction::triggered, this, &ObjectDock::actAddRoot);
-	this->addAction(addRootObj);
+	actAddRoot = new QAction(QIcon(":/icons/add"), "Add New Object", this);
+	actAddRoot->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_N));
+	actAddRoot->setShortcutContext(Qt::WidgetWithChildrenShortcut);
+	connect(actAddRoot, &QAction::triggered, this, &ObjectDock::addRoot);
+	this->addAction(actAddRoot);
 
-	addChildObj = new QAction(QIcon(":/icons/addChild"), "Add New Child", this);
-	addChildObj->setShortcut(QKeySequence(Qt::CTRL + Qt::ALT + Qt::Key_N));
-	addChildObj->setShortcutContext(Qt::WidgetWithChildrenShortcut);
-	connect(addChildObj, &QAction::triggered, this, &ObjectDock::actAddChild);
-	this->addAction(addChildObj);
+	actAddChild = new QAction(QIcon(":/icons/addChild"), "Add New Child Object", this);
+	actAddChild->setShortcut(QKeySequence(Qt::CTRL + Qt::ALT + Qt::Key_N));
+	actAddChild->setShortcutContext(Qt::WidgetWithChildrenShortcut);
+	connect(actAddChild, &QAction::triggered, this, &ObjectDock::addChild);
+	this->addAction(actAddChild);
 
-	renameObj = new QAction(QIcon(":/icons/edit"), "Rename Object", this);
-	renameObj->setShortcut(QKeySequence(Qt::Key_F2));
-	renameObj->setShortcutContext(Qt::WidgetWithChildrenShortcut);
-	connect(renameObj, &QAction::triggered, this, &ObjectDock::actRename);
-	this->addAction(renameObj);
+	actRename = new QAction(QIcon(":/icons/edit"), "Rename Object", this);
+	actRename->setShortcut(QKeySequence(Qt::Key_F2));
+	actRename->setShortcutContext(Qt::WidgetWithChildrenShortcut);
+	connect(actRename, &QAction::triggered, this, &ObjectDock::rename);
+	this->addAction(actRename);
 
-	remObj = new QAction(QIcon(":/icons/close"), "Remove Object", this);
-	remObj->setShortcut(QKeySequence(Qt::Key_Delete));
-	remObj->setShortcutContext(Qt::WidgetWithChildrenShortcut);
-	connect(remObj, &QAction::triggered, this, &ObjectDock::actRemove);
-	this->addAction(remObj);
+	actRemove = new QAction(QIcon(":/icons/close"), "Remove Object", this);
+	actRemove->setShortcut(QKeySequence(Qt::Key_Delete));
+	actRemove->setShortcutContext(Qt::WidgetWithChildrenShortcut);
+	connect(actRemove, &QAction::triggered, this, &ObjectDock::remove);
+	this->addAction(actRemove);
 
-	prefab = new QAction(QIcon(":/icons/addpre"), "Create Prefab", this);
-	prefab->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_P));
-	prefab->setShortcutContext(Qt::WidgetWithChildrenShortcut);
-	connect(prefab, &QAction::triggered, this, &ObjectDock::actPrefab);
-	this->addAction(prefab);
+	actPrefab = new QAction(QIcon(":/icons/addpre"), "Create Prefab", this);
+	actPrefab->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_P));
+	actPrefab->setShortcutContext(Qt::WidgetWithChildrenShortcut);
+	connect(actPrefab, &QAction::triggered, this, &ObjectDock::prefab);
+	this->addAction(actPrefab);
 
-	copy = new QAction(QIcon(":/icons/copy"), "Copy", this);
-	copy->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_C));
-	copy->setShortcutContext(Qt::WidgetWithChildrenShortcut);
-	connect(copy, &QAction::triggered, this, &ObjectDock::actCopy);
-	this->addAction(copy);
+	actCopy = new QAction(QIcon(":/icons/copy"), "Copy", this);
+	actCopy->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_C));
+	actCopy->setShortcutContext(Qt::WidgetWithChildrenShortcut);
+	connect(actCopy, &QAction::triggered, this, &ObjectDock::copy);
+	this->addAction(actCopy);
 
-	cut = new QAction(QIcon(":/icons/cut"), "Cut", this);
-	cut->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_X));
-	cut->setShortcutContext(Qt::WidgetWithChildrenShortcut);
-	connect(cut, &QAction::triggered, this, &ObjectDock::actCut);
-	this->addAction(cut);
+	actCut = new QAction(QIcon(":/icons/cut"), "Cut", this);
+	actCut->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_X));
+	actCut->setShortcutContext(Qt::WidgetWithChildrenShortcut);
+	connect(actCut, &QAction::triggered, this, &ObjectDock::cut);
+	this->addAction(actCut);
 
-	paste = new QAction(QIcon(":/icons/paste"), "Paste", this);
-	paste->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_V));
-	paste->setShortcutContext(Qt::WidgetWithChildrenShortcut);
-	paste->setDisabled(true);
-	connect(paste, &QAction::triggered, this, &ObjectDock::actPaste);
-	this->addAction(paste);
+	actPaste = new QAction(QIcon(":/icons/paste"), "Paste", this);
+	actPaste->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_V));
+	actPaste->setShortcutContext(Qt::WidgetWithChildrenShortcut);
+	actPaste->setDisabled(true);
+	connect(actPaste, &QAction::triggered, this, &ObjectDock::paste);
+	this->addAction(actPaste);
 }
 
 void ObjectDock::setupHTools() {
-	htools = new QFrame(this);
+	auto htools = new QFrame(this);
 	auto vlayout = new QVBoxLayout(htools);
 	vlayout->setMargin(2);
 	vlayout->setSpacing(0);
 
 	auto hlayoutTitle = new QHBoxLayout();
 
-	hlabel = new QLabel(htools);
+	auto hlabel = new QLabel(htools);
 	hlabel->setText("Hierarchy ");
 	hlabel->setStyleSheet("color: lightGray;");
 	hlayoutTitle->addWidget(hlabel);
@@ -132,56 +158,34 @@ void ObjectDock::setupHTools() {
 	connect(btnClose, &QToolButton::clicked, this, &QDockWidget::hide);
 
 	vlayout->addLayout(hlayoutTitle);
+	vlayout->addSpacing(2);
 
-	auto hlayout = new QHBoxLayout(htools);
-	hlayout->setMargin(3);
+	auto hlayoutTools = new QHBoxLayout();
+	hlayoutTools->setMargin(0);
+	hlayoutTools->setSpacing(0);
 
-	auto btnAddRoot = new QToolButton(htools);
-	btnAddRoot->setDefaultAction(addRootObj);
-	btnAddRoot->setToolButtonStyle(Qt::ToolButtonIconOnly);
-	hlayout->addWidget(btnAddRoot);
+	auto btnCollAll = new QToolButton(htools);
+	btnCollAll->setIcon(QIcon(":/icons/col"));
+	btnCollAll->setToolButtonStyle(Qt::ToolButtonIconOnly);
+	btnCollAll->setToolTip("Collapse All");
+	connect(btnCollAll, &QToolButton::clicked, objTree, &QTreeWidget::collapseAll);
+	hlayoutTools->addWidget(btnCollAll);
+	hlayoutTools->addSpacing(5);
 
-	auto btnAddChild = new QToolButton(htools);
-	btnAddChild->setDefaultAction(addChildObj);
-	btnAddChild->setToolButtonStyle(Qt::ToolButtonIconOnly);
-	hlayout->addWidget(btnAddChild);
-
-	hlayout->addSpacing(10);
-
-	auto btnPrefab = new QToolButton(htools);
-	btnPrefab->setDefaultAction(prefab);
-	btnPrefab->setToolButtonStyle(Qt::ToolButtonIconOnly);
-	hlayout->addWidget(btnPrefab);
-
-	hlayout->addSpacing(10);
-
-	auto btnRemove = new QToolButton(htools);
-	btnRemove->setDefaultAction(remObj);
-	btnRemove->setToolButtonStyle(Qt::ToolButtonIconOnly);
-	hlayout->addWidget(btnRemove);
-
-	auto btnRename = new QToolButton(htools);
-	btnRename->setDefaultAction(renameObj);
-	btnRename->setToolButtonStyle(Qt::ToolButtonIconOnly);
-	hlayout->addWidget(btnRename);
-
-	hlayout->addStretch(1);
-
-	vlayout->addLayout(hlayout);
-
-	ledit = new QLineEdit(htools);
+	auto ledit = new QLineEdit(htools);
 	ledit->setPlaceholderText("Search");
 	ledit->addAction(QIcon(":/icons/search"), QLineEdit::ActionPosition::TrailingPosition);
 	ledit->setStyleSheet("background-color: gray;");
-	connect(ledit, &QLineEdit::textChanged, this, &ObjectDock::actSearch);
+	hlayoutTools->addWidget(ledit, 1);
+	connect(ledit, &QLineEdit::textChanged, this, &ObjectDock::search);
 
-	vlayout->addWidget(ledit);
+	vlayout->addLayout(hlayoutTools);
 
 	htools->setLayout(vlayout);
 	setTitleBarWidget(htools);
 }
 
-void ObjectDock::actionsControl(ActionsState State) {
+/*void ObjectDock::actionsControl(ActionsState State) {
 	if (State == AS_ON_INITE) {
 		addRootObj->setDisabled(true);
 		addChildObj->setDisabled(true);
@@ -207,7 +211,7 @@ void ObjectDock::actionsControl(ActionsState State) {
 		remObj->setDisabled(false);
 		prefab->setDisabled(false);
 	}
-}
+}*/
 
 QTreeWidgetItem *ObjectDock::loadChilds(Kite::KEntityManager *Eman, const Kite::KHandle &Entity, QTreeWidgetItem *Parrent) {
 	auto ent = Eman->getEntity(Entity);
@@ -242,7 +246,7 @@ void ObjectDock::recursiveLoad(Kite::KEntity *Root) {
 	disconnect(objTree, &QTreeWidget::itemChanged, this, &ObjectDock::entityChecked);
 
 	// disable click
-	disconnect(objTree, &QTreeWidget::itemSelectionChanged, this, &ObjectDock::actClicked);
+	disconnect(objTree, &QTreeWidget::itemSelectionChanged, this, &ObjectDock::clicked);
 
 	objTree->clear();
 
@@ -251,14 +255,14 @@ void ObjectDock::recursiveLoad(Kite::KEntity *Root) {
 	}
 
 	connect(objTree, &QTreeWidget::itemChanged, this, &ObjectDock::entityChecked);
-	connect(objTree, &QTreeWidget::itemSelectionChanged, this, &ObjectDock::actClicked);
+	connect(objTree, &QTreeWidget::itemSelectionChanged, this, &ObjectDock::clicked);
 }
 
 void ObjectDock::installEntityCallback(Kite::KResource *Res) {
 	if (Res->getType() == Kite::RTypes::Scene) {
 		auto scene = (Kite::KScene *)Res;
-		scene->getEManager()->subscribe(*this, "ENTITY_CREATED");
-		scene->getEManager()->subscribe(*this, "ENTITY_REMOVED");
+		scene->getEManager()->invoke(this, "ENTITY_CREATED");
+		scene->getEManager()->invoke(this, "ENTITY_REMOVED");
 	}
 }
 
@@ -277,7 +281,7 @@ void ObjectDock::resEdit(Kite::KResource *Res) {
 		root = currEman->getEntity(currEman->getRoot());
 
 		if (!root->hasChild()) {
-			actionsControl(AS_ON_LOAD);
+			// actionsControl(AS_ON_LOAD);
 		}
 
 	// prefab
@@ -289,7 +293,7 @@ void ObjectDock::resEdit(Kite::KResource *Res) {
 		preEman->loadPrefab(pre);
 		currEman = preEman;
 		root = currEman->getEntity(currEman->getRoot());
-		actionsControl(AS_ON_PREFAB);
+		// actionsControl(AS_ON_PREFAB);
 	} else {
 		return;
 	}
@@ -306,10 +310,10 @@ void ObjectDock::resEdit(Kite::KResource *Res) {
 
 void ObjectDock::resDelete(Kite::KResource *Res){
 	if (Res == currRes) {
-		objTree->clear();
-		currRes = nullptr;
-		actionsControl(AS_ON_INITE);
-		hlabel->setText("Hierarchy");
+		clearPanel();
+		initePanel();
+
+		// actionsControl(AS_ON_INITE);
 		emit(objectDelete(nullptr, nullptr));
 	}
 }
@@ -375,7 +379,6 @@ void ObjectDock::applyPrefab(Kite::KEntity *Entity) {
 				msg.setText("can't apply changes to the prefab.");
 				msg.exec();
 			}
-			pre->setModified(true);
 		}
 	}
 }
@@ -393,29 +396,24 @@ void ObjectDock::entityChecked(QTreeWidgetItem *Item, int Col) {
 	}
 }
 
-void ObjectDock::actClicked() {
+void ObjectDock::clicked() {
 	auto item = objTree->currentItem();
 	if (item != nullptr) {
 		std::string str = item->text(0).toStdString();
 		auto entity = currEman->getEntityByName(item->text(0).toStdString());
 		bool isPrefab = false;
-		if (currRes->getType() == Kite::RTypes::Scene) {
-			actionsControl(AS_ON_ITEM);
-		} else if (currRes->getType() == Kite::RTypes::Prefab) {
+		if (currRes->getType() == Kite::RTypes::Prefab) {
 			isPrefab = true;
-			actionsControl(AS_ON_PREFAB);
 			if (entity->getParentHandle() == currEman->getRoot()) {
-				remObj->setDisabled(true); // removing root entity in prefab not allowed
+				actRemove->setDisabled(true); // removing root entity in prefab not allowed
 			}
 		}
 		
 		emit(objectSelected(currEman, entity, isPrefab));
-	} else {
-		actionsControl(AS_ON_LOAD);
 	}
 }
 
-void ObjectDock::actRClicked(const QPoint & pos) {
+void ObjectDock::rightClicked(const QPoint & pos) {
 	if (currRes == nullptr) {
 		return;
 	}
@@ -426,27 +424,29 @@ void ObjectDock::actRClicked(const QPoint & pos) {
 
 	// checking user rclicked on tree itself or entity??
 	if (item == nullptr) {
-		addRootObj->setText("Add New Entity");
-		cmenu.addAction(addRootObj);
-		cmenu.addSeparator();
 		if (currRes->getType() != Kite::RTypes::Prefab) {
-			paste->setData(true);
-			cmenu.addAction(paste);
+			cmenu.addAction(actAddRoot);
+			cmenu.addSeparator();
+			actPaste->setData(true);
+			cmenu.addAction(actPaste);
+			cmenu.exec(mapToGlobal(mpos));
 		}
-		cmenu.exec(mapToGlobal(mpos));
 	} else {
-		addChildObj->setText("Add New Child");
+		if (currRes->getType() != Kite::RTypes::Prefab) {
+			cmenu.addAction(actAddRoot);
+			cmenu.addSeparator();
+			actRemove->setDisabled(false);
+		}
+		cmenu.addAction(actAddChild);
 		cmenu.addSeparator();
-		cmenu.addAction(addChildObj);
+		cmenu.addAction(actPrefab);
 		cmenu.addSeparator();
-		cmenu.addAction(prefab);
-		cmenu.addSeparator();
-		cmenu.addAction(cut);
-		cmenu.addAction(copy);
-		paste->setData(false);
-		cmenu.addAction(paste);
-		cmenu.addAction(remObj);
-		cmenu.addAction(renameObj);
+		cmenu.addAction(actCut);
+		cmenu.addAction(actCopy);
+		actPaste->setData(false);
+		cmenu.addAction(actPaste);
+		cmenu.addAction(actRemove);
+		cmenu.addAction(actRename);
 		cmenu.exec(mapToGlobal(mpos));
 	}
 }
@@ -503,7 +503,7 @@ Kite::KHandle ObjectDock::createObject(bool Prefab) {
 	return Kite::KHandle();
 }
 
-void ObjectDock::actAddChild() {
+void ObjectDock::addChild() {
 	if (currRes == nullptr) {
 		return;
 	}
@@ -534,10 +534,13 @@ void ObjectDock::actAddChild() {
 	}
 }
 
-void ObjectDock::actAddRoot() {
+void ObjectDock::addRoot() {
 	if (currRes == nullptr) {
 		return;
+	} else if (currRes->getType() == Kite::RTypes::Prefab) {
+		return;
 	}
+
 	auto handle = createObject(true);
 	if (handle == Kite::KHandle()) {
 		return;
@@ -549,7 +552,7 @@ void ObjectDock::actAddRoot() {
 	connect(objTree, &QTreeWidget::itemChanged, this, &ObjectDock::entityChecked);
 }
 
-void ObjectDock::actRemove(){
+void ObjectDock::remove(){
 	if (currRes == nullptr) {
 		return;
 	}
@@ -570,7 +573,7 @@ void ObjectDock::actRemove(){
 	}
 }
 
-void ObjectDock::actRename() {
+void ObjectDock::rename() {
 	if (currRes == nullptr) {
 		return;
 	}
@@ -619,7 +622,7 @@ void ObjectDock::actRename() {
 	}
 }
 
-void ObjectDock::actPrefab() {
+void ObjectDock::prefab() {
 	if (currRes == nullptr) {
 		return;
 	}
@@ -630,49 +633,48 @@ void ObjectDock::actPrefab() {
 		auto pre = (Kite::KPrefab *)emit(requestCreateResource(Kite::RTypes::Prefab));
 		if (pre != nullptr) {
 			currEman->createPrefab(entity->getHandle(), pre);
-			pre->setModified(true);
 		}
 	}
 }
 
-void ObjectDock::actSearch(const QString &Pharase) {
+void ObjectDock::search(const QString &Pharase) {
 	disconnect(objTree, &QTreeWidget::itemChanged, this, &ObjectDock::entityChecked);
 	auto allItems = QTreeWidgetItemIterator(objTree);
 	while (*allItems) {
 		if ((*allItems)->text(0).contains(Pharase) && !Pharase.isEmpty()) {
 			(*allItems)->setBackgroundColor(0, QColor(Qt::gray));
 		} else {
-			(*allItems)->setBackgroundColor(0, QColor(34, 34, 34));
+			(*allItems)->setBackgroundColor(0, QColor(50, 50, 50));
 		} 
 		++allItems;
 	}
 	connect(objTree, &QTreeWidget::itemChanged, this, &ObjectDock::entityChecked);
 }
 
-void ObjectDock::actCut() {
+void ObjectDock::cut() {
 	auto item = objTree->currentItem();
 
 	if (item != nullptr) {
 		auto entity = currEman->getEntityByName(item->text(0).toStdString());
 		clipb.isCopy = false;
 		currEman->copyPrefab(entity->getHandle(), &clipb.data, true);
-		actRemove();
-		paste->setDisabled(false);
+		remove();
+		actPaste->setDisabled(false);
 	}
 }
 
-void ObjectDock::actCopy() {
+void ObjectDock::copy() {
 	auto item = objTree->currentItem();
 
 	if (item != nullptr) {
 		auto entity = currEman->getEntityByName(item->text(0).toStdString());
 		clipb.isCopy = true;
 		currEman->copyPrefab(entity->getHandle(), &clipb.data, false);
-		paste->setDisabled(false);
+		actPaste->setDisabled(false);
 	}
 }
 
-void ObjectDock::actPaste() {
+void ObjectDock::paste() {
 	if (!clipb.data.isEmpty()) {
 		auto action = (QAction *)sender();
 		auto root = action->data().toBool();
@@ -699,7 +701,7 @@ void ObjectDock::actPaste() {
 	}
 	// copy
 	if (!clipb.isCopy) {
-		paste->setDisabled(true);
+		actPaste->setDisabled(true);
 		clipb.data.clear();
 	}
 }

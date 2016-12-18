@@ -2,16 +2,11 @@
 #define RESOURCEDOCK_H
 
 #include <qdockwidget.h>
-#include <qtreewidget.h>
-#include <qstringlist.h>
-#include <qaction.h>
 #include <qhash.h>
-#include <unordered_map>
-#include <Kite/core/kresource.h>
-#include <Kite/core/kresourcemanager.h>
-#include <Kite/core/klistener.h>
+#include <qvector.h>
+#include <qstringlist.h>
 #include <Kite/meta/kmetaclass.h>
-#include "shared.h"
+#include <Kite/core/kresource.h>
 
 struct ResInfo {
 	QList<QPair<QString, QString>> resFI;	// <format, icon>
@@ -21,68 +16,81 @@ struct ResInfo {
 		onResRemove(nullptr) {}
 };
 
-class ResourceDock : public QDockWidget, public Kite::KListener {
+class QFileSystemWatcher;
+class QTreeWidget;
+class QAction;
+class QTreeWidgetItem;
+
+namespace Kite {
+	class KResource;
+	class KResourceManager;
+}
+
+struct DumpItem {
+	QString name;
+	QString address;
+	Kite::RTypes type;
+
+	DumpItem(const QString &Name, const QString &Address, Kite::RTypes Type) :
+		name(Name), address(Address), type(Type) {}
+};
+
+class ResourceDock : public QDockWidget{
 	Q_OBJECT
 
 public:
-	// pass empty string if there is no dictionary
 	explicit ResourceDock(QWidget *parent = 0);
 	~ResourceDock();
 
-	bool openResource(const QString &Address, Kite::RTypes Type, bool WarnExist = true);
-	Kite::KResource *getResource(const QString &Name);
-	Kite::KResource *addResource(Kite::RTypes Type);
-	Kite::KResource *addResourceInternal(Kite::RTypes Type, const QString &Name);
-	void filterByType(Kite::RTypes Type, QStringList &List);
-	void filterByTypeRes(Kite::RTypes Type, QList<const Kite::KResource *> &List);
-	void selectResource(const QString &Name);
-	void manageUsedResource(const QHash<size_t, QVector<Kite::KMetaProperty>> *ResComponents);
-	void clearResources();
-	const std::vector<Kite::KResource *> &dumpResource();
-	inline void setCurrentDirectory(const QString &Directory) { currDirectory = Directory; }
-	void resetModify();
+	bool addExisting(const QString &Address, Kite::RTypes Type, bool WarnExist = true);
+	bool addNew(Kite::RTypes Type, const QString &Name, bool AskName = false);
 
-	Kite::RecieveTypes onMessage(Kite::KMessage *Message, Kite::MessageScope Scope);
+	Kite::KResource *load(Kite::KIStream *Stream, const QString &Name);
+
+	void filter(Kite::RTypes Type, QStringList &List);
+	void select(const QString &Name);
+	void dump(QList<DumpItem> &List);
+
+	void initePanel();
+	void clearPanel();
+
+	//void resetModify();
+	inline void setResDirectory(const QString &Dir) { resDir = Dir + "/"; }
+	void manageUsedResource(const QHash<size_t, QVector<Kite::KMetaProperty>> *ResComponents);
 	
 signals:
-	void resourceAdded(Kite::KResource *Res);
-	void resourceSelected(Kite::KResource *Res);
-	void resourceEdit(Kite::KResource *Res);
-	void resourceDelete(Kite::KResource *Res);
-	void resourceDeleted(Kite::RTypes Type);
-	void resourceSave(Kite::KResource *Res);
+	void resAdded(const QString &Name, Kite::RTypes Type);
+	void resSelected(const QString &Name, Kite::RTypes Type);
+	void resEdit(const QString &Name, Kite::RTypes Type);
+	void resDeleted(const QString &Name, Kite::RTypes Type);
 
 private slots:
-	void actDoubleClicked(QTreeWidgetItem * item, int column);
-	void actClicked();
-	void actRClicked(const QPoint & pos);
-	void actAdd();
-	void actOpen();
-	void actSave();
-	void actSaveAs();
-	void actEdit();
-	void actRemove();
-	void actSearch(const QString &Pharase);
+	void dblClickedAct(QTreeWidgetItem *item, int column);
+	void clickedAct();
+	void rightClickedAct(const QPoint & pos);
+	void addNewAct();
+	void addExistAct();
+	void editAct();
+	void removeAct();
+	void searchAct(const QString &Pharase);
 
 private:
 	void setupTree();
 	void setupActions();
 	void setupHTools();
-	void actionsControl(ActionsState State);
 	void setupCategories();
 
+	QAction *actAddNew;
+	QAction *actAddExist;
+	QAction *actEdit;
+	QAction *actRemove;
+
+	QString resDir;
 	QTreeWidget *resTree;
-	QAction *addRes;
-	QAction *openRes;
-	QAction *saveRes;
-	QAction *saveAsRes;
-	QAction *editRes;
-	QAction *remRes;
-	QFrame *htools;
-	QLineEdit *ledit;
-	QString currDirectory;
 	QHash<size_t, ResInfo> resInfoMap; // <type, ResInfo>
-	Kite::KResourceManager rman;
+	QHash<QString, QPair<QString, Kite::RTypes>> resMap; // <name, <address, type>> loaded resources
+	QStringList fpaths;
+	QFileSystemWatcher *fwatcher;
 };
 
 #endif // RESOURCEDOCK_H

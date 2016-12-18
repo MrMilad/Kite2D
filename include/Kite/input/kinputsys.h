@@ -22,7 +22,6 @@ USA
 
 #include "Kite/core/kcoredef.h"
 #include "Kite/core/ksystem.h"
-#include "Kite/input/kinputcom.h"
 #include "Kite/meta/kmetadef.h"
 #include "kinputsys.khgen.h"
 
@@ -37,6 +36,9 @@ namespace Kite {
 		bool inite(void *Data) override;
 
 		void destroy() override;
+
+	private:
+		lua_State *_klvm;
 	};
 }
 

@@ -37,6 +37,18 @@ int main() {
 	auto engine = KEngine::createEngine();
 	engine->inite(sc, false);
 
+	engine->getResourceManager()->load(IStreamTypes::FIStream, RTypes::ShaderProgram, "prog.shp");
+
+	auto ent = engine->getEntityManager()->getEntityByName("ent");
+	auto quad = (KQuadCom *)ent->getComponent(CTypes::Quad);
+	quad->setShader(KStringID("prog.shp"));
+	quad->setBlendColor(Colors::BANANA);
+	quad->setWidth(200);
+
+	ent = engine->getEntityManager()->getEntityByName("ent2");
+	quad = (KQuadCom *)ent->getComponent(CTypes::Quad);
+	quad->setShader(KStringID("prog.shp"));
+
 	engine->start();
 	engine->shutdown();
 	delete engine;

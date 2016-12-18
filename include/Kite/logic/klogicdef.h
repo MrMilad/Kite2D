@@ -25,32 +25,31 @@ USA
 #define KLUA_HOOK \
 "hooks = {}\n"\
 "hooks.funcs = {}\n"\
-"function hooks.add(Name, Handle, Function)\n"\
-"if (hooks.funcs[Name] == nil) then\n"\
-"print(\"Hook \"..Name..\" Does Not Exist\")\n"\
+"function hooks.subscribe(Handle, Type, Function)\n"\
+"if (hooks.funcs[Type] == nil) then\n"\
+"hooks.funcs[Type] = {} end\n"\
+"if (hooks.funcs[Type][Handle.index] == nil) then\n"\
+"hooks.funcs[Type][Handle.index] = Function\n"\
 "else\n"\
-"if (hooks.funcs[Name][Handle.index] == nil) then\n"\
-"hooks.funcs[Name][Handle.index] = Function\n"\
-"else\n"\
-"print(\"hooks.add Error: Handle.index: \"..Handle.index..\" Already Exists\")\n"\
+"print(\"hooks.subscribe Error: Handle.index: \"..Handle.index..\" Already Exists\")\n"\
 "end\n"\
 "end\n"\
-"end\n"\
-"function hooks.remove(Handle)\n"\
+"function hooks.unsubscribe(Handle)\n"\
 "for _, Hook in pairs(hooks.funcs) do\n"\
 "if (Hook[Handle.index]) then\n"\
 "Hook[Handle.index] = nil\n"\
 "end\n"\
 "end\n"\
 "end\n"\
-"function hooks.call(Name, ...)\n"\
-"for  k=1, #hooks.funcs[Name] do\n"\
-"if (hooks.funcs[Name][k]) then hooks.funcs[Name][k](...)\n"\
+"function hooks.post(Type, ...)\n"\
+"if (hooks.funcs[Type]) then\n"\
+"for _,v in pairs(hooks.funcs[Type]) do\n"\
+"v(...)\n"\
 "end\n"\
 "end\n"\
 "end\n"\
-"function hooks.callDirect( Name, Handle, ... )\n"\
-"if (hooks.funcs[Name][Handle.index]) then hooks.funcs[Name][Handle.index](...) end\n"\
+"function hooks.postDirect( Type, Handle, ... )\n"\
+"if (hooks.funcs[Type][Handle.index]) then hooks.funcs[Type][Handle.index](...) end\n"\
 "end"
 
 #endif // KLOGICDEF_H

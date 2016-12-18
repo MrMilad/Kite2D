@@ -3,6 +3,7 @@
 #include <qfiledialog.h>
 #include <qmessagebox.h>
 #include <qdir.h>
+#include <qopengl.h>
 
 frmNewProj::frmNewProj(QWidget *parent) :
     QDialog(parent, Qt::WindowTitleHint | Qt::WindowCloseButtonHint),

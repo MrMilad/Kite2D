@@ -57,17 +57,17 @@ namespace Kite {
 
 	RecieveTypes KLogicCom::onMessage(KMessage *Message, MessageScope Scope) {
 		if (_klstate != nullptr) {
-			LuaIntf::LuaRef lref(_klstate, "_G.hooks.callDirect");
+			LuaIntf::LuaRef lref(_klstate, "_G.hooks.postDirect");
 			if (lref.isFunction()) {
 #ifdef KITE_DEV_DEBUG
 				try {
-					lref("onGameMessage", getHandle(), Message);
+					lref(Message->getType(), getHandle(), Message);
 				} catch (std::exception& e) {
-					KD_FPRINT("onGameMessage function failed. %s", e.what());
+					KD_FPRINT("hooks.postDirect function failed. %s", e.what());
 					return RecieveTypes::IGNORED;
 				}
 #else
-				lref("onGameMessage", getHandle(), Message);
+				lref(Message->getType(), getHandle(), Message);
 #endif
 				return RecieveTypes::RECEIVED;
 			}
@@ -84,10 +84,10 @@ namespace Kite {
 	}
 
 	void KLogicCom::removeLuaEnv() {
-		std::string ctable = "_G.ENT." + _ktname;
+		const std::string ctable = "_G.ENT." + _ktname;
 		if (_klstate != nullptr) {
 			// unhook
-			LuaIntf::LuaRef hooks(_klstate, "_G.hooks.remove");
+			LuaIntf::LuaRef hooks(_klstate, "_G.hooks.unsubscribe");
 			hooks(getHandle());
 
 			// remove environment table from lua

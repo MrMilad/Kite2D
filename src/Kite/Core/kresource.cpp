@@ -28,9 +28,6 @@ USA
 
 namespace Kite {
 	KResource::KResource(const std::string &Name, bool CatchStream, bool IsComposite) :
-#ifdef KITE_EDITOR
-		edIsModified(false),
-#endif
 		_kcatchStream(CatchStream),
 		_kisInite(false),
 		_kcomposite(IsComposite),

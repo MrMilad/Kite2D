@@ -4,53 +4,66 @@
 #include <qlist.h>
 #include <qtabwidget.h>
 #include <qhash.h>
-#include <qaction.h>
 #include <qpair.h>
-#include <qdockwidget.h>
 #include <Kite/core/kresource.h>
-#include <qstandarditemmodel.h>
 #include "tabwidget.h"
-#include "shared.h"
 
+class QDockWidget;
 class QEvent;
+class QUndoStack;
+class QUndoGroup;
+class QWidget;
+class QAction;
+
+class FocusCover : public QWidget {
+public:
+	FocusCover(QWidget *par);
+
+protected:
+	void mousePressEvent(QMouseEvent *Event);
+	bool eventFilter(QObject *Obj, QEvent *Event);
+};
 
 class MainTab : public QTabWidget {
 	Q_OBJECT
 
 public:
-	explicit MainTab(KiteInfo *KInfo ,QWidget *parent = 0);
-	void setScene(QWidget *Scene);
-	bool isOpen(Kite::KResource *Res);
+	explicit MainTab(QUndoGroup *UGroup, KiteInfo *KInfo ,QWidget *parent = 0);
+	bool isOpen(const QString &Name);
+	bool needSave(const QString &Name);
+	bool needSave();
 	~MainTab();
 
 signals:
-	void requestResList(Kite::RTypes Type, QList<const Kite::KResource *> &List);
-	Kite::KResource *requestRes(const QString &Name);
-	Kite::KResource *requestAddRes(Kite::RTypes Type, const QString &Name);
+	void tabSelected(const QString &Name);
+	void tabClose(const QString &Name);
+
+	void reqResList(Kite::RTypes Type, QStringList &List);
+	Kite::KResource *reqResLoad(Kite::KIStream *Stream, const QString &Name);
+	bool reqResAdd(Kite::RTypes Type, const QString &Name, bool AskName);
 
 public slots:
 	void saveAll();
-	void saveRes(Kite::KResource *Res);
-	void openTabs(Kite::KResource *Res);
-	void selectResource(Kite::KResource *Res);
-	void closeResource(const Kite::KResource *Res);
-	void reloadRes(const Kite::KResource *Res);
-	void reloadResType(Kite::RTypes Type);
+	void save(const QString &Name);
+	void open(const QString &Name, Kite::RTypes Type);
+	void select(const QString &Name, Kite::RTypes Type);
+	void close(const QString &Name, Kite::RTypes Type);
+	void reload(const QString &Name);
+	void reloadType(Kite::RTypes Type);
 
-	void resourceAdded(const Kite::KResource *Res);
-	void resourceDeleted(Kite::RTypes Type);
+	void resourceAdded(const QString &Name, Kite::RTypes Type);
+	void resourceDeleted(const QString &Name, Kite::RTypes Type);
 
 private slots:
-	void closeTab();
-	void unpinTab();
+	void closeTabAct();
+	void unpinTabAct();
+	void tabChanged(int index);
+	void cleanChanged(bool clean);
 
-	void closeDock();
-	void pinDock();
+	void closeDockAct();
+	void pinDockAct();
 
 protected:
-	void focusInEvent(QFocusEvent *Event) override;
-	void focusOutEvent(QFocusEvent *Event) override;
-
 	bool eventFilter(QObject *Obj, QEvent *Event);
 
 private:
@@ -60,11 +73,26 @@ private:
 	void deleteTab(QWidget *Widget);
 	void deleteDock(QDockWidget *Dock);
 
-	QWidget *scene;
+	struct TabInfo {
+		TabWidget *widget;
+		QDockWidget *dock;
+		QUndoStack *ustack;
+
+		TabInfo() :
+			widget(nullptr),
+			dock(nullptr),
+			ustack(nullptr)
+		{}
+
+		TabInfo(TabWidget *Tab, QDockWidget *Dock, QUndoStack *Stack) :
+			widget(Tab), dock(Dock), ustack(Stack) {}
+	};
+
+	FocusCover *fcover;
+	QUndoGroup *ugroup;
 	KiteInfo *kinfo;
-	QVector<QShortcut *> shortcuts;
-	QHash<size_t, TabWidget *(*)(Kite::KResource *, KiteInfo *, QWidget *)> tabFactory; // <type, factory, inite>>
-	QHash<const Kite::KResource *, QPair<TabWidget *, QDockWidget *>> resMap;
+	QHash<size_t, TabWidget *(*)(Kite::KResource *, Kite::KIStream *Stream, QUndoStack *UStack, KiteInfo *, QWidget *)> tabFactory; // <type, factory>
+	QHash<QString, TabInfo> resMap;
 };
 
 #endif // MAINTAB_H

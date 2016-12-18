@@ -56,8 +56,8 @@ namespace Kite {
 		// to self
 		if (Scope == MessageScope::SELF) {
 			if (_kcstorage != nullptr) {
-				for (auto it = _klogicOrder.begin(); it != _klogicOrder.end(); ++it) {
-					auto comp = _kcstorage[(SIZE)CTypes::Logic]->get((*it));
+				for (auto it = _klogicComp.begin(); it != _klogicComp.end(); ++it) {
+					auto comp = _kcstorage[(SIZE)CTypes::Logic]->get(it->second);
 					if (comp != nullptr) {
 						comp->onMessage(Message, Scope);
 					}
@@ -76,8 +76,8 @@ namespace Kite {
 		// all
 		} else if (Scope == MessageScope::ALL) {
 			if (_kcstorage != nullptr) {
-				for (auto it = _klogicOrder.begin(); it != _klogicOrder.end(); ++it) {
-					auto comp = _kcstorage[(SIZE)CTypes::Logic]->get((*it));
+				for (auto it = _klogicComp.begin(); it != _klogicComp.end(); ++it) {
+					auto comp = _kcstorage[(SIZE)CTypes::Logic]->get(it->second);
 					if (comp != nullptr) {
 						comp->onMessage(Message, Scope);
 					}
@@ -96,19 +96,26 @@ namespace Kite {
 	}
 
 	void KEntity::setActive(bool Active) {
-		_kactive = Active;
+		if (_kactive != Active) {
+			_kactive = Active;
 
-		// set activation of childs
-		if (_kestorage != nullptr) {
-			for (auto it = _kchilds.begin(); it != _kchilds.end(); ++it) {
-				_kestorage->get((*it))->setActive(Active);
+			// send message about this change
+			KMessage msg;
+			msg.setType("onActiveChange");
+			msg.setData(this, sizeof(this));
+			postMessage(&msg, MessageScope::ALL);
+
+			// set activation of childs
+			if (_kestorage != nullptr) {
+				for (auto it = _kchilds.begin(); it != _kchilds.end(); ++it) {
+					_kestorage->get((*it))->setActive(Active);
+				}
 			}
 		}
 	}
 
 	void KEntity::setComponent(KComponent *Comp) {
 		if (Comp->getType() == CTypes::Logic) {
-			_klogicOrder.push_back(Comp->getHandle());
 			_klogicComp[Comp->getName()] = Comp->getHandle();
 		} else {
 			_kfixedComp[(SIZE)Comp->getType()] = Comp->getHandle();
@@ -192,16 +199,15 @@ namespace Kite {
 		// cehck storage
 		if (_kcstorage != nullptr) {
 			// first remove all script components
-			for (auto it = _klogicOrder.begin(); it != _klogicOrder.end(); ++it) {
+			for (auto it = _klogicComp.begin(); it != _klogicComp.end(); ++it) {
 
 				// call deattach on all components
-				auto comPtr = _kcstorage[(SIZE)CTypes::Logic]->get((*it));
+				auto comPtr = _kcstorage[(SIZE)CTypes::Logic]->get(it->second);
 				comPtr->deattached(this);
 
-				_kcstorage[(SIZE)CTypes::Logic]->remove((*it));
+				_kcstorage[(SIZE)CTypes::Logic]->remove(it->second);
 			}
 			_klogicComp.clear();
-			_klogicOrder.clear();
 
 			// fixed components
 			for (SIZE i = 0; i < (SIZE)CTypes::maxSize; ++i) {
@@ -273,9 +279,20 @@ namespace Kite {
 		return true;
 	}
 
+	KEntity *KEntity::toEntity(void *Data) {
+		return static_cast<KEntity *>(Data);
+	}
+
 	void KEntity::setLayer(U8 LayerID) {
-		if (LayerID < KENTITY_LAYER_SIZE) {
+		if (LayerID < KENTITY_LAYER_SIZE && _klayerid != LayerID) {
 			_klayerid = LayerID;
+
+			// send message about this change
+			KMessage msg;
+			msg.setType("onLayerChange");
+			msg.setData(this, sizeof(this));
+			postMessage(&msg, MessageScope::ALL);
+
 			return;
 		}
 
@@ -288,9 +305,8 @@ namespace Kite {
 
 			// send message about this change
 			KMessage msg;
-			msg.setType("STATIC_CHANGED");
+			msg.setType("onStaticChange");
 			msg.setData(this, sizeof(this));
-
 			postMessage(&msg, MessageScope::ALL);
 		}
 	}
@@ -399,28 +415,30 @@ namespace Kite {
 		}
 		
 		Output.reserve(_klogicComp.size());
-		for (auto it = _klogicOrder.begin(); it != _klogicOrder.end(); ++it) {
-			Output.push_back((*it));
+		for (auto it = _klogicComp.begin(); it != _klogicComp.end(); ++it) {
+			Output.push_back(it->second);
 		}
 	}
 
 	void KEntity::removeComponent(CTypes Type, const std::string &Name) {
+		if (!hasComponent(Type, Name)) {
+			return;
+		}
+		removeComponentByHandle(getComponentHandle(Type, Name));
+	}
+
+	void KEntity::removeComponentByHandle(const KHandle &CHandle) {
 		// cehck storage
 		if (_kcstorage == nullptr) {
 			KD_PRINT("set component storage at first");
 			return;
 		}
-		
-		if (!hasComponent(Type, Name)) {
-			return;
-		}
 
 		// check ref counter
-		auto hndl = getComponentHandle(Type, Name);
-		auto comPtr = _kcstorage[(SIZE)Type]->get(hndl);
+		auto comPtr = _kcstorage[CHandle.type]->get(CHandle);
 		if (comPtr->_krefcounter > 0) {
 			KD_FPRINT("this component is required by another component. you shuld remove them first. ctype: %s"
-					  , getCTypesName(Type).c_str());
+					  , getCTypesName((CTypes)CHandle.type).c_str());
 			return;
 		}
 
@@ -434,20 +452,13 @@ namespace Kite {
 			(*_kremCallb)(comPtr, _kremOpaque);
 		}
 #endif
-		
-		// remove components id from entity
-		if (Type == CTypes::Logic) {
-			_klogicComp.erase(Name);
 
-			// remove from logic order list (linear search)
-			for (auto it = _klogicOrder.begin(); it != _klogicOrder.end(); ++it) {
-				if ((*it) == hndl) {
-					_klogicOrder.erase(it);
-					break;
-				}
-			}
+		// remove components id from entity
+		if (CHandle.type == (SIZE)CTypes::Logic) {
+			_klogicComp.erase(_kcstorage[CHandle.type]->get(CHandle)->getName());
+
 		} else {
-			_kfixedComp[(SIZE)Type] = KHandle();
+			_kfixedComp[CHandle.type] = KHandle();
 		}
 
 		// dec ref counter
@@ -465,24 +476,23 @@ namespace Kite {
 		}
 
 		// and remove component itself from storage (add to trash list for avoiding pointer dangling)
-		_ktrashList.push_back(hndl);
+		_ktrashList.push_back(CHandle);
 	}
 
 	void KEntity::clearComponents() {
 		// cehck storage
 		if (_kcstorage != nullptr) {
 			// first remove all script components
-			for (auto it = _klogicOrder.begin(); it != _klogicOrder.end(); ++it) {
+			for (auto it = _klogicComp.begin(); it != _klogicComp.end(); ++it) {
 
 				// call deattach on all components
-				auto comPtr = _kcstorage[(SIZE)CTypes::Logic]->get((*it));
+				auto comPtr = _kcstorage[(SIZE)CTypes::Logic]->get(it->second);
 				comPtr->deattached(this);
 
 				// add to trash list
-				_ktrashList.push_back((*it));
+				_ktrashList.push_back(it->second);
 			}
 			_klogicComp.clear();
-			_klogicOrder.clear();
 
 			// fixed components
 			for (SIZE i = 0; i < (SIZE)CTypes::maxSize; ++i) {
@@ -523,49 +533,6 @@ namespace Kite {
 
 		KD_FPRINT("there is no component of this type in the given entity. ctype: %s", getCTypesName(Type).c_str());
 		return KHandle();
-	}
-
-	void KEntity::reorderScriptComponent(const KHandle &CHandle, U32 NewOrder) {
-		// cehck storage
-		if (_kcstorage == nullptr) {
-			KD_PRINT("set component storage at first");
-			return;
-		}
-
-		if (CHandle.type != (SIZE)CTypes::Logic) {
-			KD_FPRINT("invalid handle type. handle type is: %s", getCTypesName((CTypes) CHandle.type).c_str());
-			return;
-		}
-		auto comp = _kcstorage[CHandle.type]->get(CHandle);
-		if (comp == nullptr) {
-			KD_PRINT("there is no logic component with the given handle.");
-			return;
-		}
-
-		// if new order is out of range we set it at max
-		if (NewOrder > _klogicComp.size()) {
-			NewOrder = _klogicComp.size() - 1;
-		}
-
-		SIZE dst = 0;
-		for (auto it = _klogicOrder.begin(); it != _klogicOrder.end(); ++it) {
-			if ((*it) == CHandle) {
-				_klogicOrder.erase(it);
-				break; 
-			}
-			++dst;
-		}
-
-		_klogicOrder.insert(_klogicOrder.begin() + NewOrder, CHandle);
-	}
-
-	void KEntity::reorderScriptComponentByName(const std::string &CName, U32 NewOrder) {
-		if (!hasComponent(CTypes::Logic, CName)) {
-			KD_FPRINT("there is no logic component with the given name. cname: %s", CName.c_str());
-			return;
-		}
-		
-		reorderScriptComponent(getComponentHandle(CTypes::Logic, CName), NewOrder);
 	}
 	
 	bool KEntity::hasComponent(CTypes Type, const std::string &Name) {

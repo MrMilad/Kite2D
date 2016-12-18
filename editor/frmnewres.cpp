@@ -12,10 +12,11 @@ frmnewres::frmnewres(const QStringList &Types, QWidget *parent) :
 	setWindowTitle("Add New Resource");
 
 	if (Types.empty()) {
-		ui->cmbType->clear();
+		ui->cmbType->hide();
+		ui->label->hide();
 		ui->cmbType->setDisabled(true);
+		ui->verticalLayout->addStretch(1);
 	} else {
-		ui->cmbType->clear();
 		ui->cmbType->addItems(Types);
 	}
 

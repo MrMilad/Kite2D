@@ -89,7 +89,6 @@ namespace Kite {
 		_ksman = new KSceneManager(*_krman);
 		KComponent::_krman = _krman;
 		registerKiteMeta(_kmman, _klstate); // _kmman can be passed as nullptr
-		registerRTypes(_krman); // CTypes will registered in EntityManager constructure
 
 		// create systems
 		createSystems(_ksys);

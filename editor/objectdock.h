@@ -2,15 +2,22 @@
 #define OBJECTDOCK_H
 
 #include <qdockwidget.h>
-#include <qtreewidget.h>
 #include <qstringlist.h>
-#include <qaction.h>
-#include <qlabel.h>
-#include <Kite/core/kscene.h>
-#include <Kite/core/kentity.h>
+#include <Kite/core/kprefab.h>
 #include <Kite/core/klistener.h>
-#include <Kite/core/kentitymanager.h>
-#include "shared.h"
+
+class QUndoStack;
+class QUndoGroup;
+class QTreeWidget;
+class QAction;
+class QLable;
+class QTreeWidgetItem;
+
+namespace Kite {
+	class KResource;
+	class KEntityManager;
+	class KEntity;
+}
 
 struct Clipboard {
 	bool isCopy;
@@ -25,8 +32,11 @@ class ObjectDock : public QDockWidget, public Kite::KListener {
 	Q_OBJECT
 
 public:
-	explicit ObjectDock(QWidget *parent = 0);
+	explicit ObjectDock(QUndoGroup *UndoGroup, QWidget *parent = 0);
 	~ObjectDock();
+	
+	void initePanel();
+	void clearPanel();
 
 	Kite::RecieveTypes onMessage(Kite::KMessage *Message, Kite::MessageScope Scope);
 
@@ -48,40 +58,40 @@ signals:
 
 private slots:
 	void entityChecked(QTreeWidgetItem *Item, int Col);
-	void actClicked();
-	void actRClicked(const QPoint & pos);
-	void actAddChild();
-	void actAddRoot();
-	void actRemove();
-	void actRename();
-	void actPrefab();
-	void actSearch(const QString &Pharase);
-	void actCut();
-	void actCopy();
-	void actPaste();
+	void clicked();
+	void rightClicked(const QPoint & pos);
+	void addChild();
+	void addRoot();
+	void remove();
+	void rename();
+	void prefab();
+	void search(const QString &Pharase);
+	void cut();
+	void copy();
+	void paste();
 
 private:
 	void setupTree();
 	void setupActions();
 	void setupHTools();
-	void actionsControl(ActionsState State);
+	//void actionsControl(ActionsState State);
 	void recursiveLoad(Kite::KEntity *Root);
 	QTreeWidgetItem *loadChilds(Kite::KEntityManager *Eman, const Kite::KHandle &Entity, QTreeWidgetItem *Parrent);
 	Kite::KHandle createObject(bool Prefab);
 
+	QUndoStack *undoStack;
 	QTreeWidget *objTree;
-	QAction *addRootObj;
-	QAction *addChildObj;
-	QAction *renameObj;
-	QAction *remObj;
-	QAction *prefab;
-	QAction *copy;
-	QAction *cut;
-	QAction *paste;
+
+	QAction *actAddRoot;
+	QAction *actAddChild;
+	QAction *actRename;
+	QAction *actRemove;
+	QAction *actPrefab;
+	QAction *actCopy;
+	QAction *actCut;
+	QAction *actPaste;
+
 	Clipboard clipb;
-	QFrame *htools;
-	QLineEdit *ledit;
-	QLabel *hlabel;
 	Kite::KResource *currRes;
 	Kite::KEntityManager *currEman;
 	Kite::KEntityManager *preEman;

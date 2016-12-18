@@ -22,17 +22,17 @@ class QTableWidgetItem;
 
 class MapEditor : public TabWidget{
 public:
-	MapEditor(Kite::KResource *Res, KiteInfo *KInfo, QWidget *Parent = nullptr);
+	MapEditor(Kite::KResource *Res, Kite::KIStream *Stream, QWidget *Parent = nullptr);
 
 	void inite() override;
-	bool saveChanges() override;
+	void saveChanges() override;
 	void reload() override;
 
-	static TabWidget *factory(Kite::KResource *Res, KiteInfo *KInfo, QWidget *Parent = nullptr) {
-		return new MapEditor(Res, KInfo, Parent);
+	static TabWidget *factory(Kite::KResource *Res, Kite::KIStream *Stream, KiteInfo *KInfo, QWidget *Parent = nullptr) {
+		return new MapEditor(Res, Stream, Parent);
 	}
 
-	void onRemoveRes(Kite::RTypes Type) override;
+	void onRemoveRes(const QString &Name, Kite::RTypes Type) override;
 
 private slots:
 	void createNew();
@@ -88,7 +88,6 @@ public:
 		auto map = (Kite::KOrthogonalMap *)Self;
 		if (RemovedRes->getType() == Kite::RTypes::TextureGroup && RemovedRes == map->getTileset()) {
 			map->setTileset(nullptr);
-			Self->setModified(true);
 		}
 	}
 };

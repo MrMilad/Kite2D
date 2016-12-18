@@ -2,7 +2,6 @@
 #include <QtWidgets>
 #include <qinputdialog.h>
 #include "expander.h"
-#include "frmexeorder.h"
 #include "Kite/meta/kmetaclass.h"
 #include "kmeta.khgen.h"
 
@@ -116,6 +115,7 @@ void ComponentDock::setupTree() {
 	comTree->setIndentation(0);
 	comTree->setAnimated(true);
 	comTree->setFocusPolicy(Qt::FocusPolicy::NoFocus);
+	comTree->setVerticalScrollMode(QAbstractItemView::ScrollMode::ScrollPerPixel);
 	comTree->setStyleSheet("QTreeView {background-color: rgb(88,88,88);"
 						   "padding-right: 3px;"
 						   "padding-left: 3px;"
@@ -171,12 +171,6 @@ void ComponentDock::setupActions() {
 	collAll = new QAction(QIcon(":/icons/colall"), "Collapse All", this);
 	connect(collAll, &QAction::triggered, this, &ComponentDock::actCollAll);
 	this->addAction(collAll);
-
-	exeOrder = new QAction(QIcon(":/icons/order"), "Logic Execution Order", this);
-	//exeOrder->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_N));
-	//exeOrder->setShortcutContext(Qt::WidgetWithChildrenShortcut);
-	connect(exeOrder, &QAction::triggered, this, &ComponentDock::actExeOrder);
-	this->addAction(exeOrder);
 
 	preSelect = new QAction("Select", this);
 	connect(preSelect, &QAction::triggered, this, &ComponentDock::actSelectPrefab);
@@ -235,20 +229,11 @@ void ComponentDock::setupHTools() {
 	btnAddComps->setToolButtonStyle(Qt::ToolButtonIconOnly);
 	hlayout->addWidget(btnAddComps);
 
-	hlayout->addSpacing(10);
-
-	auto btnExeOrder = new QToolButton(htools);
-	btnExeOrder->setDefaultAction(exeOrder);
-	btnExeOrder->setIcon(QIcon(":/icons/order"));
-	btnExeOrder->setToolButtonStyle(Qt::ToolButtonStyle::ToolButtonIconOnly);
-	hlayout->addWidget(btnExeOrder);
-
 	hlayout->addStretch(1);
 
-	chkStatic = new QCheckBox(this);
-	chkStatic->setText("Static");
-	connect(chkStatic, &QCheckBox::stateChanged, this, &ComponentDock::staticChanged);
-	hlayout->addWidget(chkStatic);
+	// lua table name
+	llabel = new QLabel(htools);
+	hlayout->addWidget(llabel);
 
 	vlayout->addLayout(hlayout);
 
@@ -278,30 +263,33 @@ void ComponentDock::setupHTools() {
 	hlayout2->addWidget(spnZOrder, 1);
 	hlayout2->addSpacing(5);
 
-	// lua table name
-	llabel = new QLabel(htools);
-	hlayout2->addWidget(llabel);
+	// static
+	chkStatic = new QCheckBox(this);
+	chkStatic->setText("Static");
+	connect(chkStatic, &QCheckBox::stateChanged, this, &ComponentDock::staticChanged);
+	hlayout2->addWidget(chkStatic);
 	hlayout2->addSpacing(5);
 
 	vlayout->addLayout(hlayout2);
 
 	auto hlayout3 = new QHBoxLayout(htools);
-	hlayout3->setMargin(3);
+	hlayout3->setMargin(0);
+	hlayout3->setSpacing(0);
 
 	auto btnCollpaseAll = new QToolButton(htools);
-	btnCollpaseAll->setDefaultAction(collAll);
 	btnCollpaseAll->setIcon(QIcon(":/icons/col"));
 	btnCollpaseAll->setToolButtonStyle(Qt::ToolButtonIconOnly);
+	connect(btnCollpaseAll, &QToolButton::clicked, comTree, &QTreeWidget::collapseAll);
 	hlayout3->addWidget(btnCollpaseAll);
 
-	hlayout3->addSpacing(10);
+	hlayout3->addSpacing(5);
 
 	ledit = new QLineEdit(htools);
 	ledit->setPlaceholderText("Search");
 	ledit->addAction(QIcon(":/icons/search"), QLineEdit::ActionPosition::TrailingPosition);
 	ledit->setStyleSheet("background-color: gray;");
 	connect(ledit, &QLineEdit::textChanged, this, &ComponentDock::actSearch);
-	hlayout3->addWidget(ledit);
+	hlayout3->addWidget(ledit, 1);
 
 	vlayout->addLayout(hlayout3);
 
@@ -314,12 +302,10 @@ void ComponentDock::actionsControl(ActionsState State) {
 		addDefComp->setDisabled(true);
 		mtypes->setDisabled(true);
 		collAll->setDisabled(true);
-		exeOrder->setDisabled(true);
 	} else if (State == AS_ON_LOAD) {
 		addDefComp->setDisabled(false);
 		mtypes->setDisabled(false);
 		collAll->setDisabled(false);
-		exeOrder->setDisabled(false);
 	}
 }
 
@@ -406,15 +392,19 @@ void ComponentDock::addLogicToPool(int Count) {
 }
 
 void ComponentDock::initePool(const QVector<QPair<Kite::CTypes, bool>> &TypeList, unsigned int LogicCount) {
+	// transform component shuld be at top
+	auto trHead = createCom(Kite::CTypes::Transform);
+	treePool.fixedPool.insert((size_t)Kite::CTypes::Transform, trHead);
+	
 	for (auto it = TypeList.begin(); it != TypeList.end(); ++it) {
 		// is visible
 		if (it->second) {
-			auto head = createCom(it->first);
-
 			if (it->first == Kite::CTypes::Logic) {
 				addLogicToPool(LogicCount);
 				continue;
-			}
+			} else if (it->first == Kite::CTypes::Transform) continue;
+
+			auto head = createCom(it->first);
 			treePool.fixedPool.insert((size_t)it->first, head);
 		}
 	}
@@ -541,7 +531,7 @@ void ComponentDock::entityEdit(Kite::KEntityManager *Eman, Kite::KEntity *Entity
 	//hlabel->setText("Components Editor (" + name + ")");
 	// lua table
 	llabel->setText(QString("Lua Table: <font color = \"orange\">") + Entity->getLuaTName().c_str() + "</font>");
-	chkStatic->setChecked(Entity->isStatic());
+	chkStatic->setChecked(Entity->getStatic());
 	spnLayer->setValue(Entity->getLayer());
 	spnZOrder->setValue(Entity->getZOrder());
 
@@ -584,16 +574,8 @@ void ComponentDock::updateResList(Kite::RTypes Type, QStringList &List) {
 	emit(requestResNames(Type, List));
 }
 
-void ComponentDock::actExeOrder() {
-	auto ent = eman->getEntity(currEntity);
-	frmexeorder frm(ent, this);
-	frm.exec();
-}
-
 void ComponentDock::actCollAll() {
-	for (auto it = treeList.begin(); it != treeList.end(); ++it) {
-		(*it)->getTreeItem()->setExpanded(false);
-	}
+	comTree->collapseAll();
 }
 
 void ComponentDock::actAdd(QAction *Action) {
@@ -644,12 +626,15 @@ void ComponentDock::actRemove(Kite::KHandle CHandle) {
 		return;
 	}
 	ent->removeComponent((Kite::CTypes) CHandle.type, cptr->getName());
+	eman->postWork();
 }
 
 void ComponentDock::actEdit(Kite::KHandle Chandle, const QString &Pname, QVariant &Value) {
 	Kite::KAny *vptr = (Kite::KAny *)Value.value<void *>();
-	eman->getEntity(currEntity)->getComponentByHandle(Chandle)->setProperty(Pname.toStdString(), *vptr);
-	//emit(componentEdited(currEntity, Chandle, Pname));
+	auto ent = eman->getEntity(currEntity);
+	auto comp = ent->getComponentByHandle(Chandle);
+	comp->setProperty(Pname.toStdString(), *vptr);
+	emit(componentEdited(ent, comp, Pname));
 }
 
 void ComponentDock::actClear() {

@@ -1,11 +1,13 @@
 #include "glsleditor.h"
 #include "qboxlayout.h"
 #include <qabstractitemview.h>
+#include <qundostack.h>
 
 Completer *GLSLEditor::completer = new Completer();
-GLSLEditor::GLSLEditor(Kite::KResource *Res, KiteInfo *KInfo, QWidget *Parent):
-    TabWidget(Res, KInfo, Parent),
+GLSLEditor::GLSLEditor(Kite::KResource *Res, Kite::KIStream *Stream, QUndoStack *UStack, QWidget *Parent):
+    TabWidget(Res, Stream, Parent),
     shader((Kite::KShader *)Res),
+	ustack(UStack),
     editor(nullptr)
 {}
 
@@ -71,10 +73,8 @@ void GLSLEditor::inite() {
 
 }
 
-bool GLSLEditor::saveChanges() {
+void GLSLEditor::saveChanges() {
 	shader->loadString(editor->document()->toPlainText().toStdString(), shader->getShaderType());
-	shader->setModified(true);
-	return true;
 }
 
 void GLSLEditor::reload() {

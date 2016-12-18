@@ -7,17 +7,19 @@
 #include "glslhlight.h"
 #include <Kite/graphic/kshader.h>
 
+class QUndoStack;
+
 class GLSLEditor: public TabWidget{
 public:
-    GLSLEditor(Kite::KResource *Res, KiteInfo *KInfo, QWidget *Parent = nullptr);
+    GLSLEditor(Kite::KResource *Res, Kite::KIStream *Stream, QUndoStack *UStack, QWidget *Parent = nullptr);
     ~GLSLEditor();
 
 	void inite() override;
-    bool saveChanges() override;
+    void saveChanges() override;
 	void reload() override;
 
-    static TabWidget *factory(Kite::KResource *Res, KiteInfo *KInfo, QWidget *Parent = nullptr) {
-        return new GLSLEditor(Res, KInfo, Parent);
+    static TabWidget *factory(Kite::KResource *Res, Kite::KIStream *Stream, QUndoStack *UStack, KiteInfo *KInfo, QWidget *Parent = nullptr) {
+        return new GLSLEditor(Res, Stream, UStack, Parent);
     }
 
 private:
@@ -26,6 +28,7 @@ private:
 	CodeEditor *editor;
     GLSLHLight *hlight;
 	static Completer *completer;
+	QUndoStack *ustack;
 };
 
 #endif // GLSLEDITOR_H

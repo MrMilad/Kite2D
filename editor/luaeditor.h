@@ -8,15 +8,15 @@
 class LuaHLight;
 class LuaEditor : public TabWidget{
 public:
-    LuaEditor(Kite::KResource *Res, KiteInfo *KInfo, QWidget *Parent = nullptr);
+    LuaEditor(Kite::KResource *Res, Kite::KIStream *Stream, KiteInfo *KInfo, QWidget *Parent = nullptr);
 	~LuaEditor();
 
 	void inite() override;
-	bool saveChanges() override;
+	void saveChanges() override;
 	void reload() override;
 
-	static TabWidget *factory(Kite::KResource *Res, KiteInfo *KInfo, QWidget *Parent = nullptr) {
-		return new LuaEditor(Res, KInfo, Parent);
+	static TabWidget *factory(Kite::KResource *Res, Kite::KIStream *Stream, KiteInfo *KInfo, QWidget *Parent = nullptr) {
+		return new LuaEditor(Res, Stream, KInfo, Parent);
 	}
 
 private:

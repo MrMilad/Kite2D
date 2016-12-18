@@ -2,8 +2,8 @@
 #include "codeeditor.h"
 
 CodeEditor::CodeEditor(Completer *Comp, QWidget *parent) :
-	snumber(0),
 	QPlainTextEdit(parent),
+	snumber(0),
 	comp(Comp)
 {
 	setLineWrapMode(QPlainTextEdit::LineWrapMode::NoWrap);

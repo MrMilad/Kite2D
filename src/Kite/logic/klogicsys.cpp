@@ -61,7 +61,7 @@ namespace Kite {
 
 		// performs a full garbage-collection cycle. 
 		// lua garbage collection will eat memory so we shuld use lua_gc() in a period
-		lua_gc(_klvm, LUA_GCCOLLECT, 0);
+		//lua_gc(_klvm, LUA_GCCOLLECT, 0); //> luajit (not lua) seems better at this job so we dont use it 
 
 		// clear trash list and post works
 		EManager->postWork();
@@ -69,8 +69,10 @@ namespace Kite {
 	}
 
 	bool KLogicSys::inite(void *Data) {
+		if (!Data) return false;
+
 		auto engien = static_cast<KEngine *>(Data);
-		if (Data != nullptr && !isInite()) {
+		if (!isInite()) {
 			_klvm = static_cast<lua_State *>(engien->getLuaState());
 
 			auto table = LuaIntf::LuaRef::createTable(_klvm);
@@ -86,11 +88,8 @@ namespace Kite {
 			}
 
 			// create logic hooks
-			table = LuaIntf::LuaRef::createTable(_klvm);
-			LuaIntf::LuaRef(_klvm, "_G.hooks.funcs").set("onGameMessage", table);
-
-			table = LuaIntf::LuaRef::createTable(_klvm);
-			LuaIntf::LuaRef(_klvm, "_G.hooks.funcs").set("onUpdate", table);
+			//table = LuaIntf::LuaRef::createTable(_klvm);
+			//LuaIntf::LuaRef(_klvm, "_G.hooks.funcs").set("onUpdate", table);
 
 			setInite(true);
 			return true;
@@ -134,7 +133,10 @@ namespace Kite {
 			// set envirunmet values
 			ctable["global"] = LuaIntf::LuaRef::globals(_klvm);
 			ctable["kite"] = LuaIntf::LuaRef(_klvm, "_G.kite");
-			ctable["self"] = Component->getOwnerHandle();
+			ctable["owner"] = Component->getOwnerHandle();
+			ctable["self"] = Component->getHandle();
+			ctable["engine"] = Kite::KEngine::createEngine();
+			ctable["messenger"] = LuaIntf::LuaRef(_klvm, "_G.hooks");
 
 			// load chunk and set its environment
 			code.clear();
@@ -173,13 +175,12 @@ namespace Kite {
 
 	bool KLogicSys::initeComp(KEntity *Self, KLogicCom *Comp) {
 		// call inite function of component
-		std::string address("ENT." + Comp->getTName() + "." + Comp->getName());
-		address.append(".inite");
+		const std::string address("ENT." + Comp->getTName() + "." + Comp->getName() + ".onInite");
 
 #ifdef KITE_DEV_DEBUG
-		std::string tname(Comp->getTName());	// copy tname because we need it for showing message in the catch section
+		const std::string tname(Comp->getTName());	// copy tname because we need it for showing message in the catch section
 												// and we can't use a string refrence in that section
-		std::string ename(Self->getName());
+		const std::string ename(Self->getName());
 #endif
 
 		LuaIntf::LuaRef ctable(_klvm, address.c_str());
@@ -199,7 +200,7 @@ namespace Kite {
 	}
 
 	bool KLogicSys::updateAll(F64 Delta) {
-		LuaIntf::LuaRef ctable(_klvm, "_G.hooks.call");
+		LuaIntf::LuaRef ctable(_klvm, "_G.hooks.post");
 		if (ctable.isFunction()) {
 #ifdef KITE_DEV_DEBUG
 			try {
@@ -209,7 +210,7 @@ namespace Kite {
 				return false;
 			}
 #else
-			_kupdate(Delta);
+			ctable("onUpdate", Delta);
 #endif
 		} else {
 			KD_PRINT("engine hooks system is corrupted");

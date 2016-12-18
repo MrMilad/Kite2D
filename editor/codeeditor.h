@@ -18,8 +18,6 @@ QT_END_NAMESPACE
 class LineNumberArea;
 
 class CodeEditor : public QPlainTextEdit{
-    Q_OBJECT
-
 public:
     CodeEditor(Completer *Comp, QWidget *parent = 0);
 	

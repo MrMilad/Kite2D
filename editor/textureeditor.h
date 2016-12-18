@@ -9,16 +9,14 @@ class QSpinBox;
 class QLabel;
 class TextureEditor: public TabWidget{
 public:
-    TextureEditor(Kite::KResource *Res, KiteInfo *KInfo, QWidget *Parent = nullptr);
+    TextureEditor(Kite::KResource *Res, Kite::KIStream *Stream, KiteInfo *KInfo, QWidget *Parent = nullptr);
 
     void inite() override;
-
-    bool saveChanges() override;
-
+    void saveChanges() override;
 	void reload() override;
 
-	static TabWidget *factory(Kite::KResource *Res, KiteInfo *KInfo, QWidget *Parent = nullptr) {
-		return new TextureEditor(Res, KInfo, Parent);
+	static TabWidget *factory(Kite::KResource *Res, Kite::KIStream *Stream, KiteInfo *KInfo, QWidget *Parent = nullptr) {
+		return new TextureEditor(Res, Stream, KInfo, Parent);
 	}
 
 private slots:

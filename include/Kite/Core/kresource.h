@@ -86,12 +86,6 @@ namespace Kite{
 		KM_PRO_GET(KP_NAME = "catchStream", KP_TYPE = bool)
 		inline bool getCatchStream() const { return _kcatchStream; }
 
-#if defined(KITE_EDITOR)
-		/// main usage: for saving modified resource in editor
-		inline bool isModified() { bool temp = edIsModified; edIsModified = false;  return temp; }
-		inline void setModified(bool Modify) { edIsModified = Modify; }
-#endif
-
 	protected:
 		inline void setInite(bool Inite) { _kisInite = Inite; }
 		inline void setCompositeList(std::vector<KResource *> List) { _kclist = List; }
@@ -119,10 +113,6 @@ namespace Kite{
 		KStringID _kname;
 		std::string _kaddress;
 		std::vector<KResource *> _kclist;
-
-#if defined(KITE_EDITOR)
-		bool edIsModified;
-#endif
 	};
 }
 

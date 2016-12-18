@@ -3,8 +3,8 @@
 #include <QtWidgets>
 #include "frmnewatlas.h"
 
-AtlasEditor::AtlasEditor(Kite::KResource *Res, KiteInfo *KInfo, QWidget *Parent):
-	TabWidget(Res, KInfo, Parent),
+AtlasEditor::AtlasEditor(Kite::KResource *Res, Kite::KIStream *Stream, QWidget *Parent):
+	TabWidget(Res, Stream, Parent),
 	atlas((Kite::KAtlasTexture *)Res),
 	marker(nullptr),
 	gscene(nullptr)
@@ -29,7 +29,11 @@ void AtlasEditor::inite() {
 
 	auto fromXML = new QAction("Import from Adobe Animate XML (Starling)", this);
 	importMenu->addAction(fromXML);
-	connect(fromXML, &QAction::triggered, this, &AtlasEditor::importXML);
+	connect(fromXML, &QAction::triggered, this, &AtlasEditor::importFlashXML);
+
+	auto fromFNT = new QAction("Import from Bitmap Font Generator", this);
+	importMenu->addAction(fromFNT);
+	connect(fromFNT, &QAction::triggered, this, &AtlasEditor::importBMFontXML);
 
 	auto fromJSON = new QAction("Import from Adobe Animate JSON (non-array)", this);
 	fromJSON->setDisabled(true);
@@ -90,8 +94,7 @@ void AtlasEditor::inite() {
 	reload();
 }
 
-bool AtlasEditor::saveChanges() {
-	return true;
+void AtlasEditor::saveChanges() {
 }
 
 void AtlasEditor::reload() {
@@ -122,7 +125,7 @@ void AtlasEditor::reload() {
 	connect(listView, &QListWidget::itemSelectionChanged, this, &AtlasEditor::listItemChange);
 }
 
-void AtlasEditor::onRemoveRes(Kite::RTypes Type) {
+void AtlasEditor::onRemoveRes(const QString &Name, Kite::RTypes Type) {
 	if (Type == Kite::RTypes::Texture) {
 		reload();
 	}
@@ -138,7 +141,7 @@ void AtlasEditor::createNew() {
 		Kite::KTexture *tex = atlas->getTexture();
 		if (tex == nullptr) {
 
-			emit(tex = (Kite::KTexture *)requestAddRes(Kite::RTypes::Texture, QString(atlas->getName().c_str()) + ".tex"));
+			//emit(tex = (Kite::KTexture *)reqResAdd(Kite::RTypes::Texture, QString(atlas->getName().c_str()) + ".tex"));
 
 			if (tex == nullptr) {
 				return; // proper message from resource manager displayed.
@@ -156,17 +159,15 @@ void AtlasEditor::createNew() {
 			return;
 		}
 		tex->create(image, tex->getFilter(), tex->getWrap());
-		tex->setModified(true);
 		atlas->setTexture(tex);
-		atlas->setModified(true);
-		emit(requestReloadTab((Kite::KResource *)tex));
+		emit(reqReloadName(tex->getName().c_str()));
 
 		// add object to list
 		auto aitems = atlas->getContiner();
 		aitems->clear();
 		aitems->reserve((image.getWidth() / newFrm->getCellWidth()) * (image.getHeight() / newFrm->getCellHeight()));
-		for (auto i = 0; i < (image.getHeight() / newFrm->getCellHeight()); ++i) {
-			for (auto j = 0; j < (image.getWidth() / newFrm->getCellWidth()); ++j) {
+		for (unsigned int i = 0; i < (image.getHeight() / newFrm->getCellHeight()); ++i) {
+			for (unsigned int j = 0; j < (image.getWidth() / newFrm->getCellWidth()); ++j) {
 				Kite::KAtlasItem item;
 				item.id = aitems->size();
 				// calculate and add items to atlas
@@ -188,7 +189,7 @@ void AtlasEditor::createNew() {
 	delete newFrm;
 }
 
-void AtlasEditor::importXML() {
+void AtlasEditor::importFlashXML() {
 	QString fileName = QFileDialog::getOpenFileName(this, "Import XML Sprite-sheet Data", "", "XML File (*.xml)");
 	QString imagePatch;
 	QVector<Kite::KAtlasItem> items;
@@ -221,62 +222,101 @@ void AtlasEditor::importXML() {
 						items.back().ypos = xml.attributes().value("y").toUInt();
 					}
 				}
-
+				xml.clear();
 				file.close();
 
 				// process data
-				// try to load texture
-				Kite::KTexture *tex = atlas->getTexture();
-				if (tex == nullptr) {
-					
-					emit(tex = (Kite::KTexture *)requestAddRes(Kite::RTypes::Texture, QString(atlas->getName().c_str()) + ".tex"));
-
-					if (tex == nullptr) {
-						return; // proper message from resource manager displayed.
-					}
-				} 
-
-				// loading image and set it to texture
-				Kite::KImage image;
-				Kite::KFIStream istream;
-				if (!image.loadStream(istream, imagePatch.toStdString())) {
-					QMessageBox msg;
-					msg.setWindowTitle("Message");
-					msg.setText("cant load AtlasTexture Image.\nImage Address: " + imagePatch);
-					msg.exec();
-					return;
-				}
-				tex->create(image, tex->getFilter(), tex->getWrap());
-				tex->setModified(true);
-				atlas->setTexture(tex);
-				atlas->setModified(true);
-				emit(requestReloadTab((Kite::KResource *)tex));
-
-				// add object to list
-				auto idcounter = 0;
-				auto aitems = atlas->getContiner();
-				aitems->clear();
-				aitems->resize(items.size());
-				for (auto it = items.begin(); it != items.end(); ++it) {
-					// calculate and add items to atlas
-					aitems->at(idcounter).id = idcounter;
-					aitems->at(idcounter).width = it->width;
-					aitems->at(idcounter).height = it->height;
-					aitems->at(idcounter).xpos = it->xpos;
-					aitems->at(idcounter).ypos = it->ypos;
-					aitems->at(idcounter).blu = ((float)it->xpos) / (float)image.getWidth();
-					aitems->at(idcounter).blv = ((float)it->ypos) / (float)image.getHeight();
-					aitems->at(idcounter).tru = ((float)it->xpos + (float)it->width) / (float)image.getWidth();
-					aitems->at(idcounter).trv = ((float)it->ypos + (float)it->height) / (float)image.getHeight();
-					++idcounter;
-
-				}
+				procData(imagePatch, items);
 			}
+
+			reload();
+			emit(reqReloadType(Kite::RTypes::TextureGroup));
 		}
-		reload();
-		emit(requestReloadRes(Kite::RTypes::TextureGroup));
 	}
 
+}
+
+void AtlasEditor::importBMFontXML() {
+	QString fileName = QFileDialog::getOpenFileName(this, "Import XML Sprite-sheet Data", "", "Bitmat Font File (*.fnt)");
+	QString imagePatch;
+	QVector<Kite::KAtlasItem> items;
+
+	if (!fileName.isEmpty()) {
+		QFile file(fileName);
+		QFileInfo finfo(file);
+		if (file.open(QIODevice::ReadOnly)) {
+
+			// XML parsing
+			QXmlStreamReader xml(&file);
+			if (xml.readNextStartElement()) {
+
+				// Font body
+				if (xml.name() == "font") {
+					imagePatch = finfo.path() + "/";
+					imagePatch += xml.attributes().value("imagePath").toString();
+
+					// sub branch
+					while (!xml.atEnd()) {
+						xml.readNext();
+
+						auto name = xml.name();
+						// Info
+						if (xml.isStartElement() && xml.name() == "info") {
+							// checking charset
+							auto charset = xml.attributes().value("charset").toString();
+							if (charset != "ANSI") {
+								QMessageBox msg;
+								msg.setWindowTitle("Message");
+								msg.setText("non-ANSI charset not supported by BitmapText");
+								msg.exec();
+								return;
+							}
+
+						// pages
+						} else if (xml.isStartElement() && xml.name() == "common") {
+							// checking page count
+							// only 1 page supported
+							auto pcount = xml.attributes().value("pages").toInt();
+							if (pcount > 1) {
+								QMessageBox msg;
+								msg.setWindowTitle("Message");
+								msg.setText("multiple page not supported by BitmapText");
+								msg.exec();
+								return;
+							}
+
+						// page
+						}else if (xml.isStartElement() && xml.name() == "page") {
+							imagePatch = finfo.path() + "/";
+							imagePatch += xml.attributes().value("file").toString();
+
+						// chars count
+						} else if (xml.isStartElement() && xml.name() == "chars") {
+							items.reserve(xml.attributes().value("count").toInt());
+
+						// chars
+						} else if (xml.isStartElement() && xml.name() == "char") {
+							if (xml.attributes().value("id").toInt() == -1) continue;
+							items.push_back(Kite::KAtlasItem());
+							items.back().width = xml.attributes().value("width").toUInt();
+							items.back().height = xml.attributes().value("height").toUInt();
+							items.back().xpos = xml.attributes().value("x").toUInt();
+							items.back().ypos = xml.attributes().value("y").toUInt();
+						}
+					}
+				}
+			}
+
+			xml.clear();
+			file.close();
+
+			// process data
+			procData(imagePatch, items);
+
+			reload();
+			emit(reqReloadType(Kite::RTypes::TextureGroup));
+		}
+	}
 }
 
 void AtlasEditor::listItemChange() {
@@ -294,6 +334,53 @@ void AtlasEditor::listItemChange() {
 					+ "<font color = \"orange\"> Y: </font>" + QString::number(items->at(index).ypos)
 					+ "<font color = \"orange\"> Width: </font>" + QString::number(items->at(index).width)
 					+ "<font color = \"orange\"> Height: </font>" + QString::number(items->at(index).height));
+}
+
+void AtlasEditor::procData(const QString &ImagePatch, const QVector<Kite::KAtlasItem> &Items) {
+	// try to load texture
+	Kite::KTexture *tex = atlas->getTexture();
+	if (tex == nullptr) {
+
+		//emit(tex = (Kite::KTexture *)reqResAdd(Kite::RTypes::Texture, QString(atlas->getName().c_str()) + ".tex"));
+
+		if (tex == nullptr) {
+			return; // proper message from resource manager displayed.
+		}
+	}
+
+	// loading image and set it to texture
+	Kite::KImage image;
+	Kite::KFIStream istream;
+	if (!image.loadStream(istream, ImagePatch.toStdString())) {
+		QMessageBox msg;
+		msg.setWindowTitle("Message");
+		msg.setText("cant load AtlasTexture Image.\nImage Address: " + ImagePatch);
+		msg.exec();
+		return;
+	}
+	tex->create(image, tex->getFilter(), tex->getWrap());
+	atlas->setTexture(tex);
+	emit(reqReloadName(tex->getName().c_str()));
+
+	// add object to list
+	auto idcounter = 0;
+	auto aitems = atlas->getContiner();
+	aitems->clear();
+	aitems->resize(Items.size());
+	for (auto it = Items.begin(); it != Items.end(); ++it) {
+		// calculate and add items to atlas
+		aitems->at(idcounter).id = idcounter;
+		aitems->at(idcounter).width = it->width;
+		aitems->at(idcounter).height = it->height;
+		aitems->at(idcounter).xpos = it->xpos;
+		aitems->at(idcounter).ypos = it->ypos;
+		aitems->at(idcounter).blu = ((float)it->xpos) / (float)image.getWidth();
+		aitems->at(idcounter).blv = ((float)it->ypos) / (float)image.getHeight();
+		aitems->at(idcounter).tru = ((float)it->xpos + (float)it->width) / (float)image.getWidth();
+		aitems->at(idcounter).trv = ((float)it->ypos + (float)it->height) / (float)image.getHeight();
+		++idcounter;
+
+	}
 }
 
 bool AtlasEditor::eventFilter(QObject *Obj, QEvent *Event) {

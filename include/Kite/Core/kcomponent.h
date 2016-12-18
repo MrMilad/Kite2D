@@ -101,6 +101,10 @@ namespace Kite {
 		KM_FUN()
 		inline U16 getDepCounter() const { return _krefcounter; }
 
+#ifdef KITE_EDITOR
+		inline void setSceneItem(void *Ptr) { sceneItem = Ptr; }
+		inline void *getSceneItem() const { return sceneItem; }
+#endif
 		KMETA_KCOMPONENT_BODY();
 
 	protected:

@@ -6,7 +6,7 @@ set(LOG_SRC
     ${SRCROOT}/klogiccom.cpp
     ${SRCROOT}/klogicsys.cpp
     ${SRCROOT}/kscript.cpp
-    ${SRCROOT}/klogicinstancecom.cpp
+    ${SRCROOT}/kreglogiccom.cpp
     PARENT_SCOPE
 )
 
@@ -16,7 +16,7 @@ set(LOG_INC
     ${INCROOT}/klogiccom.h
     ${INCROOT}/klogicsys.h
     ${INCROOT}/kscript.h
-    ${INCROOT}/klogicinstancecom.h
+    ${INCROOT}/kreglogiccom.h
     PARENT_SCOPE
 )
 

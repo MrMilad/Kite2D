@@ -42,20 +42,10 @@ namespace Kite {
 		virtual ~KMessenger();
 
 		KM_FUN()
-		void subscribe(KListener &Listener, const std::string &Type);
-
-		/// dont need compute hash code of string by this function
-		/// so it's a bit faster than subscribe by string
-		KM_FUN()
-		void subscribeByHash(KListener &Listener, U32 Hash);
+		void invoke(KListener *Listener, const std::string &Type);
 
 		KM_FUN()
-		void unsubscribe(KListener &Listener, const std::string &Type);
-
-		/// dont need compute hash code of string by this function
-		/// so it's a bit faster than unsubscribe by string
-		KM_FUN()
-		void unsubscribeByHash(KListener &Listener, U32 Hash);
+		void cancelInvoke(KListener *Listener, const std::string &Type);
 
 	protected:
 		/// post message by its type (immediately)
@@ -64,7 +54,7 @@ namespace Kite {
 		U32 postMessage(KMessage *Message, MessageScope Scope);
 
 	private:
-		std::unordered_multimap<U32, KListener *> _khndlMap;
+		std::unordered_multimap<std::string, KListener *> _khndlMap;
 	};
 }
 

@@ -24,11 +24,16 @@ USA
 #include "Kite/serialization/types/kstdstring.h"
 #include "Kite/serialization/types/kstdumap.h"
 #include "Kite/serialization/types/kstdpair.h"
+#include "kmeta.khgen.h"
 #include <luaintf\LuaIntf.h>
 
 namespace Kite {
 	KResourceManager::KResourceManager(){
+		// initialize factory array
 		initeRFactory();
+
+		// register resource types and stream types
+		registerRTypes(this);
 	}
 
 	KResourceManager::~KResourceManager(){
@@ -56,13 +61,13 @@ namespace Kite {
 		delete dummyRes;
 	}
 
-	KResource *KResourceManager::create(RTypes Type, const std::string &Name) {
+	KResource *KResourceManager::createOnFly(RTypes Type, const std::string &Name) {
 		// create new resource and return it
 		auto index = (SIZE)Type;
 		return _krfactory[index].first(Name);
 	}
 
-	KResource *KResourceManager::createAndRegist(RTypes Type, const std::string &Name) {
+	KResource *KResourceManager::create(RTypes Type, const std::string &Name) {
 		auto index = (SIZE)Type;
 
 		if (get(Name)) {
@@ -90,6 +95,67 @@ namespace Kite {
 		postMessage(&msg, MessageScope::ALL);
 
 		return newRes;
+	}
+
+	KResource *KResourceManager::loadOnFly(KIStream *Stream, RTypes RType, const std::string &Address) {
+		auto rindex = (SIZE)RType;
+		bool CatchStream = _krfactory[rindex].second;
+
+		// checking file name
+		if (Address.empty()) {
+			KD_PRINT("empty Address is not valid");
+			return nullptr;
+		}
+
+		// first check our dictionary
+		bool isOnDict = false;
+		std::string ResName = Address;
+		auto dfound = _kdict.find(Address);
+
+		// using dictionary key
+		if (dfound != _kdict.end()) {
+			isOnDict = true;
+			ResName = dfound->second;
+		}
+
+		// create key from file name
+		// always we save original file address (not name) as a key
+		std::string tempKey(ResName);
+		std::transform(ResName.begin(), ResName.end(), tempKey.begin(), ::tolower);
+
+		// check stream
+		if (Stream == nullptr) {
+			KD_PRINT("Stream is nullptr.");
+			return nullptr;
+		}
+
+		// retrieving file name and path
+		KFileInfo finfo;
+		Stream->getFileInfoStr(ResName, finfo);
+
+		// create new resource and assocated input stream
+		KResource *resource = _krfactory[rindex].first(finfo.name);
+
+		// loading composite resources (recursive)
+		if (resource->isComposite()) {
+			if (!loadCompositeList(resource, *Stream, ResName)) {
+				KD_FPRINT("can't load composite resource. rname: %s", ResName.c_str());
+				delete resource;
+				return nullptr;
+			}
+		}
+
+		if (!resource->_loadStream(*Stream, ResName)) {
+			KD_FPRINT("can't load resource. rname: %s", ResName.c_str());
+			delete resource;
+			return nullptr;
+		}
+		resource->setAddress(finfo.path);
+
+		// increment refrence count
+		resource->incRef();
+
+		return resource;
 	}
 
 	KResource *KResourceManager::load(IStreamTypes SType, RTypes RType,

@@ -1,7 +1,14 @@
 #include "tabwidget.h"
+#include <qevent.h>
+#include <qmessagebox.h>
 
-TabWidget::TabWidget(Kite::KResource *Res, KiteInfo *Kinfo, QWidget *Parent):
-    QFrame(Parent),
-    res(Res){}
+TabWidget::TabWidget(Kite::KResource *Res, Kite::KIStream *Stream, QWidget *Parent) :
+	QFrame(Parent),
+	res(Res),
+	stream(Stream)
+{}
 
-TabWidget::~TabWidget(){}
+TabWidget::~TabWidget(){
+	delete res;
+	delete stream;
+}

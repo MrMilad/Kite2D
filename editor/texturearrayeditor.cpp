@@ -3,8 +3,8 @@
 #include <Kite/core/kfistream.h>
 #include <QtWidgets>
 
-TextureArrayEditor::TextureArrayEditor(Kite::KResource *Res, KiteInfo *KInfo, QWidget *Parent) :
-	TabWidget(Res, KInfo, Parent) ,
+TextureArrayEditor::TextureArrayEditor(Kite::KResource *Res, Kite::KIStream *Stream, KiteInfo *KInfo, QWidget *Parent) :
+	TabWidget(Res, Stream, Parent) ,
 	atlasArray((Kite::KAtlasTextureArray *)Res)
 {
 
@@ -136,9 +136,11 @@ void TextureArrayEditor::inite() {
 	reload();
 }
 
-bool TextureArrayEditor::saveChanges() {
-	atlasArray->setModified(true);
-	return true;
+void TextureArrayEditor::saveChanges() {
+	Kite::TextureFilter filter = (Kite::TextureFilter)cmbFilter->currentIndex();
+	Kite::TextureWrap wrap = (Kite::TextureWrap)cmbWrap->currentIndex();
+	atlasArray->setFilter(filter);
+	atlasArray->setWrap(wrap);
 }
 
 void TextureArrayEditor::reload() {
@@ -146,14 +148,14 @@ void TextureArrayEditor::reload() {
 	fillFinalList();
 }
 
-void TextureArrayEditor::onRemoveRes(Kite::RTypes Type) {
+void TextureArrayEditor::onRemoveRes(const QString &Name, Kite::RTypes Type) {
 	if (Type == Kite::RTypes::AtlasTexture || Type == Kite::RTypes::Texture) {
 		reload();
 	}
 }
 
-void TextureArrayEditor::onAddRes(const Kite::KResource *Res) {
-	if (Res->getType() == Kite::RTypes::AtlasTexture) {
+void TextureArrayEditor::onAddRes(const QString &Name, Kite::RTypes Type) {
+	if (Type == Kite::RTypes::AtlasTexture) {
 		reload();
 	}
 }
@@ -195,16 +197,16 @@ void TextureArrayEditor::slistContextMenu(const QPoint &pos) {
 
 void TextureArrayEditor::fillSelectList() {
 	selectList->clear();
-	QList<const Kite::KResource *> rlist;
-	emit(requestResList(Kite::RTypes::AtlasTexture, rlist));
+	QStringList rlist;
+	emit(reqResList(Kite::RTypes::AtlasTexture, rlist));
 
 	for (auto it = rlist.begin(); it != rlist.end(); ++it) {
-		auto atex = (Kite::KAtlasTexture *)(*it);
+		auto atex = (Kite::KAtlasTexture *)emit(reqResLoad(stream, (*it)));
 
 		if (atex->getTexture()) {
 			if (atex->getTexture()->getSize() == atlasArray->getTextureSize()) {
 				QListWidgetItem *listItem = new QListWidgetItem(selectList);
-				listItem->setText((*it)->getName().c_str());
+				listItem->setText((*it));
 				selectList->addItem(listItem);
 			}
 		}
@@ -263,7 +265,7 @@ void TextureArrayEditor::add() {
 
 	for (auto it = sitems.begin(); it != sitems.end(); ++it) {
 		Kite::KAtlasTexture *ta = nullptr;
-		emit(ta = (Kite::KAtlasTexture *)requestRes((*it)->text()));
+		emit(ta = (Kite::KAtlasTexture *)reqResLoad(stream, (*it)->text()));
 		if (ta) {
 			// check duplication
 			if (std::find(alist->begin(), alist->end(), ta) != alist->end()) {
@@ -296,7 +298,7 @@ void TextureArrayEditor::swap() {
 
 	if (findex <= alist->size() && sitem) {
 		Kite::KAtlasTexture *ta = nullptr;
-		emit(ta = (Kite::KAtlasTexture *)requestRes(sitem->text()));
+		emit(ta = (Kite::KAtlasTexture *)reqResLoad(stream, sitem->text()));
 
 		// check duplication
 		if (std::find(alist->begin(), alist->end(), ta) == alist->end()) {

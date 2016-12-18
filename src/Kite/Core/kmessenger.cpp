@@ -30,26 +30,16 @@ namespace Kite {
 
 	KMessenger::~KMessenger() {}
 
-	void KMessenger::subscribe(KListener &Handler, const std::string &Type) {
-		U32 typeHash = getHash32((void *)Type.c_str(), Type.size(), KHASH_SEED);
-		subscribeByHash(Handler, typeHash);
+	void KMessenger::invoke(KListener *Handler, const std::string &Type) {
+		_khndlMap.insert({ Type, Handler });
 	}
 
-	void KMessenger::subscribeByHash(KListener &Listener, U32 Hash) {
-		_khndlMap.insert({ Hash, &Listener });
-	}
-
-	void KMessenger::unsubscribe(KListener &Handler, const std::string &Type) {
+	void KMessenger::cancelInvoke(KListener *Handler, const std::string &Type) {
 		// find handler in the range[type] and remove it
-		 U32 typeHash = getHash32((void *)Type.c_str(), Type.size(), KHASH_SEED);
-		unsubscribeByHash(Handler, typeHash);
-	}
-
-	void KMessenger::unsubscribeByHash(KListener &Listener, U32 Hash) {
-		auto range = _khndlMap.equal_range(Hash);
+		auto range = _khndlMap.equal_range(Type);
 		if (range.first != _khndlMap.end()) {
 			for (auto it = range.first; it != range.second; ++it) {
-				if (it->second == &Listener) {
+				if (it->second == Handler) {
 					_khndlMap.erase(it);
 					break; // calling erase() with the iterator will invalidate it, so we can't then continue to use it.
 				}
@@ -58,7 +48,7 @@ namespace Kite {
 	}
 
 	U32 KMessenger::postMessage(KMessage *Message, MessageScope Scope) {
-		auto range = _khndlMap.equal_range(Message->getHash());
+		auto range = _khndlMap.equal_range(Message->getType());
 		U32 recvCount = 0;
 
 		if (range.first != _khndlMap.end()) {

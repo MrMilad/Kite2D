@@ -221,6 +221,28 @@ void ComponentView::createPOD(Kite::KComponent *Comp, const Kite::KMetaProperty 
 
 		Layout->addRow(Meta->name.c_str(), pgui);
 
+	// KBitset
+	} else if (Meta->typeName == "KBitset") {
+		// create an appropriate widgte and bind property to it
+		bool ronly = false;
+		if (Meta->type == Kite::KMetaPropertyTypes::KMP_GETTER) ronly = true;
+		auto pgui = new priv::KBITSET(Comp, Meta->name.c_str(), this, ronly);
+		connect(pgui, &priv::KBITSET::propertyEdited, this, &ComponentView::propChanged);
+		connect(this, &ComponentView::resetSig, pgui, &priv::KBITSET::reset);
+
+		Layout->addRow(Meta->name.c_str(), pgui);
+
+	// KGlyphMarker
+	} else if (Meta->typeName == "KGlyphMarker") {
+		// create an appropriate widgte and bind property to it
+		bool ronly = false;
+		if (Meta->type == Kite::KMetaPropertyTypes::KMP_GETTER) ronly = true;
+		auto pgui = new priv::KGMARKER(Comp, Meta->name.c_str(), this, ronly);
+		connect(pgui, &priv::KGMARKER::propertyEdited, this, &ComponentView::propChanged);
+		connect(this, &ComponentView::resetSig, pgui, &priv::KGMARKER::reset);
+
+		Layout->addRow(Meta->name.c_str(), pgui);
+
 	// KColor
 	} else if (Meta->typeName == "KColor") {
 		// create an appropriate widgte and bind property to it

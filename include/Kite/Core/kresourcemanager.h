@@ -42,12 +42,17 @@ namespace Kite{
 		KResourceManager();
 		~KResourceManager();
 
+		/// cretae new resource and transfer its ownership to the caller
+		/// you can delete it by yourself
+		KResource *createOnFly(RTypes Type, const std::string &Name);
+
+		/// cretae new resource and register it to the manager
+		/// don't free it by yourself (use unload instead)
 		KM_FUN()
 		KResource *create(RTypes Type, const std::string &Name);
 
-		/// create and register resource on rhe fly
-		KM_FUN()
-		KResource *createAndRegist(RTypes Type, const std::string &Name);
+		/// same as create on the fly but you can load an existing resource
+		KResource *loadOnFly(KIStream *Stream, RTypes RType, const std::string &Address);
 
 		/// R: resource type
 		/// S: stream type

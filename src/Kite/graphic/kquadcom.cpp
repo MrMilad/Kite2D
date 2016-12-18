@@ -66,10 +66,10 @@ namespace Kite{
 	}
 
 	void KQuadCom::_setDim() {
-		_kvertex[0].pos = KVector2F32(-(_kwidth / 2), -(_kheight / 2));
-		_kvertex[1].pos = KVector2F32(-(_kwidth / 2), (_kheight / 2));
-		_kvertex[2].pos = KVector2F32((_kwidth / 2), -(_kheight / 2));
-		_kvertex[3].pos = KVector2F32((_kwidth / 2), (_kheight / 2));
+		_kvertex[0].pos = KVector2F32(0, 0);
+		_kvertex[1].pos = KVector2F32(0, _kheight);
+		_kvertex[2].pos = KVector2F32(_kwidth , 0);
+		_kvertex[3].pos = KVector2F32(_kwidth, _kheight);
 	}
 
 	void KQuadCom::setAtlasItem(const KAtlasItem &AtlasItem) {
@@ -81,10 +81,10 @@ namespace Kite{
 	}
 
 	void KQuadCom::getBoundingRect(KRectF32 &Output) const {
-		Output.bottom = -(_kheight / 2);
-		Output.left = -(_kwidth / 2);
-		Output.top = (_kheight / 2);
-		Output.right = (_kwidth / 2);
+		Output.bottom = 0;
+		Output.left = 0;
+		Output.top = _kheight;
+		Output.right = _kwidth;
 	}
 
 	bool KQuadCom::updateRes() {

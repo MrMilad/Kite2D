@@ -19,7 +19,6 @@
 #include "Kite/logic/klogicsys.h"
 #include "Kite/logic/kreglogiccom.h"
 #include "Kite/logic/kscript.h"
-#include "Kite/input/kinputcom.h"
 #include "Kite/input/kinputsys.h"
 #include "Kite/input/kinputtypes.h"
 #include "Kite/input/kkeyboard.h"
@@ -89,7 +88,6 @@ KLogicCom::registerMeta(MMan, Lua);
 KLogicSys::registerMeta(MMan, Lua);
 KRegLogicCom::registerMeta(MMan, Lua);
 KScript::registerMeta(MMan, Lua);
-KInputCom::registerMeta(MMan, Lua);
 KInputSys::registerMeta(MMan, Lua);
 KKeyboard::registerMeta(MMan, Lua);
 KMouse::registerMeta(MMan, Lua);
@@ -173,7 +171,6 @@ void registerCTypes(KEntityManager *EMan){
 EMan->registerComponent<KTransformCom>(CTypes::Transform);
 EMan->registerComponent<KLogicCom>(CTypes::Logic);
 EMan->registerComponent<KRegLogicCom>(CTypes::RegisterLogic);
-EMan->registerComponent<KInputCom>(CTypes::Input);
 EMan->registerComponent<KBitmapTextCom>(CTypes::BitmapText);
 EMan->registerComponent<KCameraCom>(CTypes::Camera);
 EMan->registerComponent<KGCullingCom>(CTypes::GCulling);

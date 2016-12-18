@@ -9,8 +9,8 @@
 #include <qpixmap.h>
 #include "gridscene.h"
 
-MapEditor::MapEditor(Kite::KResource *Res, KiteInfo *KInfo, QWidget *Parent) :
-	TabWidget(Res, KInfo, Parent),
+MapEditor::MapEditor(Kite::KResource *Res, Kite::KIStream *Stream, QWidget *Parent) :
+	TabWidget(Res, Stream, Parent),
 	orthoMap((Kite::KOrthogonalMap *)Res),
 	ustack(new QUndoStack(this))
 {}
@@ -211,8 +211,7 @@ void MapEditor::inite() {
 	reload();
 }
 
-bool MapEditor::saveChanges() {
-	return true;
+void MapEditor::saveChanges() {
 }
 
 void MapEditor::reload() {
@@ -253,7 +252,7 @@ void MapEditor::reload() {
 
 				// create stamp
 				Kite::KAtlasTexture *atlas;
-				emit(atlas = (Kite::KAtlasTexture *)requestRes((*it)->getName().c_str()));
+				emit(atlas = (Kite::KAtlasTexture *)reqResLoad(stream, (*it)->getName().c_str()));
 
 				// inite stamp image
 				if (atlas) {
@@ -323,7 +322,7 @@ void MapEditor::reload() {
 	gscene->update();
 }
 
-void MapEditor::onRemoveRes(Kite::RTypes Type) {
+void MapEditor::onRemoveRes(const QString &Name, Kite::RTypes Type) {
 	//if (Type == Kite::RTypes::TextureGroup || Type == Kite::RTypes::AtlasTexture || Type == Kite::RTypes::Texture) {
 		//reload(); // reloading entire (big) map is very expensive
 	//}
@@ -336,24 +335,19 @@ void MapEditor::tilesetChanged(int Index) {
 void MapEditor::createNew() {
 	QStringList tlist;
 	QStringList tsetList;
-	QList<const Kite::KResource *> tsetResList;
 	tlist.push_back("Orthogonal");
 
 	// atlas textures
-	emit(requestResList(Kite::RTypes::TextureGroup, tsetResList));
-	for (auto it = tsetResList.begin(); it != tsetResList.end(); ++it) {
-		tsetList.push_back((*it)->getName().c_str());
-	}
+	emit(reqResList(Kite::RTypes::TextureGroup, tsetList));
 
 	auto newMapFrm = new frmNewMap(tlist, orthoMap->getMapWidth(), orthoMap->getMapHeight(),
 								   orthoMap->getTileWidth(), orthoMap->getTileHeight(), tsetList, this);
 	newMapFrm->exec();
 	if (newMapFrm->isOk()) {
 		Kite::KAtlasTextureArray *tset;
-		emit(tset = (Kite::KAtlasTextureArray *)requestRes(newMapFrm->getTileSet()));
+		emit(tset = (Kite::KAtlasTextureArray *)reqResLoad(stream, newMapFrm->getTileSet()));
 		orthoMap->setTileset(tset);
 		orthoMap->create(newMapFrm->getWidth(), newMapFrm->getHeight(), newMapFrm->getTWidth(), newMapFrm->getTHeight());
-		orthoMap->setModified(true);
 		ustack->clear();
 		reload();
 	}

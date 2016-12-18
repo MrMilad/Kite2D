@@ -154,6 +154,8 @@ namespace Kite {
 		
 		// swap and pop_back methode
 		thisptr->_kbflist[Com->_kobjIndex] = thisptr->_kbflist.back();
+		auto gcom = (KGCullingCom *)thisptr->_klastEman->getEntity(thisptr->_kbflist[Com->_kobjIndex].ent)->getComponent(CTypes::GCulling);
+		gcom->_kobjIndex = Com->_kobjIndex;
 		thisptr->_kbflist.pop_back();
 	}
 

@@ -59,7 +59,8 @@ public:
 	RaiseLayerCMD(QGraphicsScene *Scene, Kite::KOrthogonalMap *Map, QList<QGraphicsItemGroup *> *Group,
 				  QTableWidget *Table, unsigned short LayerIndex) :
 		scene(Scene), map(Map), tview(Table), layerIndex(LayerIndex),
-		group(Group) {
+		group(Group) 
+	{
 		setText("Raise Layer");
 	}
 
@@ -83,7 +84,6 @@ public:
 		item2->setText(tempText);
 		item2->setCheckState(tempCheck);
 
-		map->setModified(true);
 		scene->update();
 	}
 
@@ -108,7 +108,6 @@ public:
 		item2->setCheckState(tempCheck);
 
 		tview->setCurrentItem(item2);
-		map->setModified(true);
 		scene->update();
 	}
 
@@ -149,7 +148,6 @@ public:
 		item2->setText(tempText);
 		item2->setCheckState(tempCheck);
 
-		map->setModified(true);
 		scene->update();
 	}
 
@@ -174,7 +172,6 @@ public:
 		item2->setCheckState(tempCheck);
 
 		tview->setCurrentItem(item2);
-		map->setModified(true);
 		scene->update();
 	}
 
@@ -256,7 +253,6 @@ public:
 		scene->addItem(layerGroup);
 
 		editedList.clear();
-		map->setModified(true);
 		scene->update();
 
 		auto titem = new QTableWidgetItem(layerName);
@@ -280,7 +276,6 @@ public:
 		}
 		layerName = map->getMapLayerName(group->size()).c_str();
 		map->removeMapLayer(group->size());
-		map->setModified(true);
 		scene->update();
 
 		tview->removeRow(tview->rowCount() - 1);
@@ -317,7 +312,6 @@ public:
 			map->setScenePtr(map->convertID(it->first), layerIndex, scenePtr);
 		}
 		editedList.clear();
-		map->setModified(true);
 		scene->update();
 	}
 
@@ -337,7 +331,6 @@ public:
 			}
 		}
 		map->removeMapLayer(layerIndex);
-		map->setModified(true);
 		scene->update();
 	}
 
@@ -380,7 +373,6 @@ public:
 
 		}
 		editedList.clear();
-		map->setModified(true);
 		scene->update();
 	}
 
@@ -427,7 +419,6 @@ public:
 			map->setTileLayer(map->convertID(tid), layerIndex, newLayer);
 			map->setScenePtr(map->convertID(tid), layerIndex, (void *)sceneItem);
 		}
-		map->setModified(true);
 		scene->update();
 	}
 
@@ -472,12 +463,11 @@ public:
 			initePixmap(sitem, tsetPixmap->at(it->second.textureID), it->second);
 			auto dim = map->getTileDimension(it->first);
 			sitem->setPos(dim.left, dim.bottom);
-			group->at(layerIndex)->addToGroup(sitem);
+			layerGroup->addToGroup(sitem);
 			map->setTileLayer(map->convertID(it->first), layerIndex, it->second);
 			map->setScenePtr(map->convertID(it->first), layerIndex, sitem);
 		}
 		editedList.clear();
-		map->setModified(true);
 		scene->update();
 	}
 
@@ -503,7 +493,6 @@ public:
 			}
 		}
 
-		map->setModified(true);
 		scene->update();
 	}
 
@@ -540,7 +529,6 @@ public:
 		}
 		editedList.clear();
 		scene->update();
-		map->setModified(true);
 	}
 
 	virtual void redo() override {
@@ -563,7 +551,6 @@ public:
 			}
 		}
 		scene->update();
-		map->setModified(true);
 	}
 
 private:

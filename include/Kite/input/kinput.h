@@ -25,7 +25,6 @@
 #include "Kite/input/kmouse.h"
 #include "Kite/input/kkeyboard.h"
 //#include "Kite/input/kjoystick.h"
-#include "Kite/input/kinputcom.h"
 #include "Kite/input/kinputsys.h"
 
 #endif // KINPUT_H

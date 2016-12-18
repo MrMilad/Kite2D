@@ -9,8 +9,8 @@
 #include <qfiledialog.h>
 #include <qcolordialog.h>
 
-TextureEditor::TextureEditor(Kite::KResource *Res, KiteInfo *KInfo, QWidget *Parent):
-	TabWidget(Res, KInfo, Parent),
+TextureEditor::TextureEditor(Kite::KResource *Res, Kite::KIStream *Stream, KiteInfo *KInfo, QWidget *Parent):
+	TabWidget(Res, Stream, Parent),
 	texture((Kite::KTexture *)Res)
 {}
 
@@ -136,7 +136,7 @@ void TextureEditor::inite() {
 	//vlayout->addStretch(1);
 }
 
-bool TextureEditor::saveChanges() {
+void TextureEditor::saveChanges() {
 	Kite::TextureFilter filter = (Kite::TextureFilter)cmbFilter->currentIndex();
 	Kite::TextureWrap wrap = (Kite::TextureWrap)cmbWrap->currentIndex();
 
@@ -146,8 +146,6 @@ bool TextureEditor::saveChanges() {
 				 lblImageView->pixmap()->toImage().convertToFormat(QImage::Format_RGBA8888).bits());
 
 	texture->create(image, filter, wrap);
-	texture->setModified(true);
-	return true;
 }
 
 void TextureEditor::reload() {
@@ -188,7 +186,6 @@ void TextureEditor::loadImage() {
 		spinY->setValue(image.size().height());
 		lblImageView->setPixmap(image);
 		lblImageView->resize(lblImageView->sizeHint());
-		texture->setModified(true);
 	}
 }
 
@@ -201,7 +198,6 @@ void TextureEditor::createColor() {
 		spinY->setDisabled(false);
 		lblImageView->setPixmap(pmap);
 		lblImageView->resize(lblImageView->sizeHint());
-		texture->setModified(true);
 	}
 }
 
@@ -210,7 +206,6 @@ void TextureEditor::resizeWidth(int Width) {
 	pmap.fill(color);
 	lblImageView->setPixmap(pmap);
 	lblImageView->resize(lblImageView->sizeHint());
-	texture->setModified(true);
 }
 
 void TextureEditor::resizeHeight(int Height) {
@@ -218,5 +213,4 @@ void TextureEditor::resizeHeight(int Height) {
 	pmap.fill(color);
 	lblImageView->setPixmap(pmap);
 	lblImageView->resize(lblImageView->sizeHint());
-	texture->setModified(true);
 }

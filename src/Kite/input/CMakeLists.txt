@@ -7,7 +7,6 @@ set(INP_SRC
     #${SRCROOT}/kjoystick.cpp
     ${SRCROOT}/kkeyboard.cpp
     ${SRCROOT}/kmouse.cpp
-    ${SRCROOT}/kinputcom.cpp
     ${SRCROOT}/kinputsys.cpp
     PARENT_SCOPE
 )
@@ -20,7 +19,6 @@ set(INP_INC
     #${INCROOT}/kjoystick.h
     ${INCROOT}/kkeyboard.h
     ${INCROOT}/kmouse.h
-    ${INCROOT}/kinputcom.h
     ${INCROOT}/kinputsys.h
     PARENT_SCOPE
 )

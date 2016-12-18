@@ -1,4 +1,11 @@
 #include "mainwindow.h"
+#include <kiteinfo.h>
+#include <resourcedock.h>
+#include <objectdock.h>
+#include <componentdock.h>
+#include <outputdock.h>
+#include <maintab.h>
+#include "executer.h"
 #include <QtWidgets>
 #include <gridscene.h>
 #include <expander.h>
@@ -14,14 +21,16 @@
 #include <Kite/serialization/kbinaryserial.h>
 #include <Kite/serialization/types/kstdstring.h>
 #include <Kite/serialization/types/kstdumap.h>
+#include <qdir.h>
 
 using namespace Kite;
 
 MainWindow::MainWindow(QWidget *parent)
-    : QMainWindow(parent),
+	: QMainWindow(parent),
 	curProject(nullptr),
 	kinfo(new KiteInfo),
-	exec(new Executer)
+	exec(new Executer),
+	undoGroup(new QUndoGroup(this))
 {
     this->setMinimumSize(1000, 600);
 
@@ -32,7 +41,6 @@ MainWindow::MainWindow(QWidget *parent)
 	setupMenus();
     setupScene();
 	loadDockState();
-	disGUI();
 
 	connect(exec, &Executer::started, this, &MainWindow::engineStarted);
 	connect(exec, &Executer::paused, this, &MainWindow::enginePaused);
@@ -116,26 +124,26 @@ void MainWindow::setupDocks(){
 	outDock->hide();
 
     // objects dock
-    objDock = new ObjectDock(this);
+    objDock = new ObjectDock(undoGroup, this);
     addDockWidget(Qt::LeftDockWidgetArea, objDock);	
-	connect(resDock, &ResourceDock::resourceSelected, objDock, &ObjectDock::resEdit);
-	connect(resDock, &ResourceDock::resourceDelete, objDock, &ObjectDock::resDelete);
-	connect(resDock, &ResourceDock::resourceAdded, objDock, &ObjectDock::installEntityCallback);
-	connect(objDock, &ObjectDock::requestCreateResource, resDock, &ResourceDock::addResource);
-	connect(objDock, &ObjectDock::requestGetResource, resDock, &ResourceDock::getResource);
-	connect(objDock, &ObjectDock::requestResName, resDock, &ResourceDock::filterByType);
+	/*connect(resDock, &ResourceDock::resEdit, objDock, &ObjectDock::resEdit);
+	connect(resDock, &ResourceDock::resDeleted, objDock, &ObjectDock::resDelete);
+	connect(resDock, &ResourceDock::resAdded, objDock, &ObjectDock::installEntityCallback);
+	connect(objDock, &ObjectDock::requestCreateResource, resDock, &ResourceDock::addNew);
+	connect(objDock, &ObjectDock::requestGetResource, resDock, &ResourceDock::load);
+	connect(objDock, &ObjectDock::requestResName, resDock, &ResourceDock::filter);*/
 
     // component/properties dock
     prpDock = new ComponentDock(this);
 	prpDock->inite(*kinfo->getComponentTypes());
     addDockWidget(Qt::RightDockWidgetArea, prpDock);
-	connect(objDock, &ObjectDock::objectSelected, prpDock, &ComponentDock::entityEdit);
+	/*connect(objDock, &ObjectDock::objectSelected, prpDock, &ComponentDock::entityEdit);
 	connect(objDock, &ObjectDock::objectDelete, prpDock, &ComponentDock::entityDelete);
 	connect(prpDock, &ComponentDock::resSelected, resDock, &ResourceDock::selectResource);
 	connect(prpDock, &ComponentDock::requestResNames, resDock, &ResourceDock::filterByType);
 	connect(prpDock, &ComponentDock::requestResource, resDock, &ResourceDock::getResource);
 	connect(prpDock, &ComponentDock::revertPrefab, objDock, &ObjectDock::revertPrefab);
-	connect(prpDock, &ComponentDock::applyPrefab, objDock, &ObjectDock::applyPrefab);
+	connect(prpDock, &ComponentDock::applyPrefab, objDock, &ObjectDock::applyPrefab);*/
 	
 
 	// kite class browser
@@ -152,86 +160,89 @@ void MainWindow::setupDocks(){
 }
 
 void MainWindow::setupScene(){
-	mainTab = new MainTab(kinfo, this);
-	connect(resDock, &ResourceDock::resourceSelected, mainTab, &MainTab::selectResource);
-	connect(resDock, &ResourceDock::resourceEdit, mainTab, &MainTab::openTabs);
-	connect(resDock, &ResourceDock::resourceDelete, mainTab, &MainTab::closeResource);
-	connect(resDock, &ResourceDock::resourceDeleted, mainTab, &MainTab::resourceDeleted);
-	connect(resDock, &ResourceDock::resourceSave, mainTab, &MainTab::saveRes);
-	connect(mainTab, &MainTab::requestResList, resDock, &ResourceDock::filterByTypeRes);
-	connect(mainTab, &MainTab::requestRes, resDock, &ResourceDock::getResource);
-	connect(mainTab, &MainTab::requestAddRes, resDock, &ResourceDock::addResourceInternal);
+	mainTab = new MainTab(undoGroup, kinfo, this);
+	connect(resDock, &ResourceDock::resSelected, mainTab, &MainTab::select);
+	connect(resDock, &ResourceDock::resEdit, mainTab, &MainTab::open);
+	connect(resDock, &ResourceDock::resDeleted, mainTab, &MainTab::close);
+	connect(resDock, &ResourceDock::resDeleted, mainTab, &MainTab::resourceDeleted);
+	connect(mainTab, &MainTab::reqResList, resDock, &ResourceDock::filter);
+	connect(mainTab, &MainTab::reqResLoad, resDock, &ResourceDock::load);
+	connect(mainTab, &MainTab::reqResAdd, resDock, &ResourceDock::addNew);
 
     sceneView = new QGraphicsView();
 	sceneView->scale(1, -1);
 	sceneView->setMouseTracking(true);
 	sceneView->setVerticalScrollBarPolicy(Qt::ScrollBarPolicy::ScrollBarAsNeeded);
 	sceneView->setAlignment(Qt::AlignLeft | Qt::AlignBottom);
-	mainTab->setScene(sceneView);
 
 	setCentralWidget(mainTab);
 	
 	auto *scene1 = new ObjectScene(this);
-	connect(resDock, &ResourceDock::resourceSelected, scene1, &ObjectScene::resSelect);
+	/*connect(resDock, &ResourceDock::resourceSelected, scene1, &ObjectScene::resSelect);
+	connect(prpDock, &ComponentDock::componentEdited, scene1, &ObjectScene::componentEdited);
+	connect(scene1, &ObjectScene::requestResource, resDock, &ResourceDock::getResource);*/
 
-	QPixmap plogo(":/icons/logo");
-	QGraphicsPixmapItem *logo = new QGraphicsPixmapItem(plogo);
+	//QPixmap plogo(":/icons/logo");
+	//QGraphicsPixmapItem *logo = new QGraphicsPixmapItem(plogo);
 	//logo->setPos((scene1->width() / 2) - (plogo.width() / 2), (scene1->height() / 2) - (plogo.height() / 2));
-	scene1->addItem(logo);
+	//scene1->addItem(logo);
 	sceneView->setScene(scene1);
 }
 
 void MainWindow::setupActions() {
-	showAbout = new QAction("About Kite2D Game Editor", this);
-	connect(showAbout, &QAction::triggered, this, &MainWindow::aboutDialogue);
+	actNew = new QAction(QIcon(":/icons/new"), "New Project", this);
+	actNew->setShortcut(QKeySequence(Qt::CTRL + Qt::SHIFT + Qt::Key_N));
+	actNew->setShortcutContext(Qt::ApplicationShortcut);
+	connect(actNew, &QAction::triggered, this, &MainWindow::newProject);
 
-	newProj = new QAction(QIcon(":/icons/new"), "New Project", this);
-	newProj->setShortcut(QKeySequence(Qt::CTRL + Qt::SHIFT + Qt::Key_N));
-	newProj->setShortcutContext(Qt::ApplicationShortcut);
-	connect(newProj, &QAction::triggered, this, &MainWindow::newProject);
+	actOpen = new QAction(QIcon(":/icons/open"), "Open Project", this);
+	actOpen->setShortcut(QKeySequence(Qt::CTRL + Qt::SHIFT + Qt::Key_O));
+	actOpen->setShortcutContext(Qt::ApplicationShortcut);
+	connect(actOpen, &QAction::triggered, this, &MainWindow::openProject);
 
-	openProj = new QAction(QIcon(":/icons/open"), "Open Project", this);
-	openProj->setShortcut(QKeySequence(Qt::CTRL + Qt::SHIFT + Qt::Key_O));
-	openProj->setShortcutContext(Qt::ApplicationShortcut);
-	connect(openProj, &QAction::triggered, this, &MainWindow::openProject);
+	actSave = new QAction(QIcon(":/icons/save"), "Save Project", this);
+	actSave->setShortcut(QKeySequence(Qt::CTRL + Qt::SHIFT + Qt::Key_S));
+	actSave->setShortcutContext(Qt::ApplicationShortcut);
+	actSave->setDisabled(true);
+	connect(actSave, &QAction::triggered, this, &MainWindow::applyChanges);
 
-	saveProj = new QAction(QIcon(":/icons/save"), "Save Project", this);
-	saveProj->setShortcut(QKeySequence(Qt::CTRL + Qt::SHIFT + Qt::Key_S));
-	saveProj->setShortcutContext(Qt::ApplicationShortcut);
-	connect(saveProj, &QAction::triggered, this, &MainWindow::saveProject);
+	actClose = new QAction("Close Project", this);
+	actClose->setDisabled(true);
+	connect(actClose, &QAction::triggered, this, &MainWindow::closeProject);
 
-	closeProj = new QAction("Close Project", this);
-	connect(closeProj, &QAction::triggered, this, &MainWindow::closeProject);
+	actPlay = new QAction(QIcon(":/icons/play"), "Start Debugging", this);
+	actPlay->setShortcut(QKeySequence(Qt::Key_F5));
+	actPlay->setShortcutContext(Qt::ApplicationShortcut);
+	actPlay->setDisabled(true);
+	connect(actPlay, &QAction::triggered, this, &MainWindow::startEngine);
 
-	playScene = new QAction(QIcon(":/icons/play"), "Start Debugging", this);
-	playScene->setShortcut(QKeySequence(Qt::Key_F5));
-	playScene->setShortcutContext(Qt::ApplicationShortcut);
-	connect(playScene, &QAction::triggered, this, &MainWindow::startEngine);
+	actPause = new QAction(QIcon(":/icons/pause"), "Pause", this);
+	actPause->setShortcut(QKeySequence(Qt::CTRL + Qt::ALT + Qt::Key_Pause));
+	actPause->setShortcutContext(Qt::ApplicationShortcut);
+	actPause->setDisabled(true);
+	connect(actPause, &QAction::triggered, exec, &Executer::pause);
 
-	pauseScene = new QAction(QIcon(":/icons/pause"), "Pause", this);
-	pauseScene->setShortcut(QKeySequence(Qt::CTRL + Qt::ALT + Qt::Key_Pause));
-	pauseScene->setShortcutContext(Qt::ApplicationShortcut);
-	connect(pauseScene, &QAction::triggered, exec, &Executer::pause);
+	actStop = new QAction(QIcon(":/icons/stop"), "Stop", this);
+	actStop->setShortcut(QKeySequence(Qt::SHIFT + Qt::Key_F5));
+	actStop->setShortcutContext(Qt::ApplicationShortcut);
+	actStop->setDisabled(true);
+	connect(actStop, &QAction::triggered, exec, &Executer::stop);
 
-	stopScene = new QAction(QIcon(":/icons/stop"), "Stop", this);
-	stopScene->setShortcut(QKeySequence(Qt::SHIFT + Qt::Key_F5));
-	stopScene->setShortcutContext(Qt::ApplicationShortcut);
-	connect(stopScene, &QAction::triggered, exec, &Executer::stop);
+	actSetting = new QAction(QIcon(":/icons/set"), "Project Settings", this);
+	actSetting->setShortcut(QKeySequence(Qt::ALT + Qt::Key_F7));
+	actSetting->setShortcutContext(Qt::ApplicationShortcut);
+	actSetting->setDisabled(true);
+	connect(actSetting, &QAction::triggered, this, &MainWindow::openProjSetting);
 
-	projSettings = new QAction(QIcon(":/icons/set"), "Project Settings", this);
-	projSettings->setShortcut(QKeySequence(Qt::ALT + Qt::Key_F7));
-	projSettings->setShortcutContext(Qt::ApplicationShortcut);
-	connect(projSettings, &QAction::triggered, this, &MainWindow::openProjSetting);
+	actShowOut = new QAction("Output", this);
+	actShowOut->setShortcut(QKeySequence(Qt::ALT + Qt::Key_2));
+	actShowOut->setShortcutContext(Qt::ApplicationShortcut);
+	connect(actShowOut, &QAction::triggered, this, &MainWindow::showSwitchOutput);
 
-	showOutputPan = new QAction("Output", this);
-	showOutputPan->setShortcut(QKeySequence(Qt::ALT + Qt::Key_2));
-	showOutputPan->setShortcutContext(Qt::ApplicationShortcut);
-	connect(showOutputPan, &QAction::triggered, this, &MainWindow::showSwitchOutput);
-
-	exit = new QAction(QIcon(":/icons/exit"), "Exit", this);
-	exit->setShortcut(QKeySequence(Qt::ALT + Qt::Key_F4));
-	exit->setShortcutContext(Qt::ApplicationShortcut);
-	connect(exit, &QAction::triggered, this, &MainWindow::exitApp);
+	actExit = new QAction(QIcon(":/icons/exit"), "Exit", this);
+	actExit->setShortcut(QKeySequence(Qt::ALT + Qt::Key_F4));
+	actExit->setShortcutContext(Qt::ApplicationShortcut);
+	connect(actExit, &QAction::triggered, this, &MainWindow::exitApp);
 }
 
 void MainWindow::setupMenus(){
@@ -246,7 +257,7 @@ void MainWindow::setupMenus(){
 
 	// fullscreen exit
 	auto fscreenExit = new QToolButton(this);
-	fscreenExit->setDefaultAction(exit);
+	fscreenExit->setDefaultAction(actExit);
 	fscreenExit->setAutoRaise(true);
 
 	// notifications
@@ -262,14 +273,19 @@ void MainWindow::setupMenus(){
 
 	// file
     fileMenu = menuBar()->addMenu(tr("&File"));
-	fileMenu->addAction(newProj);
-	fileMenu->addAction(openProj);
+	fileMenu->addAction(actNew);
+	fileMenu->addAction(actOpen);
 	fileMenu->addSeparator();
-	fileMenu->addAction(closeProj);
+	fileMenu->addAction(actClose);
 	fileMenu->addSeparator();
-	fileMenu->addAction(saveProj);
+	fileMenu->addAction(actSave);
 	fileMenu->addSeparator();
-	fileMenu->addAction(exit);
+	fileMenu->addAction(actExit);
+
+	// edit
+	fileMenu = menuBar()->addMenu(tr("&Edit"));
+	fileMenu->addAction(actUndo);
+	fileMenu->addAction(actRedo);
 
 	// view
 	winMenu = menuBar()->addMenu(tr("&View"));
@@ -287,11 +303,14 @@ void MainWindow::setupMenus(){
 
 	// test
 	fileMenu = menuBar()->addMenu(tr("&Debug"));
-	fileMenu->addAction(playScene);
-	fileMenu->addAction(pauseScene);
-	fileMenu->addAction(stopScene);
+	fileMenu->addAction(actPlay);
+	fileMenu->addAction(actPause);
+	fileMenu->addAction(actStop);
 
 	// window
+	auto showAbout = new QAction("About Kite2D Game Editor", this);
+	connect(showAbout, &QAction::triggered, this, &MainWindow::aboutDialogue);
+
 	winMenu = menuBar()->addMenu(tr("&Window"));
 	winMenu->addSeparator();
 	winMenu->addAction(showAbout);
@@ -299,24 +318,36 @@ void MainWindow::setupMenus(){
 }
 
 void MainWindow::setupToolbar(){
+	actUndo = undoGroup->createUndoAction(this);
+	actUndo->setIcon(QIcon(":/icons/undo"));
+	actUndo->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_Z));
+	actUndo->setShortcutContext(Qt::ApplicationShortcut);
+
+	actRedo = undoGroup->createRedoAction(this);
+	actRedo->setIcon(QIcon(":/icons/redo"));
+	actRedo->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_Y));
+	actRedo->setShortcutContext(Qt::ApplicationShortcut);
+
     auto fileTolb = new QToolBar("Project");
 	addToolBar(Qt::ToolBarArea::LeftToolBarArea, fileTolb);
 	fileTolb->setObjectName("Project");
 	fileTolb->setStyleSheet("QToolBar { border: 0px }");
-	fileTolb->addAction(newProj);
-	fileTolb->addAction(openProj);
+	fileTolb->addAction(actNew);
+	fileTolb->addAction(actOpen);
+	fileTolb->addAction(actSave);
 	fileTolb->addSeparator();
-	fileTolb->addAction(saveProj);
+	fileTolb->addAction(actUndo);
+	fileTolb->addAction(actRedo);
 	fileTolb->addSeparator();
-	fileTolb->addAction(projSettings);
+	fileTolb->addAction(actSetting);
 	
 	auto debugTolb = new QToolBar("Debug");
 	addToolBar(Qt::ToolBarArea::LeftToolBarArea, debugTolb);
 	debugTolb->setObjectName("Debug");
 	debugTolb->setStyleSheet("QToolBar { border: 0px }");
-	debugTolb->addAction(playScene);
-	debugTolb->addAction(pauseScene);
-	debugTolb->addAction(stopScene);
+	debugTolb->addAction(actPlay);
+	debugTolb->addAction(actPause);
+	debugTolb->addAction(actStop);
 }
 
 void MainWindow::setupStatusBar() {
@@ -328,7 +359,7 @@ void MainWindow::setupStatusBar() {
 	QMainWindow::statusBar()->addPermanentWidget(klabel);
 
 	auto btnShowOutputPan = new QToolButton(this);
-	btnShowOutputPan->setDefaultAction(showOutputPan);
+	btnShowOutputPan->setDefaultAction(actShowOut);
 	btnShowOutputPan->setToolButtonStyle(Qt::ToolButtonTextOnly);
 	QMainWindow::statusBar()->addWidget(btnShowOutputPan);
 }
@@ -345,34 +376,22 @@ void MainWindow::saveDockState() {
 	settings.setValue("state", saveState());
 }
 
-void MainWindow::disGUI() {
-	playScene->setDisabled(true);
-	pauseScene->setDisabled(true);
-	stopScene->setDisabled(true);
-	saveProj->setDisabled(true);
-	closeProj->setDisabled(true);
-	playScene->setDisabled(true);
-	resDock->setDisabled(true);
-	objDock->setDisabled(true);
-	prpDock->setDisabled(true);
-	projSettings->setDisabled(true);
-}
+void MainWindow::saveXML(){
+	QFile file(curProject->Path + "/" + curProject->name + ".k2d");
+	if (!file.open(QIODevice::WriteOnly)) {
+		file.close();
+		QMessageBox msg;
+		msg.setWindowTitle("Message");
+		msg.setText("cant save changes to project files.");
+		msg.exec();
+		return;
+	}
 
-void MainWindow::enGUI() {
-	playScene->setDisabled(false);
-	saveProj->setDisabled(false);
-	closeProj->setDisabled(false);
-	playScene->setDisabled(false);
-	resDock->setDisabled(false);
-	objDock->setDisabled(false);
-	prpDock->setDisabled(false);
-	projSettings->setDisabled(false);
-}
-
-void MainWindow::saveXML(QIODevice *device, const QString &Address){
-	QXmlStreamWriter stream(device);
+	QXmlStreamWriter stream(&file);
 	KFOStream fstream;
+	QDir dir(curProject->Path);
 	Kite::KBinarySerial bserial;
+
 	stream.setAutoFormatting(true);
 	stream.writeStartDocument();
 
@@ -383,18 +402,15 @@ void MainWindow::saveXML(QIODevice *device, const QString &Address){
 	// resources
 	std::unordered_map<std::string, std::string> dict;
 	stream.writeStartElement("resources");
-	auto resList = resDock->dumpResource();
-	for (auto it = resList.cbegin(); it != resList.cend(); ++it) {
-		dict.insert({ (*it)->getName(), Address.toStdString() + "/resources/" + (*it)->getName() });
-
-		if ((*it)->isModified() || (*it)->getType() == Kite::RTypes::Scene) {
-			(*it)->saveStream(fstream, Address.toStdString() + "/resources/" + (*it)->getName());
-		}
+	QList<DumpItem> rlist;
+	resDock->dump(rlist);
+	for (auto it = rlist.cbegin(); it != rlist.cend(); ++it) {
+		dict.insert({ it->name.toStdString(), it->address.toStdString() + "/" + it->name.toStdString() });
 
 		stream.writeStartElement("item");
-		stream.writeAttribute("name", (*it)->getName().c_str());
-		stream.writeAttribute("type", (*it)->getTypeName().c_str());
-		if (mainTab->isOpen((*it))) {
+		stream.writeAttribute("address", dir.relativeFilePath(QString(it->address) + "/" + it->name));
+		stream.writeAttribute("type", Kite::getRTypesName(it->type).c_str());
+		if (mainTab->isOpen(it->name)) {
 			stream.writeAttribute("open", "true");
 		} else {
 			stream.writeAttribute("open", "false");
@@ -410,13 +426,15 @@ void MainWindow::saveXML(QIODevice *device, const QString &Address){
 	// save dictinary
 	bserial.clearCatch();
 	bserial << dict;
-	bserial.saveStream(fstream, Address.toStdString() + "/dict.kdict", 0);
-	curProject->config.dictionary = Address.toStdString() + "/dict.kdict";
+	bserial.saveStream(fstream, curProject->Path.toStdString() + "/dict.kdict", 0);
+	curProject->config.dictionary = curProject->Path.toStdString() + "/dict.kdict";
 
 	// save config
 	bserial.clearCatch();
 	bserial << curProject->config;
-	bserial.saveStream(fstream, Address.toStdString() + "/config.kconf", 0);
+	bserial.saveStream(fstream, curProject->Path.toStdString() + "/config.kconf", 0);
+
+	file.close();
 }
 
 bool MainWindow::loadXML(QIODevice *device, const QString &Address) {
@@ -429,8 +447,7 @@ bool MainWindow::loadXML(QIODevice *device, const QString &Address) {
 			QFileInfo finfo(Address);
 			curProject->name = xml.attributes().value("name").toString();
 			curProject->Path = finfo.path();
-			curProject->resPath = finfo.path() + "/resources";
-			resDock->setCurrentDirectory(curProject->resPath);
+			resDock->setResDirectory(curProject->Path + "/resources");
 
 			// config
 			KFIStream fstream;
@@ -456,20 +473,19 @@ bool MainWindow::loadXML(QIODevice *device, const QString &Address) {
 				while (!xml.atEnd()) {
 					xml.readNext();
 					if (xml.isStartElement() && xml.name() == "item") {
-						if (!resDock->openResource(curProject->resPath + "/" + xml.attributes().value("name").toString(),
+						if (!resDock->addExisting(curProject->Path + "/" + xml.attributes().value("address").toString(),
 												  Kite::getRTypesByName(xml.attributes().value("type").toString().toStdString()), false)) {
 							return false;
 						}
 
 						// open tab
 						if (xml.attributes().value("open").toString() == "true") {
-							mainTab->openTabs(resDock->getResource(xml.attributes().value("name").toString()));
+							QFileInfo finfo(curProject->Path + "/" + xml.attributes().value("address").toString());
+							mainTab->open(finfo.fileName(), Kite::getRTypesByName(xml.attributes().value("type").toString().toStdString()));
 						}
 					}
 				}
 			}
-			// reset resource modify value
-			resDock->resetModify();
 		}
 	}
 
@@ -484,12 +500,42 @@ bool MainWindow::loadXML(QIODevice *device, const QString &Address) {
 	return (head && res);
 }
 
+void MainWindow::initProject() {
+	this->setWindowTitle("Kite2D Editor - " + curProject->Path + "/" + curProject->name);
+
+	resDock->setResDirectory(curProject->Path + "/resources");
+	resDock->initePanel();
+	objDock->initePanel();
+
+	actPlay->setDisabled(false);
+	actClose->setDisabled(false);
+	actSave->setDisabled(false);
+	actSetting->setDisabled(false);
+}
+
+void MainWindow::clearProject() {
+	this->setWindowTitle("Kite2D Editor");
+
+	// clear all panels in order
+	objDock->clearPanel();
+	resDock->clearPanel();
+
+	actPlay->setDisabled(true);
+	actClose->setDisabled(true);
+	actSave->setDisabled(true);
+	actSetting->setDisabled(true);
+
+	delete curProject;
+	curProject = nullptr;
+}
+
 void MainWindow::startEngine() {
-	saveProject();
+	applyChanges();
 	outDock->getEditor()->clear();
 	outDock->autoShow();
 	connect(exec, &Executer::engineOutput, this, &MainWindow::getEngineOutput);
-	Kite::KConfig tempConfig(curProject->config);
+	static Kite::KConfig tempConfig;
+	tempConfig = curProject->config;
 
 	// we have problem with fullscreen and i dont know what is this shit!
 	// so we try to simulate fullscreen mode with window mode
@@ -528,29 +574,29 @@ void MainWindow::getEngineOutput(const QString &Text, int MType) {
 void MainWindow::engineStarted() {
 	//outDock->getEditor()->appendHtml("<font color = \"Aqua\">---- Engine Started ----</font>");
 	outDock->getEditor()->appendPlainText("----[ Engine Started ]----");
-	playScene->setDisabled(true);
-	pauseScene->setDisabled(false);
-	stopScene->setDisabled(false);
+	actPlay->setDisabled(true);
+	actPause->setDisabled(false);
+	actStop->setDisabled(false);
 }
 
 void MainWindow::enginePaused() {
 	//outDock->getEditor()->appendHtml("<font color = \"Aqua\">---- Engine Paused ----</font>");
 	outDock->getEditor()->appendPlainText("----[ Engine Paused ]----");
-	playScene->setDisabled(false);
-	pauseScene->setDisabled(true);
-	stopScene->setDisabled(false);
-	disconnect(playScene, &QAction::triggered, 0, 0);
-	connect(playScene, &QAction::triggered, exec, &Executer::unpause);
+	actPlay->setDisabled(false);
+	actPause->setDisabled(true);
+	actStop->setDisabled(false);
+	disconnect(actPlay, &QAction::triggered, 0, 0);
+	connect(actPlay, &QAction::triggered, exec, &Executer::unpause);
 }
 
 void MainWindow::engineUnpaused() {
 	//outDock->getEditor()->appendHtml("<font color = \"Aqua\">---- Engine Unpaused ----</font>");
 	outDock->getEditor()->appendPlainText("----[ Engine Unpaused ]----");
-	playScene->setDisabled(true);
-	pauseScene->setDisabled(false);
-	stopScene->setDisabled(false);
-	disconnect(playScene, &QAction::triggered, 0, 0);
-	connect(playScene, &QAction::triggered, this, &MainWindow::startEngine);
+	actPlay->setDisabled(true);
+	actPause->setDisabled(false);
+	actStop->setDisabled(false);
+	disconnect(actPlay, &QAction::triggered, 0, 0);
+	connect(actPlay, &QAction::triggered, this, &MainWindow::startEngine);
 }
 
 void MainWindow::engineStoped() {
@@ -558,11 +604,11 @@ void MainWindow::engineStoped() {
 	//outDock->getEditor()->appendHtml("<font color = \"Aqua\">---- Engine Stoped ----</font>");
 	outDock->getEditor()->appendPlainText("----[ Engine Stoped ]----");
 	outDock->autoHide();
-	playScene->setDisabled(false);
-	pauseScene->setDisabled(true);
-	stopScene->setDisabled(true);
-	disconnect(playScene, &QAction::triggered, 0, 0);
-	connect(playScene, &QAction::triggered, this, &MainWindow::startEngine);
+	actPlay->setDisabled(false);
+	actPause->setDisabled(true);
+	actStop->setDisabled(true);
+	disconnect(actPlay, &QAction::triggered, 0, 0);
+	connect(actPlay, &QAction::triggered, this, &MainWindow::startEngine);
 }
 
 void MainWindow::newProject() {
@@ -578,7 +624,6 @@ void MainWindow::newProject() {
 			curProject = new Project;
 			curProject->name = frm.getName();
 			curProject->Path = frm.getPath() + "/" + curProject->name;
-			curProject->resPath = curProject->Path  + "/resources";
 			curProject->config.window.title = curProject->name.toStdString();
 			curProject->config.window.width = 800;
 			curProject->config.window.height = 600;
@@ -589,83 +634,70 @@ void MainWindow::newProject() {
 			curProject->config.window.resizable = false;
 			curProject->config.dictionary = curProject->Path.toStdString() + "/dict.kdict";
 
-			this->setWindowTitle("Kite2D Editor - " + curProject->Path + "/" + curProject->name);
-			resDock->setCurrentDirectory(curProject->resPath);
-
-			enGUI();
+			// activate panels and actions
+			initProject();
 		}
 	}
 }
 
 void MainWindow::openProject() {
-	// close current project if any
-	closeProject();
-
-	if (curProject == nullptr) {
 		QString fileName = QFileDialog::getOpenFileName(this,
 												"Open Project", "", "Kite2D Project File (*.k2d)");
 
-		if (!fileName.isEmpty()) {
+	if (!fileName.isEmpty()) {
+		// close current project if any
+		closeProject();
+
+		if (curProject == nullptr) {
 			QFile file(fileName);
 			if (file.open(QIODevice::ReadOnly)) {
 				curProject = new Project;
-				disconnect(resDock, &ResourceDock::resourceAdded, mainTab, &MainTab::resourceAdded);
+				resDock->blockSignals(true);
 				if (loadXML(&file, fileName)) {
-					enGUI();
-					this->setWindowTitle("Kite2D Editor - " + curProject->Path + "/" + curProject->name);
+					initProject();
 				} else {
 					closeProject(true);
 				}
 				file.close();
-				connect(resDock, &ResourceDock::resourceAdded, mainTab, &MainTab::resourceAdded);
+				resDock->blockSignals(false);
 			}
 		}
 	}
 }
 
-void MainWindow::saveProject() {
+void MainWindow::applyChanges() {
 	if (curProject != nullptr) {
 		resDock->manageUsedResource(kinfo->getResourceComponentsTypes());
 		mainTab->saveAll();
-		QFile file(curProject->Path + "/" + curProject->name + ".k2d");
-		if (file.open(QIODevice::WriteOnly)) {
-			saveXML(&file, curProject->Path);
-			file.close();
-		}
 	}
 }
 
 void MainWindow::closeProject(bool Silent) {
 	if (curProject != nullptr) {
-		if (!Silent) {
+		if (!Silent && mainTab->needSave()) {
 			int ret = QMessageBox::warning(this, "Kite2D Editor",
 										   "Do you want to save changes to " + curProject->name + "?",
 										   QMessageBox::Save | QMessageBox::Discard
 										   | QMessageBox::Cancel,
 										   QMessageBox::Save);
 
+			// apply all current (unsaved) changes befor saving
 			if (ret == QMessageBox::Save) {
-				saveProject();
+				applyChanges();
+
 			} else if (ret == QMessageBox::Cancel) {
 				return;
 			}
 		}
 
-		this->setWindowTitle("Kite2D Editor");
-
-		// clear resource tree
-		resDock->clearResources();
-
-		delete curProject;
-		curProject = nullptr;
-
-		disGUI();
+		saveXML();
+		clearProject();
 	}
 }
 
 void MainWindow::openProjSetting() {
 	QStringList list;
-	resDock->filterByType(Kite::RTypes::Scene, list);
+	resDock->filter(Kite::RTypes::Scene, list);
 	list.push_front("<default>"); // default scene
 	frmProjSettings frm(this, &curProject->config, list);
 	frm.exec();

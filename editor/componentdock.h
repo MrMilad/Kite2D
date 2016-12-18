@@ -59,7 +59,6 @@ signals:
 private slots:
 	Kite::KAny getPropValue(Kite::CTypes Type, const QString &ComName, const QString &PropName);
 	void updateResList(Kite::RTypes Type, QStringList &List);
-	void actExeOrder();
 	void actCollAll();
 	void actAdd(QAction *Action);
 	void actAddDef();
@@ -105,7 +104,6 @@ private:
 	QTreeWidget *comTree;
 	QAction *addDefComp;
 	QAction *collAll;
-	QAction *exeOrder;
 	QAction *preSelect;
 	QAction *preRevert;
 	QAction *preApply;

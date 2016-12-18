@@ -2,16 +2,7 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
-#include <qlist>
 #include <qhash>
-#include <qstringlist.h>
-#include <kiteinfo.h>
-#include <resourcedock.h>
-#include <objectdock.h>
-#include <componentdock.h>
-#include <outputdock.h>
-#include <maintab.h>
-#include "executer.h"
 #include <Kite/engine/kengine.h>
 
 class QGraphicsView;
@@ -20,11 +11,21 @@ class QTabWidget;
 class QToolBox;
 class QStatusBar;
 class QAction;
+class QActionGroup;
+class QUndoGroup;
+
+class ObjectDock;
+class ComponentDock;
+class QDockWidget;
+class OutputDock;
+class ResourceDock;
+class KiteInfo;
+class Executer;
+class MainTab;
 
 struct Project {
 	QString name;
 	QString Path;
-	QString resPath;
 	Kite::KConfig config;
 };
 
@@ -54,7 +55,7 @@ void engineStoped();
 
 void newProject();
 void openProject();
-void saveProject();
+void applyChanges();
 void closeProject(bool Silent = false);
 void openProjSetting();
 void exitApp();
@@ -70,11 +71,13 @@ private:
 	void loadDockState();
 	void saveDockState();
 
-	void disGUI();
-	void enGUI();
-
-	void saveXML(QIODevice *device, const QString &Address);
+	void saveXML();
 	bool loadXML(QIODevice *device, const QString &Address);
+
+	void initProject();
+	void clearProject();
+
+	QUndoGroup *undoGroup;
 
     ResourceDock *resDock;
     ObjectDock *objDock;
@@ -88,18 +91,19 @@ private:
 	QMenu *fileMenu;
 	QMenu *winMenu;
 	QMenu *compMenu;
-
-	QAction *showAbout;
-	QAction *newProj;
-	QAction *openProj;
-	QAction *saveProj;
-	QAction *closeProj;
-	QAction *playScene;
-	QAction *pauseScene;
-	QAction *stopScene;
-	QAction *projSettings;
-	QAction *showOutputPan;
-	QAction *exit;
+	
+	QAction *actUndo;
+	QAction *actRedo;
+	QAction *actNew;
+	QAction *actOpen;
+	QAction *actSave;
+	QAction *actClose;
+	QAction *actPlay;
+	QAction *actPause;
+	QAction *actStop;
+	QAction *actSetting;
+	QAction *actShowOut;
+	QAction *actExit;
 
 	QHash<QString, QWidget *> resTabs;
 

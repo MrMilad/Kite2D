@@ -45,28 +45,28 @@ namespace Kite{
 
 		I32 seek(U64 Offset, I32 Origin) override;
 
-		I64 tell() override;
+		I64 tell() const override;
 
-		I32 eof() override;
+		I32 eof() const override;
 
 		// return binary size (if file opened  with BIN mode)
 		KM_FUN()
-		U64 getSize() override;
+		U64 getSize() const override;
 
 		KM_FUN()
-		bool isOpen() override;
+		bool isOpen() const override;
 
 		KM_FUN()
 		I32 close() override;
 
 		KM_FUN()
-		inline const KFileInfo *getFileInfo() override { return &_kfinfo; }
+		inline const KFileInfo *getFileInfo() const override { return &_kfinfo; }
 
 		KM_FUN()
-		void getFileInfoStr(const std::string &Address, KFileInfo &FileInfo) override;
+		void getFileInfoStr(const std::string &Address, KFileInfo &FileInfo) const override;
 
 		KM_FUN()
-		inline IOMode getIOMode() override { return _kio; }
+		inline IOMode getIOMode() const override { return _kio; }
 
 	private:
 		KFileInfo _kfinfo;

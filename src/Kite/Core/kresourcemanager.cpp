@@ -42,8 +42,7 @@ namespace Kite {
 
 	void KResourceManager::initeRFactory() {
 		for (SIZE i = 0; i < (SIZE)RTypes::maxSize; ++i) {
-			_krfactory[i].first = nullptr;
-			_krfactory[i].second = false;
+			_krfactory[i] = nullptr;
 		}
 	}
 
@@ -54,29 +53,22 @@ namespace Kite {
 
 	void KResourceManager::registerResource(RTypes RType, KResource *(*Func)(const std::string &)) {
 		auto index = (SIZE)RType;
-		// create dummy for checking catch stream
-		auto dummyRes = Func("dummy");
-		_krfactory[index] = std::make_pair(Func, dummyRes->getCatchStream());
-
-		delete dummyRes;
+		_krfactory[index] = Func;
 	}
 
-	KResource *KResourceManager::createOnFly(RTypes Type, const std::string &Name) {
-		// create new resource and return it
-		auto index = (SIZE)Type;
-		return _krfactory[index].first(Name);
-	}
-
-	KResource *KResourceManager::create(RTypes Type, const std::string &Name) {
+	KResource *KResourceManager::create(RTypes Type, const std::string &Name, bool OnFly) {
 		auto index = (SIZE)Type;
 
-		if (get(Name)) {
+		if (get(Name) && !OnFly) {
 			KD_FPRINT("this name is already exixst. rname: %s", Name.c_str());
 			return nullptr;
 		}
 
 		// create new resource and return it
-		auto newRes = _krfactory[index].first(Name);
+		auto newRes = _krfactory[index](Name);
+
+		// return on fly
+		if (OnFly) { return newRes; }
 
 		// increment refrence count
 		newRes->incRef();
@@ -86,7 +78,7 @@ namespace Kite {
 		std::transform(Name.begin(), Name.end(), tempKey.begin(), ::tolower);
 
 		// insert resource to address/map
-		_kmap.insert({ tempKey, {newRes , nullptr} });
+		_kmap.insert({ tempKey, newRes });
 
 		// post a message about new resource
 		KMessage msg;
@@ -97,73 +89,11 @@ namespace Kite {
 		return newRes;
 	}
 
-	KResource *KResourceManager::loadOnFly(KIStream *Stream, RTypes RType, const std::string &Address) {
-		auto rindex = (SIZE)RType;
-		bool CatchStream = _krfactory[rindex].second;
-
-		// checking file name
-		if (Address.empty()) {
-			KD_PRINT("empty Address is not valid");
-			return nullptr;
-		}
-
-		// first check our dictionary
-		bool isOnDict = false;
-		std::string ResName = Address;
-		auto dfound = _kdict.find(Address);
-
-		// using dictionary key
-		if (dfound != _kdict.end()) {
-			isOnDict = true;
-			ResName = dfound->second;
-		}
-
-		// create key from file name
-		// always we save original file address (not name) as a key
-		std::string tempKey(ResName);
-		std::transform(ResName.begin(), ResName.end(), tempKey.begin(), ::tolower);
-
-		// check stream
-		if (Stream == nullptr) {
-			KD_PRINT("Stream is nullptr.");
-			return nullptr;
-		}
-
-		// retrieving file name and path
-		KFileInfo finfo;
-		Stream->getFileInfoStr(ResName, finfo);
-
-		// create new resource and assocated input stream
-		KResource *resource = _krfactory[rindex].first(finfo.name);
-
-		// loading composite resources (recursive)
-		if (resource->isComposite()) {
-			if (!loadCompositeList(resource, *Stream, ResName)) {
-				KD_FPRINT("can't load composite resource. rname: %s", ResName.c_str());
-				delete resource;
-				return nullptr;
-			}
-		}
-
-		if (!resource->_loadStream(*Stream, ResName)) {
-			KD_FPRINT("can't load resource. rname: %s", ResName.c_str());
-			delete resource;
-			return nullptr;
-		}
-		resource->setAddress(finfo.path);
-
-		// increment refrence count
-		resource->incRef();
-
-		return resource;
-	}
-
 	KResource *KResourceManager::load(IStreamTypes SType, RTypes RType,
-									  const std::string &Address){
+									  const std::string &Address, bool OnFly){
 		
 		auto sindex = (SIZE)SType;
 		auto rindex = (SIZE)RType;
-		bool CatchStream = _krfactory[rindex].second;
 
 		// checking file name
 		if (Address.empty()) {
@@ -185,13 +115,15 @@ namespace Kite {
 		// create key from file name
 		// always we save original file address (not name) as a key
 		std::string tempKey(ResName);
-		std::transform(ResName.begin(), ResName.end(), tempKey.begin(), ::tolower);
+		if (!OnFly) {
+			std::transform(ResName.begin(), ResName.end(), tempKey.begin(), ::tolower);
 
-		// first, check our resource catch
-		auto found = _kmap.find(tempKey);
-		if (found != _kmap.end()) {
-			found->second.first->incRef();
-			return found->second.first;
+			// first, check our resource catch
+			auto found = _kmap.find(tempKey);
+			if (found != _kmap.end()) {
+				found->second->incRef();
+				return found->second;
+			}
 		}
 
 		// create stream
@@ -206,11 +138,11 @@ namespace Kite {
 		stream->getFileInfoStr(ResName, finfo);
 
 		// create new resource and assocated input stream
-		KResource *resource = _krfactory[rindex].first(finfo.name);
+		KResource *resource = _krfactory[rindex](finfo.name);
 
 		// loading composite resources (recursive)
 		if (resource->isComposite()) {
-			if (!loadCompositeList(resource, *stream, ResName)) {
+			if (!loadCompositeList(SType, resource, ResName, OnFly)) {
 				KD_FPRINT("can't load composite resource. rname: %s", ResName.c_str());
 				delete resource;
 				delete stream;
@@ -228,10 +160,9 @@ namespace Kite {
 
 		// stream lifetime
 		std::pair<KResource *, KIStream *> pair;
-		if (CatchStream) {
-			pair = std::make_pair(resource, stream);
+		if (resource->isCatchStream()) {
+			resource->setCatchStream(stream);
 		} else {
-			pair = std::make_pair(resource, nullptr);
 			stream->close();
 			delete stream;
 		}
@@ -239,17 +170,20 @@ namespace Kite {
 		// increment refrence count
 		resource->incRef();
 
-		// insert resource to address/map
-		_kmap.insert({ tempKey, pair });
+		if (!OnFly) {
+			// insert resource to address/map
+			_kmap.insert({ tempKey, resource });
 
-		// insert resource to name dictionary (will override last address with same name)
-		_kdict.insert({ finfo.name, finfo.fullPath });
+			// insert resource to name dictionary (will override last address with same name)
+			_kdict.insert({ finfo.name, finfo.fullPath });
 
-		// post a message about new resource
-		KMessage msg;
-		msg.setType("RES_LOAD");
-		msg.setData((void *)resource, sizeof(resource));
-		postMessage(&msg, MessageScope::ALL);
+
+			// post a message about new resource
+			KMessage msg;
+			msg.setType("RES_LOAD");
+			msg.setData((void *)resource, sizeof(resource));
+			postMessage(&msg, MessageScope::ALL);
+		}
 
 		return resource;
 	}
@@ -314,7 +248,7 @@ namespace Kite {
 		// check our resource catch
 		auto found = _kmap.find(tempKey);
 		if (found != _kmap.end()) {
-			return found->second.first;
+			return found->second;
 		}
 
 		KD_FPRINT("there is no resource with the given name. rname: %s", Name.c_str());
@@ -352,37 +286,37 @@ namespace Kite {
 			}*/
 
 			// dec ref counter
-			found->second.first->decRef();
+			found->second->decRef();
 
 			// check resource count
-			if (found->second.first->getReferencesCount() == 0 || Immediately) {
+			if (found->second->getReferencesCount() == 0 || Immediately) {
 
 				// post a message about unloaded resource
 				KMessage msg;
 				msg.setType("RES_UNLOAD");
-				msg.setData((void *)found->second.first, sizeof(found->second.first));
+				msg.setData((void *)found->second, sizeof(found->second));
 				postMessage(&msg, MessageScope::ALL);
 
-				auto type = found->second.first->getType();
+				auto type = found->second->getType();
 
 				// free resource
-				delete found->second.first;
+				// associated stream (catched) will deleted in resource destructure
+				delete found->second;
 
-				// free associated input stream 
-				if (found->second.second != nullptr) {
-					found->second.second->close();
-					delete found->second.second;
-				}
-
-				// erase pair from catch
+				// erase pair from map
 				// we dont need remove it from name\dictionary
 				_kmap.erase(found);
 
+				// send msg about this
 				msg.setType("RES_UNLOADED");
 				msg.setData((void *)&type, sizeof(RTypes));
 				postMessage(&msg, MessageScope::ALL);
 			}
-		}
+		} 
+	}
+
+	void KResourceManager::free(KResource *Resource) {
+		delete Resource;
 	}
 
 	const std::vector<KResource *> &KResourceManager::dump() {
@@ -391,7 +325,7 @@ namespace Kite {
 		res.reserve(_kmap.size());
 
 		for (auto it = _kmap.cbegin(); it != _kmap.cend(); ++it) {	
-			res.push_back(it->second.first);
+			res.push_back(it->second);
 		}
 
 		return res;
@@ -427,19 +361,14 @@ namespace Kite {
 			// post a message about unloaded resource
 			KMessage msg;
 			msg.setType("RES_UNLOAD");
-			msg.setData((void *)it->second.first, sizeof(it->second.first));
+			msg.setData((void *)it->second, sizeof(it->second));
 			postMessage(&msg, MessageScope::ALL);
 		}
 
 		for (auto it = _kmap.begin(); it != _kmap.end(); ++it) {
 			// free resource
-			delete it->second.first;
-
-			// free associated input stream 
-			if (it->second.second != nullptr) {
-				it->second.second->close();
-				delete it->second.second;
-			}
+			// associated stream (catched) will deleted in resource destructure
+			delete it->second;
 		}
 
 		// clear map
@@ -447,11 +376,14 @@ namespace Kite {
 		_kdict.clear();
 	}
 
-	bool KResourceManager::loadCompositeList(KResource *Res, KIStream &Stream, const std::string &Address) {
+	bool KResourceManager::loadCompositeList(IStreamTypes SType, KResource *Res, const std::string &Address, bool OnFly) {
 		std::vector<std::pair<std::string, RTypes>> plist;
 		KBinarySerial serializer;
-		if (!serializer.loadStream(Stream, Address + ".dep")) {
+		auto sindex = (SIZE)SType;
+		auto stream = _ksfactory[sindex]();
+		if (!serializer.loadStream(*stream, Address + ".dep")) {
 			KD_FPRINT("cant load resource composite list. rname: %s", Res->getName().c_str());
+			delete stream;
 			return false;
 		}
 		serializer >> plist;
@@ -459,19 +391,20 @@ namespace Kite {
 
 		// retrieving file name and path
 		KFileInfo finfo;
-		Stream.getFileInfoStr(Address, finfo);
+		stream->getFileInfoStr(Address, finfo);
+		delete stream;
 
 		// loading composite resources
 		for (auto it = plist.begin(); it != plist.end(); ++it) {
 
 			// case1: first we try load composite resources based our name\address dictionary
-			auto comp = load(Stream.getType(), it->second, it->first);
+			auto comp = load(SType, it->second, it->first, OnFly);
 			if (comp == nullptr) {
 
 				// case 2: then we try load it based parrent address
-				comp = load(Stream.getType(), it->second, finfo.path + "/" + it->first);
+				comp = load(SType, it->second, finfo.path + "/" + it->first, OnFly);
 				if (comp == nullptr) {
-					KD_FPRINT("cant load composite resource. composite name: %s", it->first.c_str());
+					KD_FPRINT("cant load composite resource. composite name: %s type: %s", it->first.c_str(), getRTypesName(it->second).c_str());
 					return false;
 				}
 			}

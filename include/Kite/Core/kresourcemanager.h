@@ -42,23 +42,23 @@ namespace Kite{
 		KResourceManager();
 		~KResourceManager();
 
-		/// cretae new resource and transfer its ownership to the caller
-		/// you can delete it by yourself
-		KResource *createOnFly(RTypes Type, const std::string &Name);
-
-		/// cretae new resource and register it to the manager
-		/// don't free it by yourself (use unload instead)
+		/// cretae new resource
+		/// OnFly resources will not register to the manager so you must free (delete) resource by yourself
+		/// or using free() in lua 
+		/// don't delete registered resource by yourself (use unload instead)
+		/// catched streams will deleted automatically on owner resource destructures
 		KM_FUN()
-		KResource *create(RTypes Type, const std::string &Name);
-
-		/// same as create on the fly but you can load an existing resource
-		KResource *loadOnFly(KIStream *Stream, RTypes RType, const std::string &Address);
+		KResource *create(RTypes Type, const std::string &Name, bool OnFly);
 
 		/// R: resource type
 		/// S: stream type
 		/// this function can use same as get function but will increment ref counter of source with each call
+		/// OnFly resources will not register to the manager so you must free (delete) resource by yourself
+		/// or using free() in lua 
+		/// don't delete registered resource by yourself (use unload instead)
+		/// catched streams will deleted automatically on owner resource destructures
 		KM_FUN()
-		KResource *load(IStreamTypes SType, RTypes RType, const std::string &Address);
+		KResource *load(IStreamTypes SType, RTypes RType, const std::string &Address, bool OnFly);
 
 		/// add a loadded resource to resource manager
 		/// pass stream if resource hase a catched stream 
@@ -93,15 +93,20 @@ namespace Kite{
 		void registerResource(RTypes RType, KResource *(*Func)(const std::string &));
 
 	private:
+		/// usage: deleting OnFly resources in lua
+		KM_FUN()
+		void free(KResource *Resource);
+
 		void initeRFactory();
-		bool loadCompositeList(KResource *Res, KIStream &Stream, const std::string &Address);
+		bool loadCompositeList(IStreamTypes SType, KResource *Res, const std::string &Address, bool OnFly);
 
 		// input stream factory methode
 		typedef KIStream *(*isFactory)();
+		typedef KResource *(*rFactory)(const std::string &);
 
 		std::unordered_map<std::string, std::string> _kdict;
-		std::unordered_map<std::string, std::pair<KResource *, KIStream *>> _kmap;
-		std::pair<KResource *(*)(const std::string &), bool> _krfactory[(SIZE)RTypes::maxSize];
+		std::unordered_map<std::string, KResource *> _kmap;
+		rFactory _krfactory[(SIZE)RTypes::maxSize];
 		isFactory _ksfactory[(SIZE)IStreamTypes::maxSize];
 	};
 }

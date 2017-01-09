@@ -42,27 +42,27 @@ namespace Kite{
 
 		virtual I32 seek(U64 Offset, I32 Origin) = 0;
 
-		virtual I64 tell() = 0;
+		virtual I64 tell() const = 0;
 
-		virtual I32 eof() = 0;
-
-		KM_FUN()
-		virtual U64 getSize() = 0;
+		virtual I32 eof() const = 0;
 
 		KM_FUN()
-		virtual bool isOpen() = 0;
+		virtual U64 getSize() const = 0;
+
+		KM_FUN()
+		virtual bool isOpen() const = 0;
 
 		KM_FUN()
 		virtual I32 close() = 0;
 
 		KM_FUN()
-		virtual const KFileInfo *getFileInfo() = 0;
+		virtual const KFileInfo *getFileInfo() const = 0;
 
 		KM_FUN()
-		virtual void getFileInfoStr(const std::string &Address, KFileInfo &FileInfo) = 0;
+		virtual void getFileInfoStr(const std::string &Address, KFileInfo &FileInfo) const = 0;
 
 		KM_FUN()
-		virtual IOMode getIOMode() = 0;
+		virtual IOMode getIOMode() const = 0;
 
 		/// will be implemented by KHParser
 		/// usage: access base class in lua

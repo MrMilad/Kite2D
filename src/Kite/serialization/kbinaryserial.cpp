@@ -61,7 +61,7 @@ namespace Kite {
 
 		// read data
 		const SIZE headerSize = sizeof(format);
-		_kdata.resize(Stream.getSize() - headerSize);
+		_kdata.resize((U32)Stream.getSize() - headerSize);
 		if (!Stream.read((void *)&_kdata[0], _kdata.size())) {
 			KD_PRINT("can't read data from stream");
 			Stream.close();

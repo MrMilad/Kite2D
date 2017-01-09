@@ -43,7 +43,8 @@ namespace Kite{
 
 		virtual ~KResource();
 
-		bool saveStream(KOStream &Stream, const std::string &Address, bool SaveDependency = false);
+		KM_FUN()
+		bool saveStream(KOStream &Stream, const std::string &Address, bool SaveDependency);
 
 		/// second phase initialization. (OpenGL, OpenAL, ... object initialization).
 		/// in the simple resources (ex: script) there is no need to implement this function. just return true.
@@ -83,8 +84,11 @@ namespace Kite{
 		KM_PRO_GET(KP_NAME = "isInite", KP_TYPE = bool)
 		inline bool isInite() const { return _kisInite; }
 
-		KM_PRO_GET(KP_NAME = "catchStream", KP_TYPE = bool)
-		inline bool getCatchStream() const { return _kcatchStream; }
+		KM_PRO_GET(KP_NAME = "isCatchStream", KP_TYPE = bool)
+		inline bool isCatchStream() const { return _kisCatchStream; }
+
+		KM_PRO_GET(KP_NAME = "catchStream", KP_TYPE = KIStream)
+		inline const KIStream *getCatchStream() const { return _kcatchStream; }
 
 	protected:
 		inline void setInite(bool Inite) { _kisInite = Inite; }
@@ -94,6 +98,7 @@ namespace Kite{
 	private:
 		inline void setName(const std::string &Name) { _kname = KStringID(Name); }
 		inline void setAddress(const std::string &Address) { _kaddress = Address; }
+		inline void setCatchStream(KIStream *Stream) { _kcatchStream = Stream; }
 		bool saveCompositeList(KOStream &Stream, const std::string &Address, bool SaveDependency);
 
 		/// use setCompositeList() in _saveStream()
@@ -106,13 +111,14 @@ namespace Kite{
 		inline void incRef() { ++_kref; }
 		inline void decRef() { _kref > 0 ? --_kref : _kref; }
 
-		bool _kcatchStream;
+		bool _kisCatchStream;
 		bool _kisInite;
 		bool _kcomposite;
 		U32 _kref;
 		KStringID _kname;
 		std::string _kaddress;
 		std::vector<KResource *> _kclist;
+		KIStream *_kcatchStream;
 	};
 }
 

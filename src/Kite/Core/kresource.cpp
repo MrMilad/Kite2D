@@ -28,13 +28,20 @@ USA
 
 namespace Kite {
 	KResource::KResource(const std::string &Name, bool CatchStream, bool IsComposite) :
-		_kcatchStream(CatchStream),
+		_kisCatchStream(CatchStream),
 		_kisInite(false),
 		_kcomposite(IsComposite),
 		_kname(Name),
+		_kcatchStream(nullptr),
 		_kref(0){}
 
-	KResource::~KResource() {};
+	KResource::~KResource() {
+		// free catched stream
+		if (_kcatchStream != nullptr) {
+			_kcatchStream->close();
+			delete _kcatchStream;
+		}
+	};
 
 	bool KResource::saveStream(KOStream &Stream, const std::string &Address, bool SaveDependency) {
 		if (!_saveStream(Stream, Address)) {
@@ -51,7 +58,7 @@ namespace Kite {
 	}
 
 	bool KResource::saveCompositeList(KOStream &Stream, const std::string &Address, bool SaveDependency) {
-		std::vector<std::pair<std::string, RTypes>> plist;
+		std::vector<std::pair<std::string, RTypes>> plist; // <name, type>
 		if (!_kclist.empty()) {
 			// address info
 			KFileInfo finfo;
@@ -63,7 +70,7 @@ namespace Kite {
 
 					// save resource itself
 					if (SaveDependency) {
-						if (!(*it)->saveStream(Stream, finfo.path + "/" + (*it)->getName())) {
+						if (!(*it)->saveStream(Stream, finfo.path + "/" + (*it)->getName(), true)) {
 							KD_FPRINT("cant save composite resource. rname: %s", (*it)->getName().c_str());
 							return false;
 						}

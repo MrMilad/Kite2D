@@ -80,21 +80,21 @@ namespace Kite{
 		return -1;
 	}
 
-	I64 KFIStream::tell() {
+	I64 KFIStream::tell() const {
 		if (_kfile != nullptr) {
 			return ftell(_kfile);
 		}
 		return -1;
 	}
 
-	bool KFIStream::isOpen() {
+	bool KFIStream::isOpen() const {
 		if (_kfile != nullptr) {
 			return true;
 		}
 		return false;
 	}
 
-	U64 KFIStream::getSize() {
+	U64 KFIStream::getSize() const {
 		if (_kfile){
 			long cur = ftell(_kfile);
 			fseek(_kfile, 0, SEEK_END);
@@ -105,7 +105,7 @@ namespace Kite{
 		return 0;
 	}
 
-	I32 KFIStream::eof() {
+	I32 KFIStream::eof() const {
 		if (_kfile != nullptr) {
 			return feof(_kfile);
 		}
@@ -120,7 +120,7 @@ namespace Kite{
 		return 0;
 	}
 
-	void KFIStream::getFileInfoStr(const std::string &Address, KFileInfo &FInfo) {
+	void KFIStream::getFileInfoStr(const std::string &Address, KFileInfo &FInfo) const {
 		// extract address info
 		SIZE pos = Address.find_last_of("/\\");
 		FInfo.fullPath = Address;

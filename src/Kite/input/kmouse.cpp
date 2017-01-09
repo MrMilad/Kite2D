@@ -76,7 +76,7 @@ namespace Kite{
     KVector2F32 KMouse::getPosition(){
 		KVector2I32 pos;
 		DSDL_CALL(SDL_GetMouseState(&pos.x, &pos.y));
-        return KVector2F32(pos.x, pos.y);
+        return KVector2F32((F32)pos.x, (F32)pos.y);
     }
 
 	KVector2I32 KMouse::getWheelValue() {

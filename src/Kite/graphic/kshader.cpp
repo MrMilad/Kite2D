@@ -128,7 +128,7 @@ namespace Kite{
 		// create buffer
 		SIZE rsize = 0;
 		char *buffer = (char*)malloc(sizeof(char) * KTEXT_BUFF_SIZE);
-		_kcode.reserve(Stream.getSize());
+		_kcode.reserve((U32)Stream.getSize());
 
 		// reading content
 		while (!Stream.eof()) {

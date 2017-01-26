@@ -45,7 +45,7 @@ namespace Kite {
 
 				// inite component and bind it to lua vm (only one time when current script changed with a new script)
 				if (lcomp->getResNeedUpdate()) {
-					if (!catchAndRegist(lcomp, RManager)) return false;
+					if (!catchAndRegist(lcomp)) return false;
 				}
 
 				// inite component (calling inite, only 1 time befor start)
@@ -100,7 +100,7 @@ namespace Kite {
 
 	void KLogicSys::destroy() { setInite(false); }
 
-	bool KLogicSys::catchAndRegist(KLogicCom *Component, KResourceManager *RManager) {
+	bool KLogicSys::catchAndRegist(KLogicCom *Component) {
 		// retrive script rsource from resource manager
 		Component->updateRes();
 		if (!Component->_kscript) {

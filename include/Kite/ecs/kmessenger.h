@@ -17,52 +17,45 @@ License along with this library; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 USA
 */
-#ifndef KFOSTREAM_H
-#define KFOSTREAM_H
+#ifndef KMESSENGER_H
+#define KMESSENGER_H
 
 #include "Kite/core/kcoredef.h"
-#include "Kite/core/kostream.h"
-#include "Kite/core/kcorestructs.h"
+#include "Kite/core/knoncopyable.h"
+#include "Kite/ecs/kecstypes.h"
+#include "Kite/ecs/kecsstructs.h"
+#include "Kite/ecs/klistener.h"
+#include "Kite/ecs/kmessage.h"
 #include "Kite/meta/kmetadef.h"
-#include "kfostream.khgen.h"
+#include <unordered_map>
+#include "kmessenger.khgen.h"
 
 KMETA
 namespace Kite {
-	KM_CLASS(OSTREAM, SCRIPTABLE)
-	class KITE_FUNC_EXPORT KFOStream : public KOStream {
-		KM_INFO(KI_NAME = "FOStream");
-		KMETA_KFOSTREAM_BODY();
+	KM_CLASS(SCRIPTABLE)
+	class KITE_FUNC_EXPORT KMessenger{
+		KMETA_KMESSENGER_BODY();
 	public:
 		KM_CON()
-		KFOStream();
+		KMessenger();
 
-		~KFOStream();
-
-		KM_FUN()
-		bool open(const std::string &Address, IOMode Type) override;
-
-		SIZE write(const void *Data, SIZE DataSize) const override;
+		virtual ~KMessenger();
 
 		KM_FUN()
-		bool isOpen() const override;
+		void invoke(KListener *Listener, const std::string &Type);
 
 		KM_FUN()
-		I32 close() override;
+		void cancelInvoke(KListener *Listener, const std::string &Type);
 
+	protected:
+		/// post message by its type (immediately)
+		/// return number of objects that recieved message
 		KM_FUN()
-		inline const KFileInfo *getFileInfo() override { return &_kfinfo; }
-
-		KM_FUN()
-		void getFileInfoStr(const std::string &Address, KFileInfo &FileInfo) override;
-
-		KM_FUN()
-		inline IOMode getIOMode() const override { return _kio; }
+		U32 postMessage(KMessage *Message, MessageScope Scope);
 
 	private:
-		KFileInfo _kfinfo;
-		IOMode _kio;
-		FILE *_kfile;
+		std::unordered_multimap<std::string, KListener *> _khndlMap;
 	};
 }
 
-#endif // KFOSTREAM_H
+#endif // KMESSENGER_H

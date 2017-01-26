@@ -30,13 +30,13 @@ namespace Kite{
     U32 Kite::KTexture::_klastTexId = 0;
 	KTexture::KTexture(const std::string &Name) :
 		KResource(Name, false, false),
+		_kclearImage(false),
         _ktexId(0),
         _kfilter(TextureFilter::LINEAR),
         _kwrap(TextureWrap::CLAMP_TO_EDGE),
-        _ksize(KVector2U32(0,0))
-    {
-		_kimage.create(1, 1, KColor(0, 0, 0, 255));
-	}
+        _ksize(KVector2U32(0,0)),
+		_kimage(nullptr)
+    {}
 
     KTexture::~KTexture(){
 		if (_ktexId != 0) {
@@ -63,7 +63,7 @@ namespace Kite{
 
 		Stream.close();
 
-		// texture pixels (we always pixels in png format)
+		// texture pixels (we always save pixels in png format)
 		// online pixel data (opengl side)
 		if (isInite()) {
 			// save currently binded texture then bind our texture temporary
@@ -130,18 +130,19 @@ namespace Kite{
 		return true;
 	}
 
-    void KTexture::create(const Kite::KVector2U32 &Size, TextureFilter Filter, TextureWrap Wrap){
+    void KTexture::createFromSize(const Kite::KVector2U32 &Size, TextureFilter Filter, TextureWrap Wrap){
 		_kfilter = Filter;
 		_kwrap = Wrap;
-		_kimage.create(Size.x, Size.y, KColor(0, 0, 0, 255));
+		_kimage = nullptr;
 		_ksize = Size;
     }
 
-    void KTexture::create(const KImage &Image, TextureFilter Filter, TextureWrap Wrap){
+    void KTexture::createFromImage(KImage *Image, TextureFilter Filter, TextureWrap Wrap, bool ClearImage){
 		_kfilter = Filter;
 		_kwrap = Wrap;
 		_kimage = Image;
-		_ksize = Image.getSize();
+		_kclearImage = ClearImage;
+		_ksize = Image->getSize();
     }
 
 	void KTexture::getImage(KImage &ImageOutput) const{
@@ -171,10 +172,21 @@ namespace Kite{
 		DGL_CALL(glGenTextures(1, &_ktexId));
 
 		// transfer pixel data from ram to vram (opengl texture)
-		_create(_kimage.getPixelsData(), _kimage.getSize(), _kfilter, _kwrap, *this);
+		// create from an image
+		if (_kimage) {
+			_create(_kimage->getPixelsData(), _kimage->getSize(), _kfilter, _kwrap, *this);
 
-		// release pixel data
-		_kimage.clear();
+			// clear pixel data
+			if (_kclearImage) {
+				_kimage->clear();
+			}
+
+		// create from size
+		} else {
+			KImage image("temp");
+			image.create(_ksize.x, _ksize.y, KColor(0, 0, 0, 0));
+			_create(image.getPixelsData(), image.getSize(), _kfilter, _kwrap, *this);
+		}
 
 		setInite(true);
 		return true;

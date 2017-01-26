@@ -17,99 +17,47 @@
     Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
     USA
 */
-#ifndef KCORETYPES_H
-#define KCORETYPES_H
+#ifndef KECSTYPES_H
+#define KECSTYPES_H
 
 #include "Kite/core/kcoredef.h"
 #include "Kite/meta/kmetadef.h"
-#include "kcoretypes.khgen.h"
+#include "kecstypes.khgen.h"
 
 KMETA
 namespace Kite{
 
-	/* Power Sourece State */
-	enum class PowerState : U8{
-		ACON = 0,
-		ACOFF,
-		UNKNOWN
+	KM_ENUM()
+	enum class RecieveTypes : U8 {
+		RECEIVED = 0,
+		IGNORED
 	};
+	KMETA_RECIEVETYPES_BODY();
 
-	/* Battery State */
-	/*enum KBatteryStateTypes{
-		KBS_USING,
-		KBS_CHARGING,
-		KBS_NOBATTERY,
-		KBS_UNKNOWN
+	KM_ENUM()
+	enum class UnloadMode : U8 {
+		NORMAL = 0,		// Normal: ref counter will decrased and resource will deleted if reached zero.
+		IMMEDIATELY		// Immediately: ref counter will ignored and resource will deleted immediately
+						// so careful about pointer dangling 
+	};
+	KMETA_UNLOADMODE_BODY();
+
+	/*enum class KComTypes : U8 {
+		KCT_GRAPHIC = 0,
+		KCT_AUDIO,
+		KCT_INPUT,
+		KCT_TRANSFORM,
+		KCT_LOGIC,
+		KCT_MAX_COMP_SIZE,
 	};*/
 
 	KM_ENUM()
-	enum class IOMode : U8{
-		BIN = 0,
-		TEXT
+	enum class MessageScope : U8 {
+		SELF = 0,
+		CHILDREN,
+		ALL
 	};
-	KMETA_IOMODE_BODY();
-
-	KM_ENUM()
-	enum class Primitive : U8 {
-		I8 = 0,
-		U8,
-		I16,
-		U16,
-		I32,
-		U32,
-		I64,
-		U64,
-		F32,
-		F64,
-		BOOL,
-		STR,
-		VPTR,
-		UNKNOWN
-	};
-	KMETA_PRIMITIVE_BODY();
-
-
-	enum class VectorComponent : U8{
-		X = 0,
-		Y = 1,
-		Z = 2,
-		W = 3
-	};
-
-	enum class CoreInstance : U8{
-		IMAGE = 0,
-		TEXTURE,
-		AUDIOBUFFER,
-		AUDIOSOURCE,
-		VAO,
-		VBO,
-		IBO,
-		PBO,
-		FBO,
-		SHADER,
-		SHPROGRAM,
-		WINDOW
-	};
-
-	/*enum class KResTypes : U8 {
-		TEXTURE = 0,
-		IMAGE,
-		AUDIOBUFFER,
-		AUDIOSOURCE,
-		SHADER,
-		SHPROGRAM,
-		ATLAS,
-		ANIMCLIP,
-		SCRIPT,
-		SCENE
-	};*/
-
-	enum class GridMapTrigger : U8 {
-		ENTER,
-		LEAVE
-	};
-
-	typedef void(*KCallGridMapTrigger)(void *Data, GridMapTrigger State);
+	KMETA_MESSAGESCOPE_BODY();
 
 	/*typedef U64(*KCallInputStreamRead)(void *Data, U64 DataSize);
 	typedef I32(*KCallInputStreamSeek)(I64 Offset, I32 Origin);

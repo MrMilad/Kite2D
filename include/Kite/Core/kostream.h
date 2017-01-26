@@ -38,10 +38,10 @@ namespace Kite {
 		KM_FUN()
 		virtual bool open(const std::string &Address, IOMode Type) = 0;
 
-		virtual SIZE write(const void *Data, SIZE DataSize) = 0;
+		virtual SIZE write(const void *Data, SIZE DataSize) const = 0;
 
 		KM_FUN()
-		virtual bool isOpen() = 0;
+		virtual bool isOpen() const = 0;
 
 		KM_FUN()
 		virtual I32 close() = 0;
@@ -54,11 +54,11 @@ namespace Kite {
 
 
 		KM_FUN()
-		virtual IOMode getIOMode() = 0;
+		virtual IOMode getIOMode() const = 0;
 
 		/// will be implemented by KHParser
 		/// usage: access base class in lua
-		virtual KOStream *getBase() = 0;
+		virtual KOStream *getBase() const = 0;
 
 		/// will be implemented by KHParser
 		virtual inline OStreamTypes getType() const = 0;

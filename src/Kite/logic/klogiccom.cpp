@@ -22,7 +22,7 @@ USA
 #include "Kite/meta/kmetamanager.h"
 #include "Kite/meta/kmetaclass.h"
 #include "Kite/meta/kmetatypes.h"
-#include "Kite/core/kresourcemanager.h"
+#include "Kite/ecs/kresourcemanager.h"
 #include "Kite/serialization/types/kstdstring.h"
 #include <luaintf/LuaIntf.h>
 #ifdef KITE_DEV_DEBUG

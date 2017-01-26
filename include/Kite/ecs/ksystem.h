@@ -17,12 +17,40 @@ License along with this library; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 USA
 */
-#include "Kite/core/kcoretypes.h"
-#include "Kite/meta/kmetamanager.h"
-#include "Kite/meta/kmetaenum.h"
-#include <luaintf/LuaIntf.h>
+#ifndef KSYSTEM_H
+#define KSYSTEM_H
 
+#include "Kite/core/kcoredef.h"
+#include "Kite/core/kresourcemanager.h"
+#include "Kite/ecs/kentitymanager.h"
+#include "Kite/meta/kmetadef.h"
+#include "ksystem.khgen.h"
+
+KMETA
 namespace Kite {
-	KMETA_IOMODE_SOURCE();
-	KMETA_PRIMITIVE_SOURCE();
+	KM_CLASS(SYSTEM, ABSTRACT)
+	class KITE_FUNC_EXPORT KSystem{
+		KMETA_KSYSTEM_BODY();
+	public:
+		KSystem();
+
+		virtual ~KSystem();
+
+		// delta is based seconds
+		virtual bool update(F64 Delta, KEntityManager *EManager, KResourceManager *RManager) = 0;
+
+		virtual bool inite(void *Data) = 0;
+
+		virtual void destroy() = 0;
+
+		inline bool isInite() const { return _kisinite; }
+
+	protected:
+		inline void setInite(bool Inite) { _kisinite = Inite; }
+
+	private:
+		bool _kisinite;
+	};
 }
+
+#endif // KSYSTEM_H

@@ -50,6 +50,7 @@ namespace Kite{
     public:
 
 		//! Constructs an 1x1 texture object.
+		KM_CON(std::string)
         KTexture(const std::string &Name);
 
 		//! Destructor
@@ -61,7 +62,8 @@ namespace Kite{
 			\param Filter of texture
 			\param Wrap Wrap of texture
 		*/
-        void create(const KVector2U32 &Size ,TextureFilter Filter, TextureWrap Wrap);
+		KM_FUN()
+        void createFromSize(const KVector2U32 &Size ,TextureFilter Filter, TextureWrap Wrap);
 
 		//! Create the texture from an image
 		/*!
@@ -71,9 +73,12 @@ namespace Kite{
 			\param Image Image to load into the texture
 			\param Filter of texture
 			\param Wrap Wrap of texture
+			\param ClearImage Clear image data after texture initialization
 		*/
-        void create(const KImage &Image, TextureFilter Filter, TextureWrap Wrap);
+		KM_FUN()
+        void createFromImage(KImage *Image, TextureFilter Filter, TextureWrap Wrap, bool ClearImage);
 
+		KM_FUN()
 		void getImage(KImage &ImageOutput) const;
 
 		bool inite() override;
@@ -89,24 +94,30 @@ namespace Kite{
 			\param Image Image to copy into the texture
 			\param Position in the texture where to copy the source pixels
 		*/
+		KM_FUN()
 		void update(const KImage &Image, const KVector2U32 &Position);
 
+		KM_PRO_GET(KP_NAME = "width", KP_TYPE = U32, KP_CM = "width of the texture")
 		inline U32 getWidth() const { return _ksize.x; }
 
+		KM_PRO_GET(KP_NAME = "height", KP_TYPE = U32, KP_CM = "height of the texture")
 		inline U32 getHeight() const { return _ksize.y; }
 
+		KM_PRO_GET(KP_NAME = "size", KP_TYPE = KVector2U32, KP_CM = "size of the texture")
 		inline const KVector2U32 &getSize() const { return _ksize; }
 
 		//! Get filter of the texture
 		/*!
 			\return Filter of the texture
 		*/
+		KM_PRO_GET(KP_NAME = "filter", KP_TYPE = TextureFilter, KP_CM = "filter of the texture")
         inline TextureFilter getFilter() const {return _kfilter;}
 
 		//! Get wrap of the texture
 		/*!
 			\return Filter of the texture
 		*/
+		KM_PRO_GET(KP_NAME = "wrap", KP_TYPE = TextureWrap, KP_CM = "wrap of the texture")
         inline TextureWrap getWrap() const {return _kwrap;}
 
 		//! Get OpenGL ID of the texture
@@ -115,6 +126,7 @@ namespace Kite{
 
 			\return OpenGL ID of the texture
 		*/
+		KM_PRO_GET(KP_NAME = "glid", KP_TYPE = U32, KP_CM = "opengl id of the texture")
         inline U32 getGLID() const {return _ktexId;}
 
 		//! Set texture filtering
@@ -123,6 +135,7 @@ namespace Kite{
 
 			\param Filter Filter of the texture
 		*/
+		KM_PRO_SET(KP_NAME = "filter")
         void setFilter(TextureFilter Filter);
 
 		//! Set texture wraping
@@ -131,6 +144,7 @@ namespace Kite{
 
 			\param Wrap Wrap of the texture
 		*/
+		KM_PRO_SET(KP_NAME = "wrap")
         void setWrap(TextureWrap Wrap);
 
 		//! Bind the texture
@@ -155,11 +169,13 @@ namespace Kite{
         static void _create(const U8 *Data, const KVector2U32 &Size,
                             TextureFilter Filter, TextureWrap Wrap, KTexture &Instance);
 
+		bool _kclearImage;		//!< clear image after texture initializaton
         U32 _ktexId;			//!< ogl texture name
         TextureFilter _kfilter;	//!< Texture interpolation
         TextureWrap _kwrap;		//!< Texture wrapping
         KVector2U32 _ksize;		//!< Size of texture
-		KImage _kimage;			//!< Offline pixel data
+
+		KImage *_kimage;		//!< Offline pixel data
 		static U32 _klastTexId;	//!< Static last texture ID
     };
 }

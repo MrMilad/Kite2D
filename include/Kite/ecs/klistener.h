@@ -17,12 +17,36 @@ License along with this library; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 USA
 */
-#include "Kite/core/kcoretypes.h"
-#include "Kite/meta/kmetamanager.h"
-#include "Kite/meta/kmetaenum.h"
-#include <luaintf/LuaIntf.h>
+#ifndef KKLISTENER_H
+#define KKLISTENER_H
 
+#include "Kite/core/kcoredef.h"
+#include "Kite/ecs/kecstypes.h"
+#include "Kite/ecs/kmessage.h"
+#include "Kite/meta/kmetadef.h"
+#include "klistener.khgen.h"
+
+KMETA
 namespace Kite {
-	KMETA_IOMODE_SOURCE();
-	KMETA_PRIMITIVE_SOURCE();
+	KM_CLASS(SCRIPTABLE)
+	class KITE_FUNC_EXPORT KListener {
+		KMETA_KLISTENER_BODY();
+	public:
+		KListener();
+		virtual ~KListener();
+
+		virtual RecieveTypes onMessage(KMessage *Message, MessageScope Scope) = 0;
+
+		KM_PRO_GET(KP_NAME = "Enable", KP_TYPE = bool, KP_CM = "enable/disable recieving message")
+		inline bool getEnableRecieveMsg() const { return _kenable; }
+
+		KM_PRO_SET(KP_NAME = "Enable")
+		inline void setEnableRecieveMsg(bool Value) { _kenable = Value; }
+
+	private:
+		bool _kenable;
+	};
 }
+
+
+#endif // KKLISTENER_H

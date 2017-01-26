@@ -20,15 +20,21 @@
 #include "Kite/graphic/kimage.h"
 #include "src/Kite/graphic/imageio.h"
 #include <cstring>
+#include "Kite/meta/kmetamanager.h"
+#include "Kite/meta/kmetaclass.h"
+#include <luaintf/LuaIntf.h>
 
 namespace Kite{
-    KImage::KImage():
+    KImage::KImage(const std::string &Name):
+		KResource(Name, false, false),
         _ksize(0,0)
     {}
 
     KImage::~KImage(){}
 
-    void KImage::create(U32 Width, U32 Height, const KColor &Color){
+	bool KImage::inite() { return true; }
+
+    void KImage::createFromColor(U32 Width, U32 Height, const KColor &Color){
         if (Width && Height){
             // assign the new size
             _ksize.x = Width;
@@ -54,7 +60,7 @@ namespace Kite{
         }
     }
 
-    void KImage::create(U32 Width, U32 Height, const U8 *Pixels){
+    void KImage::createFromPixels(U32 Width, U32 Height, const U8 *Pixels){
         if (Pixels && Width && Height){
             // assign the new size
             _ksize.x = Width;
@@ -72,11 +78,11 @@ namespace Kite{
         }
     }
 
-	bool KImage::loadStream(KIStream &Stream, const std::string& Address) {
+	bool KImage::_loadStream(KIStream &Stream, const std::string& Address) {
 		return Internal::ImageIO::readFromStream(Stream, Address, _kpixels, _ksize);
 	}
 
-    bool KImage::saveStream(KOStream &Stream, const std::string& Address){
+    bool KImage::_saveStream(KOStream &Stream, const std::string& Address){
 		return Internal::ImageIO::writeToStream(Stream, Address, _kpixels, _ksize);
     }
 
@@ -147,4 +153,6 @@ namespace Kite{
 		_ksize.x = 0;
 		_ksize.y = 0;
 	}
+
+	KMETA_KIMAGE_SOURCE();
 }

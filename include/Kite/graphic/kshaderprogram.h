@@ -49,11 +49,15 @@ namespace Kite{
 		/*!
 		This constructor creates an invalid shader program.
 		*/
+		KM_CON(std::string)
 		KShaderProgram(const std::string &Name);
+
 		~KShaderProgram();
 
 		/// pass nullptr for removing current shader
+		KM_FUN()
 		bool setShader(KShader *Shader, ShaderType Type);
+
 
 		const KShader *getShader(ShaderType Type);
 
@@ -64,6 +68,7 @@ namespace Kite{
 		\param Index The index of the generic vertex attribute to be bound.
 		\param Name a null terminated string containing the name of the vertex shader attribute variable to which index is to be bound
 		*/
+		KM_FUN()
 		void bindAttribute(U16 Index, const std::string &Name);
 
 		// note: We MUST have a valid rendering context before calling inite
@@ -74,24 +79,27 @@ namespace Kite{
 		/*!
 		// note: We MUST have a valid rendering context before link
 		// the program or it causes a segfault!
-		// note call inite befor calling this function
+		// note: call inite befor calling this function
 
 		\return True if linking was successful
 		*/
 		bool link();
 
+		KM_FUN()
 		inline bool isLinked() const { return _klinked; }
 
 		//! Get location of the uniform in the shader
 		/*!
 		\return return -1 if failed
 		*/
+		KM_FUN()
 		I16 getUniformLocation(const std::string &ParamName) const;
 
 		//! Get location of the attribute in the shader
 		/*!
 		\return return -1 if failed
 		*/
+		KM_FUN()
 		I16 getAttributeLocation(const std::string &ParamName) const;
 
 		//! Set a float parameter of the shader
@@ -99,7 +107,8 @@ namespace Kite{
 		\param Location Location of parameter in the shader
 		\param Value Value to assign
 		*/
-		void setParam(I16 Location, F32 Value) const;
+		KM_FUN()
+		void setParam1(I16 Location, F32 Value) const;
 
 		//! Set a 2x1 vector (vec2 in GLSL) parameter of the shader
 		/*!
@@ -107,7 +116,8 @@ namespace Kite{
 		\param Value1 First component of the value to assign
 		\param Value2 Second component of the value to assign
 		*/
-		void setParam(I16 Location, F32 Value1, F32 Value2) const;
+		KM_FUN()
+		void setParam2(I16 Location, F32 Value1, F32 Value2) const;
 
 		//! Set a 3x1 vector (vec3 in GLSL) parameter of the shader
 		/*!
@@ -116,7 +126,8 @@ namespace Kite{
 		\param Value1 Second component of the value to assign
 		\param Value3 Third component of the value to assign
 		*/
-		void setParam(I16 Location, F32 Value1, F32 Value2, F32 Value3) const;
+		KM_FUN()
+		void setParam3(I16 Location, F32 Value1, F32 Value2, F32 Value3) const;
 
 		//! Set a 4x1 vector (vec4 in GLSL) parameter of the shader
 		/*!
@@ -126,7 +137,7 @@ namespace Kite{
 		\param Value3 Third component of the value to assign
 		\param Value4 Fourth component of the value to assign
 		*/
-		void setParam(I16 Location, F32 Value1, F32 Value2, F32 Value3, F32 Value4) const;
+		void setParam4(I16 Location, F32 Value1, F32 Value2, F32 Value3, F32 Value4) const;
 
 		//! Set a color parameter of the shader
 		/*!
@@ -135,7 +146,7 @@ namespace Kite{
 		\param Location Location of parameter in the shader
 		\param Color Color to assign
 		*/
-		void setParam(I16 Location, const KColor& Color) const;
+		void setParamColor(I16 Location, const KColor& Color) const;
 
 		/// pass current texture
 		//void setParam(I16 Location, KShaderTextureTypes Texture);

@@ -269,33 +269,33 @@ namespace Kite{
 		return -1;
 	}
 
-	void KShaderProgram::setParam(Kite::I16 Location, F32 Value) const{
+	void KShaderProgram::setParam1(Kite::I16 Location, F32 Value) const{
 		if (_kprogId && Location >= 0){
 			// get parameter location and assign it new values
 			DGL_CALL(glUniform1fARB(Location, Value));
 		}
 	}
 
-	void KShaderProgram::setParam(Kite::I16 Location, F32 Value1, F32 Value2) const{
+	void KShaderProgram::setParam2(Kite::I16 Location, F32 Value1, F32 Value2) const{
 		if (_kprogId && Location >= 0){
 			DGL_CALL(glUniform2fARB(Location, Value1, Value2));
 		}
 	}
 
-	void KShaderProgram::setParam(Kite::I16 Location, F32 Value1, F32 Value2, F32 Value3) const{
+	void KShaderProgram::setParam3(Kite::I16 Location, F32 Value1, F32 Value2, F32 Value3) const{
 		if (_kprogId && Location >= 0){
 			DGL_CALL(glUniform3fARB(Location, Value1, Value2, Value3));
 		}
 	}
 
-	void KShaderProgram::setParam(Kite::I16 Location, F32 Value1, F32 Value2, F32 Value3, F32 Value4) const{
+	void KShaderProgram::setParam4(Kite::I16 Location, F32 Value1, F32 Value2, F32 Value3, F32 Value4) const{
 		if (_kprogId && Location >= 0){
 			DGL_CALL(glUniform4fARB(Location, Value1, Value2, Value3, Value4));
 		}
 	}
 
-	void KShaderProgram::setParam(Kite::I16 Location, const KColor& Color) const{
-		setParam(Location, Color.getGLR(), Color.getGLG(), Color.getGLB(), Color.getGLA());
+	void KShaderProgram::setParamColor(Kite::I16 Location, const KColor& Color) const{
+		setParam4(Location, Color.getGLR(), Color.getGLG(), Color.getGLB(), Color.getGLA());
 	}
 
 	void KShaderProgram::bind() const{

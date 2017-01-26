@@ -65,14 +65,14 @@ namespace Kite {
 		return true;
 	}
 
-	SIZE KFOStream::write(const void *Data, SIZE DataSize) {
+	SIZE KFOStream::write(const void *Data, SIZE DataSize) const {
 		if (_kfile != nullptr) {
 			return fwrite(Data, 1, (size_t)DataSize, _kfile);
 		}
 		return 0;
 	}
 
-	bool KFOStream::isOpen() {
+	bool KFOStream::isOpen() const {
 		if (_kfile != nullptr) {
 			return true;
 		}

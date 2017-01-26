@@ -148,14 +148,14 @@ namespace Kite{
 						return B.first->getZOrder() < A.first->getZOrder();
 					});
 				}
-						
+				
 				// render objects list
 				for (auto oit = objList.begin(); oit != objList.end(); ++oit){
 					auto ent = oit->first;
 
 					// inite materials
 					if (oit->second->getMatNeedUpdate()) {
-						if (!_initeMaterials(RManager, oit->second)) {
+						if (!_initeMaterials(oit->second)) {
 							KD_FPRINT("cant init material. entity name: %s", ent->getName().c_str());
 							return false;
 						}
@@ -413,7 +413,7 @@ namespace Kite{
 		}
 	}
 
-	bool KRenderSys::_initeMaterials(KResourceManager*RMan, KRenderable *Com) {
+	bool KRenderSys::_initeMaterials(KRenderable *Com) {
 		// all renderables must have shader program
 		auto shader = Com->getShaderProg();
 		if (!shader) {

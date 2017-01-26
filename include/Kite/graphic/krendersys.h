@@ -57,7 +57,7 @@ namespace Kite{
 	private:
 		void _initeFrameBuffer(KAtlasTextureArray *Texture, U32 Index); // render to texture
 		void _fillRenderList(KEntityManager *Eman, std::vector<std::pair<KEntity *, KRenderable *>> &Output);
-		bool _initeMaterials(KResourceManager*RMan, KRenderable *Com);
+		bool _initeMaterials(KRenderable *Com);
 		bool _checkState(KRenderable *Rendeable);
 		void _initeQuadIndex(std::vector<U16> *Buffer);
 		void _computeParentsTransform(KEntityManager *Eman, KEntity *Entity, KMatrix3 *Matrix);

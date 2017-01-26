@@ -76,6 +76,9 @@ namespace Kite{
 
 		/// will be implemented by KHParser
 		virtual inline U32 getHashType() const = 0;
+
+		/// will be implemented by KHParser
+		virtual KIStream *clone() const = 0;
 	};
 }
 

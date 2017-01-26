@@ -21,10 +21,10 @@ USA
 #define KLOGICCOM_H
 
 #include "Kite/core/kcoredef.h"
-#include "Kite/core/kcomponent.h"
+#include "Kite/ecs/kcomponent.h"
+#include "Kite/ecs/kentity.h"
 #include "Kite/meta/kmetadef.h"
 #include "Kite/logic/kscript.h"
-#include "Kite/core/kentity.h"
 #include <string>
 #include "klogiccom.khgen.h"
 
@@ -50,7 +50,7 @@ namespace Kite {
 		KM_PRO_SET(KP_NAME = "script")
 		void setScript(const KStringID &ResName);
 		
-		KM_PRO_GET(KP_NAME = "script", KP_TYPE = KStringID, KP_CM = "name of the lua script resource", KP_RES = RTypes::Script)
+		KM_PRO_GET(KP_NAME = "script", KP_TYPE = KStringID, KP_CM = "name of the lua script", KP_RES = RTypes::Script)
 		inline const KStringID &getScript() const { return _kscriptName; }
 
 		bool updateRes() override;

@@ -17,15 +17,17 @@ License along with this library; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 USA
 */
-#include "Kite/core/kcorestructs.h"
+#include "Kite/core/kcoreutil.h"
 #include "Kite/meta/kmetamanager.h"
 #include "Kite/meta/kmetaclass.h"
-#include "Kite/core/kcoreutil.h"
 #include "Kite/serialization/kserialization.h"
 #include "Kite/serialization/types/kstdstring.h"
 #include <luaintf\LuaIntf.h>
+#include "Kite/ecs/kecsstructs.h"
 
+KMETA
 namespace Kite {
+	KMETA_KHANDLE_SOURCE();
 	//KMETA_KFILEINFO_SOURCE();
 
 	KStringID::KStringID(const std::string &String) :

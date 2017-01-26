@@ -17,12 +17,31 @@ License along with this library; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 USA
 */
-#include "Kite/core/kcoretypes.h"
+#include "Kite/core/kcoreutil.h"
+#include "Kite/ecs/kcomponent.h"
+#include "Kite/ecs/kresourcemanager.h"
 #include "Kite/meta/kmetamanager.h"
-#include "Kite/meta/kmetaenum.h"
-#include <luaintf/LuaIntf.h>
+#include "Kite/meta/kmetaclass.h"
+#include "Kite/serialization/types/kstdstring.h"
+#include <luaintf\LuaIntf.h>
 
 namespace Kite {
-	KMETA_IOMODE_SOURCE();
-	KMETA_PRIMITIVE_SOURCE();
+	KResourceManager *KComponent::_krman = nullptr;
+	KComponent::KComponent(const std::string &Name) :
+#ifdef KITE_EDITOR
+		sceneItem(nullptr),
+#endif
+		_kremoveNoDep(false),
+		_krefcounter(0),
+		_kname(Name),
+		_kresNeedup(true)
+	{}
+
+	KComponent::~KComponent() {}
+
+	bool KComponent::updateRes() { return true; }
+
+	KResourceManager * KComponent::getRMan() { return _krman; }
+
+	KMETA_KCOMPONENT_SOURCE();
 }

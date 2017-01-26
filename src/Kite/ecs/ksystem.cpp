@@ -17,12 +17,16 @@ License along with this library; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 USA
 */
-#include "Kite/core/kcoretypes.h"
+#include "Kite/ecs/ksystem.h"
 #include "Kite/meta/kmetamanager.h"
-#include "Kite/meta/kmetaenum.h"
-#include <luaintf/LuaIntf.h>
+#include "Kite/meta/kmetaclass.h"
+#include <luaintf\LuaIntf.h>
 
 namespace Kite {
-	KMETA_IOMODE_SOURCE();
-	KMETA_PRIMITIVE_SOURCE();
+	KSystem::KSystem() :
+		_kisinite(false) {}
+
+	KSystem::~KSystem() {}
+
+	KMETA_KSYSTEM_SOURCE();
 }

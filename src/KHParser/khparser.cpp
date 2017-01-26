@@ -2095,17 +2095,22 @@ void createMacros(const std::vector<MClass> &Cls, const std::vector<MEnum> &Enms
 
 		// (base, lua cast, type)
 		if ((isIStream || isOStream || isComponent || isResource) && !isAbstract) {
-			Output.append("public:\\\n" +
-						  exstate + "inline " + enumType + " getType() const override { return " + enumType + "::" + shortName + "; }\\\n" +
-						  exstate + "inline std::string getTypeName() const override { return \"" + shortName + "\"; }\\\n" +
-						  exstate + "inline U32 getHashType() const override { return " + hash + "; }\\\n" +
-						  "private:\\\n" +
+			Output.append("private:\\\n" +
 						  exstate + "static " + Cls[i].name + " *to" + shortName + "(" + baseName + " *Base) {\\\n" +
 						  "if (Base != nullptr){\\\n"
 						  "if (Base->getHashType() == " + hash + ") {\\\n"
 						  "return (" + Cls[i].name + " *)Base; }};\\\n" +
 						  "return nullptr; }\\\n" +
-						  exstate + "inline " + baseName + " *getBase() override { return this; }\\\n");
+						  exstate + "inline " + baseName + " *getBase() const override { return (" + baseName + " *) this; }\\\n" +
+						  "public:\\\n" +
+						  exstate + "inline " + enumType + " getType() const override { return " + enumType + "::" + shortName + "; }\\\n" +
+						  exstate + "inline std::string getTypeName() const override { return \"" + shortName + "\"; }\\\n" +
+						  exstate + "inline U32 getHashType() const override { return " + hash + "; }\\\n");
+			// clone
+			if (isIStream) {
+				Output.append(exstate + baseName + " *clone() const override { return (" +
+							  baseName + " *)new " + Cls[i].name + "(); }\\\n");
+			}
 		}
 
 		Output.append("public:\\\n" +
@@ -2588,17 +2593,17 @@ void createHead(std::string &Output) {
 	Output.append("#ifndef KMETA_H\n"
 				  "#define KMETA_H\n\n"
 				  "#include \"Kite/core/kcoredef.h\"\n"
-				  "#include \"Kite/core/ksystem.h\"\n"
+				  "#include \"Kite/ecs/ksystem.h\"\n"
 				  "#include \"Kite/meta/kmetadef.h\"\n\n"
 				  "#include <vector>\n"
 				  "#include <memory>\n"
 				  "KMETA\n"
 				  "namespace Kite{\n"
 				  "class KMetaManager;\n"
-				  "class KEntityManager;\n"
+				  "class KScene;\n"
 				  "class KResourceManager;\n"
 				  "KITE_FUNC_EXPORT extern void registerKiteMeta(KMetaManager *MMan = nullptr, lua_State *Lua = nullptr);\n"
-				  "KITE_FUNC_EXPORT extern void registerCTypes(KEntityManager *EMan);\n"
+				  "KITE_FUNC_EXPORT extern void registerCTypes(KScene *Scene);\n"
 				  "KITE_FUNC_EXPORT extern void registerRTypes(KResourceManager *RMan);\n"
 				  "KITE_FUNC_EXPORT extern void createSystems(std::vector<std::unique_ptr<KSystem>> &Systems);\n");
 	Output.append("}\n#endif // KITEMETA_H");
@@ -2683,10 +2688,10 @@ void createSource(const std::vector<std::string> &Files, const std::vector<MClas
 	}
 
 	// register component types
-	Output.append("void registerCTypes(KEntityManager *EMan){\n");
+	Output.append("void registerCTypes(KScene *Scene){\n");
 
 	for (auto it = comList.begin(); it != comList.end(); ++it){
-		Output.append("EMan->registerComponent<" + it->first + ">(" + COM_ENUM_NAME + "::" + it->second + ");\n");
+		Output.append("Scene->registerComponent<" + it->first + ">(" + COM_ENUM_NAME + "::" + it->second + ");\n");
 	}
 
 	// end of ctypes

@@ -21,7 +21,7 @@ USA
 #define KLOGICSYS_H
 
 #include "Kite/core/kcoredef.h"
-#include "Kite/core/ksystem.h"
+#include "Kite/ecs/ksystem.h"
 #include "Kite/meta/kmetadef.h"
 #include "klogicsys.khgen.h"
 
@@ -39,7 +39,7 @@ namespace Kite {
 		void destroy() override;
 
 	private:
-		bool catchAndRegist(KLogicCom *Component, KResourceManager *RManager);
+		bool catchAndRegist(KLogicCom *Component);
 		bool initeComp(KEntity *Self, KLogicCom *Comp);
 		bool updateAll(F64 Delta);
 		lua_State *_klvm;

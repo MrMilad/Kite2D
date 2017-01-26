@@ -24,13 +24,17 @@
 
 #include "Kite/core/kcoredef.h"
 #include "Kite/math/kmathstructs.h"
+#include "Kite/core/kresource.h"
+#include "Kite/meta/kmetadef.h"
 #include "Kite/graphic/kgraphicstructs.h"
 #include <string>
 #include <vector>
+#include "kimage.khgen.h"
 
 /*! \namespace Kite
 	\brief Public namespace.
 */
+KMETA
 namespace Kite{
 
 	//! The KImage class allow loading/saving image files and manipulating image data.
@@ -38,13 +42,20 @@ namespace Kite{
 		This class can create the image with only size and color of pixels,
 		or read and decode PNG, BMP, TGA formats from a file or memory or a input stream and also write that formats into a file.
 	*/
-    class KITE_FUNC_EXPORT KImage{
+	KM_CLASS(RESOURCE)
+    class KITE_FUNC_EXPORT KImage : public KResource{
+		KM_INFO(KI_NAME = "Image");
+
+		KMETA_KIMAGE_BODY();
     public:
 		//! Constructs an empty image object.
-        KImage();
+		KM_CON(std::string)
+        KImage(const std::string &Name);
 
 		//! Destructor
         ~KImage();
+
+		bool inite() override;
 
 		//! Create the image with the specific size and color
 		/*!
@@ -52,7 +63,8 @@ namespace Kite{
 			\param Height Height of the image (in pixels)
 			\param Color Color of the pixels
 		*/
-        void create(U32 Width, U32 Height, const KColor &Color);
+		KM_FUN()
+        void createFromColor(U32 Width, U32 Height, const KColor &Color);
 
 		//! Create the image with the specific size and color
 		/*!
@@ -65,27 +77,8 @@ namespace Kite{
 			\param Height Height of the image (in pixels)
 			\param Pixels Array of pixels to copy to the image
 		*/
-        void create(U32 Width, U32 Height, const U8 *Pixels);
-
-		//! Read and decode pixels from input stream.
-		/*!
-			\param Stream Input stream.
-			\param FileTypes Type of file. set 0 for any type.
-
-			\return True if loading was successful
-		*/
-		bool loadStream(KIStream &Stream, const std::string& Address);
-
-		//! Encode and write pixels to output stream.
-		/*!
-			Supported formats: PNG, BMP, TGA.
-
-			\param Stream Input stream.
-			\param FileName Address of the file on the disk
-
-			\return True if saving was successful
-		*/
-        bool saveStream(KOStream &Stream, const std::string& Address);
+		KM_FUN()
+        void createFromPixels(U32 Width, U32 Height, const U8 *Pixels);
 
 		//! Create a transparency mask from a specified color - key
 		/*!
@@ -95,12 +88,15 @@ namespace Kite{
 			\param Color Color to make transparent
 			\param Alpha Alpha value to assign to transparent pixels
 		*/
+		KM_FUN()
         void makeColorMask(const KColor& Color, U8 Alpha = 0);
 
 		//! Flip the image horizontally (left <-> right)
+		KM_FUN()
         void flipH();
 
 		//! Flip the image vertically (top <-> bottom)
+		KM_FUN()
         void flipV();
 
 		//! Change the color of a pixel
@@ -111,6 +107,7 @@ namespace Kite{
 			\param Position Coordinate of pixel
 			\param Color New color of the pixel
 		*/
+		KM_FUN()
         void setPixel(KVector2U32 Position, const KColor &Color);
 
 		//! Get the color of a pixel
@@ -121,18 +118,23 @@ namespace Kite{
 			\param Position Coordinate of pixel
 			\return Color of the color
 		*/
+		KM_FUN()
         KColor getPixel(KVector2U32 Position) const;
 
 		//! Get the width of the image
 		/*!
 			\return The width of the image
 		*/
+		KM_PRO_GET(KP_NAME = "width", KP_TYPE = U32, KP_CM = "width of the image")
         inline U32 getWidth() const {return _ksize.x;}
 
+		KM_PRO_GET(KP_NAME = "height", KP_TYPE = U32, KP_CM = "height of the image")
 		inline U32 getHeight() const { return _ksize.y; }
 
+		KM_PRO_GET(KP_NAME = "size", KP_TYPE = KVector2U32, KP_CM = "size of the image")
 		inline const KVector2U32 &getSize() const { return _ksize; }
 
+		KM_PRO_GET(KP_NAME = "dataSize", KP_TYPE = SIZE, KP_CM = "size of the pixel array")
 		inline SIZE getPixelsDataSize() const { return _kpixels.size(); }
 
 		//! Get a read-only (const) pointer to the array of pixels
@@ -146,9 +148,14 @@ namespace Kite{
 		*/
 		inline const U8 *getPixelsData() const { if (!_kpixels.empty()) return &_kpixels[0]; return 0; }
 
+		KM_FUN()
 		void clear();
 
     private:
+		// Supported formats : PNG, BMP, TGA.
+		bool _saveStream(KOStream &Stream, const std::string &Address) override;
+		bool _loadStream(KIStream &Stream, const std::string &Address) override;
+
         std::vector<U8> _kpixels;	//!< Array of pixels
         KVector2U32 _ksize;			//!< Size of the image
     };

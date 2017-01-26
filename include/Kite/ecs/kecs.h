@@ -17,12 +17,19 @@ License along with this library; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 USA
 */
-#include "Kite/core/kcoretypes.h"
-#include "Kite/meta/kmetamanager.h"
-#include "Kite/meta/kmetaenum.h"
-#include <luaintf/LuaIntf.h>
+#ifndef KECS_H
+#define KECS_H
 
-namespace Kite {
-	KMETA_IOMODE_SOURCE();
-	KMETA_PRIMITIVE_SOURCE();
-}
+#include "Kite/ecs/kcomponent.h"
+#include "Kite/ecs/kecsstructs.h"
+#include "Kite/ecs/kentity.h"
+#include "Kite/ecs/klistener.h"
+#include "Kite/ecs/kmessage.h"
+#include "Kite/ecs/kmessenger.h"
+#include "Kite/ecs/kprefab.h"
+#include "Kite/ecs/ksystem.h"
+#include "Kite/ecs/kresource.h"
+#include "Kite/ecs/kresourcemanager.h"
+#include "Kite/ecs/kscene.h"
+
+#endif // KECS_H

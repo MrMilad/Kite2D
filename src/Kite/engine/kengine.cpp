@@ -208,6 +208,7 @@ namespace Kite {
 		delete _kmman;
 		_kmman = nullptr;
 
+		_krman->clear();
 		delete _krman;
 		_krman = nullptr;
 

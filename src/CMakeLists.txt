@@ -35,6 +35,12 @@ source_group("Header Files\\Core" FILES ${COR_INC})
 source_group("Source Files\\Core" FILES ${COR_SRC})
 LIST(APPEND ALL_FILES ${COR_SRC} ${COR_INC})
 
+# core
+add_subdirectory(Kite/ecs)
+source_group("Header Files\\ECS" FILES ${ECS_INC})
+source_group("Source Files\\ECS" FILES ${ECS_SRC})
+LIST(APPEND ALL_FILES ${ECS_SRC} ${ECS_INC})
+
 # graphic
 add_subdirectory(Kite/graphic)
 source_group("Header Files\\Graphic" FILES ${GFX_INC})

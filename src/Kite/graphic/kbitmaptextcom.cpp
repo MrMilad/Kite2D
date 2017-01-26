@@ -113,7 +113,7 @@ namespace Kite{
 
 									// change current color
 									I32 cindex = std::stoi(digit);
-									if (cindex >= 0 && cindex < _kcolors.size()) {
+									if (cindex >= 0 && cindex < (I32)_kcolors.size()) {
 										col = _kcolors[cindex];
 									}
 									++it;

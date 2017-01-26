@@ -21,6 +21,7 @@ USA
 #define KENGINE_H
 
 #include "Kite/core/kcore.h"
+#include "Kite/ecs/kecs.h"
 #include "Kite/graphic/kgraphic.h"
 #include "Kite/window/kwindow.h"
 #include "Kite/input/kinput.h"

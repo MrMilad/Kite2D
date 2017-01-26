@@ -32,12 +32,14 @@ int main() {
 	sc->render.culling = true;
 	//sc->window.resizable = true;
 	sc->dictionary = "C:\\Users\\_M1L4D_\\Desktop\\ff\\dict.kdict";
-	sc->startUpScene = "sc.sce";
+	sc->startUpScene = "";
+
 
 	auto engine = KEngine::createEngine();
 	engine->inite(sc, false);
 
-	engine->getResourceManager()->load(IStreamTypes::FIStream, RTypes::ShaderProgram, "prog.shp");
+
+	engine->getResourceManager()->load(IStreamTypes::FIStream, RTypes::ShaderProgram, "prog.shp", false);
 
 	auto ent = engine->getEntityManager()->getEntityByName("ent");
 	auto quad = (KQuadCom *)ent->getComponent(CTypes::Quad);

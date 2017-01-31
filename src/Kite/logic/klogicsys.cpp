@@ -57,14 +57,12 @@ namespace Kite {
 		if (haveReg) EManager->clearComponentStorage<KRegLogicCom>(CTypes::RegisterLogic);
 
 		// update components (per frame)
+		// and call postWork in the end of the each frame
 		if (!updateAll(Delta)) return false;
 
 		// performs a full garbage-collection cycle. 
 		// lua garbage collection will eat memory so we shuld use lua_gc() in a period
 		//lua_gc(_klvm, LUA_GCCOLLECT, 0); //> luajit (not lua) seems better at this job so we dont use it 
-
-		// clear trash list and post works
-		EManager->postWork();
 		return true;
 	}
 
@@ -205,12 +203,14 @@ namespace Kite {
 #ifdef KITE_DEV_DEBUG
 			try {
 				ctable("onUpdate", Delta);
+				ctable("onPostWork", Delta);
 			} catch (std::exception& e) {
-				KD_FPRINT("update function failed: %s", e.what());
+				KD_FPRINT("update\postWork function failed: %s", e.what());
 				return false;
 			}
 #else
 			ctable("onUpdate", Delta);
+			ctable("onPostWork", Delta);
 #endif
 		} else {
 			KD_PRINT("engine hooks system is corrupted");

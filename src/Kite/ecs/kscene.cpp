@@ -60,7 +60,7 @@ namespace Kite {
 	}
 
 	KScene::KScene(const std::string &Name) :
-		KResource(Name, false, true),
+		KResource(Name, false, false),
 		_knum(0),
 		_kzorder(0)
 	{
@@ -72,10 +72,14 @@ namespace Kite {
 	}
 
 	KScene::~KScene() {
-		for (auto i = 0; i < (SIZE)CTypes::maxSize; ++i) {
+		for (auto i = 0; i < (U16)CTypes::maxSize; ++i) {
 			delete _kcstorage[i];
 		}
 		_kestorage.clear();
+	}
+
+	bool KScene::inite() {
+		return true;
 	}
 
 	void KScene::initeCStorages() {
@@ -99,18 +103,8 @@ namespace Kite {
 	}
 
 	KEntity *KScene::createEntity(const std::string &Name) {
-		// we generate a name for nameless entites
-		std::string ename = Name;
-		if (Name.empty()) {
-			while (true) {
-				ename = "ent" + std::to_string(_knum++);
-				if (_kentmap.find(ename) == _kentmap.end()) {
-					break;
-				}
-			}
-
 		// or check name for an existing entity
-		} else {
+		if (!Name.empty()) {
 			// entity is exist, so we return it
 			auto found = _kentmap.find(Name);
 			if (found != _kentmap.end()) {
@@ -120,7 +114,7 @@ namespace Kite {
 		}
 
 		// create new entity and set its id
-		auto hndl = _kestorage.add(KEntity(ename));
+		auto hndl = _kestorage.add(KEntity(Name));
 		auto ent = _kestorage.get(hndl);
 		ent->setHandle(hndl);
 
@@ -136,13 +130,9 @@ namespace Kite {
 		getEntity(getRoot())->addChild(hndl);
 
 		// register it's to map
-		_kentmap.insert({ ename, hndl });
-		
-		// post a message about new entity
-		KMessage msg;
-		msg.setType("on");
-		msg.setData((void *)&hndl, sizeof(U32));
-		postMessage(&msg, MessageScope::ALL);
+		if (!Name.empty()){
+			_kentmap.insert({ Name, hndl });
+		}
 	
 		return ent;
 	}
@@ -166,7 +156,7 @@ namespace Kite {
 		}
 
 		auto found = _kentmap.find(NewName);
-		// entiti is already registered, so we return it
+		// this name is already exist
 		if (found != _kentmap.end()) {
 			KD_FPRINT("this name is already exist. ename: %s", NewName.c_str());
 			return false;
@@ -230,13 +220,6 @@ namespace Kite {
 		_kcstorage[(SIZE)Type] = nullptr;
 	}*/
 
-	bool KScene::isRegisteredComponent(CTypes Type) {
-		if (_kcstorage[(SIZE)Type] != nullptr){
-			return true;
-		}
-		return false;
-	}
-
 	void KScene::postWork() {
 		// clear components 
 		KEntity::postWork(_kcstorage);
@@ -285,7 +268,7 @@ namespace Kite {
 		std::vector<KHandle> clist;
 		Entity->getFixedComponents(clist);
 		for (auto it = clist.begin(); it != clist.end(); ++it) {
-			auto com = _kcstorage[it->type]->get((*it));
+			auto com = _kcstorage[(U16)it->getCType()]->get((*it));
 			// components
 			Prefab->_kcode.append("comp = kite." + com->getTypeName() + ".to" + com->getTypeName() +
 								  "(ent:addComponent(kite.CTypes." + com->getTypeName() + ", \"" + com->getName() + "\"))\n");
@@ -343,7 +326,7 @@ namespace Kite {
 			const char *out = lua_tostring(_klstate, -1);
 			lua_pop(_klstate, 1);
 			KD_FPRINT("prefab script error on load. %s", out);
-			return KHandle();
+			return KHandle(CTypes::maxSize);
 		}
 		LuaIntf::LuaRef lref(_klstate, "_G.execute");
 		KHandle handle;
@@ -402,34 +385,71 @@ namespace Kite {
 	}
 #endif
 
-	void KScene::serial(KBaseSerial &Out) const {
-		Out << _kzorder;
-		Out << _knum;
-		Out << _kroot;
-		Out << _kestorage;
+	bool KScene::_saveStream(KOStream &Stream, const std::string &Address){
+		KBinarySerial bserial;
+		bserial << std::string("KScene");
 
-		for (SIZE i = 0; i < (SIZE)CTypes::maxSize; ++i) {
-			_kcstorage[i]->serial(Out);
+		// serial data
+		bserial << _kzorder;
+		bserial << _knum;
+		bserial << _kroot;
+		bserial << _kestorage;
+
+		// serial components
+		for (U16 i = 0; i < (U16)CTypes::maxSize; ++i) {
+			_kcstorage[i]->serial(bserial);
 		}
-		Out << _kentmap;
+		bserial << _kentmap;
+
+		// save to stream
+		if (!bserial.saveStream(Stream, Address, 0)) {
+			KD_PRINT("can't save stream.");
+			Stream.close();
+			return false;
+		}
+		return true;
 	}
 
-	void KScene::deserial(KBaseSerial &In) {
-		In >> _kzorder;
-		In >> _knum;
-		In >> _kroot;
-		In >> _kestorage;
-		for (SIZE i = 0; i < (SIZE)CTypes::maxSize; ++i) {
-			_kcstorage[i]->deserial(In);
+	bool KScene::_loadStream(KIStream &Stream, const std::string &Address) {
+		// load from stream 
+		KBinarySerial bserial;
+		if (!bserial.loadStream(Stream, Address)) {
+			KD_PRINT("can't load stream");
+			Stream.close();
+			return false;
 		}
-		In >> _kentmap;
-		
+
+		// checking format
+		std::string format;
+		bserial >> format;
+
+		if (format != "KScene") {
+			KD_PRINT("incorrect file format.");
+			Stream.close();
+			return false;
+		}
+
+		// deserial data
+		bserial >> _kzorder;
+		bserial >> _knum;
+		bserial >> _kroot;
+		bserial >> _kestorage;
+
+		// deserial components
+		for (U16 i = 0; i < (U16)CTypes::maxSize; ++i) {
+			_kcstorage[i]->deserial(bserial);
+		}
+
+		// deserial entities/name map
+		bserial >> _kentmap;
+
 		// inite entities 
 		for (auto it = _kestorage.getContiner()->begin(); it != _kestorage.getContiner()->end(); ++it) {
 			it->_kestorage = &_kestorage;
 			it->_kcstorage = _kcstorage;
 			it->initeComponents();
 		}
+		return true;
 	}
 
 	void KScene::recursiveDeleter(KHandle EHandle) {
@@ -440,12 +460,6 @@ namespace Kite {
 		ent->_kactive = false; // we use direct access because we are in recursive mode and all childs will be marked
 		_kentmap.erase(ent->getName());
 		_ktrash.push_back(EHandle);
-
-		// post a message about this action
-		KMessage msg;
-		msg.setType("ENTITY_REMOVED");
-		msg.setData((void *)&EHandle, sizeof(U32));
-		postMessage(&msg, MessageScope::ALL);
 
 		for (auto it = ent->childList()->cbegin(); it != ent->childList()->cend(); ++it) {
 			recursiveDeleter((*it));

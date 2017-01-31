@@ -30,6 +30,7 @@ USA
 #include "Kite/serialization/kserialization.h"
 #include <string>
 #include <vector>
+#include <initializer_list>
 #include "kcomponent.khgen.h"
 #include "ktypes.khgen.h"
 
@@ -41,29 +42,18 @@ namespace Kite {
 		friend class KEntity;
 		friend class KEngine;
 	public:
-		KComponent(const std::string &Name = "");
+		/// RemoveOnDepZero: automatic remove this component when there is no dependency on it.
+		/// DepList: circular-dependency is allowed but not recommended. (bad design)
+		///		dont add 'Logic' component as dependency.
+		KComponent(const std::string &Name,bool RemoveOnDepZero, std::initializer_list<CTypes> DepList);
 
 		virtual ~KComponent();
-
-		/// called when atached to a entity
-		virtual void attached(KEntity *Owner) = 0;
-
-		/// called when deattached from an entity
-		virtual void deattached(KEntity *Owner) = 0;
 
 		/// will be implemented by KHParser
 		virtual bool setProperty(const std::string &Name, KAny &Value) = 0;
 
 		/// will be implemented by KHParser
 		virtual KAny getProperty(const std::string &Name) const = 0;
-
-		/// will be implemented by KHParser
-		/// usage: access base members in lua
-		virtual KComponent *getBase() const = 0;
-
-		/// optional (only components that has resource)
-		/// all fetching operation from resource manager shuld happen here
-		virtual bool updateRes();
 
 		/// will be implemented by KHParser
 		KM_PRO_GET(KP_NAME = "type", KP_TYPE = KCTypes, KP_CM = "type of the component")
@@ -79,9 +69,6 @@ namespace Kite {
 
 		KM_PRO_GET(KP_NAME = "name", KP_TYPE = std::string, KP_CM = "name of the component")
 		inline const std::string &getName() const { return _kname; }
-
-		KM_PRO_GET(KP_NAME = "resNeedUpdate", KP_TYPE = bool, KP_CM = "update state of the component")
-		inline bool getResNeedUpdate() const { return _kresNeedup; }
 
 		KM_PRO_GET(KP_NAME = "handle", KP_TYPE = KHandle, KP_CM = "component handle")
 		inline const KHandle &getHandle() const { return _khandle; }
@@ -108,28 +95,31 @@ namespace Kite {
 		KMETA_KCOMPONENT_BODY();
 
 	protected:
-		/// add component dependency.
-		/// use this function in constructure.
-		/// circular-dependency is allowed but not recommended. (bad design)
-		/// dont add 'Logic' component as dependency.
-		inline void addDependency(CTypes ComponentName) { _kdeplist.push_back(ComponentName); }
+		/// will be called when atached to a entity
+		virtual void attached(KEntity *Owner) = 0;
 
-		/// automatic remove this component when there is no dependency on it.
-		/// false by default.
-		/// use this function in constructure.
-		inline void setRemoveOnDepZero(bool Remove) { _kremoveNoDep = Remove; }
+		/// will be called when deattached from an entity
+		virtual void deattached(KEntity *Owner) = 0;
+
+		/// will be implemented by KHParser
+		/// usage: access base members in lua
+		virtual KComponent *getBase() const = 0;
+
+		/// will be implemented by KHParser
+		/// this function will be called only once (after deserialization)
+		/// and will tracked all loaded resources
+		/// so we can unloading them automatically after unloading parrent scene.
+		virtual void loadRes() = 0;
+
 		inline void setOwnerHandle(const KHandle &Handle) { _kohandle = Handle; }
-
-		inline void resNeedUpdate() { _kresNeedup = true; }
-		inline void resUpdated() { _kresNeedup = false; }
 
 		static KResourceManager * getRMan();
 
 	private:
-		bool _kresNeedup;
-		bool _kremoveNoDep; // component will removed if refcounter = 0
+
+		bool _kremoveNoDep;				// component will removed if refcounter = 0
 		std::vector<CTypes> _kdeplist;
-		KM_VAR() U16 _krefcounter; // dependency ref counter
+		KM_VAR() U16 _krefcounter;		// dependency ref counter
 		KM_VAR() std::string _kname;
 		KM_VAR() KHandle _khandle;
 		KM_VAR() KHandle _kohandle;

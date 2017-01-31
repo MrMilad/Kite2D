@@ -31,7 +31,7 @@ KMETA
 namespace Kite {
 	KM_CLASS(RESOURCE)
 	class KITE_FUNC_EXPORT KPrefab : public KResource {
-		friend class KEntityManager;
+		friend class KScene;
 		KM_INFO(KI_NAME = "Prefab");
 		KMETA_KPREFAB_BODY();
 	public:

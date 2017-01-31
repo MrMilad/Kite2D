@@ -21,7 +21,7 @@
 #define KTRANSFORMCOM_H
 
 #include "Kite/core/kcoredef.h"
-#include "Kite/core/kcomponent.h"
+#include "Kite/ecs/kcomponent.h"
 #include "Kite/math/kmathstructs.h"
 #include "Kite/math/kmatrix3.h"
 #include "Kite/meta/kmetadef.h"

@@ -21,7 +21,7 @@ USA
 #define KORTHOMAPCOM_H
 
 #include "Kite/core/kcoredef.h"
-#include "Kite/core/kcomponent.h"
+#include "Kite/ecs/kcomponent.h"
 #include "Kite/meta/kmetadef.h"
 #include "Kite/graphic/kgraphicstructs.h"
 #include "Kite/graphic/korthogonalmap.h"
@@ -34,8 +34,6 @@ KMETA
 namespace Kite {
 	KM_CLASS(COMPONENT)
 	class KITE_FUNC_EXPORT KOrthoMapCom : public KComponent, public KRenderable {
-		friend class KRenderSys;
-		friend class KGCullingSys;
 		KM_INFO(KI_NAME = "OrthogonalMapView");
 		KMETA_KORTHOMAPCOM_BODY();
 	public:
@@ -48,10 +46,10 @@ namespace Kite {
 		RecieveTypes onMessage(KMessage *Message, MessageScope Scope) override;
 
 		KM_PRO_SET(KP_NAME = "map")
-		void setMap(const KStringID &ResName);
+		void setMap(KOrthogonalMap *Map);
 
-		KM_PRO_GET(KP_NAME = "map", KP_TYPE = KStringID, KP_CM = "name of the orthogonal map resource", KP_RES = RTypes::OrthogonalMap)
-		inline const KStringID &getMap() const { return _kmapName; }
+		KM_PRO_GET(KP_NAME = "map", KP_TYPE = KOrthogonalMap, KP_CM = "orthogonal map resource", KP_RES = RTypes::OrthogonalMap)
+		inline const KOrthogonalMap *getMap() const { return _kmap; }
 
 		KM_PRO_SET(KP_NAME = "cullingArea")
 		void setCullingArea(const KRectF32 &Area);
@@ -60,17 +58,17 @@ namespace Kite {
 		inline const KRectF32 &getCullingArea() const { return _kcullArea; }
 
 		KM_PRO_SET(KP_NAME = "shaderProgram")
-		void setShader(const KStringID &ShaderProgram);
+		void setShader(KShaderProgram *ShaderProgram);
 
-		KM_PRO_GET(KP_NAME = "shaderProgram", KP_TYPE = KStringID, KP_CM = "name of the shader program", KP_RES = RTypes::ShaderProgram)
-		inline const KStringID &getShader() const { return _kshprogName; }
+		KM_PRO_GET(KP_NAME = "shaderProgram", KP_TYPE = KShaderProgram, KP_CM = "shader program", KP_RES = RTypes::ShaderProgram)
+		inline const KShaderProgram *getShader() const { return _kshprog; }
 
 		KM_PRO_SET(KP_NAME = "textureGroup")
-		void setAtlasTextureArraye(const KStringID &TextureArrayName);
+		void setAtlasTextureArraye(KAtlasTextureArray *TextureArray);
 
-		KM_PRO_GET(KP_NAME = "textureGroup", KP_TYPE = KStringID, KP_CM = "name of the atlas texture group",
+		KM_PRO_GET(KP_NAME = "textureGroup", KP_TYPE = KAtlasTextureArray, KP_CM = "atlas texture group",
 				   KP_RES = RTypes::TextureGroup)
-		inline const KStringID &getAtlasTextureArray() const { return _ktextureArrayName; }
+		inline const KAtlasTextureArray *getAtlasTextureArray() const { return _katarray; }
 
 		KM_PRO_SET(KP_NAME = "visible")
 		inline void setVisible(bool Visible) { _kisVisible = Visible; }
@@ -83,8 +81,6 @@ namespace Kite {
 
 		KM_FUN()
 		void getBoundingRect(KRectF32 &Output) const override;
-
-		bool updateRes() override;
 
 	protected:
 		/// render system interface
@@ -103,20 +99,14 @@ namespace Kite {
 
 		KM_VAR() U16 _ktindex;
 		KM_VAR() bool _kisVisible;
-		KM_VAR() KStringID _kmapName;
 		KM_VAR() KRectF32 _kcullArea;
 		KM_VAR() bool _kcullIsValid;
-		KM_VAR() KStringID _kshprogName;
-		KM_VAR() KStringID _ktexture;
-		KM_VAR() KStringID _ktextureArrayName;
+		KM_VAR(KV_RES) KOrthogonalMap *_kmap;
+		KM_VAR(KV_RES) KShaderProgram *_kshprog;
+		KM_VAR(KV_RES) KAtlasTextureArray *_katarray;
 
 		std::vector<KGLVertex> _kverts;
 		U32 _kisize;
-
-		KOrthogonalMap *_kmap;
-		KShaderProgram *_kshprog;
-		KAtlasTextureArray *_katarray;
-		bool _kquery;
 	};
 }
 

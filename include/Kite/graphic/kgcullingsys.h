@@ -21,7 +21,7 @@ USA
 #define KGCULLINGSYS_H
 
 #include "Kite/core/kcoredef.h"
-#include "Kite/core/ksystem.h"
+#include "Kite/ecs/ksystem.h"
 #include "Kite/math/kmathstructs.h"
 #include "Kite/meta/kmetadef.h"
 #include "Kite/graphic/kgraphicstructs.h"
@@ -56,14 +56,13 @@ namespace Kite {
 	};*/
 
 	class KGCullingCom;
-	class KOrthoMapCom;
 	class KCameraCom;
 
 	KM_CLASS(SCRIPTABLE) // sub system
 	class KITE_FUNC_EXPORT KGCullingSys : public KSystem {
 	public:
 		KGCullingSys();
-		bool update(F64 Delta, KEntityManager *EManager, KResourceManager *RManager) override;
+		bool update(F64 Delta, KScene *Scene) override;
 
 		bool inite(void *Data) override;
 
@@ -71,7 +70,7 @@ namespace Kite {
 
 		// return unsorted objects (you can sort output vector directly using std::sort)
 		void queryObjects(const KCameraCom *Cam, GCullingObjectsFilter Filter,
-						  const KEntityManager *EMan , std::vector<std::pair<KEntity *, KRenderable *>> &Output);
+						  const KScene *Scene, std::vector<std::pair<KEntity *, KRenderable *>> &Output);
 
 	private:
 		struct KQTreeObject {
@@ -94,11 +93,10 @@ namespace Kite {
 		void _addToBFList(KEntity *Ent);
 
 		bool _kquadChanged;
-		KResourceManager *_krman;
-		KEntityManager *_klastEman;
 		loose_quadtree::LooseQuadtree<F32, KQTreeObject, KGCullingSys> *_kqtree;
 		std::vector<KBFObject> _kbflist;
 		memory::memory_pool<> *_kobjpool;
+		KScene *_klastScene;
 
 	public:
 		template <typename NumberT>

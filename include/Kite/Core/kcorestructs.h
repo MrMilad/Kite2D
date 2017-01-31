@@ -111,6 +111,9 @@ namespace Kite{
 
 		KM_CON(std::string)
 		KStringID(const std::string &String);
+
+		KM_FUN()
+		void clear();
 	};
 
 	/// dynamic version of std::bitset with lua binding

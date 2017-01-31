@@ -25,6 +25,7 @@ USA
 #include "Kite/ecs/kresource.h"
 #include "Kite/ecs/kmessenger.h"
 #include "Kite/ecs/kecstypes.h"
+#include "Kite/ecs/kecsstructs.h"
 #include "Kite/meta/kmetadef.h"
 #include <type_traits>
 #include <unordered_map>
@@ -44,6 +45,16 @@ namespace Kite{
 		KResourceManager();
 		~KResourceManager();
 
+		// will reset last started tracking (so check tacking with isTracking())
+		void startTrackingState();
+
+		// will reset 
+		void stopTrackingState(std::vector<KTarckItem> &State); // <name, count>
+
+		bool isTrackingState();
+
+		void resetState(const std::vector<std::pair<std::string, U32>> &State);
+
 		/// don't delete loaded resource by yourself (use unload instead)
 		/// catched streams will deleted automatically on owner resource destructures
 		KM_FUN()
@@ -52,7 +63,7 @@ namespace Kite{
 		/// unload any resource with any type.
 		/// Mode: unload mode
 		KM_FUN()
-		void unload(const std::string &Name, UnloadMode Mode);
+		void unload(const std::string &Name);
 
 		/// get loaded resource
 		/// dont increment refrence counter

@@ -34,23 +34,54 @@ namespace Kite{
 	struct KHandle {
 		KMETA_KHANDLE_BODY();
 
-		KM_VAR() U16 signature;
-		KM_VAR() U32 index;
-		KM_VAR() SIZE type; // KCTypes
+	private:
+		KM_VAR() CTypes type;
 
+	public:
+		KM_VAR() U16 signature; // 0 reserved for invalid handles
+		KM_VAR() U32 index;		// 0 reserved for invalid handles
+
+		// use this constructure for components
+		KHandle(CTypes Type) :
+			signature(0), index(0), type(Type) {}
+
+		// use this constructure for entities
 		KHandle() :
-			signature(0), index(0), type(0) {} // 0 reserved for invalid handles
+			signature(0), index(0), type(CTypes::maxSize){} 
 
 		inline bool operator==(const KHandle& right) const {
-			return (signature == right.signature) && (index == right.index) && type == right.type;
+			return (signature == right.signature) &&
+				(index == right.index) &&
+				(type == right.type);
 		}
 
 		inline bool operator!=(const KHandle& right) const  {
 			return !((*this) == right);
 		}
 
+		KM_PRO_GET(KP_NAME = "componentType", KP_TYPE = CTypes, KP_CM = "type of the handled component")
+		inline CTypes getCType() const { return type; }
+
+	private:
+		KM_OPE(KO_EQ)
+		bool luaEq(const KHandle& right) const {
+			(index == right.index) &&
+				(type == right.type);
+		}
 	};
 
+	KM_CLASS(POD)
+	struct KTarckItem {
+		KMETA_KTARCKITEM_BODY();
+
+		KM_VAR() std::string name;
+		KM_VAR() U32 loadCount;
+		KM_VAR() U32 unloadCount;
+		KM_VAR() U32 getCount;
+
+		KTarckItem():
+		loadCount(0), unloadCount(0), getCount(0){}
+	};
 }
 
 #endif // KECSSTRUCTS_H

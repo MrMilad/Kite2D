@@ -53,6 +53,10 @@ USA
 #define KP_RES	// resource type (need only property is a resource holder)
 #define KP_SHOW // show in components editor (optional, true by default)
 
+#define KV_RES	// variable is a resource pointer.it can be used with and without name
+				// if used with a name (ex: KV_RES = myProp) we generate an property get/set for it that can be readable by editor
+
+
 // info tags
 #define KI_NAME		// component name
 #define KI_SHOW		// show component in editor (true by default if not defined)

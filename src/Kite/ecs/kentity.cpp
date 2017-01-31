@@ -184,6 +184,7 @@ namespace Kite {
 		getFixedComponents(clist);
 		for (auto it = clist.begin(); it != clist.end(); ++it) {
 			auto com = getComponentByHandle((*it));
+			com->loadRes();
 			com->attached(this);
 		}
 
@@ -191,6 +192,7 @@ namespace Kite {
 		getScriptComponents(clist);
 		for (auto it = clist.begin(); it != clist.end(); ++it) {
 			auto com = getComponentByHandle((*it));
+			com->loadRes();
 			com->attached(this);
 		}
 	}
@@ -231,7 +233,7 @@ namespace Kite {
 
 	void KEntity::postWork(Internal::BaseCHolder<KComponent> **Storage) {
 		for (auto it = _ktrashList.begin(); it != _ktrashList.end(); ++it) {
-			Storage[(SIZE)it->type]->remove((*it));
+			Storage[(U16)it->getCType()]->remove((*it));
 		}
 
 		_ktrashList.clear();
@@ -325,8 +327,7 @@ namespace Kite {
 		}
 
 		// create component
-		auto handle = _kcstorage[(SIZE)Type]->add(CName);
-		handle.type = (SIZE)Type;
+		auto handle = _kcstorage[(U16)Type]->add(CName);
 
 		// set its handle
 		auto com = _kcstorage[(SIZE)Type]->get(handle);
@@ -373,7 +374,7 @@ namespace Kite {
 		}
 
 		auto chandle = getComponentHandle(Type, CName);
-		return _kcstorage[chandle.type]->get(chandle);
+		return _kcstorage[(U16)chandle.getCType()]->get(chandle);
 	}
 
 	KComponent *KEntity::getComponentByHandle(const KHandle &CHandle) {
@@ -382,12 +383,12 @@ namespace Kite {
 			return nullptr;
 		}
 
-		if (!hasComponentType((CTypes)CHandle.type)) {
-			KD_FPRINT("there is no component of this type in the given entity. ctype: %s", getCTypesName((CTypes)CHandle.type).c_str());
+		if (!hasComponentType((CTypes)CHandle.getCType())) {
+			KD_FPRINT("there is no component of this type in the given entity. ctype: %s", getCTypesName(CHandle.getCType()).c_str());
 			return nullptr;
 		}
 
-		return _kcstorage[CHandle.type]->get(CHandle);
+		return _kcstorage[(U16)CHandle.getCType()]->get(CHandle);
 	}
 
 	void KEntity::getFixedComponents(std::vector<KHandle> &Output) {
@@ -435,10 +436,10 @@ namespace Kite {
 		}
 
 		// check ref counter
-		auto comPtr = _kcstorage[CHandle.type]->get(CHandle);
+		auto comPtr = _kcstorage[(U16)CHandle.getCType()]->get(CHandle);
 		if (comPtr->_krefcounter > 0) {
 			KD_FPRINT("this component is required by another component. you shuld remove them first. ctype: %s"
-					  , getCTypesName((CTypes)CHandle.type).c_str());
+					  , getCTypesName(CHandle.getCType()).c_str());
 			return;
 		}
 
@@ -454,11 +455,11 @@ namespace Kite {
 #endif
 
 		// remove components id from entity
-		if (CHandle.type == (SIZE)CTypes::Logic) {
-			_klogicComp.erase(_kcstorage[CHandle.type]->get(CHandle)->getName());
+		if (CHandle.getCType() == CTypes::Logic) {
+			_klogicComp.erase(_kcstorage[(U16)CHandle.getCType()]->get(CHandle)->getName());
 
 		} else {
-			_kfixedComp[CHandle.type] = KHandle();
+			_kfixedComp[(U16)CHandle.getCType()] = KHandle();
 		}
 
 		// dec ref counter

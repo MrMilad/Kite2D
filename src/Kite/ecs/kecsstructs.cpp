@@ -191,4 +191,5 @@ namespace Kite {
 	KLayerInfo::KLayerInfo(const std::string &Name, bool IsBuiltin):
 		name(Name), isBuiltin(IsBuiltin){}
 	KMETA_KLAYERINFO_SOURCE();
+	KMETA_KTARCKITEM_SOURCE();
 }

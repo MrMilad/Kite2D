@@ -167,8 +167,6 @@ namespace Kite {
 			std::this_thread::sleep_for(std::chrono::milliseconds(5)); // just for sync with editor
 #endif
 			for (auto it = _ksys.begin(); it != _ksys.end(); ++it) {
-				_keman = _ksman->getActiveScene()->getEManager();
-				
 				if (!((*it)->update(delta, _ksman->getActiveScene()->getEManager(), _krman))) {
 					KD_FPRINT("updating systems failed. sname: %s", (*it)->getClassName().c_str());
 					return;

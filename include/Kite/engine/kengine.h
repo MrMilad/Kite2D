@@ -80,9 +80,6 @@ namespace Kite {
 		inline auto getMetaManager() { return _kmman; }
 
 		KM_FUN()
-		inline auto getEntityManager() { return _keman; }
-
-		KM_FUN()
 		inline auto getResourceManager() { return _krman; }
 
 		KM_FUN()
@@ -104,7 +101,6 @@ namespace Kite {
 		KGLWindow *_kwindow;
 		KMetaManager *_kmman;
 		KSceneManager *_ksman;
-		KEntityManager *_keman;
 		KResourceManager *_krman;
 		std::vector<std::unique_ptr<KSystem>> _ksys;
 		bool _kinite;

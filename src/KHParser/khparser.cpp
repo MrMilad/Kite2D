@@ -145,9 +145,10 @@ struct MVariable {
 	std::string tokparam;
 	bool isStatic;
 	bool isConst;
+	bool isRes; // is resource pointer
 
 	MVariable() :
-		isStatic(false), isConst(false) {}
+		isStatic(false), isConst(false), isRes(false) {}
 };
 
 struct MTemplate {
@@ -1046,6 +1047,12 @@ bool procVar(const std::string &Content, MVariable &Var, unsigned int Pos) {
 	// and there is no warning for empty parameter list
 	Pos = getNextBody(Content, Pos, output);
 	Var.tokparam = output;
+
+	std::vector<std::pair<std::string, std::string>> param;
+	splitParam(Var.tokparam, param);
+	for (auto it = param.begin(); it != param.end(); ++it) {
+		if (it->first == "KV_RES") { Var.isRes = true; }
+	}
 
 	// check variable
 	if (checkNextRaw(Content, Pos, false) != PS_WORD) {
@@ -2095,8 +2102,19 @@ void createMacros(const std::vector<MClass> &Cls, const std::vector<MEnum> &Enms
 
 		// (base, lua cast, type)
 		if ((isIStream || isOStream || isComponent || isResource) && !isAbstract) {
-			Output.append("private:\\\n" +
-						  exstate + "static " + Cls[i].name + " *to" + shortName + "(" + baseName + " *Base) {\\\n" +
+			Output.append("private:\\\n");
+			if (isComponent) {
+				// resource pointers
+				for (auto it = Cls[i].vars.begin(); it != Cls[i].vars.end(); ++it) {
+					if (it->isRes) {
+						Output.append("std::string " + it->name + "Name;\\\n");
+					}
+				}
+
+				Output.append("void loadRes() override;\\\n");
+			}
+
+			Output.append(exstate + "static " + Cls[i].name + " *to" + shortName + "(" + baseName + " *Base) {\\\n" +
 						  "if (Base != nullptr){\\\n"
 						  "if (Base->getHashType() == " + hash + ") {\\\n"
 						  "return (" + Cls[i].name + " *)Base; }};\\\n" +
@@ -2133,18 +2151,26 @@ void createMacros(const std::vector<MClass> &Cls, const std::vector<MEnum> &Enms
 			}
 		}
 
-		// register properties
+		// register properties and loadRes
 		if (isComponent && !isAbstract) {
 
 			// property setter/getter (only components have properties)
 			Output.append("bool " + Cls[i].name + "::setProperty(const std::string &Name, KAny &Value){\\\n");
 			for (auto it = Cls[i].props.begin(); it != Cls[i].props.end(); ++it) {
 				if (!it->set.name.empty()) {
-					Output.append("if (Name == \"" + it->name + "\"){\\\n" +
-								  "if (Value.is<" + it->type + ">()){\\\n" +
-								  it->set.name + "(Value.as<" + it->type + ">());\\\n"
-								  "return true;\\\n"
-								  "}else{ KD_FPRINT(\"incorrect property type. pname: %s\", Name.c_str()); return false;}}\\\n");
+					Output.append("if (Name == \"" + it->name + "\"){\\\n");
+					if (it->resType == "RTypes::maxSize") { // checking resource type
+						Output.append("if (Value.is<" + it->type  + ">()){\\\n" +
+									  it->set.name + "(Value.as<" + it->type + ">());\\\n");
+					} else {
+						Output.append("if (Value.is<KResource *>()){\\\n" 
+									  "if (Value.as<KResource *>()->getType() == " + it->resType + "){\\\n" +
+									  it->set.name + "((" + it->type + " *)Value.as<KResource *>());\\\n"
+									  "return true;\\\n"
+									  "}else{ KD_FPRINT(\"incorrect resource type. pname: %s\", Name.c_str()); return false;}\\\n");
+					}
+
+					Output.append("}else{ KD_FPRINT(\"incorrect property type. pname: %s\", Name.c_str()); return false;}}\\\n");
 				}
 			}
 			Output.append("return false;}\\\n");
@@ -2158,6 +2184,17 @@ void createMacros(const std::vector<MClass> &Cls, const std::vector<MEnum> &Enms
 				}
 			}
 			Output.append("return KAny();}\\\n");
+
+			Output.append("void " + Cls[i].name + "::loadRes(){\\\n");
+			// resource pointers
+			Output.append("if (!getRMan()) { KD_PRINT(\"ResourceManager is null. engine is not initialized\"); return;}\\\n");
+			for (auto it = Cls[i].vars.begin(); it != Cls[i].vars.end(); ++it) {
+				if (it->isRes) {
+					Output.append("if (" + it->name + "Name.empty()){ " + it->name + " = nullptr;}\\\n"
+								  "else{ " + it->name + " = (" + it->type + " *)getRMan()->load(" + it->name + "Name);}\\\n");
+				}
+			}
+			Output.append("}\\\n");
 		}
 
 		// meta registration
@@ -2357,7 +2394,13 @@ void createMacros(const std::vector<MClass> &Cls, const std::vector<MEnum> &Enms
 			}
 
 			for (size_t vcont = 0; vcont < Cls[i].vars.size(); ++vcont) {
-				Output.append("Serializer << " + Cls[i].vars[vcont].name + ";\\\n");
+				if (Cls[i].vars[vcont].isRes) { // resource pointers
+					Output.append("if (" + Cls[i].vars[vcont].name + "){ \\\n"
+								  "Serializer << " + Cls[i].vars[vcont].name + "->getName();\\\n"
+								  "}else{ Serializer << std::string();}\\\n" );
+				} else {
+					Output.append("Serializer << " + Cls[i].vars[vcont].name + ";\\\n");
+				}
 			}
 			Output.append("}\\\n");
 
@@ -2375,7 +2418,11 @@ void createMacros(const std::vector<MClass> &Cls, const std::vector<MEnum> &Enms
 			}
 
 			for (size_t vcont = 0; vcont < Cls[i].vars.size(); ++vcont) {
-				Output.append("Serializer >> " + Cls[i].vars[vcont].name + ";\\\n");
+				if (Cls[i].vars[vcont].isRes) { // resource pointers
+					Output.append("Serializer >> " + Cls[i].vars[vcont].name + "Name;\\\n");
+				} else {
+					Output.append("Serializer >> " + Cls[i].vars[vcont].name + ";\\\n");
+				}
 			}
 
 			// end of serial()
@@ -2385,7 +2432,7 @@ void createMacros(const std::vector<MClass> &Cls, const std::vector<MEnum> &Enms
 }
 
 void defEnum(std::string &Output, std::vector<std::string> &Types, const std::string &EnumName) {
-	Output.append("enum class " + EnumName + " : SIZE{\n");
+	Output.append("enum class " + EnumName + " : U16{\n");
 
 	auto ecounter = 0;
 	for (size_t i = 0; i < Types.size(); i++) {
@@ -2425,12 +2472,12 @@ void implEnum(std::string &Output, std::vector<std::pair<std::string, std::strin
 
 	// get type name
 	Output.append("const std::string &get" + EnumName + "Name(" + EnumName + " Type){\n"
-				  "static const std::string names[(SIZE)" + EnumName + "::maxSize] = {\n");
+				  "static const std::string names[(U16)" + EnumName + "::maxSize] = {\n");
 	for (auto it = Types.begin(); it != Types.end(); ++it) {
 		Output.append("\"" + it->second + "\"");
 		if (it != Types.end()) Output.append(" ,\n");
 	}
-	Output.append("};\n return names[(SIZE)Type];\n}\n");
+	Output.append("};\n return names[(U16)Type];\n}\n");
 
 	// get type by name
 	Output.append(EnumName + " get"+ EnumName + "ByName(const std::string &Name){\n");

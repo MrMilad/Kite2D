@@ -22,48 +22,46 @@ USA
 #include "Kite/meta/kmetamanager.h"
 #include "Kite/meta/kmetaclass.h"
 #include "Kite/meta/kmetatypes.h"
-#include "Kite/core/kresourcemanager.h"
+#include "Kite/ecs/kresourcemanager.h"
+#include "Kite/ecs/kentity.h"
 #include "Kite/serialization/types/kstdstring.h"
 #include <luaintf/LuaIntf.h>
 
 namespace Kite {
 	KOrthoMapCom::KOrthoMapCom(const std::string &Name) :
-		KComponent(Name),
+		KComponent(Name, false, { CTypes::RenderInstance }),
 		_kcullIsValid(false),
 		_ktindex(0),
 		_kisVisible(true),
 		_kisize(0),
 		_kmap(nullptr),
 		_kshprog(nullptr),
-		_katarray(nullptr),
-		_kquery(true)
-	{
-		addDependency(CTypes::RenderInstance);
-	}
+		_katarray(nullptr)
+	{}
 
 	void KOrthoMapCom::attached(KEntity *Entity) {
 		auto renderable = (KRenderCom *)Entity->getComponent(CTypes::RenderInstance);
 		renderable->setRenderable(getType());
 	}
 
-	void KOrthoMapCom::deattached(KEntity *Entity) {}
+	void KOrthoMapCom::deattached(KEntity *Entity) {
+		queryVerts();
+	}
 
 	RecieveTypes KOrthoMapCom::onMessage(KMessage *Message, MessageScope Scope) {
 		return RecieveTypes::IGNORED;
 	}
 
-	void KOrthoMapCom::setMap(const KStringID &ResName) {
-		if (ResName.hash != _kmapName.hash) {
-			_kmapName = ResName;
-			resNeedUpdate();
-			_kquery = true;
+	void KOrthoMapCom::setMap(KOrthogonalMap *Map) {
+		if (_kmap != Map) {
+			_kmap = Map;
+			queryVerts();
 		}
 	}
 
 	void KOrthoMapCom::setCullingArea(const KRectF32 &Area) {
 		if (_kcullArea != Area) {
 			_kcullArea = Area;
-			_kquery = true;
 			queryVerts();
 		}
 	}
@@ -79,50 +77,27 @@ namespace Kite {
 		}
 	}
 
-	bool KOrthoMapCom::updateRes(){
-		if (!getResNeedUpdate()) {
-			return true;
-		}
-
-		// load resources
-		if (getRMan()) {
-			_katarray = (KAtlasTextureArray *)getRMan()->get(_ktextureArrayName.str);
-			_kshprog = (KShaderProgram *)getRMan()->get(_kshprogName.str);
-			_kmap = (KOrthogonalMap *)getRMan()->get(_kmapName.str);
-			queryVerts();
-			resUpdated();
-			return true;
-		}
-
-		return false;
-	}
-
 	void KOrthoMapCom::queryVerts() {
 		if (_kmap == nullptr) {
 			_kverts.resize(0);
 			return;
 		}
 
-		if (_kquery) {
-			_kverts.resize(0);
-			_kmap->queryTilesVertex(_kcullArea, _kverts);
-			_kisize = (_kverts.size() / 4) * 6;
-			_kquery = false;
-		}
+		_kverts.resize(0);
+		_kmap->queryTilesVertex(_kcullArea, _kverts);
+		_kisize = (_kverts.size() / 4) * 6;
 	}
 
-	void KOrthoMapCom::setShader(const KStringID &Shader) {
-		if (_kshprogName.hash != Shader.hash) {
-			_kshprogName = Shader;
-			resNeedUpdate();
+	void KOrthoMapCom::setShader(KShaderProgram *Shader) {
+		if (_kshprog != Shader) {
+			_kshprog = Shader;
 			matNeedUpdate();
 		}
 	}
 
-	void KOrthoMapCom::setAtlasTextureArraye(const KStringID &TextureArrayName) {
-		if (_ktextureArrayName.hash != TextureArrayName.hash) {
-			_ktextureArrayName = TextureArrayName;
-			resNeedUpdate();
+	void KOrthoMapCom::setAtlasTextureArraye(KAtlasTextureArray *TextureArray) {
+		if (_katarray != TextureArray) {
+			_katarray = TextureArray;
 			matNeedUpdate();
 		}
 	}

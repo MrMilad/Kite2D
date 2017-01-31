@@ -29,7 +29,7 @@ USA
 #include <deque>
 
 namespace Kite {
-	template <typename T>
+	template <typename T, CTypes Type>
 	class KCFStorage {
 		friend KBaseSerial &operator<<(KBaseSerial &Out, const KCFStorage<T> &Value) {
 			Value.serial(Out); return Out;
@@ -53,12 +53,12 @@ namespace Kite {
 			_kcontiner.push_back(Object);
 
 			// create external handle
-			_kexhandle.push_back(KHandle());
+			_kexhandle.push_back(KHandle(Type));
 
 			// no free handle
 			if (_kfreeIndex.empty()) {
 				// create internal handle
-				KHandle hndl;
+				KHandle hndl(Type);
 				hndl.index = _kcontiner.size() - 1;
 				++hndl.signature; // 0 reserved for invalid handles
 				_khandle.push_back(hndl);
@@ -98,7 +98,7 @@ namespace Kite {
 				return;
 			}
 
-			if (Handle.signature != _khandle[Handle.index].signature) {
+			if (Handle != _khandle[Handle.index]) {
 				KD_FPRINT("handle is not valid. ind: %i", Handle.index);
 				return;
 			}
@@ -122,7 +122,7 @@ namespace Kite {
 			_kfreeIndex.push_back(Handle.index);
 
 			// free handle 
-			_khandle[Handle.index] = KHandle();
+			_khandle[Handle.index] = KHandle(Type);
 
 			// set storage as modified
 			_kmodified = true;
@@ -139,7 +139,7 @@ namespace Kite {
 				return nullptr;
 			}
 
-			if (_khandle[Handle.index].signature != Handle.signature) {
+			if (_khandle[Handle.index] != Handle) {
 				KD_FPRINT("handle is not valid. ind: %i", Handle.index);
 				return nullptr;
 			}
@@ -207,7 +207,7 @@ namespace Kite {
 			SIZE type; // type hash code 
 		};
 
-		template <class T, class Y>
+		template <class T, class Y, CTypes Type>
 		struct CHolder : public BaseCHolder<Y> {
 			virtual ~CHolder() {
 				_kstorage.clear();
@@ -236,7 +236,7 @@ namespace Kite {
 				return _kstorage.getModified();
 			}
 
-			KCFStorage<T> *getStorage() {
+			KCFStorage<T, Type> *getStorage() {
 				return &_kstorage;
 			}
 
@@ -249,7 +249,7 @@ namespace Kite {
 			}
 
 		private:
-			KCFStorage<T> _kstorage;
+			KCFStorage<T, Type> _kstorage;
 		};
 	}
 }

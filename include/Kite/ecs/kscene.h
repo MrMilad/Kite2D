@@ -48,11 +48,15 @@ namespace Kite {
 
 		~KScene();
 
+		bool inite() override;
+
 		/// create entity in the root branch. (parent = 0)
-		/// after creating an entity, all previous pointers may be invalid.
-		/// so always use handle when need access to an older entity.
-		/// if an empty string pass as name parameter, 
-		/// a new name (ent + N) will generated for entity. (N = ordred number)
+		/// note: after creating an entity, all previous pointers may be invalid.
+		///		so always use handle when need access to an older entity.
+		/// note: if an empty string pass as name parameter, 
+		///		entity will created but not registered in the dictionary.
+		/// note: nameless entities will created faster than entities with name
+		/// note: you can register a name for a nameless entity with renameEntity() function
 		KM_FUN()
 		KEntity *createEntity(const std::string &Name = "");
 
@@ -97,7 +101,7 @@ namespace Kite {
 
 		template<typename T>
 		std::vector<T> *getComponentStorage(CTypes Type){
-			Internal::CHolder<T, KComponent> *drived = static_cast<Internal::CHolder<T, KComponent> *>(_kcstorage[(SIZE)Type]);
+			Internal::CHolder<T, KComponent, Type> *drived = static_cast<Internal::CHolder<T, KComponent, Type> *>(_kcstorage[(U16)Type]);
 			return drived->getStorage()->getContiner();
 		}
 
@@ -108,7 +112,7 @@ namespace Kite {
 				KD_PRINT("logic storage is not removable");
 				return;
 			}
-			Internal::CHolder<T, KComponent> *drived = static_cast<Internal::CHolder<T, KComponent> *>(_kcstorage[(SIZE)Type]);
+			Internal::CHolder<T, KComponent, Type> *drived = static_cast<Internal::CHolder<T, KComponent, Type> *>(_kcstorage[(U16)Type]);
 			auto continer = drived->getStorage()->getContiner();
 			while (continer->size() > 0) {
 				auto EHandle = continer->back().getOwnerHandle();
@@ -127,7 +131,7 @@ namespace Kite {
 		bool registerComponent(CTypes Type) {
 			// check base of T
 			static_assert(std::is_base_of<KComponent, T>::value, "T must be derived from KComponent");
-			auto tindex = (SIZE)Type;
+			auto tindex = (U16)Type;
 
 			// check type
 			if (_kcstorage[tindex] != nullptr) {
@@ -136,23 +140,25 @@ namespace Kite {
 			}
 
 			// register type
-			_kcstorage[tindex] = new Internal::CHolder<T, KComponent>;
+			_kcstorage[tindex] = new Internal::CHolder<T, KComponent, Type>;
 			_kcstorage[tindex]->type = typeid(T).hash_code();
 			return true;
 		}
 
+		bool _saveStream(KOStream &Stream, const std::string &Address) override;
+
+		bool _loadStream(KIStream &Stream, const std::string &Address) override;
+
 		void initeCStorages();
 		KHandle loadPrefabRaw(KPrefab *Prefab, bool isPaste);
-		void serial(KBaseSerial &Out) const;
-		void deserial(KBaseSerial &In);
 		void recursiveDeleter(KHandle EHandle);
 		void initeRoot();
 		U32 recursiveSaveChilds(KEntity *Entity, KPrefab *Prefab, U32 Level, bool Name, bool CopyPrefab);
 		static bool initeLua();
 
 		KHandle _kroot;
-		KCFStorage<KEntity> _kestorage;											// entity storage
-		Internal::BaseCHolder<KComponent> *_kcstorage[(SIZE)CTypes::maxSize];	// component storages (array)
+		KCFStorage<KEntity, CTypes::maxSize> _kestorage;	// entity storage
+		Internal::BaseCHolder<KComponent> *_kcstorage[(U16)CTypes::maxSize];	// component storages (array)
 		std::unordered_map<std::string, KHandle> _kentmap; 
 
 		std::vector<KHandle> _ktrash;

@@ -34,14 +34,6 @@ namespace Kite{
 	};
 	KMETA_RECIEVETYPES_BODY();
 
-	KM_ENUM()
-	enum class UnloadMode : U8 {
-		NORMAL = 0,		// Normal: ref counter will decrased and resource will deleted if reached zero.
-		IMMEDIATELY		// Immediately: ref counter will ignored and resource will deleted immediately
-						// so careful about pointer dangling 
-	};
-	KMETA_UNLOADMODE_BODY();
-
 	/*enum class KComTypes : U8 {
 		KCT_GRAPHIC = 0,
 		KCT_AUDIO,

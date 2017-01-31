@@ -35,6 +35,11 @@ namespace Kite {
 
 	KStringID::KStringID() :
 		str(""), hash(0) {}
+
+	void KStringID::clear() {
+		str.clear();
+		hash = 0;
+	}
 	KMETA_KSTRINGID_SOURCE();
 
 	KBitset::KBitset(U32 Size, const std::string &Value) :

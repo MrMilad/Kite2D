@@ -167,7 +167,7 @@ namespace Kite {
 		void remChildIndex(U32 ID);
 		void setHandle(const KHandle Handle);
 		void forceRemoveCom(CTypes Type); // force remove components and ignore dependency. (only fixed types)
-		void initeComponents(); // initialize (call attach()) all components whene deserial entity manager
+		void initeComponents(); // initialize (call attach()) on deserialization stage
 
 		void postClearComponents(); // clear all components immediately
 		static void postWork(Internal::BaseCHolder<KComponent> **Storage);
@@ -195,7 +195,7 @@ namespace Kite {
 
 		// runtime variables (
 		Internal::BaseCHolder<KComponent> **_kcstorage;
-		KCFStorage<KEntity> *_kestorage;
+		KCFStorage<KEntity, CTypes::maxSize> *_kestorage;
 
 		// editor only
 #ifdef KITE_EDITOR

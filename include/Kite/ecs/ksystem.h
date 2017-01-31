@@ -21,8 +21,7 @@ USA
 #define KSYSTEM_H
 
 #include "Kite/core/kcoredef.h"
-#include "Kite/core/kresourcemanager.h"
-#include "Kite/ecs/kentitymanager.h"
+#include "Kite/ecs/kscene.h"
 #include "Kite/meta/kmetadef.h"
 #include "ksystem.khgen.h"
 
@@ -37,7 +36,7 @@ namespace Kite {
 		virtual ~KSystem();
 
 		// delta is based seconds
-		virtual bool update(F64 Delta, KEntityManager *EManager, KResourceManager *RManager) = 0;
+		virtual bool update(F64 Delta, KScene *Scene) = 0;
 
 		virtual bool inite(void *Data) = 0;
 

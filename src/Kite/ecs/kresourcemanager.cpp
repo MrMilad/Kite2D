@@ -195,7 +195,7 @@ namespace Kite {
 		return false;
 	}
 
-	void KResourceManager::unload(const std::string &Name, UnloadMode Mode) {
+	void KResourceManager::unload(const std::string &Name) {
 		// checking file name
 		if (Name.empty()) {
 			KD_PRINT("empty name entered.");
@@ -213,20 +213,13 @@ namespace Kite {
 				msg.setData((void *)found->second.res, sizeof(KResource *));
 				postMessage(&msg, MessageScope::ALL);
 
-				// checking unload mode
-				if (Mode == UnloadMode::IMMEDIATELY) {
+				// decrease ref count
+				found->second.res->decRef();
+
+				// delete it if ref count is 0
+				if (found->second.res->getReferencesCount() <= 0) {
 					delete found->second.res;
 					found->second.res = nullptr;
-
-				} else {
-					// decrease ref count
-					found->second.res->decRef();
-
-					// delete it if ref count is 0
-					if (found->second.res->getReferencesCount() <= 0) {
-						delete found->second.res;
-						found->second.res = nullptr;
-					}
 				}
 			}
 		}

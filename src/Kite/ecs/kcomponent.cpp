@@ -27,19 +27,17 @@ USA
 
 namespace Kite {
 	KResourceManager *KComponent::_krman = nullptr;
-	KComponent::KComponent(const std::string &Name) :
+	KComponent::KComponent(const std::string &Name, bool RemoveOnDepZero, std::initializer_list<CTypes> List) :
 #ifdef KITE_EDITOR
 		sceneItem(nullptr),
 #endif
-		_kremoveNoDep(false),
+		_kremoveNoDep(RemoveOnDepZero),
 		_krefcounter(0),
 		_kname(Name),
-		_kresNeedup(true)
+		_kdeplist(List)
 	{}
 
 	KComponent::~KComponent() {}
-
-	bool KComponent::updateRes() { return true; }
 
 	KResourceManager * KComponent::getRMan() { return _krman; }
 

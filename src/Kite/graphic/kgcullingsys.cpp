@@ -29,30 +29,29 @@ USA
 namespace Kite {
 
 	KGCullingSys::KGCullingSys():
-		_klastEman(nullptr),
+		_klastScene(nullptr),
 		_kobjpool(nullptr),
 		_kqtree(nullptr)
 	{}
 	
-	bool KGCullingSys::update(F64 Delta, KEntityManager *EManager, KResourceManager *RManager) {
+	bool KGCullingSys::update(F64 Delta, KScene *Scene) {
 		//EDITOR_STATIC const bool isregist = EManager->isRegisteredComponent(CTypes::RegisterGCulling);
-		_krman = RManager;
 		// check if scene changed. so we need to clear quad tree
-		if (_klastEman != nullptr && _klastEman != EManager) {
+		if (_klastScene != nullptr && _klastScene != Scene) {
 			_kqtree->Clear();
 			delete _kobjpool;
 			_kobjpool = new memory::memory_pool<>(sizeof(KQTreeObject), KGCULLING_MEM_CHUNK * sizeof(KQTreeObject));
 		}
-		_klastEman = EManager;
+		_klastScene = Scene;
 
 		// registering phase. register new objects to system (static -> qtree and dynamic -> bf list)
 		// we cant use static pointer to the continer because every scene has its own entity manager and continers.
-		auto continer = EManager->getComponentStorage<KRegGCullingCom>(CTypes::RegisterGCulling);
+		auto continer = Scene->getComponentStorage<KRegGCullingCom>(CTypes::RegisterGCulling);
 		bool haveReg = false;
 		for (auto it = continer->begin(); it != continer->end(); ++it) {
 			haveReg = true;
 			auto EHandle = it->getOwnerHandle();
-			auto entity = EManager->getEntity(EHandle);
+			auto entity = Scene->getEntity(EHandle);
 
 			// static objects will be added to quad tree
 			if (entity->getStatic()) {
@@ -65,7 +64,7 @@ namespace Kite {
 		}
 
 		// clear storage after registration
-		if (haveReg) EManager->clearComponentStorage<KRegGCullingCom>(CTypes::RegisterGCulling);
+		if (haveReg) Scene->clearComponentStorage<KRegGCullingCom>(CTypes::RegisterGCulling);
 		return true;
 	}
 
@@ -154,7 +153,7 @@ namespace Kite {
 		
 		// swap and pop_back methode
 		thisptr->_kbflist[Com->_kobjIndex] = thisptr->_kbflist.back();
-		auto gcom = (KGCullingCom *)thisptr->_klastEman->getEntity(thisptr->_kbflist[Com->_kobjIndex].ent)->getComponent(CTypes::GCulling);
+		auto gcom = (KGCullingCom *)thisptr->_klastScene->getEntity(thisptr->_kbflist[Com->_kobjIndex].ent)->getComponent(CTypes::GCulling);
 		gcom->_kobjIndex = Com->_kobjIndex;
 		thisptr->_kbflist.pop_back();
 	}
@@ -178,8 +177,8 @@ namespace Kite {
 
 	void KGCullingSys::_computeParentPosition(KEntity *Entity, KRectF32 &Output){
 		auto trcom = (KTransformCom *)Entity->getComponent(CTypes::Transform, "");
-		if (Entity->getParentHandle() != _klastEman->getRoot()) {
-			_computeParentPosition(_klastEman->getEntity(Entity->getParentHandle()), Output);
+		if (Entity->getParentHandle() != _klastScene->getRoot()) {
+			_computeParentPosition(_klastScene->getEntity(Entity->getParentHandle()), Output);
 		}
 		if (trcom) {
 			Output += trcom->getPosition();
@@ -188,25 +187,23 @@ namespace Kite {
 	}
 
 	void KGCullingSys::queryObjects(const KCameraCom *Cam, GCullingObjectsFilter Filter,
-									const KEntityManager *EMan, std::vector<std::pair<KEntity *, KRenderable *>> &Output) {
+									const KScene *Scene, std::vector<std::pair<KEntity *, KRenderable *>> &Output) {
 		Output.resize(0);
 
 		// there is no selected layer
 		if (Cam->_klayers.none()) return;
 
-		if (_klastEman != nullptr && _klastEman == EMan) {
+		if (_klastScene != nullptr && _klastScene == Scene) {
 			// tilemaps
 			if (((U8)Filter & (U8)GCullingObjectsFilter::TILE) == (U8)GCullingObjectsFilter::TILE) {
 
 				// iterate over all tilemaps components
-				auto continer = _klastEman->getComponentStorage<KOrthoMapCom>(CTypes::OrthogonalMapView);
+				auto continer = _klastScene->getComponentStorage<KOrthoMapCom>(CTypes::OrthogonalMapView);
 				for (auto it = continer->begin(); it != continer->end(); ++it) {
-					auto owner = _klastEman->getEntity(it->getOwnerHandle());
+					auto owner = _klastScene->getEntity(it->getOwnerHandle());
 					if (owner->isActive() && it->isVisible()) {
 						// check layer
 						if (Cam->_klayers.test(owner->getLayer())) {
-							it->updateRes();
-
 							// check bounding rect
 							KRectF32 brect;
 							it->getBoundingRect(brect);
@@ -230,13 +227,12 @@ namespace Kite {
 				auto end = _kbflist.end();
 				for (auto it = _kbflist.begin(); it != end; ++it) {
 					// bounding rect of dynamic objects
-					auto ent = _klastEman->getEntity(it->ent);
+					auto ent = _klastScene->getEntity(it->ent);
 					if (ent->isActive()) {
 
 						// check layer
 						if (Cam->_klayers.test(ent->getLayer())) {
 							auto com = ent->getComponentByHandle(it->com);
-							com->updateRes();
 							auto graphicCom = dynamic_cast<KRenderable *>(com);
 							auto trcom = (KTransformCom *)ent->getComponent(CTypes::Transform);
 
@@ -285,13 +281,12 @@ namespace Kite {
 				// iterate over queried objects
 				while (!query.EndOfQuery()) {
 					auto it = query.GetCurrent();
-					auto ent = _klastEman->getEntity(it->ent);
+					auto ent = _klastScene->getEntity(it->ent);
 
 					if (ent->isActive()) {
 						// check layer
 						if (Cam->_klayers.test(ent->getLayer())) {
 							auto com = ent->getComponentByHandle(it->com);
-							com->updateRes();
 							auto graphicCom = dynamic_cast<KRenderable *>(com);
 							auto transformCom = (KTransformCom *)ent->getComponent(CTypes::Transform);
 

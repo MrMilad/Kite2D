@@ -35,7 +35,7 @@ source_group("Header Files\\Core" FILES ${COR_INC})
 source_group("Source Files\\Core" FILES ${COR_SRC})
 LIST(APPEND ALL_FILES ${COR_SRC} ${COR_INC})
 
-# core
+# ecs
 add_subdirectory(Kite/ecs)
 source_group("Header Files\\ECS" FILES ${ECS_INC})
 source_group("Source Files\\ECS" FILES ${ECS_SRC})
@@ -67,16 +67,16 @@ source_group("Source Files\\Window" FILES ${WIN_SRC})
 LIST(APPEND ALL_FILES ${WIN_SRC} ${WIN_INC})
 
 # input
-add_subdirectory(Kite/input)
-source_group("Header Files\\Input" FILES ${INP_INC})
-source_group("Source Files\\Input" FILES ${INP_SRC})
-LIST(APPEND ALL_FILES ${INP_SRC} ${INP_INC})
+# add_subdirectory(Kite/input)
+# source_group("Header Files\\Input" FILES ${INP_INC})
+# source_group("Source Files\\Input" FILES ${INP_SRC})
+# LIST(APPEND ALL_FILES ${INP_SRC} ${INP_INC})
 
 # logic
-add_subdirectory(Kite/logic)
-source_group("Header Files\\Logic" FILES ${LOG_INC})
-source_group("Source Files\\Logic" FILES ${LOG_SRC})
-LIST(APPEND ALL_FILES ${LOG_SRC} ${LOG_INC})
+# add_subdirectory(Kite/logic)
+# source_group("Header Files\\Logic" FILES ${LOG_INC})
+# source_group("Source Files\\Logic" FILES ${LOG_SRC})
+# LIST(APPEND ALL_FILES ${LOG_SRC} ${LOG_INC})
 
 # audio
 #add_subdirectory(Kite/audio)

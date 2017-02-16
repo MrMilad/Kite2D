@@ -174,7 +174,7 @@ namespace Kite {
 
 		// internal script function (copy,cut,paste)
 		KM_FUN()
-			inline void setPrefabName(const std::string &Name) { _kprefabName = Name; _kisPrefab = true; }
+		inline void setPrefabName(const std::string &Name) { _kprefabName = Name; _kisPrefab = true; }
 		
 		KM_VAR() bool _kstatic;
 		KM_VAR() bool _kdeleted;
@@ -194,8 +194,8 @@ namespace Kite {
 		static std::vector<KHandle> _ktrashList;						// components trash list
 
 		// runtime variables (
-		Internal::BaseCHolder<KComponent> **_kcstorage;
-		KCFStorage<KEntity, CTypes::maxSize> *_kestorage;
+		//Internal::BaseCHolder<KComponent> **_kcstorage;
+		//KCFStorage<KEntity, CTypes::maxSize> *_kestorage;
 
 		// editor only
 #ifdef KITE_EDITOR

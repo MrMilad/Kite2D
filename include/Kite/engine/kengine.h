@@ -100,7 +100,6 @@ namespace Kite {
 		lua_State *_klstate;
 		KGLWindow *_kwindow;
 		KMetaManager *_kmman;
-		KSceneManager *_ksman;
 		KResourceManager *_krman;
 		std::vector<std::unique_ptr<KSystem>> _ksys;
 		bool _kinite;

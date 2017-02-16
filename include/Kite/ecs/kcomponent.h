@@ -37,23 +37,21 @@ USA
 KMETA
 namespace Kite {
 	class KResourceManager;
+	class KNode;
 	KM_CLASS(COMPONENT, ABSTRACT)
 	class KITE_FUNC_EXPORT KComponent : public KListener{
-		friend class KEntity;
-		friend class KEngine;
+		friend class KNode;
 	public:
 		/// RemoveOnDepZero: automatic remove this component when there is no dependency on it.
 		/// DepList: circular-dependency is allowed but not recommended. (bad design)
 		///		dont add 'Logic' component as dependency.
-		KComponent(const std::string &Name,bool RemoveOnDepZero, std::initializer_list<CTypes> DepList);
+		KComponent(const std::string &Name, KNode *OwnerNode, bool RemoveOnDepZero, std::initializer_list<CTypes> DepList);
+
+		KComponent(const KNode &CopyNode) = delete;
 
 		virtual ~KComponent();
 
-		/// will be implemented by KHParser
-		virtual bool setProperty(const std::string &Name, KAny &Value) = 0;
-
-		/// will be implemented by KHParser
-		virtual KAny getProperty(const std::string &Name) const = 0;
+		//KComponent &operator=(const KComponent &Right); // we cant override this function because cfstorage use it for removing components
 
 		/// will be implemented by KHParser
 		KM_PRO_GET(KP_NAME = "type", KP_TYPE = KCTypes, KP_CM = "type of the component")
@@ -73,8 +71,8 @@ namespace Kite {
 		KM_PRO_GET(KP_NAME = "handle", KP_TYPE = KHandle, KP_CM = "component handle")
 		inline const KHandle &getHandle() const { return _khandle; }
 
-		KM_PRO_GET(KP_NAME = "ownerHandle", KP_TYPE = KHandle, KP_CM = "owner (entity) handle")
-		inline const KHandle &getOwnerHandle() const { return _kohandle; }
+		KM_PRO_GET(KP_NAME = "ownerNode", KP_TYPE = KNode, KP_CM = "owner node")
+		inline KNode *getOwnerNode() const { return _kownerNode; }
 
 		KM_PRO_GET(KP_NAME = "lsitener", KP_TYPE = KListener, KP_CM = "cmponent message listener")
 		inline KListener &getListener() { return *(KListener *)this; }
@@ -89,17 +87,22 @@ namespace Kite {
 		inline U16 getDepCounter() const { return _krefcounter; }
 
 #ifdef KITE_EDITOR
-		inline void setSceneItem(void *Ptr) { sceneItem = Ptr; }
-		inline void *getSceneItem() const { return sceneItem; }
+		/// will be implemented by KHParser
+		/// setProperty(name, getProperty(name)) // can be used for property revert with prefab
+		virtual bool setProperty(const std::string &Name, KAny &Value) = 0;
+		virtual KAny getProperty(const std::string &Name) const = 0;
+
+		inline void setData(void *Ptr) { sceneData = Ptr; }
+		inline void *getData() const { return sceneData; }
 #endif
 		KMETA_KCOMPONENT_BODY();
 
 	protected:
-		/// will be called when atached to a entity
-		virtual void attached(KEntity *Owner) = 0;
+		/// will be called when atached to a node
+		virtual void attached(KNode *Owner) = 0;
 
-		/// will be called when deattached from an entity
-		virtual void deattached(KEntity *Owner) = 0;
+		/// will be called when deattached from a node
+		virtual void deattached(KNode *Owner) = 0;
 
 		/// will be implemented by KHParser
 		/// usage: access base members in lua
@@ -107,27 +110,21 @@ namespace Kite {
 
 		/// will be implemented by KHParser
 		/// this function will be called only once (after deserialization)
-		/// and will tracked all loaded resources
-		/// so we can unloading them automatically after unloading parrent scene.
-		virtual void loadRes() = 0;
-
-		inline void setOwnerHandle(const KHandle &Handle) { _kohandle = Handle; }
-
-		static KResourceManager * getRMan();
+		/// and load all KSharedResource variables that marked with KM_VAR()
+		virtual void loadRes(KResourceManager *RManager) = 0;
 
 	private:
-
-		bool _kremoveNoDep;				// component will removed if refcounter = 0
-		std::vector<CTypes> _kdeplist;
-		KM_VAR() U16 _krefcounter;		// dependency ref counter
+		KM_VAR() I16 _krefcounter;		// dependency ref counter
 		KM_VAR() std::string _kname;
 		KM_VAR() KHandle _khandle;
-		KM_VAR() KHandle _kohandle;
 
-		static KResourceManager *_krman;
+		// runtime variables
+		KNode *_kownerNode;
+		bool _kremoveNoDep;				// component will removed if refcounter = 0
+		std::vector<CTypes> _kdeplist;
 
 #ifdef KITE_EDITOR
-		void *sceneItem;
+		void *sceneData;
 #endif
 	};
 }

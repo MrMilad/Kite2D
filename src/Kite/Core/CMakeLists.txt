@@ -26,8 +26,6 @@ set(COR_INC
     ${INCROOT}/kdelegate.h
     ${INCROOT}/kany.h
     ${INCROOT}/kvariant.h
-    ${INCROOT}/knoncopyable.h
-    #${INCROOT}/kcoreinstance.h
     ${INCROOT}/kcoredef.h
     ${INCROOT}/kcorestructs.h
     ${INCROOT}/kcoretypes.h

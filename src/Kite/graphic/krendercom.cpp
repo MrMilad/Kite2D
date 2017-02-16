@@ -26,12 +26,9 @@
 
 namespace Kite{
 	KRenderCom::KRenderCom(const std::string &Name) :
-		KComponent(Name)
-	{
-		addDependency(CTypes::GCulling);
-		addDependency(CTypes::Transform);
-		setRemoveOnDepZero(true);
-	}
+		KComponent(Name, true, { CTypes::GCullingInstance, CTypes::Transform }),
+		_kinterfaceType(CTypes::maxSize)
+	{}
 
 	void KRenderCom::attached(KEntity *Entity) {}
 

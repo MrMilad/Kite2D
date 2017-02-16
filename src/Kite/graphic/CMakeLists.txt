@@ -60,6 +60,7 @@ set(GFX_INC
     ${INCROOT}/katlastexturearray.h
     ${INCROOT}/korthotilestamp.h
     ${INCROOT}/kbitmaptextcom.h
+    ${INCROOT}/kcullable.h
     PARENT_SCOPE
 )
 

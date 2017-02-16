@@ -62,6 +62,8 @@ namespace Kite {
 	KScene::KScene(const std::string &Name) :
 		KResource(Name, false, false),
 		_knum(0),
+		_kculling(true),
+		_kzsorting(true),
 		_kzorder(0)
 	{
 		initeLua();
@@ -390,6 +392,8 @@ namespace Kite {
 		bserial << std::string("KScene");
 
 		// serial data
+		bserial << _kculling;
+		bserial << _kzsorting;
 		bserial << _kzorder;
 		bserial << _knum;
 		bserial << _kroot;
@@ -430,6 +434,8 @@ namespace Kite {
 		}
 
 		// deserial data
+		bserial >> _kculling;
+		bserial >> _kzsorting;
 		bserial >> _kzorder;
 		bserial >> _knum;
 		bserial >> _kroot;

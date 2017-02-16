@@ -23,21 +23,20 @@
 #include "Kite/core/kcoredef.h"
 #include "Kite/core/kcorestructs.h"
 #include "Kite/graphic/kgraphicstructs.h"
+#include "Kite/graphic/kshaderprogram.h"
+#include "Kite/graphic/katlastexturearray.h"
 #include "Kite/graphic/kgraphictypes.h"
+#include "Kite/graphic/kcullable.h"
 
 namespace Kite{
-	class KShaderProgram;
-	class KAtlasTextureArray;
-	class KITE_FUNC_EXPORT KRenderable{
+	class KITE_FUNC_EXPORT KRenderable : public KCullable{
 		friend class KRenderSys;
-		friend class KGCullingSys;
 	public:
 		KRenderable() :
 			_kmatNeedUpdate(true)
 		{}
 
 	protected:
-		virtual void getBoundingRect(KRectF32 &Output) const = 0;
 		virtual const std::vector<KGLVertex> *getVertex() const = 0;
 		virtual const U32 getIndexSize() const = 0;
 		virtual const std::vector<KPointSprite> *getPoint() const = 0;

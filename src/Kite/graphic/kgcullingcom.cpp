@@ -21,22 +21,18 @@ USA
 #include "Kite/meta/kmetamanager.h"
 #include "Kite/meta/kmetaclass.h"
 #include "Kite/meta/kmetatypes.h"
-#include "Kite/core/kentity.h"
+#include "Kite/ecs/kentity.h"
 #include <luaintf/LuaIntf.h>
 
 namespace Kite {
 	void(*KGCullingCom::_kswitchCallb)(KEntity *, KGCullingCom *) = nullptr;
 	void *KGCullingCom::_ksysptr = nullptr;
 
-	KGCullingCom::KGCullingCom(const std::string &Name):
-		KComponent(Name),
+	KGCullingCom::KGCullingCom(const std::string &Name) :
+		KComponent(Name, true, { CTypes::RegisterGCulling }),
 		_kcleanCallb(nullptr),
 		_kobjptr(nullptr),
-		_kobjIndex(0)
-	{
-		setRemoveOnDepZero(true);
-		addDependency(CTypes::RegisterGCulling);
-	}
+		_kobjIndex(0) {}
 
 	void KGCullingCom::attached(KEntity *Owner) {
 		// entity manager will not create 'register components' on deserial because they are removed by systems after registration phase

@@ -151,7 +151,7 @@
 /// debug macros
 #if defined(KITE_DEV_DEBUG)
 	#if defined (KITE_EDITOR)
-#define EDITOR_STATIC 
+#define ED_STATIC thread_local static
 namespace Kite {
 	enum class msgType : short{
 		MSG_DEBUG = 0,
@@ -188,7 +188,7 @@ namespace Kite {
 	#endif
 
 #else /// release state. (without debug output and break)
-	#define EDITOR_STATIC static
+	#define ED_STATIC static
     #define KD_BREAK()
     #define KD_FPRINT(fmt, ...)
     #define KD_PRINT(exp)

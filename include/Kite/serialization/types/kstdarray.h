@@ -17,39 +17,41 @@ License along with this library; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 USA
 */
-#ifndef KSYSTEM_H
-#define KSYSTEM_H
+#ifndef KSTDARRAY_H
+#define KSTDARRAY_H
 
 #include "Kite/core/kcoredef.h"
-#include "Kite/ecs/kscene.h"
-#include "Kite/meta/kmetadef.h"
-#include "ksystem.khgen.h"
+#include "Kite/serialization/kbaseserial.h"
+#include "Kite/serialization/kserialization.h"
+#include <array>
 
-KMETA
 namespace Kite {
-	KM_CLASS(SYSTEM, ABSTRACT)
-	class KITE_FUNC_EXPORT KSystem{
-		KMETA_KSYSTEM_BODY();
-	public:
-		KSystem();
 
-		virtual ~KSystem();
+	template<typename T1, size_t T2>
+	KBaseSerial &operator<<(KBaseSerial &Out, const std::array<T1, T2> &Value) {
+		const size_t size = T2;
 
-		// delta is based seconds
-		virtual bool update(F64 Delta, KScene *Scene) = 0;
+		Out << size;
+		for (auto it = Value.begin(); it != Value.end(); ++it) {
+			Out << (*it);
+		}
 
-		virtual bool inite(KSysInite *IniteData) = 0;
+		return Out;
+	}
 
-		virtual void destroy() = 0;
+	template<typename T1, size_t T2>
+	KBaseSerial &operator>>(KBaseSerial &In, std::array<T1, T2> &Value) {
+		size_t size = 0;
 
-		inline bool isInite() const { return _kisinite; }
-
-	protected:
-		inline void setInite(bool Inite) { _kisinite = Inite; }
-
-	private:
-		bool _kisinite;
-	};
+		// check array size
+		In >> size;
+		if (size == T2) {
+			for (SIZE i = 0; i < size; ++i) {
+				In >> Value[i];
+			}
+		}
+		return In;
+	}
 }
 
-#endif // KSYSTEM_H
+#endif // KSTDARRAY_H

@@ -51,6 +51,14 @@ namespace Kite{
 	};
 	KMETA_MESSAGESCOPE_BODY();
 
+	KM_ENUM()
+	enum class CClearMode : U8 {
+		LOGIC = 0,
+		FIXED,
+		ALL
+	};
+	KMETA_CCLEARMODE_BODY();
+
 	/*typedef U64(*KCallInputStreamRead)(void *Data, U64 DataSize);
 	typedef I32(*KCallInputStreamSeek)(I64 Offset, I32 Origin);
 	typedef I64(*KCallInputStreamTell)();

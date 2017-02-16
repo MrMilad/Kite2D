@@ -27,6 +27,7 @@
 #include "Kite/serialization/kserialization.h"
 #include <string>
 #include "kcorestructs.khgen.h"
+#include <memory>
 
 KMETA
 namespace Kite{
@@ -201,17 +202,6 @@ namespace Kite{
 		bool operator() (KStringID const& t1, KStringID const& t2) const {
 			return (t1.hash == t2.hash);
 		}
-	};
-
-	KM_CLASS(POD)
-	struct KLayerInfo {
-		KMETA_KLAYERINFO_BODY();
-
-		KM_VAR() bool isBuiltin;
-		KM_VAR() KStringID name;
-
-		KM_CON(std::string, bool)
-		KLayerInfo(const std::string &Name = "", bool IsBuiltin = false);
 	};
 }
 

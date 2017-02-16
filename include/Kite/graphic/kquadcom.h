@@ -21,11 +21,11 @@
 #define KQUADCOM_H
 
 #include "Kite/core/kcoredef.h"
-#include "Kite/core/kcomponent.h"
+#include "Kite/ecs/kcomponent.h"
 #include "Kite/meta/kmetadef.h"
 #include "Kite/graphic/kgraphicstructs.h"
+#include "Kite/graphic/krenderable.h"
 #include "Kite/math/kmathstructs.h"
-#include "krenderable.h"
 #include <string>
 #include <vector>
 #include <kquadcom.khgen.h>
@@ -40,9 +40,9 @@ namespace Kite{
     public:
 		KQuadCom(const std::string &Name = "");
 
-		void attached(KEntity *Owner) override;
+		void attached(KNode *Owner) override;
 
-		void deattached(KEntity *Owner) override;
+		void deattached(KNode *Owner) override;
 
 		RecieveTypes onMessage(KMessage *Message, MessageScope Scope) override;
 
@@ -65,17 +65,17 @@ namespace Kite{
 		inline const KColor &getBlendColor() const { return _kcolor; }
 
 		KM_PRO_SET(KP_NAME = "shaderProgram")
-		void setShader(const KStringID &ShaderProgram);
-
-		KM_PRO_GET(KP_NAME = "shaderProgram", KP_TYPE = KStringID, KP_CM = "name of the shader program", KP_RES = RTypes::ShaderProgram)
-		inline const KStringID &getShader() const { return _kshprogName; }
+		void setShader(KShaderProgram *ShaderProgram);
+		
+		KM_PRO_GET(KP_NAME = "shaderProgram", KP_CM = "shader program", KP_RES = RTypes::ShaderProgram)
+		inline KSharedResource getShader() const { return _kshprog; }
 
 		KM_PRO_SET(KP_NAME = "textureGroup")
-		void setAtlasTextureArraye(const KStringID &TextureArrayName);
+		void setAtlasTextureArraye(KAtlasTextureArray *TextureArray);
 
-		KM_PRO_GET(KP_NAME = "textureGroup", KP_TYPE = KStringID, KP_CM = "name of the atlas texture group",
+		KM_PRO_GET(KP_NAME = "textureGroup", KP_CM = "atlas texture group",
 				   KP_RES = RTypes::TextureGroup)
-		inline const KStringID &getAtlasTextureArray() const { return _ktextureArrayName; }
+		inline KSharedResource getAtlasTextureArray() const { return _katarray; }
 
 		KM_PRO_SET(KP_NAME = "textureIndex")
 		void setTextureArrayIndex(U16 Index);
@@ -89,6 +89,12 @@ namespace Kite{
 		KM_PRO_SET(KP_NAME = "atlasID")
 		void setAtlasItem(const KAtlasItem &AtlasItem);
 
+		KM_PRO_SET(KP_NAME = "culling")
+		inline void setActiveCulling(bool Culling) { _kculling = Culling; }
+
+		KM_PRO_GET(KP_NAME = "culling", KP_TYPE = bool, KP_CM = "object culling")
+		inline bool isActiveCulling() const override { return _kculling; }
+
 		KM_PRO_SET(KP_NAME = "visible")
 		inline void setVisible(bool Visible) { _kisVisible = Visible; }
 
@@ -97,8 +103,6 @@ namespace Kite{
 
 		KM_FUN()
 		inline void getBoundingRect(KRectF32 &Output) const override;
-
-		bool updateRes() override;
 
 		// shuld defined in particle component
 		//inline void setRelativeTransform(bool Relative) { _krelTrans = Relative; }
@@ -122,16 +126,14 @@ namespace Kite{
 		KM_VAR() U16 _ktindex;
 		KM_VAR() KAtlasItem _katlasItem;
 		KM_VAR() bool _kisVisible;
+		KM_VAR() bool _kculling;
 		KM_VAR() U32 _kindexsize;
 		KM_VAR() std::vector<KGLVertex> _kvertex;
 		KM_VAR() F32 _kwidth;
 		KM_VAR() F32 _kheight;
 		KM_VAR() KColor _kcolor;
-		KM_VAR() KStringID _kshprogName;
-		KM_VAR() KStringID _ktextureArrayName;
-
-		KShaderProgram *_kshprog;
-		KAtlasTextureArray *_katarray;
+		KM_VAR() KSharedResource _kshprog;
+		KM_VAR() KSharedResource _katarray;
     };
 }
 

@@ -14,6 +14,7 @@ set(ECS_SRC
     ${SRCROOT}/kresource.cpp
     ${SRCROOT}/kmessage.cpp
     ${SRCROOT}/kmessenger.cpp
+    ${SRCROOT}/knode.cpp
     PARENT_SCOPE
 )
 
@@ -34,6 +35,7 @@ set(ECS_INC
     ${INCROOT}/kcfstorage.h
     ${INCROOT}/kresourcemanager.h
     ${INCROOT}/kresource.h
+    ${INCROOT}/knode.h
     PARENT_SCOPE
 )
 

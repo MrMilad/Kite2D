@@ -26,6 +26,7 @@ USA
 #include "Kite/serialization/types/kstdpair.h"
 #include "kmeta.khgen.h"
 #include <luaintf\LuaIntf.h>
+#include <memory>
 
 namespace Kite {
 	KResourceManager::KResourceManager(){
@@ -64,7 +65,7 @@ namespace Kite {
 		_ksfactory[index] = Func;
 	}
 
-	void KResourceManager::registerResource(RTypes Type, KResource *(*Func)(const std::string &)) {
+	void KResourceManager::registerResource(RTypes Type, KResource *(*Func)(const std::string &, const std::string &)) {
 		auto index = (SIZE)Type;
 
 		// check type
@@ -76,94 +77,52 @@ namespace Kite {
 		_krfactory[index] = Func;
 	}
 
-	KResource *KResourceManager::load(const std::string &Name){
+	KSharedResource KResourceManager::load(const std::string &Name) {
 		// checking file name
 		if (Name.empty()) {
 			KD_PRINT("empty name.");
-			return nullptr;
+			return KSharedResource(nullptr);
 		}
 
 		// check dictionary
 		auto found = _kmap.find(Name);
 		if (found == _kmap.end()) {
 			KD_FPRINT("There is no resource with this name. name: %s", Name.c_str());
-			return nullptr;
+			return KSharedResource(nullptr);
 		}
 
 		// if resource is loaded, increase ref counter and return it
 		if (found->second.res != nullptr) {
-			found->second.res->incRef();
-			return found->second.res;
-		} 
+			return *found->second.res;
+		}
 
 		// else load it and return
 		// create new resource and associated input stream
 		auto stream = _ksfactory[(SIZE)found->second.stype]();
 		if (stream == nullptr) {
 			KD_FPRINT("can't create stream. stream type: %s", getIStreamTypesName(found->second.stype).c_str());
-			return nullptr;
+			return KSharedResource(nullptr);
 		}
 
-		KResource *resource = _krfactory[(SIZE)found->second.rtype](Name);
-		resource->setOnFly(false);
+		KResource *resource = _krfactory[(SIZE)found->second.rtype](Name, found->second.address);
 
-		// loading composite resources (recursive)
-		if (resource->isComposite()) {
-			if (!loadCompositeList(found->second.stype, resource, found->second.address)) {
-				KD_FPRINT("can't load composite resource. rname: %s", Name.c_str());
-				delete resource;
-				delete stream;
-				return nullptr;
-			}
-		}
-
-		// loading resource itself
-		if (!resource->_loadStream(*stream, found->second.address)) {
+		// loading resource
+		if (!resource->_loadStream(std::make_unique<KIStream>(stream), this)) {
 			KD_FPRINT("can't load resource. rname: %s", Name.c_str());
 			delete resource;
-			delete stream;
-			return nullptr;
+			return KSharedResource(nullptr);
 		}
-		resource->setAddress(found->second.address);
-
-		// stream lifetime
-		std::pair<KResource *, KIStream *> pair;
-		if (resource->isCatchStream()) {
-			resource->setCatchStream(stream);
-		} else {
-			stream->close();
-			delete stream;
-		}
-
-		// increment refrence count
-		resource->incRef();
 
 		// insert resource to map
-		found->second.res = resource;
+		found->second.res = new KSharedResource(resource);
 
 		// post a message about new resource
 		KMessage msg;
 		msg.setType("onResLoad");
-		msg.setData((void *)resource, sizeof(resource));
+		msg.setData((void *)Name.c_str(), Name.size());
 		postMessage(&msg, MessageScope::ALL);
 
-		return resource;
-	}
-
-	KResource *KResourceManager::getLoaded(const std::string &Name) {
-		// checking file name
-		if (Name.empty()) {
-			KD_PRINT("empty name.");
-			return nullptr;
-		}
-
-		auto found = _kmap.find(Name);
-		if (found != _kmap.end()) {
-			return found->second.res;
-		}
-
-		KD_FPRINT("there is no resource with this name. name: %s", Name.c_str());
-		return nullptr;
+		return *found->second.res;
 	}
 
 	bool KResourceManager::registerName(const std::string &Name, const std::string &Address, RTypes RType, IStreamTypes SType) {
@@ -177,7 +136,7 @@ namespace Kite {
 
 		// this name is not exist in the map so we insert it to the map
 		if (found == _kmap.end()) {
-			_kmap.insert({ Name, info(Address, RType, SType) });
+			_kmap.insert({ Name, Info(Address, RType, SType) });
 			return true;
 		}
 
@@ -198,7 +157,7 @@ namespace Kite {
 	void KResourceManager::unload(const std::string &Name) {
 		// checking file name
 		if (Name.empty()) {
-			KD_PRINT("empty name entered.");
+			KD_PRINT("empty resource name.");
 			return;
 		}
 
@@ -206,37 +165,52 @@ namespace Kite {
 		// using dictionary key
 		if (found != _kmap.end()) {
 			if (found->second.res != nullptr) {
+				delete found->second.res;
+				found->second.res = nullptr;
 
 				// send msg about it befor actually unload it
 				KMessage msg;
-				msg.setType("onResUnload");
-				msg.setData((void *)found->second.res, sizeof(KResource *));
+				msg.setType("onResUnloaded");
+				msg.setData((void *)Name.c_str(), Name.size());
 				postMessage(&msg, MessageScope::ALL);
-
-				// decrease ref count
-				found->second.res->decRef();
-
-				// delete it if ref count is 0
-				if (found->second.res->getReferencesCount() <= 0) {
-					delete found->second.res;
-					found->second.res = nullptr;
-				}
 			}
 		}
 	}
 
-	const std::vector<KResource *> &KResourceManager::dump() {
-		static std::vector<KResource *> res;
-		res.clear();
-		res.reserve(_kmap.size());
+	void KResourceManager::forceUnload(const std::string &Name) {
+		// checking file name
+		if (Name.empty()) {
+			KD_PRINT("empty resource name.");
+			return;
+		}
+
+		auto found = _kmap.find(Name);
+		// using dictionary key
+		if (found != _kmap.end()) {
+			if (found->second.res != nullptr) {
+				found->second.res->expire();
+				delete found->second.res;
+				found->second.res = nullptr;
+
+				// send msg about it befor actually unload it
+				KMessage msg;
+				msg.setType("onResForceUnloaded");
+				msg.setData((void *)Name.c_str(), Name.size());
+				postMessage(&msg, MessageScope::ALL);
+			}
+		}
+	}
+
+	void KResourceManager::dump(std::vector<KResourceInfo> &Output)const {
+		Output.clear();
+		Output.reserve(_kmap.size());
 
 		for (auto it = _kmap.cbegin(); it != _kmap.cend(); ++it) {	
 			if (it->second.res != nullptr) {
-				res.push_back(it->second.res);
+				Output.push_back(KResourceInfo(it->second.res->operator->()->getName(),
+											   it->second.address, it->second.rtype, it->second.stype));
 			}
 		}
-
-		return res;
 	}
 
 	bool KResourceManager::saveDictionary(KOStream &Stream, const std::string &Address) {
@@ -283,7 +257,7 @@ namespace Kite {
 			bserial >> stype;
 
 			// insert data to the map
-			_kmap.insert({ name, info(address, rtype, stype) });
+			_kmap.insert({ name, Info(address, rtype, stype) });
 		}
 
 		return true;
@@ -306,34 +280,58 @@ namespace Kite {
 		_kmap.clear();
 	}
 
-	bool KResourceManager::loadCompositeList(IStreamTypes SType, KResource *Res, const std::string &Address) {
-		std::vector<std::string> plist;
-		KBinarySerial serializer;
-		auto sindex = (SIZE)SType;
-		auto stream = _ksfactory[sindex]();
-		if (!serializer.loadStream(*stream, Address + ".dep")) {
-			KD_FPRINT("cant load resource composite list. rname: %s", Res->getName().c_str());
-			delete stream;
-			return false;
-		}
-		delete stream;
+	KMETA_KRESOURCEMANAGER_SOURCE();
 
-		serializer >> plist;
-		Res->_kclist.clear();
+	memory::memory_pool<> KSharedResource::_kpool(sizeof(KSharedResource::dynamic), KSHAREDRES_MEM_CHUNK * sizeof(KSharedResource::dynamic));
+	KSharedResource::KSharedResource() :
+		_kdata(new(_kpool.allocate_node()) KSharedResource::dynamic(nullptr))
+	{}
 
-		// loading composite resources
-		for (auto it = plist.begin(); it != plist.end(); ++it) {
+	KSharedResource::KSharedResource(KResource *p):
+		_kdata(new(_kpool.allocate_node()) KSharedResource::dynamic(p))
+	{}
 
-			// load composite resources based our name\address dictionary
-			auto comp = load((*it));
-			if (comp == nullptr) {
-				KD_FPRINT("cant load dependecy. dependency name: %s", (*it).c_str());
-			}
-			Res->_kclist.push_back(comp);
-		}
-
-		return true;
+	KSharedResource::KSharedResource(const KSharedResource& other)
+		: _kdata(other._kdata) 
+	{
+		++_kdata->ref;
 	}
 
-	KMETA_KRESOURCEMANAGER_SOURCE();
+	KSharedResource::~KSharedResource() {
+		clear();
+	}
+
+	KSharedResource &KSharedResource::operator=(const KSharedResource& other) {
+		if (this != &other) {
+			clear();
+
+			_kdata = other._kdata;
+			++_kdata->ref;
+		}
+		return *this;
+	}
+
+	KResource *KSharedResource::operator->() {
+		if (_kdata->expired) return nullptr;
+		return _kdata->ptr;
+	}
+
+	const KResource *KSharedResource::operator->() const {
+		if (_kdata->expired) return nullptr;
+		return _kdata->ptr;
+	}
+
+	void KSharedResource::clear() {
+		if (!--_kdata->ref) {
+			_kpool.deallocate_node(_kdata);
+		}
+	}
+
+	void KSharedResource::expire() {
+		delete _kdata->ptr;
+		_kdata->ptr = nullptr;
+		_kdata->expired = true;
+	}
+
+	KMETA_KSHAREDRESOURCE_SOURCE();
 }

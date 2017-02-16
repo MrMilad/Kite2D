@@ -39,7 +39,7 @@
 
 namespace Kite{
 	bool KRenderSys::update(F64 Delta, KEntityManager *EManager, KResourceManager *RManager) {
-		//EDITOR_STATIC const bool isregist = (EManager->isRegisteredComponent(CTypes::Camera)
+		//ED_STATIC const bool isregist = (EManager->isRegisteredComponent(CTypes::Camera)
 												 //&& EManager->isRegisteredComponent(CTypes::RenderInstance));
 		// update culling system
 		if (_kconfig.culling) {
@@ -50,7 +50,7 @@ namespace Kite{
 		auto camContiner = EManager->getComponentStorage<KCameraCom>(CTypes::Camera);
 		U32 camIndex = 0;
 		U32 camSize = camContiner->size();
-		static std::vector<std::pair<U32, U32>> sortedIndex(KRENDER_CAMERA_SIZE); // reserve 10 pre-defined camera
+		ED_STATIC std::vector<std::pair<U32, U32>> sortedIndex(KRENDER_CAMERA_SIZE); // reserve 10 pre-defined camera
 
 		// sort camera(s) (based depth)
 		if (_kconfig.camDepth) {
@@ -124,7 +124,7 @@ namespace Kite{
 				U32 verSize = 0;
 
 				KRenderable *material = nullptr;
-				static std::vector<std::pair<KEntity *, KRenderable *>> objList;
+				ED_STATIC std::vector<std::pair<KEntity *, KRenderable *>> objList;
 				objList.reserve(_kconfig.objectSize);
 
 				// update and draw renderables
@@ -394,7 +394,7 @@ namespace Kite{
 	void KRenderSys::_fillRenderList(KEntityManager *Eman, std::vector<std::pair<KEntity *, KRenderable *>> &Output) {
 		Output.resize(0);
 		// culling is disabled
-		EDITOR_STATIC auto render = Eman->getComponentStorage<KRenderCom>(CTypes::RenderInstance);
+		ED_STATIC auto render = Eman->getComponentStorage<KRenderCom>(CTypes::RenderInstance);
 
 		// inite objects list
 		for (auto rit = render->begin(); rit != render->end(); ++rit) {

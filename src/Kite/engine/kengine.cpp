@@ -166,6 +166,7 @@ namespace Kite {
 			if (exitFlag.load()) { break; }
 			std::this_thread::sleep_for(std::chrono::milliseconds(5)); // just for sync with editor
 #endif
+			// inja baiad beine har tavize scene 1 bar nullptr be tamame systema beferestim
 			for (auto it = _ksys.begin(); it != _ksys.end(); ++it) {
 				if (!((*it)->update(delta, _ksman->getActiveScene()->getEManager(), _krman))) {
 					KD_FPRINT("updating systems failed. sname: %s", (*it)->getClassName().c_str());

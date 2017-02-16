@@ -26,20 +26,18 @@ USA
 #include <luaintf\LuaIntf.h>
 
 namespace Kite {
-	KResourceManager *KComponent::_krman = nullptr;
-	KComponent::KComponent(const std::string &Name, bool RemoveOnDepZero, std::initializer_list<CTypes> List) :
+	KComponent::KComponent(const std::string &Name, KNode *OwnerNode, bool RemoveOnDepZero, std::initializer_list<CTypes> List) :
 #ifdef KITE_EDITOR
-		sceneItem(nullptr),
+		sceneData(nullptr),
 #endif
 		_kremoveNoDep(RemoveOnDepZero),
 		_krefcounter(0),
 		_kname(Name),
-		_kdeplist(List)
+		_kdeplist(List),
+		_kownerNode(OwnerNode)
 	{}
 
 	KComponent::~KComponent() {}
-
-	KResourceManager * KComponent::getRMan() { return _krman; }
 
 	KMETA_KCOMPONENT_SOURCE();
 }

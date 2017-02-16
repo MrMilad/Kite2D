@@ -54,7 +54,7 @@ namespace Kite {
 		/// note: after creating an entity, all previous pointers may be invalid.
 		///		so always use handle when need access to an older entity.
 		/// note: if an empty string pass as name parameter, 
-		///		entity will created but not registered in the dictionary.
+		///		entity will created but not registered in the name-dictionary.
 		/// note: nameless entities will created faster than entities with name
 		/// note: you can register a name for a nameless entity with renameEntity() function
 		KM_FUN()
@@ -68,14 +68,10 @@ namespace Kite {
 		/// it will removed after calling postWork function.
 		/// we use this methode to prevent dangling pointer during updates.
 		KM_FUN()
-			void removeEntity(KHandle Handle);
+		void removeEntity(KHandle Handle);
 
 		KM_FUN()
-			void removeEntityByName(const std::string &Name);
-
-		/// total number of entities
-		KM_PRO_GET(KP_NAME = "entityCount", KP_TYPE = SIZE, KP_CM = "total number of entities")
-		inline SIZE getEntityCount() { return _kestorage.getSize(); }
+		void removeEntityByName(const std::string &Name);
 
 		KM_FUN()
 		KEntity *getEntity(const KHandle &Handle);
@@ -83,8 +79,24 @@ namespace Kite {
 		KM_FUN()
 		KEntity *getEntityByName(const std::string &Name);
 
+		/// total number of entities
+		KM_PRO_GET(KP_NAME = "entityCount", KP_TYPE = SIZE, KP_CM = "total number of entities")
+		inline SIZE getEntityCount() { return _kestorage.getSize(); }
+
 		KM_PRO_GET(KP_NAME = "root", KP_TYPE = KHandle, KP_CM = "root entity")
 		inline const KHandle &getRoot() const { return _kroot; }
+
+		KM_PRO_SET(KP_NAME = "sortz")
+		inline void setZSorting(bool ZSorting) { _kzsorting = ZSorting; }
+
+		KM_PRO_GET(KP_NAME = "sortz", KP_TYPE = bool, KP_CM = "active z sorting")
+		inline bool isZSorting() const { return _kzsorting; }
+
+		KM_PRO_SET(KP_NAME = "culling")
+		inline void setCulling(bool Culling) { _kculling = Culling; }
+
+		KM_PRO_GET(KP_NAME = "culling", KP_TYPE = bool, KP_CM = "active culling")
+		inline bool isActiveCulling() const { return _kculling; }
 
 		void postWork();
 
@@ -103,22 +115,6 @@ namespace Kite {
 		std::vector<T> *getComponentStorage(CTypes Type){
 			Internal::CHolder<T, KComponent, Type> *drived = static_cast<Internal::CHolder<T, KComponent, Type> *>(_kcstorage[(U16)Type]);
 			return drived->getStorage()->getContiner();
-		}
-
-		// usage: register new entity to systems and clear list after registration
-		template<typename T>
-		void clearComponentStorage(CTypes Type) {
-			if (Type == CTypes::Logic) {
-				KD_PRINT("logic storage is not removable");
-				return;
-			}
-			Internal::CHolder<T, KComponent, Type> *drived = static_cast<Internal::CHolder<T, KComponent, Type> *>(_kcstorage[(U16)Type]);
-			auto continer = drived->getStorage()->getContiner();
-			while (continer->size() > 0) {
-				auto EHandle = continer->back().getOwnerHandle();
-				auto entity = getEntity(EHandle);
-				entity->forceRemoveCom(Type);
-			}
 		}
 
 #ifdef KITE_EDITOR
@@ -146,7 +142,6 @@ namespace Kite {
 		}
 
 		bool _saveStream(KOStream &Stream, const std::string &Address) override;
-
 		bool _loadStream(KIStream &Stream, const std::string &Address) override;
 
 		void initeCStorages();
@@ -156,6 +151,8 @@ namespace Kite {
 		U32 recursiveSaveChilds(KEntity *Entity, KPrefab *Prefab, U32 Level, bool Name, bool CopyPrefab);
 		static bool initeLua();
 
+		bool _kculling;
+		bool _kzsorting;
 		KHandle _kroot;
 		KCFStorage<KEntity, CTypes::maxSize> _kestorage;	// entity storage
 		Internal::BaseCHolder<KComponent> *_kcstorage[(U16)CTypes::maxSize];	// component storages (array)

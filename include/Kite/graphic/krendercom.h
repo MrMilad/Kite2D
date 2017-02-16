@@ -21,12 +21,9 @@
 #define KRENDERCOM_H
 
 #include "Kite/core/kcoredef.h"
-#include "Kite/core/kcomponent.h"
+#include "Kite/ecs/kcomponent.h"
+#include "Kite/graphic/krenderable.h"
 #include "Kite/meta/kmetadef.h"
-#include "Kite/graphic/kgraphicstructs.h"
-#include "Kite/graphic/kgraphictypes.h"
-#include "Kite/graphic/kshaderprogram.h"
-#include "Kite/graphic/katlastexture.h"
 #include <cstring>
 #include "krendercom.khgen.h"
 
@@ -42,20 +39,54 @@ namespace Kite{
 		// array rendering (without index)
 		KRenderCom(const std::string &Name = "");
 
-		void attached(KEntity *Entity) override;
+		void attached(KNode *Entity) override;
 
-		void deattached(KEntity *Entity) override;
+		void deattached(KNode *Entity) override;
 
 		RecieveTypes onMessage(KMessage *Message, MessageScope Scope) override;
 
-		KM_PRO_SET(KP_NAME = "renderable")
-		inline void setRenderable(CTypes Type) { _krenderableType = Type; }
+		template<typename T>
+		bool registerInterface(T *Component) {
+			static_assert(std::is_base_of<KComponent, T>::value, "T must be a drived class from KComponent");
+			static_assert(std::is_base_of<KRenderable, T>::value, "T must be a drived class from KRenderable");
 
-		KM_PRO_GET(KP_NAME = "renderable", KP_TYPE = CTypes)
-		inline CTypes getRenderable() const { return _krenderableType; }
+			if (_kihandle.getCType() == Component->getType()) return true;
+			if (_kihandle.getCType() != CTypes::maxSize) {
+				KD_PRINT("override interface detected");
+				return false;
+			}
+			if (Component->getOwnerNode() != getOwnerNode()) {
+				KD_PRINT("owner missmatch");
+				return false;
+			}
+			_kihandle = Component->getHandle();
+			return true;
+		}
+
+		template<typename T>
+		bool unregisterInterface(T *Component) {
+			static_assert(std::is_base_of<KComponent, T>::value, "T must be a drived class from KComponent");
+			static_assert(std::is_base_of<KRenderable, T>::value, "T must be a drived class from KRenderable");
+
+			if (_kihandle.getCType() == CTypes::maxSize) return true;
+			if (Component->getOwnerNode() != getOwnerNode()) {
+				KD_PRINT("owner missmatch");
+				return false;
+			}
+			if (_kihandle.getCType() != Component->getType()) {
+				KD_PRINT("component type missmatch");
+				return false;
+			} 
+
+			_kihandle = KHandle();
+			return true;
+		}
+
+		KM_PRO_GET(KP_NAME = "interfaceType", KP_TYPE = KHandle)
+		inline const KHandle &getInterfaceHandle() const { return _kihandle; }
 
 	private:
-		CTypes _krenderableType;
+		KM_VAR() KHandle _kihandle; // order of deserialization components is random so we must save this value
     };
 }
 

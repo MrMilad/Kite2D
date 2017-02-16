@@ -17,39 +17,24 @@ License along with this library; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 USA
 */
-#ifndef KSYSTEM_H
-#define KSYSTEM_H
+#ifndef KCULLABLE_H
+#define KCULLABLE_H
 
 #include "Kite/core/kcoredef.h"
-#include "Kite/ecs/kscene.h"
-#include "Kite/meta/kmetadef.h"
-#include "ksystem.khgen.h"
+#include "Kite/graphic/kgraphicstructs.h"
+#include "Kite/graphic/kgraphictypes.h"
 
-KMETA
 namespace Kite {
-	KM_CLASS(SYSTEM, ABSTRACT)
-	class KITE_FUNC_EXPORT KSystem{
-		KMETA_KSYSTEM_BODY();
+	class KGCullingSys;
+	class KITE_FUNC_EXPORT KCullable {
+		friend class KGCullingSys;
 	public:
-		KSystem();
-
-		virtual ~KSystem();
-
-		// delta is based seconds
-		virtual bool update(F64 Delta, KScene *Scene) = 0;
-
-		virtual bool inite(KSysInite *IniteData) = 0;
-
-		virtual void destroy() = 0;
-
-		inline bool isInite() const { return _kisinite; }
+		KCullable();
 
 	protected:
-		inline void setInite(bool Inite) { _kisinite = Inite; }
-
-	private:
-		bool _kisinite;
+		virtual void getBoundingRect(KRectF32 &Output) const = 0;
+		virtual bool isActiveCulling() const = 0;
 	};
 }
 
-#endif // KSYSTEM_H
+#endif // KCULLABLE_H

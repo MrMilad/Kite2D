@@ -17,9 +17,11 @@
     Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
     USA
 */
-#include "Kite/core/kresourcemanager.h"
+#include "Kite/ecs/kresourcemanager.h"
+#include "Kite/ecs/knode.h"
 #include "Kite/graphic/kquadcom.h"
 #include "Kite/graphic/krendercom.h"
+#include "Kite/graphic/kgcullingcom.h"
 #include "Kite/meta/kmetamanager.h"
 #include "Kite/meta/kmetaclass.h"
 #include "Kite/meta/kmetatypes.h"
@@ -28,9 +30,10 @@
 
 namespace Kite{
 	KQuadCom::KQuadCom(const std::string &Name) :
-		KComponent(Name),
+		KComponent(Name, false, { CTypes::RenderInstance }),
 		_ktindex(0),
 		_kisVisible(true),
+		_kculling(false),
 		_kwidth(100),
 		_kheight(100),
 		_kvertex(4),
@@ -38,18 +41,26 @@ namespace Kite{
 		_kshprog(nullptr),
 		_katarray(nullptr)
 	{
-		addDependency(CTypes::RenderInstance);
 		_setDim();
 		setAtlasItem(KAtlasItem());
 		setBlendColor(KColor());
 	}
 
-	void KQuadCom::attached(KEntity *Owner) {
+	void KQuadCom::attached(KNode *Owner) {
 		auto renderable = (KRenderCom *)Owner->getComponent(CTypes::RenderInstance);
-		renderable->setRenderable(getType());
+		renderable->registerInterface(this);
+
+		auto cullable = (KGCullingCom *)Owner->getComponent(CTypes::GCullingInstance);
+		cullable->registerInterface(this);
 	}
 
-	void KQuadCom::deattached(KEntity *Owner) {}
+	void KQuadCom::deattached(KNode *Owner) {
+		auto renderable = (KRenderCom *)Owner->getComponent(CTypes::RenderInstance);
+		renderable->unregisterInterface(this);
+
+		auto cullable = (KGCullingCom *)Owner->getComponent(CTypes::GCullingInstance);
+		cullable->unregisterInterface(this);
+	}
 
 	RecieveTypes KQuadCom::onMessage(KMessage *Message, MessageScope Scope) {
 		return RecieveTypes::IGNORED;
@@ -87,23 +98,6 @@ namespace Kite{
 		Output.right = _kwidth;
 	}
 
-	bool KQuadCom::updateRes() {
-		if (!getResNeedUpdate()) {
-			return true;
-		}
-
-		// load resources
-		if (getRMan()) {
-			_kshprog = (KShaderProgram *)getRMan()->get(_kshprogName.str);
-			_katarray = (KAtlasTextureArray *)getRMan()->get(_ktextureArrayName.str);
-
-			resUpdated();
-			return true;
-		}
-
-		return false;
-	}
-
 	/*void KQuadCom::setUV(const KRectF32 &UV){
 		_kvertex[0].uv = KVector2F32(UV.left, UV.bottom);
 		_kvertex[1].uv = KVector2F32(UV.left, UV.top);
@@ -120,18 +114,16 @@ namespace Kite{
 		_kcolor = Color;
 	}
 
-	void KQuadCom::setShader(const KStringID &Shader) {
-		if (_kshprogName.hash != Shader.hash) {
-			_kshprogName = Shader;
-			resNeedUpdate();
+	void KQuadCom::setShader(KShaderProgram *ShaderProgram) {
+		if (_kshprog != ShaderProgram) {
+			_kshprog = ShaderProgram;
 			matNeedUpdate();
 		}
 	}
 
-	void KQuadCom::setAtlasTextureArraye(const KStringID &TextureArrayName) {
-		if (_ktextureArrayName.hash != TextureArrayName.hash) {
-			_ktextureArrayName = TextureArrayName;
-			resNeedUpdate();
+	void KQuadCom::setAtlasTextureArraye(KAtlasTextureArray *TextureArray) {
+		if (_katarray != TextureArray) {
+			_katarray = TextureArray;
 			matNeedUpdate();
 		}
 	}

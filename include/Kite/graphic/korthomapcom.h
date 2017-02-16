@@ -49,7 +49,7 @@ namespace Kite {
 		void setMap(KOrthogonalMap *Map);
 
 		KM_PRO_GET(KP_NAME = "map", KP_TYPE = KOrthogonalMap, KP_CM = "orthogonal map resource", KP_RES = RTypes::OrthogonalMap)
-		inline const KOrthogonalMap *getMap() const { return _kmap; }
+		inline KOrthogonalMap *getMap() const { return _kmap; }
 
 		KM_PRO_SET(KP_NAME = "cullingArea")
 		void setCullingArea(const KRectF32 &Area);
@@ -61,20 +61,26 @@ namespace Kite {
 		void setShader(KShaderProgram *ShaderProgram);
 
 		KM_PRO_GET(KP_NAME = "shaderProgram", KP_TYPE = KShaderProgram, KP_CM = "shader program", KP_RES = RTypes::ShaderProgram)
-		inline const KShaderProgram *getShader() const { return _kshprog; }
+		inline KShaderProgram *getShader() const { return _kshprog; }
 
 		KM_PRO_SET(KP_NAME = "textureGroup")
 		void setAtlasTextureArraye(KAtlasTextureArray *TextureArray);
 
 		KM_PRO_GET(KP_NAME = "textureGroup", KP_TYPE = KAtlasTextureArray, KP_CM = "atlas texture group",
 				   KP_RES = RTypes::TextureGroup)
-		inline const KAtlasTextureArray *getAtlasTextureArray() const { return _katarray; }
+		inline KAtlasTextureArray *getAtlasTextureArray() const { return _katarray; }
 
 		KM_PRO_SET(KP_NAME = "visible")
 		inline void setVisible(bool Visible) { _kisVisible = Visible; }
 
 		KM_PRO_GET(KP_NAME = "visible", KP_TYPE = bool, KP_CM = "object visibility")
 		inline bool isVisible() const override { return _kisVisible; }
+
+		KM_PRO_SET(KP_NAME = "autoCulling")
+		inline void setAutoCulling(bool Culling) { _kculling = Culling; }
+
+		KM_PRO_GET(KP_NAME = "autoCulling", KP_TYPE = bool, KP_CM = "auto culling")
+		inline bool getAutoCulling() const { return _kculling; }
 
 		KM_FUN()
 		inline bool isCullingAreaInside() const { return _kcullIsValid; }
@@ -92,6 +98,7 @@ namespace Kite {
 		inline bool isPoint() const override { return false; }
 		inline KShaderProgram *getShaderProg() const override { return _kshprog; }
 		inline KAtlasTextureArray *getATextureArray() const override { return _katarray; }
+		inline bool isActiveCulling() const override { return _kculling; }
 
 	private:
 		// calculate and update vertex
@@ -99,6 +106,7 @@ namespace Kite {
 
 		KM_VAR() U16 _ktindex;
 		KM_VAR() bool _kisVisible;
+		KM_VAR() bool _kculling;
 		KM_VAR() KRectF32 _kcullArea;
 		KM_VAR() bool _kcullIsValid;
 		KM_VAR(KV_RES) KOrthogonalMap *_kmap;

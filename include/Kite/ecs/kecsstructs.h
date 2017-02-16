@@ -30,6 +30,17 @@
 
 KMETA
 namespace Kite{
+	class KGLWindow;
+	struct KSysInite {
+		lua_State *_klstate;
+		KGLWindow *_kwindow;
+		KMetaManager *_kmman;
+
+		KSysInite() :
+			_klstate(nullptr), _kwindow(nullptr), _kmman(nullptr) {}
+
+	};
+
 	KM_CLASS(POD)
 	struct KHandle {
 		KMETA_KHANDLE_BODY();
@@ -81,6 +92,19 @@ namespace Kite{
 
 		KTarckItem():
 		loadCount(0), unloadCount(0), getCount(0){}
+	};
+
+	KM_CLASS(POD)
+	struct KResourceInfo {
+		KMETA_KRESOURCEINFO_BODY();
+
+		KM_VAR() std::string name;
+		KM_VAR() std::string address;
+		KM_VAR() RTypes rtype;
+		KM_VAR() IStreamTypes stype;
+
+		KResourceInfo(const std::string &Name, const std::string &Address, RTypes RType, IStreamTypes SType) :
+			name(Name), address(Address), rtype(RType), stype(SType) {}
 	};
 }
 

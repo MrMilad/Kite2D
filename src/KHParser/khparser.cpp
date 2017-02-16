@@ -1048,12 +1048,6 @@ bool procVar(const std::string &Content, MVariable &Var, unsigned int Pos) {
 	Pos = getNextBody(Content, Pos, output);
 	Var.tokparam = output;
 
-	std::vector<std::pair<std::string, std::string>> param;
-	splitParam(Var.tokparam, param);
-	for (auto it = param.begin(); it != param.end(); ++it) {
-		if (it->first == "KV_RES") { Var.isRes = true; }
-	}
-
 	// check variable
 	if (checkNextRaw(Content, Pos, false) != PS_WORD) {
 		printf("error: missing variable name/modifiers.\n");
@@ -1094,6 +1088,8 @@ bool procVar(const std::string &Content, MVariable &Var, unsigned int Pos) {
 	
 	// type
 	Var.type = vList.back();
+
+	if (Var.type == "KSharedResource") { Var.isRes = true; }
 
 	return true;
 }
@@ -2046,7 +2042,7 @@ void createMacros(const std::vector<MClass> &Cls, const std::vector<MEnum> &Enms
 		// factory methode 
 		if (!isAbstract) {
 			if (isResource) {
-				Output.append(exstate + "static KResource *factory(const std::string &Name);\\\n");
+				Output.append(exstate + "static KResource *factory(const std::string &Name, const std::string &Address);\\\n");
 			} else if (isIStream) {
 				Output.append(exstate + "static KIStream *factory();\\\n");
 			}
@@ -2083,7 +2079,6 @@ void createMacros(const std::vector<MClass> &Cls, const std::vector<MEnum> &Enms
 		}
 
 		// component lua cast and base access
-		std::string hash = std::to_string(getHash32(shortName.c_str(), shortName.length()));;
 		std::string enumType;
 		std::string baseName;
 		if (isResource && !isAbstract) {
@@ -2111,19 +2106,18 @@ void createMacros(const std::vector<MClass> &Cls, const std::vector<MEnum> &Enms
 					}
 				}
 
-				Output.append("void loadRes() override;\\\n");
+				Output.append("void loadRes(KResourceManager *RManager) override;\\\n");
 			}
 
 			Output.append(exstate + "static " + Cls[i].name + " *to" + shortName + "(" + baseName + " *Base) {\\\n" +
 						  "if (Base != nullptr){\\\n"
-						  "if (Base->getHashType() == " + hash + ") {\\\n"
+						  "if (Base->getType() == getType()) {\\\n"
 						  "return (" + Cls[i].name + " *)Base; }};\\\n" +
 						  "return nullptr; }\\\n" +
 						  exstate + "inline " + baseName + " *getBase() const override { return (" + baseName + " *) this; }\\\n" +
 						  "public:\\\n" +
 						  exstate + "inline " + enumType + " getType() const override { return " + enumType + "::" + shortName + "; }\\\n" +
-						  exstate + "inline std::string getTypeName() const override { return \"" + shortName + "\"; }\\\n" +
-						  exstate + "inline U32 getHashType() const override { return " + hash + "; }\\\n");
+						  exstate + "inline std::string getTypeName() const override { return \"" + shortName + "\"; }\\\n");
 			// clone
 			if (isIStream) {
 				Output.append(exstate + baseName + " *clone() const override { return (" +
@@ -2143,8 +2137,8 @@ void createMacros(const std::vector<MClass> &Cls, const std::vector<MEnum> &Enms
 		// factory defention
 		if (!isAbstract) {
 			if (isResource) {
-				Output.append("KResource *" + Cls[i].name + "::factory(const std::string &Name){\\\n"
-							  "return new " + Cls[i].name + "(Name);}\\\n");
+				Output.append("KResource *" + Cls[i].name + "::factory(const std::string &Name, const std::string &Address){\\\n"
+							  "return new " + Cls[i].name + "(Name, Address);}\\\n");
 			} else if (isIStream) {
 				Output.append("KIStream *" + Cls[i].name + "::factory(){\\\n"
 							  "return new " + Cls[i].name + "();}\\\n");
@@ -2158,19 +2152,12 @@ void createMacros(const std::vector<MClass> &Cls, const std::vector<MEnum> &Enms
 			Output.append("bool " + Cls[i].name + "::setProperty(const std::string &Name, KAny &Value){\\\n");
 			for (auto it = Cls[i].props.begin(); it != Cls[i].props.end(); ++it) {
 				if (!it->set.name.empty()) {
-					Output.append("if (Name == \"" + it->name + "\"){\\\n");
-					if (it->resType == "RTypes::maxSize") { // checking resource type
-						Output.append("if (Value.is<" + it->type  + ">()){\\\n" +
-									  it->set.name + "(Value.as<" + it->type + ">());\\\n");
-					} else {
-						Output.append("if (Value.is<KResource *>()){\\\n" 
-									  "if (Value.as<KResource *>()->getType() == " + it->resType + "){\\\n" +
-									  it->set.name + "((" + it->type + " *)Value.as<KResource *>());\\\n"
-									  "return true;\\\n"
-									  "}else{ KD_FPRINT(\"incorrect resource type. pname: %s\", Name.c_str()); return false;}\\\n");
-					}
-
-					Output.append("}else{ KD_FPRINT(\"incorrect property type. pname: %s\", Name.c_str()); return false;}}\\\n");
+					std::string type = it->type;
+					if (it->resType != "RTypes::maxSize") type = "KSharedResource";
+					Output.append("if (Name == \"" + it->name + "\"){\\\n"
+								  "if (Value.is<" + type + ">()){\\\n" +
+								  it->set.name + "(Value.as<" + type + ">());\\\n"
+								  "}else{ KD_FPRINT(\"incorrect property type. pname: %s\", Name.c_str()); return false;}}\\\n");
 				}
 			}
 			Output.append("return false;}\\\n");
@@ -2185,13 +2172,13 @@ void createMacros(const std::vector<MClass> &Cls, const std::vector<MEnum> &Enms
 			}
 			Output.append("return KAny();}\\\n");
 
-			Output.append("void " + Cls[i].name + "::loadRes(){\\\n");
+			Output.append("void " + Cls[i].name + "::loadRes(KResourceManager *RManager){\\\n");
 			// resource pointers
-			Output.append("if (!getRMan()) { KD_PRINT(\"ResourceManager is null. engine is not initialized\"); return;}\\\n");
+			Output.append("if (!RManager) { KD_PRINT(\"ResourceManager is null.\"); return;}\\\n");
 			for (auto it = Cls[i].vars.begin(); it != Cls[i].vars.end(); ++it) {
 				if (it->isRes) {
-					Output.append("if (" + it->name + "Name.empty()){ " + it->name + " = nullptr;}\\\n"
-								  "else{ " + it->name + " = (" + it->type + " *)getRMan()->load(" + it->name + "Name);}\\\n");
+					Output.append("if (" + it->name + "Name.empty()){ " + it->name + " = KSharedResource();}\\\n"
+								  "else{ " + it->name + " = RManager->load(" + it->name + "Name);}\\\n");
 				}
 			}
 			Output.append("}\\\n");
@@ -2232,8 +2219,6 @@ void createMacros(const std::vector<MClass> &Cls, const std::vector<MEnum> &Enms
 			Output.append("instance.addProperty(KMetaProperty(\"type\", \"" 
 						  + enumType + "\", \"type of the object\", false, KMP_GETTER, 0, 0, " + RES_ENUM_NAME + "::maxSize ));\\\n");
 			Output.append("instance.addProperty(KMetaProperty(\"typeName\", \"std::string\", \"name of the object type\", false, KMP_GETTER, 0, 0, " 
-						  + RES_ENUM_NAME + "::maxSize ));\\\n");
-			Output.append("instance.addProperty(KMetaProperty(\"hashType\", \"U32\", \"hash of the object type\", false, KMP_GETTER, 0, 0, "
 						  + RES_ENUM_NAME + "::maxSize ));\\\n");
 		}
 
@@ -2279,7 +2264,6 @@ void createMacros(const std::vector<MClass> &Cls, const std::vector<MEnum> &Enms
 
 			// predefined functions (base, lua cast)
 			if ((isIStream || isOStream || isResource || isComponent) && !isAbstract) {
-				Output.append(".addProperty(\"hashType\", &" + Cls[i].name + "::getHashType)\\\n");
 				Output.append(".addProperty(\"type\", &" + Cls[i].name + "::getType)\\\n");
 				Output.append(".addProperty(\"typeName\", &" + Cls[i].name + "::getTypeName)\\\n");
 				Output.append(".addProperty(\"base\", &" + Cls[i].name + "::getBase)\\\n");
@@ -2378,7 +2362,7 @@ void createMacros(const std::vector<MClass> &Cls, const std::vector<MEnum> &Enms
 			Output.append("}\n");
 		}
 
-		// serial and prefab definition
+		// serial 
 		if (isPOD || isComponent || isEntity) {
 			// serialize
 			if (isComponent && isAbstract) {
@@ -2394,8 +2378,9 @@ void createMacros(const std::vector<MClass> &Cls, const std::vector<MEnum> &Enms
 			}
 
 			for (size_t vcont = 0; vcont < Cls[i].vars.size(); ++vcont) {
-				if (Cls[i].vars[vcont].isRes) { // resource pointers
-					Output.append("if (" + Cls[i].vars[vcont].name + "){ \\\n"
+				// resource pointers
+				if (Cls[i].vars[vcont].isRes) { 
+					Output.append("if (!" + Cls[i].vars[vcont].name + ".isNull()){ \\\n"
 								  "Serializer << " + Cls[i].vars[vcont].name + "->getName();\\\n"
 								  "}else{ Serializer << std::string();}\\\n" );
 				} else {
@@ -2647,10 +2632,10 @@ void createHead(std::string &Output) {
 				  "KMETA\n"
 				  "namespace Kite{\n"
 				  "class KMetaManager;\n"
-				  "class KScene;\n"
+				  "class KNode;\n"
 				  "class KResourceManager;\n"
 				  "KITE_FUNC_EXPORT extern void registerKiteMeta(KMetaManager *MMan = nullptr, lua_State *Lua = nullptr);\n"
-				  "KITE_FUNC_EXPORT extern void registerCTypes(KScene *Scene);\n"
+				  "KITE_FUNC_EXPORT extern void registerCTypes(KNode *Root);\n"
 				  "KITE_FUNC_EXPORT extern void registerRTypes(KResourceManager *RMan);\n"
 				  "KITE_FUNC_EXPORT extern void createSystems(std::vector<std::unique_ptr<KSystem>> &Systems);\n");
 	Output.append("}\n#endif // KITEMETA_H");
@@ -2665,6 +2650,7 @@ void createSource(const std::vector<std::string> &Files, const std::vector<MClas
 
 	Output.append("#include \"Kite/meta/kmetaenum.h\"\n"
 				  "#include \"Kite/meta/kmetapod.h\"\n"
+				  "#include \"Kite/ecs/knode.h\"\n"
 				  "#include \"KiteMeta/kmeta.khgen.h\"\n"
 				  "#include \"KiteMeta/ktypes.khgen.h\"\n");
 
@@ -2735,10 +2721,10 @@ void createSource(const std::vector<std::string> &Files, const std::vector<MClas
 	}
 
 	// register component types
-	Output.append("void registerCTypes(KScene *Scene){\n");
+	Output.append("void registerCTypes(KNode *Root){\n");
 
 	for (auto it = comList.begin(); it != comList.end(); ++it){
-		Output.append("Scene->registerComponent<" + it->first + ">(" + COM_ENUM_NAME + "::" + it->second + ");\n");
+		Output.append("Root->registerComponent<" + it->first + ">(" + COM_ENUM_NAME + "::" + it->second + ");\n");
 	}
 
 	// end of ctypes

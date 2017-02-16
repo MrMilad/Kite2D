@@ -22,11 +22,14 @@ USA
 
 #include "Kite/core/kcoredef.h"
 #include "Kite/core/kistream.h"
+#include "Kite/core/kcorestructs.h"
 #include "Kite/ecs/kresource.h"
 #include "Kite/ecs/kmessenger.h"
 #include "Kite/ecs/kecstypes.h"
 #include "Kite/ecs/kecsstructs.h"
 #include "Kite/meta/kmetadef.h"
+#include <foonathan/memory/memory_pool.hpp>
+#include <foonathan/memory/namespace_alias.hpp>
 #include <type_traits>
 #include <unordered_map>
 #include <algorithm>
@@ -35,8 +38,12 @@ USA
 #include "ktypes.khgen.h"
 #include "kresourcemanager.khgen.h"
 
+#define KSHAREDRES_MEM_CHUNK 500
+
 KMETA
 namespace Kite{
+	class KSharedResource;
+
 	KM_CLASS(SCRIPTABLE)
 	class KITE_FUNC_EXPORT KResourceManager : public KMessenger{
 		friend void registerRTypes(KResourceManager *);
@@ -45,30 +52,23 @@ namespace Kite{
 		KResourceManager();
 		~KResourceManager();
 
-		// will reset last started tracking (so check tacking with isTracking())
-		void startTrackingState();
-
-		// will reset 
-		void stopTrackingState(std::vector<KTarckItem> &State); // <name, count>
-
-		bool isTrackingState();
-
-		void resetState(const std::vector<std::pair<std::string, U32>> &State);
-
-		/// don't delete loaded resource by yourself (use unload instead)
 		/// catched streams will deleted automatically on owner resource destructures
+		/// will keep an instance of shared-pointer of loaded resource in the manager
 		KM_FUN()
-		KResource *load(const std::string &Name);
+		KSharedResource load(const std::string &Name);
 
-		/// unload any resource with any type.
-		/// Mode: unload mode
+		/// unload shared resources
+		/// only remove stored shared-pointer in the manager
+		/// and will not delete it immediately, so this function never affect expire()
 		KM_FUN()
 		void unload(const std::string &Name);
 
-		/// get loaded resource
-		/// dont increment refrence counter
+		/// unload shared resources
+		/// immediately remove resource and its pointers
+		/// will affect expire() and isExpired() will return true
+		/// will not affect counts()
 		KM_FUN()
-		KResource *getLoaded(const std::string &Name);
+		void forceUnload(const std::string &Name);
 
 		/// register a key-name resource information for loading phase into the dictinary.
 		/// for replacing a registered key with a new key you must unload its associated resource first
@@ -89,7 +89,7 @@ namespace Kite{
 
 		inline const auto getDictionary() const { return &_kmap; }
 
-		const std::vector<KResource *> &dump();
+		void dump(std::vector<KResourceInfo> &Output) const;
 
 		/// unload and clear all resources
 		KM_FUN()
@@ -98,26 +98,78 @@ namespace Kite{
 	private:
 		void initeFactory();
 		void registerIStream(IStreamTypes SType, KIStream *(*Func)());
-		void registerResource(RTypes RType, KResource *(*Func)(const std::string &));
-		bool loadCompositeList(IStreamTypes SType, KResource *Res, const std::string &Address);
+		void registerResource(RTypes RType, KResource *(*Func)(const std::string &, const std::string &));
 
-		struct info {
+		struct Info {
 			std::string address;
 			RTypes rtype;
 			IStreamTypes stype;
-			KResource *res;
+			KSharedResource *res;
 
-			info(const std::string &Address, RTypes RType, IStreamTypes SType) :
+			Info(const std::string &Address, RTypes RType, IStreamTypes SType) :
 				address(Address), rtype(RType), stype(SType), res(nullptr) {}
 		};
 
-		// input stream factory methode
-		typedef KIStream *(*isFactory)();
-		typedef KResource *(*rFactory)(const std::string &);
+		typedef KIStream *(*isFactory)(); // istream factory
+		typedef KResource *(*rFactory)(const std::string &, const std::string &); // resource factory
 
-		std::unordered_map<std::string, info> _kmap;
+		std::unordered_map<std::string, Info> _kmap;
 		rFactory _krfactory[(SIZE)RTypes::maxSize];
 		isFactory _ksfactory[(SIZE)IStreamTypes::maxSize];
+	};
+
+	KM_CLASS(POD)
+	class KSharedResource {
+		friend class KResourceManager;
+		KMETA_KSHAREDRESOURCE_BODY();
+	public:
+		KM_CON()
+		KSharedResource();
+
+		explicit KSharedResource(KResource *Resource);
+
+		KSharedResource(const KSharedResource& Other);
+
+		~KSharedResource();
+
+		KSharedResource& operator=(const KSharedResource& other);
+
+		KResource* operator->();
+
+		const KResource* operator->() const;
+
+		KM_PRO_GET(KP_NAME = "isExpired", KP_TYPE = bool, KP_CM = "is expired (force unloaded) by resource manager")
+		inline bool isExpired() const { return _kdata->expired; }
+
+		KM_PRO_GET(KP_NAME = "counts", KP_TYPE = SIZE, KP_CM = "counts of shared users")
+		inline SIZE getCounts() const { return _kdata->ref; }
+
+		KM_PRO_GET(KP_NAME = "isNull", KP_TYPE = bool, KP_CM = "resource pointer is null")
+		inline bool isNull() const { return (_kdata->ptr == nullptr); }
+
+	private:
+		struct dynamic {
+			bool expired;
+			KResource *ptr;
+			SIZE ref;
+
+			dynamic(KResource *Resource) :
+				expired(false), ptr(Resource), ref(1)
+			{}
+		};
+
+		dynamic *_kdata;
+		ED_STATIC memory::memory_pool<> _kpool; // data pool
+
+		/// lua side 
+		KM_PRO_GET(KP_NAME = "resource", KP_TYPE = KResource, KP_CM = "raw resource pointer")
+		inline KResource *getResource() { return operator->(); }
+
+		void clear();
+
+		/// internal use by resource manager
+		/// will delete resource immediately
+		void expire();
 	};
 }
 

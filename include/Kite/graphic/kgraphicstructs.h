@@ -40,8 +40,6 @@ namespace Kite{
 	struct KRenderState {
 		KMETA_KRENDERSTATE_BODY();
 
-		KM_VAR() bool culling;
-		KM_VAR() bool zSorting;
 		KM_VAR() bool camDepth;
 		KM_VAR() U32 vertexSize;
 		KM_VAR() U32 indexSize;
@@ -50,7 +48,7 @@ namespace Kite{
 		KM_CON()
 			KRenderState(bool Culling = false, bool ZSorting = true, bool CamDepth = true,
 						 U32 VertexSize = 4000, U32 IndexSize = 6000, U32 ObjectSize = 1000) :
-			culling(Culling), zSorting(ZSorting), camDepth(CamDepth),
+			camDepth(CamDepth),
 			vertexSize(VertexSize), indexSize(IndexSize), objectSize(ObjectSize) {}
 	};
 

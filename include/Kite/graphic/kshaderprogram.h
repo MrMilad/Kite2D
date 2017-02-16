@@ -26,7 +26,7 @@
 #include "Kite/meta/kmetadef.h"
 #include "Kite/graphic/kgraphictypes.h"
 #include "Kite/graphic/kgraphicstructs.h"
-#include "Kite/core/kresource.h"
+#include "Kite/ecs/kresource.h"
 #include "Kite/graphic/kshader.h"
 #include <string>
 #include "kshaderprogram.khgen.h"

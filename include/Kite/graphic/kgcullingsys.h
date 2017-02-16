@@ -26,7 +26,7 @@ USA
 #include "Kite/meta/kmetadef.h"
 #include "Kite/graphic/kgraphicstructs.h"
 #include "Kite/graphic/kgraphictypes.h"
-#include "Kite/graphic/krenderable.h"
+#include "Kite/graphic/kcullable.h"
 #include <vector>
 #include <bitset>
 #include <foonathan/memory/memory_pool.hpp>
@@ -64,13 +64,13 @@ namespace Kite {
 		KGCullingSys();
 		bool update(F64 Delta, KScene *Scene) override;
 
-		bool inite(void *Data) override;
+		bool inite(KSysInite *IniteData) override;
 
 		void destroy() override;
 
 		// return unsorted objects (you can sort output vector directly using std::sort)
-		void queryObjects(const KCameraCom *Cam, GCullingObjectsFilter Filter,
-						  const KScene *Scene, std::vector<std::pair<KEntity *, KRenderable *>> &Output);
+		// Output: <entity, cullable component>
+		void queryObjects(const KCameraCom *Cam, GCullingObjectsFilter Filter, std::vector<std::pair<KHandle, KHandle>> &Output);
 
 	private:
 		struct KQTreeObject {

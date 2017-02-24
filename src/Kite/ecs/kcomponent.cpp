@@ -26,14 +26,12 @@ USA
 #include <luaintf\LuaIntf.h>
 
 namespace Kite {
-	KComponent::KComponent(const std::string &Name, KNode *OwnerNode, bool RemoveOnDepZero, std::initializer_list<CTypes> List) :
+	KComponent::KComponent(KNode *OwnerNode, const std::string &Name) :
 #ifdef KITE_EDITOR
 		sceneData(nullptr),
 #endif
-		_kremoveNoDep(RemoveOnDepZero),
 		_krefcounter(0),
 		_kname(Name),
-		_kdeplist(List),
 		_kownerNode(OwnerNode)
 	{}
 

@@ -7,12 +7,10 @@ set(ECS_SRC
     ${SRCROOT}/kecstypes.cpp
     ${SRCROOT}/ksystem.cpp
     ${SRCROOT}/kcomponent.cpp
-    ${SRCROOT}/kentity.cpp
-    ${SRCROOT}/kscene.cpp
-    ${SRCROOT}/kprefab.cpp
     ${SRCROOT}/kresourcemanager.cpp
     ${SRCROOT}/kresource.cpp
     ${SRCROOT}/kmessage.cpp
+    ${SRCROOT}/klistener.cpp
     ${SRCROOT}/kmessenger.cpp
     ${SRCROOT}/knode.cpp
     PARENT_SCOPE
@@ -21,12 +19,8 @@ set(ECS_SRC
 # all header files
 set(ECS_INC
     ${INCROOT}/kecs.h
-    ${INCROOT}/kprefab.h
     ${INCROOT}/ksystem.h
     ${INCROOT}/kcomponent.h
-    ${INCROOT}/kentity.h
-    ${INCROOT}/kscene.h
-    ${INCROOT}/kscenemanager.h
     ${INCROOT}/kmessage.h
     ${INCROOT}/kmessenger.h
     ${INCROOT}/klistener.h

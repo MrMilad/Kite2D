@@ -23,5 +23,7 @@ USA
 #include <luaintf\LuaIntf.h>
 
 namespace Kite {
+	KIStream::~KIStream() {}
+
 	KMETA_KISTREAM_SOURCE();
 }

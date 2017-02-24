@@ -190,8 +190,4 @@ namespace Kite {
 		}
 	}
 	KMETA_KBITSET_SOURCE();
-
-	KLayerInfo::KLayerInfo(const std::string &Name, bool IsBuiltin):
-		name(Name), isBuiltin(IsBuiltin){}
-	KMETA_KLAYERINFO_SOURCE();
 }

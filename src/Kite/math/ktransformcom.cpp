@@ -27,8 +27,8 @@
 #include <cmath>
 
 namespace Kite{
-	KTransformCom::KTransformCom(const std::string &Name) :
-		KComponent(Name),
+	KTransformCom::KTransformCom(KNode *OwnerNode, const std::string &Name) :
+		KComponent(OwnerNode, "Transform"),
 		_kcompute(true),
 		_kposition(0.0f, 0.0f),
 		_krotation(0.0f),
@@ -38,9 +38,9 @@ namespace Kite{
 		_kcenter(0.0f, 0.0f)
 		{}
 
-	void KTransformCom::attached(KEntity *Entity) {}
+	void KTransformCom::attached() {}
 
-	void KTransformCom::deattached(KEntity *Entity) {}
+	void KTransformCom::deattached() {}
 
     void KTransformCom::setPosition(const KVector2F32& Position){
 		if (_kposition != Position) {

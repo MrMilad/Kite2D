@@ -23,5 +23,6 @@ USA
 #include <luaintf\LuaIntf.h>
 
 namespace Kite {
+	KOStream::~KOStream() {}
 	KMETA_KOSTREAM_SOURCE();
 }

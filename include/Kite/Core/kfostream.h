@@ -43,19 +43,19 @@ namespace Kite {
 
 		SIZE write(const void *Data, SIZE DataSize) const override;
 
-		KM_FUN()
+		KM_PRO_GET(KP_NAME = "isOpen", KP_TYPE = bool, KP_CM = "is stream open")
 		bool isOpen() const override;
 
 		KM_FUN()
 		I32 close() override;
 
-		KM_FUN()
+		KM_PRO_GET(KP_NAME = "fileInfo", KP_TYPE = KFileInfo, KP_CM = "file info")
 		inline const KFileInfo *getFileInfo() override { return &_kfinfo; }
 
 		KM_FUN()
 		void getFileInfoStr(const std::string &Address, KFileInfo &FileInfo) override;
 
-		KM_FUN()
+		KM_PRO_GET(KP_NAME = "ioMode", KP_TYPE = IOMode, KP_CM = "IO Mode")
 		inline IOMode getIOMode() const override { return _kio; }
 
 	private:

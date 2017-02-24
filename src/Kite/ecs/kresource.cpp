@@ -28,7 +28,6 @@ USA
 
 namespace Kite {
 	KResource::KResource(const std::string &Name, const std::string &Address) :
-		_kisInite(false),
 		_kname(Name),
 		_kaddress(Address)
 	{}

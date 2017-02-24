@@ -33,7 +33,19 @@ namespace Kite{
 	class KITE_FUNC_EXPORT KIStream{
 		KMETA_KISTREAM_BODY();
 	public:
-		virtual ~KIStream(){}
+		virtual ~KIStream();
+
+		/// will be implemented by KHParser
+		KM_PRO_GET(KP_NAME = "drivedType", KP_TYPE = IStreamTypes, KP_CM = "type of the drived stream")
+			virtual inline IStreamTypes getDrivedType() const = 0;
+
+		/// will be implemented by KHParser
+		/// usage: access base class in lua
+		virtual KIStream *getBase() const = 0;
+
+		/// will be implemented by KHParser
+		KM_PRO_GET(KP_NAME = "typeName", KP_TYPE = std::string, KP_CM = "type name")
+			virtual inline const std::string &getTypeName() const = 0;
 
 		KM_FUN()
 		virtual bool open(const std::string &Address, IOMode Type) = 0;
@@ -63,19 +75,6 @@ namespace Kite{
 
 		KM_FUN()
 		virtual IOMode getIOMode() const = 0;
-
-		/// will be implemented by KHParser
-		/// usage: access base class in lua
-		virtual KIStream *getBase() = 0;
-
-		/// will be implemented by KHParser
-		virtual inline IStreamTypes getType() const = 0;
-
-		/// will be implemented by KHParser
-		virtual inline std::string getTypeName() const = 0;
-
-		/// will be implemented by KHParser
-		virtual inline U32 getHashType() const = 0;
 
 		/// will be implemented by KHParser
 		virtual KIStream *clone() const = 0;

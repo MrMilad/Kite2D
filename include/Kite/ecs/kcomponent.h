@@ -36,16 +36,16 @@ USA
 
 KMETA
 namespace Kite {
-	class KResourceManager;
 	class KNode;
+	class KResourceManager;
 	KM_CLASS(COMPONENT, ABSTRACT)
 	class KITE_FUNC_EXPORT KComponent : public KListener{
 		friend class KNode;
 	public:
-		/// RemoveOnDepZero: automatic remove this component when there is no dependency on it.
-		/// DepList: circular-dependency is allowed but not recommended. (bad design)
-		///		dont add 'Logic' component as dependency.
-		KComponent(const std::string &Name, KNode *OwnerNode, bool RemoveOnDepZero, std::initializer_list<CTypes> DepList);
+		/// KI_NAME = component name (unique string)
+		/// KI_DEP = name of the depenedency (component class)
+		/// KI_IN = name of the interface (interface class)
+		KComponent(KNode *OwnerNode, const std::string &Name);
 
 		KComponent(const KNode &CopyNode) = delete;
 
@@ -54,16 +54,18 @@ namespace Kite {
 		//KComponent &operator=(const KComponent &Right); // we cant override this function because cfstorage use it for removing components
 
 		/// will be implemented by KHParser
-		KM_PRO_GET(KP_NAME = "type", KP_TYPE = KCTypes, KP_CM = "type of the component")
-		virtual inline CTypes getType() const = 0;
+		virtual const std::vector<CTypes> &getDrivedDepList() const = 0;
+
+		/// will be implemented by KHParser
+		virtual const std::vector<ITypes> &getDrivedIntList() const = 0;
+
+		/// will be implemented by KHParser
+		KM_PRO_GET(KP_NAME = "drivedType", KP_TYPE = KCTypes, KP_CM = "type of the drived component")
+		virtual inline CTypes getDrivedType() const = 0;
 
 		/// will be implemented by KHParser
 		KM_PRO_GET(KP_NAME = "typeName", KP_TYPE = std::string, KP_CM = "name of the cmponent's type")
-		virtual inline std::string getTypeName() const = 0;
-
-		/// will be implemented by KHParser
-		KM_PRO_GET(KP_NAME = "hashType", KP_TYPE = std::string, KP_CM = "hash code of the component type's")
-		virtual inline U32 getHashType() const = 0;
+		virtual inline const std::string &getTypeName() const = 0;
 
 		KM_PRO_GET(KP_NAME = "name", KP_TYPE = std::string, KP_CM = "name of the component")
 		inline const std::string &getName() const { return _kname; }
@@ -77,13 +79,7 @@ namespace Kite {
 		KM_PRO_GET(KP_NAME = "lsitener", KP_TYPE = KListener, KP_CM = "cmponent message listener")
 		inline KListener &getListener() { return *(KListener *)this; }
 
-		KM_PRO_GET(KP_NAME = "removeOnZeroDep", KP_TYPE = bool, KP_CM = "cmponent will removed whene there is no dependency")
-		inline bool getRemoveOnZeroDep() { return _kremoveNoDep; }
-
-		KM_FUN()
-		inline const std::vector<CTypes> &getDependency() const { return _kdeplist; }
-
-		KM_FUN()
+		KM_PRO_GET(KP_NAME = "depCount", KP_TYPE = U16, KP_CM = "dependency ref-counter")
 		inline U16 getDepCounter() const { return _krefcounter; }
 
 #ifdef KITE_EDITOR
@@ -99,11 +95,11 @@ namespace Kite {
 
 	protected:
 		/// will be called when atached to a node
-		virtual void attached(KNode *Owner) = 0;
+		virtual void attached() = 0;
 
 		/// will be called when deattached from a node
-		virtual void deattached(KNode *Owner) = 0;
-
+		virtual void deattached() = 0;
+		
 		/// will be implemented by KHParser
 		/// usage: access base members in lua
 		virtual KComponent *getBase() const = 0;
@@ -113,15 +109,17 @@ namespace Kite {
 		/// and load all KSharedResource variables that marked with KM_VAR()
 		virtual void loadRes(KResourceManager *RManager) = 0;
 
+		/// will be implemented by KHParser
+		/// copy all serialization values from another component
+		virtual void copyFrom(KComponent *Com) = 0;
+
 	private:
-		KM_VAR() I16 _krefcounter;		// dependency ref counter
 		KM_VAR() std::string _kname;
 		KM_VAR() KHandle _khandle;
 
 		// runtime variables
+		I16 _krefcounter;		// dependency ref counter
 		KNode *_kownerNode;
-		bool _kremoveNoDep;				// component will removed if refcounter = 0
-		std::vector<CTypes> _kdeplist;
 
 #ifdef KITE_EDITOR
 		void *sceneData;

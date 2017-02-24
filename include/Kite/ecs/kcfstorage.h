@@ -31,14 +31,6 @@ USA
 namespace Kite {
 	template <typename T, CTypes Type>
 	class KCFStorage {
-		friend KBaseSerial &operator<<(KBaseSerial &Out, const KCFStorage<T> &Value) {
-			Value.serial(Out); return Out;
-		}
-
-		friend KBaseSerial &operator>>(KBaseSerial &In, KCFStorage<T> &Value) {
-			Value.deserial(In); return In;
-		}
-
 	public:
 		KCFStorage() :
 			_kmodified(false) 
@@ -160,21 +152,6 @@ namespace Kite {
 
 		inline bool getModified() const { return _kmodified; }
 	private:
-
-		void serial(KBaseSerial &Out) const {
-			Out << _kcontiner;
-			Out << _khandle;
-			Out << _kexhandle;
-			Out << _kfreeIndex;
-		}
-
-		void deserial(KBaseSerial &In) {
-			In >> _kcontiner;
-			In >> _khandle;
-			In >> _kexhandle;
-			In >> _kfreeIndex;
-		}
-
 		std::vector<T> _kcontiner;
 		std::vector<KHandle> _khandle;
 		std::vector<KHandle> _kexhandle;
@@ -196,15 +173,12 @@ namespace Kite {
 			virtual ~BaseCHolder() {}
 
 			//virtual void serial(KBaseSerial &Serializer, KSerialStateTypes State) = 0;
-			virtual KHandle add(const std::string &Name = "") = 0;
+			virtual KHandle add(KNode *Owner, const std::string &Name) = 0;
 			virtual void remove(const KHandle &Handle) = 0;
 			virtual T *get(const KHandle &Handle) = 0;
 			virtual void clear() = 0;
 			virtual SIZE getSize() = 0;
 			virtual bool getModified() = 0;
-			virtual void serial(KBaseSerial &Out) const = 0;
-			virtual void deserial(KBaseSerial &In) = 0;
-			SIZE type; // type hash code 
 		};
 
 		template <class T, class Y, CTypes Type>
@@ -212,8 +186,8 @@ namespace Kite {
 			virtual ~CHolder() {
 				_kstorage.clear();
 			}
-			KHandle add(const std::string &Name) override {
-				return _kstorage.add(T(Name));
+			KHandle add(KNode *Owner, const std::string &Name) override {
+				return _kstorage.add(T(Owner, Name));
 			}
 
 			void remove(const KHandle &Handle) override {
@@ -239,15 +213,6 @@ namespace Kite {
 			KCFStorage<T, Type> *getStorage() {
 				return &_kstorage;
 			}
-
-			void serial(KBaseSerial &Out) const override {
-				Out << _kstorage;
-			}
-
-			void deserial(KBaseSerial &In) override {
-				In >> _kstorage;
-			}
-
 		private:
 			KCFStorage<T, Type> _kstorage;
 		};

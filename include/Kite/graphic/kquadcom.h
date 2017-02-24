@@ -33,16 +33,18 @@
 KMETA
 namespace Kite{
 	KM_CLASS(COMPONENT)
-    class KITE_FUNC_EXPORT KQuadCom : public KComponent, public KRenderable{
+    class KITE_FUNC_EXPORT KQuadCom : public KComponent, public KRenderable, public KCullable{
 		friend class KRenderSys;
 		KM_INFO(KI_NAME = "Quad");
+		KM_INFO(KI_DEP = KTransformCom);
+		KM_INFO(KI_INT = KRenderable, KI_INT = KCullable);
 		KMETA_KQUADCOM_BODY();
     public:
-		KQuadCom(const std::string &Name = "");
+		KQuadCom(KNode *OwnerNode, const std::string &Name = "");
 
-		void attached(KNode *Owner) override;
+		void attached() override;
 
-		void deattached(KNode *Owner) override;
+		void deattached() override;
 
 		RecieveTypes onMessage(KMessage *Message, MessageScope Scope) override;
 
@@ -118,8 +120,8 @@ namespace Kite{
 		inline GLPrimitive getGeoType() const override { return GLPrimitive::TRIANGLES; }
 		inline bool isIndexed() const override { return true; }
 		inline bool isPoint() const override { return false; }
-		inline KShaderProgram *getShaderProg() const override { return _kshprog; }
-		inline KAtlasTextureArray *getATextureArray() const override { return _katarray; }
+		inline KSharedResource getShaderProg() const override { return _kshprog; }
+		inline KSharedResource getATextureArray() const override { return _katarray; }
 
     private:
 		void _setDim();

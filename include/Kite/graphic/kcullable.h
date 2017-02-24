@@ -29,7 +29,7 @@ namespace Kite {
 	class KITE_FUNC_EXPORT KCullable {
 		friend class KGCullingSys;
 	public:
-		KCullable();
+		virtual ~KCullable() {}
 
 	protected:
 		virtual void getBoundingRect(KRectF32 &Output) const = 0;

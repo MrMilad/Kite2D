@@ -21,12 +21,11 @@ USA
 #define KPHYSICALSTORAGE_H
 
 #include "Kite/core/kcoredef.h"
-#include "kite/core/knoncopyable.h"
 #include "Kite/memory/kbasestorage.h"
 #include <list>
 
 namespace Kite {
-	class KITE_FUNC_EXPORT KPhysicalStorage : public KBaseStorage, KNonCopyable {
+	class KITE_FUNC_EXPORT KPhysicalStorage : public KBaseStorage {
 	public:
 		KPhysicalStorage();
 		~KPhysicalStorage();

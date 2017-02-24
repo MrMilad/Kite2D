@@ -27,20 +27,20 @@ USA
 
 namespace Kite {
 
-	bool KTransformSys::update(F64 Delta, KEntityManager *EManager, KResourceManager *RManager) {
+	bool KTransformSys::update(F64 Delta, KNode *Scene) {
 		//EDITOR_STATIC const bool isregist = EManager->isRegisteredComponent(CTypes::Transform);
-		auto continer = EManager->getComponentStorage<KTransformCom>(CTypes::Transform);
+		/*auto continer = EManager->getComponentStorage<KTransformCom>(CTypes::Transform);
 		for (auto it = continer->begin(); it != continer->end(); ++it) {
 			auto ehandle = it->getOwnerHandle();
 			auto entity = EManager->getEntity(ehandle);
 			if (entity->isActive()) {
 				it->computeMatrix();
 			}
-		}
+		}*/
 		return true;
 	}
 
-	bool KTransformSys::inite(void *Opaque) { 
+	bool KTransformSys::inite(KSysInite *IniteData) {
 		setInite(true);
 		return true;
 	}

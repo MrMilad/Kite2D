@@ -22,14 +22,12 @@ USA
 
 #include "Kite/ecs/kcomponent.h"
 #include "Kite/ecs/kecsstructs.h"
-#include "Kite/ecs/kentity.h"
+#include "Kite/ecs/knode.h"
 #include "Kite/ecs/klistener.h"
 #include "Kite/ecs/kmessage.h"
 #include "Kite/ecs/kmessenger.h"
-#include "Kite/ecs/kprefab.h"
 #include "Kite/ecs/ksystem.h"
 #include "Kite/ecs/kresource.h"
 #include "Kite/ecs/kresourcemanager.h"
-#include "Kite/ecs/kscene.h"
 
 #endif // KECS_H

@@ -29,38 +29,24 @@
 #include <luaintf/LuaIntf.h>
 
 namespace Kite{
-	KQuadCom::KQuadCom(const std::string &Name) :
-		KComponent(Name, false, { CTypes::RenderInstance }),
+	KQuadCom::KQuadCom(KNode *OwnerNode, const std::string &Name) :
+		KComponent(OwnerNode, Name),
 		_ktindex(0),
 		_kisVisible(true),
 		_kculling(false),
 		_kwidth(100),
 		_kheight(100),
 		_kvertex(4),
-		_kindexsize(6),
-		_kshprog(nullptr),
-		_katarray(nullptr)
+		_kindexsize(6)
 	{
 		_setDim();
 		setAtlasItem(KAtlasItem());
 		setBlendColor(KColor());
 	}
 
-	void KQuadCom::attached(KNode *Owner) {
-		auto renderable = (KRenderCom *)Owner->getComponent(CTypes::RenderInstance);
-		renderable->registerInterface(this);
+	void KQuadCom::attached() {}
 
-		auto cullable = (KGCullingCom *)Owner->getComponent(CTypes::GCullingInstance);
-		cullable->registerInterface(this);
-	}
-
-	void KQuadCom::deattached(KNode *Owner) {
-		auto renderable = (KRenderCom *)Owner->getComponent(CTypes::RenderInstance);
-		renderable->unregisterInterface(this);
-
-		auto cullable = (KGCullingCom *)Owner->getComponent(CTypes::GCullingInstance);
-		cullable->unregisterInterface(this);
-	}
+	void KQuadCom::deattached() {}
 
 	RecieveTypes KQuadCom::onMessage(KMessage *Message, MessageScope Scope) {
 		return RecieveTypes::IGNORED;

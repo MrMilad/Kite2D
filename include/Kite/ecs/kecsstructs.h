@@ -42,6 +42,12 @@ namespace Kite{
 	};
 
 	KM_CLASS(POD)
+	struct KECSState {
+		KM_VAR() std::string startupNode;
+		KM_VAR() std::string dictionary;
+	};
+
+	KM_CLASS(POD)
 	struct KHandle {
 		KMETA_KHANDLE_BODY();
 
@@ -66,7 +72,7 @@ namespace Kite{
 				(type == right.type);
 		}
 
-		inline bool operator!=(const KHandle& right) const  {
+		inline bool operator!=(const KHandle& right) const {
 			return !((*this) == right);
 		}
 
@@ -76,8 +82,7 @@ namespace Kite{
 	private:
 		KM_OPE(KO_EQ)
 		bool luaEq(const KHandle& right) const {
-			(index == right.index) &&
-				(type == right.type);
+			return ((index == right.index) && (type == right.type));
 		}
 	};
 

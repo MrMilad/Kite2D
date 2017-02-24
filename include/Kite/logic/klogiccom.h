@@ -22,7 +22,6 @@ USA
 
 #include "Kite/core/kcoredef.h"
 #include "Kite/ecs/kcomponent.h"
-#include "Kite/ecs/kentity.h"
 #include "Kite/meta/kmetadef.h"
 #include "Kite/logic/kscript.h"
 #include <string>
@@ -39,10 +38,10 @@ namespace Kite {
 	public:
 		KLogicCom(const std::string &Name = "");
 
-		void attached(KEntity *Entity) override;
+		void attached() override;
 
 		/// remove this script from entity
-		void deattached(KEntity *Entity) override;
+		void deattached() override;
 
 		KM_FUN()
 		RecieveTypes onMessage(KMessage *Message, MessageScope Scope) override;
@@ -52,8 +51,6 @@ namespace Kite {
 		
 		KM_PRO_GET(KP_NAME = "script", KP_TYPE = KStringID, KP_CM = "name of the lua script", KP_RES = RTypes::Script)
 		inline const KStringID &getScript() const { return _kscriptName; }
-
-		bool updateRes() override;
 
 	private:
 		inline const std::string &getTName() { return _ktname; }

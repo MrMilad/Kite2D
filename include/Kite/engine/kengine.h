@@ -49,14 +49,15 @@ namespace Kite {
 
 		KM_VAR() KWindowState window;
 		KM_VAR() KRenderState render;
-		KM_VAR() std::string startUpScene;
-		KM_VAR() std::string dictionary;
+		KM_VAR() KECSState ecs;
 	};
 
 	KM_CLASS(SCRIPTABLE)
-	class KITE_FUNC_EXPORT KEngine : KNonCopyable {
+	class KITE_FUNC_EXPORT KEngine {
 		KMETA_KENGINE_BODY();
 	public:
+		KEngine(const KNode &CopyNode) = delete;
+		KEngine &operator=(const KEngine &Right) = delete;
 		~KEngine();
 
 		KM_FUN()
@@ -72,9 +73,6 @@ namespace Kite {
 
 		KM_FUN()
 		inline auto getWindow() { return _kwindow; }
-
-		KM_FUN()
-		inline auto getSceneManager() { return _ksman; }
 
 		KM_FUN()
 		inline auto getMetaManager() { return _kmman; }
@@ -94,9 +92,6 @@ namespace Kite {
 
 	private:
 		KEngine();
-		KEngine(KEngine const&);
-		void operator=(KEngine const&);
-
 		lua_State *_klstate;
 		KGLWindow *_kwindow;
 		KMetaManager *_kmman;

@@ -151,7 +151,7 @@
 /// debug macros
 #if defined(KITE_DEV_DEBUG)
 	#if defined (KITE_EDITOR)
-#define ED_STATIC thread_local static
+#define ED_STATIC thread_local
 namespace Kite {
 	enum class msgType : short{
 		MSG_DEBUG = 0,
@@ -179,7 +179,7 @@ namespace Kite {
 (Kite::pcallback)(std::string(Kite::buffer), Kite::msgType::MSG_ASSERT);}
 
 	#else
-		#define EDITOR_STATIC static
+		#define EDITOR_STATIC
 		#include <assert.h>
 		#define KD_BREAK() fprintf(stderr, "BREAK: %s:%d:%s()\n", __FILE__, __LINE__, __func__); assert(0)
 		#define KD_FPRINT(fmt, ...) fprintf(stderr, "DEBUG: %s:%d:%s(): " fmt "\n", __FILE__, __LINE__, __func__, __VA_ARGS__)
@@ -188,7 +188,7 @@ namespace Kite {
 	#endif
 
 #else /// release state. (without debug output and break)
-	#define ED_STATIC static
+	#define ED_STATIC
     #define KD_BREAK()
     #define KD_FPRINT(fmt, ...)
     #define KD_PRINT(exp)

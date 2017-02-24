@@ -41,6 +41,8 @@ namespace Kite{
 	KMETA_KRESOURCE_BODY();
 	public:
 		KResource(const std::string &Name, const std::string &Address);
+
+		KResource() = delete;
 		KResource(const KResource &Copy) = delete;
 		KResource &operator=(const KResource &Right) = delete;
 
@@ -49,39 +51,25 @@ namespace Kite{
 		KM_FUN()
 		virtual bool saveStream(KOStream &Stream, const std::string &Address) = 0;
 
-		/// second phase initialization. (OpenGL, OpenAL, ... object initialization).
-		/// in the simple resources (ex: script) there is no need to implement this function. just return true.
-		/// will not called with resource manager.
-		virtual bool inite() = 0;
-
 		/// will be implemented by KHParser
-		KM_PRO_GET(KP_NAME = "type", KP_TYPE = RTypes)
-		virtual inline RTypes getType() const = 0;
+		KM_PRO_GET(KP_NAME = "drivedType", KP_TYPE = RTypes)
+		virtual inline RTypes getDrivedType() const = 0;
 
 		/// will be implemented by KHParser
 		KM_PRO_GET(KP_NAME = "typeName", KP_TYPE = std::string)
-		virtual inline std::string getTypeName() const = 0;
+		virtual inline const std::string &getTypeName() const = 0;
 
 		/// will be implemented by KHParser
 		/// usage: access base in lua
 		virtual KResource *getBase() const = 0;
 
 		KM_PRO_GET(KP_NAME = "name", KP_TYPE = std::string)
-		inline const std::string &getName() const { return _kname.str; }
-
-		KM_PRO_GET(KP_NAME = "nameID", KP_TYPE = U32)
-		inline const U32 &getNameID() const { return _kname.hash; }
+		inline const std::string &getName() const { return _kname; }
 
 		KM_PRO_GET(KP_NAME = "address", KP_TYPE = std::string)
 		inline const std::string &getAddress() const { return _kaddress; }
 
-		KM_PRO_GET(KP_NAME = "isInite", KP_TYPE = bool, KP_CM = "second phase initialization")
-		inline bool isInite() const { return _kisInite; }
-
 	protected:
-		inline void setInite(bool Inite) { _kisInite = Inite; }
-
-	private:
 		// loading resource without resource manager is not allowed
 		// use RManager only for loading dependencies
 		// you can catch Stream (ex: stream lined resource) or free it
@@ -89,8 +77,8 @@ namespace Kite{
 		// this fuction should be used only once and re-loading a resource object is not allowed (undefined behavior)
 		virtual bool _loadStream(std::unique_ptr<KIStream> Stream, KResourceManager *RManager) = 0;
 
-		bool _kisInite;
-		const KStringID _kname;
+	private:
+		const std::string _kname;
 		const std::string _kaddress;
 	};
 }

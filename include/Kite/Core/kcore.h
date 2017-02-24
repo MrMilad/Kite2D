@@ -30,16 +30,5 @@
 #include "Kite/core/kfostream.h"
 #include "Kite/core/kistream.h"
 #include "Kite/core/kfistream.h"
-#include "Kite/core/kmessage.h"
-#include "Kite/core/klistener.h"
-#include "Kite/core/kmessenger.h"
-#include "Kite/core/kentity.h"
-#include "Kite/core/kentitymanager.h"
-#include "Kite/core/kresource.h"
-#include "Kite/core/kresourcemanager.h"
-#include "Kite/core/kscene.h"
-#include "Kite/core/kscenemanager.h"
-#include "Kite/core/kcomponent.h"
-#include "Kite/core/ksystem.h"
 
 #endif // KCORE_H

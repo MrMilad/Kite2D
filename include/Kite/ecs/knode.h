@@ -31,53 +31,55 @@ USA
 #include "Kite/ecs/klistener.h"
 #include "Kite/ecs/kmessenger.h"
 #include "Kite/ecs/kcfstorage.h"
+#include "Kite/ecs/kresource.h"
 #include "Kite/serialization/kserialization.h"
 #include <string>
-#include <list>
+#include <vector>
 #include <array>
-#include "kentity.khgen.h"
+#include <foonathan/memory/memory_pool.hpp>
+#include <foonathan/memory/namespace_alias.hpp>
+#include "knode.khgen.h"
 #include "ktypes.khgen.h"
+
+#define KNODE_MEM_CHUNK 64 // pool size (number of nodes)
 
 KMETA
 namespace Kite {
-	KM_CLASS(SCRIPTABLE)
-	class KITE_FUNC_EXPORT KNode : public KMessenger, public KListener {
-		friend class KEngine;
-		friend void registerCTypes(KNode *);
+	KM_CLASS(RESOURCE)
+	class KITE_FUNC_EXPORT KNode : public KResource, public KMessenger, public KListener {
+		KM_INFO(KI_NAME = "Node");
+		KMETA_KNODE_BODY();
 	public:
 		/// this constructure will create a root node
-		KM_CON()
-		KNode();
+		KM_CON(std::string)
+		KNode(const std::string &Name);
 
 		KNode(const KNode &CopyNode) = delete;
+		KNode &operator=(const KNode &RightNode) = delete;
 
 		/// will be called recursive if there are attached childs 
 		~KNode();
 
-		/// will not affect childs
-		KNode &operator=(const KNode &RightNode) = delete;
-
 		/// redirect recieved message to all sub-components
 		KM_FUN()
-		RecieveTypes onMessage(KMessage *Message, MessageScope Scope);
+		RecieveTypes onMessage(KMessage *Message, MessageScope Scope) override;
 
 		KM_FUN()
-		bool saveStream(KOStream &Stream, const std::string &Address);
-
-		/// will unload current state of the node
-		KM_FUN()
-		bool loadStream(KIStream &Stream, const std::string &Address);
+		bool saveStream(KOStream &Stream, const std::string &Address) override;
 
 		KM_PRO_GET(KP_NAME = "parent", KP_TYPE = KHandle, KP_CM = "parent of the node")
-		inline KNode *getParent() const { return _kparent; }
+			inline KNode *getParent() const { return _kparent; }
 
 		KM_PRO_GET(KP_NAME = "zorder", KP_TYPE = U32, KP_CM = "render order of the node")
-		inline U32 getZOrder() const { return _kzorder; }
+			inline U32 getZOrder() const { return _kzorder; }
 
 		KM_PRO_SET(KP_NAME = "zorder")
-		inline void setZOrder(U32 Order) { _kzorder = Order; }
+			void setZOrder(U32 Order);
 
-		KM_PRO_GET(KP_NAME = "name", KP_TYPE = std::string, KP_CM = "unique name of the node")
+		KM_PRO_SET(KP_NAME = "name")
+		void setName(const std::string &Name);
+
+		KM_PRO_GET(KP_NAME = "name", KP_TYPE = std::string, KP_CM = "name of the node")
 		inline const std::string &getName() const { return _kname; }
 
 		KM_PRO_GET(KP_NAME = "listener", KP_TYPE = KListener, KP_CM = "node listener")
@@ -89,6 +91,7 @@ namespace Kite {
 		KM_PRO_GET(KP_NAME = "isActive", KP_TYPE = bool, KP_CM = "active state of the node")
 		inline bool isActive() const { return _kactive; }
 
+		/// affect childs
 		KM_PRO_SET(KP_NAME = "isActive")
 		void setActive(bool Active);
 
@@ -98,11 +101,6 @@ namespace Kite {
 		// recursive
 		KM_PRO_GET(KP_NAME = "root", KP_TYPE = KNode, KP_CM = "root node")
 		inline KNode *getRoot() const { return _kshared->root; }
-
-		// getCopy() is not safe (pointer dangling) also we cant resolve copy pointer at deserialization stage
-		// this function is used for marking purpose in the editor
-		KM_PRO_GET(KP_NAME = "isCopy", KP_TYPE = bool, KP_CM = "this is a copy from another node")
-		inline bool isCopy() const { return _kisCopy; }
 
 		KM_PRO_GET(KP_NAME = "envTableName", KP_TYPE = std::string, KP_CM = "name of the env table in lua")
 		inline const std::string &getLuaTName() const { return _kluatable; }
@@ -114,7 +112,7 @@ namespace Kite {
 		void setLayer(U8 LayerID);
 
 		KM_PRO_GET(KP_NAME = "childCount", KP_TYPE = U32, KP_CM = "number of childs")
-		inline U8 getChildCount() const { return _kchilds.size(); }
+		inline U32 getChildCount() const { return _kchilds.size(); }
 
 		KM_PRO_GET(KP_NAME = "static", KP_TYPE = bool, KP_CM = "is static")
 		inline bool getStatic() const { return _kstatic; }
@@ -122,24 +120,105 @@ namespace Kite {
 		KM_PRO_SET(KP_NAME = "static")
 		void setStatic(bool Static);
 
-		// dont add multiple graphics(renderable) component on the same node. (undefined behavior)
-		KM_FUN()
-		KComponent *addComponent(CTypes Type, const std::string &Name = "");
+		template<typename T>
+		T *addComponent(const std::string &Name = "") {
+			// check component slot
+			if (hasComponent<T>(Name)) {
+				KD_FPRINT("requested components slot is not empty. type name: %s", getCTypesName(Type).c_str());
+				return getComponent<T>(Name);
+			}
+
+			// check interface
+			const std::vector<ITypes> &ilist = T::getIntList();
+			for (auto it = ilist.begin(); it != ilist.end(); ++it) {
+				if (hasComponentByInterface((*it))) {
+					KD_FPRINT("requested interface slot is not empty. type name: %s", getITypesName((*it)).c_str());
+					return nullptr;
+				}
+			}
+
+			// check dependency
+			const std::vector<CTypes> &dlist = T::getDepList();
+			for (auto it = dlist.begin(); it != dlist.end(); ++it) {
+				if (!hasComponentByType((*it))) {
+					KD_FPRINT("requested dependency components is not exist. type name: %s", getCTypesName((*it)).c_str());
+					return nullptr;
+				}
+			}
+
+			return static_cast<T *>(_addComponent(T::getType(), Name)); 
+		}
+
+		template<typename T>
+		T *getComponent(const std::string &Name = "") const {
+			static_assert(std::is_base_of<KComponent, T>::value, "T must be derived from KComponent");
+			U16 tindex = (U16)T::getType();
+			// script component
+			if (tindex == (U16)CTypes::Logic) {
+				auto found = _klogicComp.find(Name);
+				if (found != _klogicComp.end()) {
+					return static_cast<T *>(_kshared->cstorage[tindex]->get(found->second));
+				}
+
+				// non-script component
+			} else {
+				if (_kfixedComp[tindex] != KHandle()) {
+					return static_cast<T *>(_kshared->cstorage[tindex]->get(_kfixedComp[tindex]));
+				}
+			}
+
+			KD_FPRINT("there is no component of this type in the given node. ctype: %s", getCTypesName(Type).c_str());
+			return nullptr;
+		}
 
 		KM_FUN()
-		KComponent *getComponent(CTypes Type, const std::string &Name = "") const;
+		KComponent *getComponentByType(CTypes Type, const std::string &Name = "") const;
+
+		KM_FUN()
+		KComponent *getComponentByInterface(ITypes Type) const;
 
 		KM_FUN()
 		KComponent *getComponentByHandle(const KHandle &Handle) const;
 
+		/// pass empty string if you need checking logic existence
+		template<typename T>
+		bool hasComponent(const std::string &Name = "") const {
+			static_assert(std::is_base_of<KComponent, T>::value, "T must be derived from KComponent");
+			if (T::getType() == CTypes::Logic) {
+				if (Name.empty()) {
+					return (!_klogicComp.empty());
+				} else {
+					return (_klogicComp.find(Name) != _klogicComp.end());
+				}
+			} else {
+				if (_kfixedComp[(U16)T::getType()] != KHandle()) {
+					return true;
+				}
+			}
+
+			return false;
+		}
+
+		/// pass empty string if you need checking logic existence
 		KM_FUN()
-		bool hasComponent(CTypes Type, const std::string &Name = "") const;
+		bool hasComponentByType(CTypes Type, const std::string &Name = "") const;
 
 		KM_FUN()
-		bool hasComponentType(CTypes Type) const;
+		bool hasComponentByInterface(ITypes Type) const;
+
+		template<typename T>
+		void removeComponent(const std::string &Name = "") {
+			auto com = getComponent<T>(Name);
+			if (com) {
+				removeComponentByHandle(com->getHandle());
+			}
+		}
 
 		KM_FUN()
-		void removeComponent(CTypes Type, const std::string &Name = "");
+		void removeComponentByType(CTypes Type, const std::string &Name = "");
+
+		KM_FUN()
+		void removeComponentByInterface(ITypes Type);
 
 		KM_FUN()
 		void removeComponentByHandle(const KHandle &Handle);
@@ -154,7 +233,7 @@ namespace Kite {
 
 		/// make a copy of child-nodes from this hierarchy or another hierarchy
 		/// will not remove node from old parent.
-		/// use addNewChild if you need a new child.
+		/// use addNewChild if you need a fresh new child.
 		/// return moved node.
 		KM_FUN()
 		KNode *addChild(KNode *Nodes);
@@ -163,28 +242,52 @@ namespace Kite {
 		KNode *addNewChild();
 
 		KM_FUN()
-		bool removeChild(KNode *Nodes);
+		void removeChild(KNode *Nodes);
+
+		KM_FUN()
+		void clearChilds();
 
 		inline const auto childList() const { return &_kchilds; }
 
-#ifdef KITE_EDITOR
-		inline void setAddComCallback(ComCallback Callback, void *OpaqPtr) { _kaddCallb = Callback; _kaddOpaque = OpaqPtr; }
-		inline void setRemoveComCallback(ComCallback Callback, void *OpaqPtr) { _kremCallb = Callback; _kremOpaque = OpaqPtr; }
-#endif
+		template <typename T>
+		bool registerComponent() {
+			// check base of T
+			static_assert(std::is_base_of<KComponent, T>::value, "T must be derived from KComponent");
+			auto tindex = (U16)T::getType();
+
+			// check type
+			if (_kshared->cstorage[tindex] != nullptr) {
+				KD_FPRINT("this type has already been registered. ctype: %s", getCTypesName(T::getType()).c_str());
+				return false;
+			}
+
+			// register type
+			_kshared->cstorage[tindex] = new Internal::CHolder<T, KComponent, T::getType()>;
+			return true;
+		}
 
 	private:
-		// internal constructure for creating childs
-		KNode(KNode *Parent, std::list<KNode>::iterator *SelfIt);
+		/// internal constructure for creating childs
+		KNode(KNode *Parent, SIZE SelfIndex);
+
+		/// resource manager
+		KNode(const std::string &Name, const std::string &Address);
+
+		void serial(KBaseSerial &Serializer);
+		void deserial(KBaseSerial &Serializer, KResourceManager *RMan);
 
 		struct SharedData {
 			U32 zorder;		// total number of z order in the hierarchy
 			KNode *root;
 			std::array<Internal::BaseCHolder<KComponent> *, (U16)CTypes::maxSize> cstorage;	// component storages (array)
 			std::vector<KHandle> trashList;
+			memory::memory_pool<> nodePool; // data pool
 
 			SharedData() :
 				zorder(0),
-				cstorage({}) {}
+				cstorage({}),
+				nodePool(sizeof(KNode), KNODE_MEM_CHUNK * sizeof(KNode))
+				{}
 
 			~SharedData() {
 				for (auto i = 0; i < (U16)CTypes::maxSize; ++i) {
@@ -193,60 +296,68 @@ namespace Kite {
 			}
 		};
 
-		// raw add component (without calling system functions)
-		KComponent *_addComponent(CTypes Type, const std::string &CName = "");
-
-		// lua side
-		// usage: cast from void * to KNode
-		KM_FUN()
-		static KNode *toNode(void *Data) { return (KNode *)(Data); }
-
-		template <typename T>
-		bool registerComponent(CTypes Type) {
-			// check base of T
-			static_assert(std::is_base_of<KComponent, T>::value, "T must be derived from KComponent");
-			auto tindex = (U16)Type;
-
-			// check type
-			if (_kshared->cstorage[tindex] != nullptr) {
-				KD_FPRINT("this type has already been registered. ctype: %s", getCTypesName(Type).c_str());
-				return false;
+		// raw add component (without calling system functions and no dep/int checking)
+		// internal use only: serialization and copy node
+		KComponent *_addComponent(CTypes Type, const std::string &Name) {
+			// check component slot
+			if (hasComponentByType(Type, Name)) {
+				KD_FPRINT("requested components slot is not empty. type name: %s", getCTypesName(Type).c_str());
+				return getComponentByType(Type, Name);
 			}
 
-			// register type
-			_kshared->cstorage[tindex] = new Internal::CHolder<T, KComponent, Type>;
-			_kshared->cstorage[tindex]->type = typeid(T).hash_code();
-			return true;
+			// create component
+			U16 tindex = (U16)Type;
+			auto handle = _kshared->cstorage[tindex]->add(this, Name);
+
+			// set its handle
+			auto com = _kshared->cstorage[tindex]->get(handle);
+			com->_khandle = handle;
+
+			// attach created component to the node
+			if (Type == CTypes::Logic) {
+				_klogicComp[Name] = handle;
+			} else {
+				_kfixedComp[tindex] = handle;
+			}
+
+			// set interface
+			const std::vector<ITypes> &ilist = com->getDrivedIntList();
+			for (auto it = ilist.begin(); it != ilist.end(); ++it) {
+				_kinterface[(U16)(*it)] = handle;
+			}
+
+			// increase dependency ref counts
+			const std::vector<CTypes> &dlist = com->getDrivedDepList();
+			for (auto it = dlist.begin(); it != dlist.end(); ++it) {
+				auto depCom = getComponentByType((*it), "");
+				++depCom->_krefcounter;
+			}
+
+			// call attach functon
+			com->attached();
+			return com;
 		}
 
 		// initialize on deserialization stage (recursive)
-		void initeOnDeserial();
+		bool _loadStream(std::unique_ptr<KIStream> Stream, KResourceManager *RManager) override;
 
+		// deserializable variable
 		bool _kstatic;
-		bool _kactive;											// node actitvity state
-		bool _kisCopy;											// this node is a copy from another node
-		std::string _kname;										// node name (maybe not unique)
-		std::string _kluatable;									// node env table name in lua
+		bool _kactive;
 		U8 _klayerid;
 		U32 _kzorder;
-		KHandle _kfixedComp[(SIZE)CTypes::maxSize];				// fixed components slots (built-in components)
-		std::unordered_map<std::string, KHandle> _klogicComp;	// dynamic components (logic components)
+		std::string _kname;
 
 		// runtime variables 
-		KNode *_kparent;								// node parent handle
-		std::list<KNode>::iterator *_kselfIter;			// node self handle (iterator of the childs-list of the parent)
-		std::list<KNode> _kchilds;						// child list
+		std::string _kluatable;										// node env table name in lua
+		KHandle _kinterface[(U16)ITypes::maxSize];					// interface slots (pointer to fixed slots)
+		KHandle _kfixedComp[(U16)CTypes::maxSize];					// fixed components slots (built-in components)
+		std::unordered_map<std::string, KHandle> _klogicComp;		// dynamic components (logic components)
+		KNode *_kparent;											// node parent handle
+		SIZE _kselfIndex;											// node self index (index of childs-list of the parent)
+		std::vector<KNode *> _kchilds;								// child list (allocated from node pool)
 
 		SharedData *_kshared;
-
-
-		// editor only
-#ifdef KITE_EDITOR
-		ComCallback _kaddCallb;
-		ComCallback _kremCallb;
-		void *_kaddOpaque;
-		void *_kremOpaque;
-#endif
 	};
 }
 

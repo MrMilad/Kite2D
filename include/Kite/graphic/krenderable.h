@@ -26,35 +26,34 @@
 #include "Kite/graphic/kshaderprogram.h"
 #include "Kite/graphic/katlastexturearray.h"
 #include "Kite/graphic/kgraphictypes.h"
-#include "Kite/graphic/kcullable.h"
+#include "krenderable.khgen.h"
 
+KMETA
 namespace Kite{
-	class KITE_FUNC_EXPORT KRenderable : public KCullable{
+	class KRenderSys;
+	KM_CLASS(INTERFACE)
+	class KITE_FUNC_EXPORT KRenderable{
+		KM_INFO(KI_NAME = "Renderable");
+		KMETA_KRENDERABLE_BODY();
 		friend class KRenderSys;
 	public:
-		KRenderable() :
-			_kmatNeedUpdate(true)
-		{}
+		virtual ~KRenderable() {};
 
 	protected:
 		virtual const std::vector<KGLVertex> *getVertex() const = 0;
 		virtual const U32 getIndexSize() const = 0;
 		virtual const std::vector<KPointSprite> *getPoint() const = 0;
 
-		virtual KShaderProgram *getShaderProg() const = 0;
-		virtual KAtlasTextureArray *getATextureArray() const = 0;
+		virtual KSharedResource getShaderProg() const = 0;
+		virtual KSharedResource getATextureArray() const = 0;
 
 		virtual GLPrimitive getGeoType() const = 0;
 		virtual bool isVisible() const = 0;
 		virtual bool isIndexed() const = 0;
 		virtual bool isPoint() const = 0;
-
-		inline bool getMatNeedUpdate() const { return _kmatNeedUpdate; }
-		inline void matNeedUpdate() { _kmatNeedUpdate = true; }
-
-	private:
-		bool _kmatNeedUpdate;
     };
+
+	KMETA_KRENDERABLE_SOURCE();
 }
 
 #endif // KRENDERABLE_H

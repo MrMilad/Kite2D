@@ -107,7 +107,7 @@ namespace Kite {
 		KResource *resource = _krfactory[(SIZE)found->second.rtype](Name, found->second.address);
 
 		// loading resource
-		if (!resource->_loadStream(std::make_unique<KIStream>(stream), this)) {
+		if (!resource->_loadStream(std::unique_ptr<KIStream>(stream), this)) {
 			KD_FPRINT("can't load resource. rname: %s", Name.c_str());
 			delete resource;
 			return KSharedResource(nullptr);
@@ -250,7 +250,7 @@ namespace Kite {
 		std::string address;
 		RTypes rtype;
 		IStreamTypes stype;
-		for (auto i = 0; i < size; ++i) {
+		for (SIZE i = 0; i < size; ++i) {
 			bserial >> name;
 			bserial >> address;
 			bserial >> rtype;
@@ -282,7 +282,7 @@ namespace Kite {
 
 	KMETA_KRESOURCEMANAGER_SOURCE();
 
-	memory::memory_pool<> KSharedResource::_kpool(sizeof(KSharedResource::dynamic), KSHAREDRES_MEM_CHUNK * sizeof(KSharedResource::dynamic));
+	ED_STATIC memory::memory_pool<> KSharedResource::_kpool(sizeof(KSharedResource::dynamic), KSHAREDRES_MEM_CHUNK * sizeof(KSharedResource::dynamic));
 	KSharedResource::KSharedResource() :
 		_kdata(new(_kpool.allocate_node()) KSharedResource::dynamic(nullptr))
 	{}

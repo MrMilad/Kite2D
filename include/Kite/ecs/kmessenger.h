@@ -21,7 +21,6 @@ USA
 #define KMESSENGER_H
 
 #include "Kite/core/kcoredef.h"
-#include "Kite/core/knoncopyable.h"
 #include "Kite/ecs/kecstypes.h"
 #include "Kite/ecs/kecsstructs.h"
 #include "Kite/ecs/klistener.h"

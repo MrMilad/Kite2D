@@ -35,7 +35,8 @@ USA
 #define ISTREAM		128
 #define OSTREAM		256
 #define SCRIPTABLE	512
-#define SERIALIZER	1024
+#define INTERFACE	1024
+#define SERIALIZER	2048
 
 // supported operators
 #define KO_ADD
@@ -56,6 +57,8 @@ USA
 // info tags
 #define KI_NAME		// component name
 #define KI_SHOW		// show component in editor (true by default if not defined)
+#define KI_DEP		// component dependency
+#define KI_INT		// component interface
 
 // variable modifiers
 #define UNBIND  // add this flag for unbindable pod's variables. eg: arrays or private variables

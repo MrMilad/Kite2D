@@ -38,6 +38,7 @@ std::unordered_map<std::string, std::string> strmap;
 #define VAR_ATTRIB 6
 #define COM_ENUM_NAME std::string("CTypes")
 #define RES_ENUM_NAME std::string("RTypes")
+#define INT_ENUM_NAME std::string("ITypes")
 #define OSTREAM_ENUM_NAME std::string("OStreamTypes")
 #define ISTREAM_ENUM_NAME std::string("IStreamTypes")
 
@@ -71,7 +72,8 @@ enum MClassType {
 	CT_ISTREAM = 128,
 	CT_OSTREAM = 256,
 	CT_SCRIPTABLE = 512,
-	CT_OTHER = 1024
+	CT_INTERFACE = 1024,
+	CT_OTHER = 2048
 };
 
 enum MExportState{
@@ -1366,6 +1368,11 @@ bool procClass(const std::string &Content, MClass &Cls, unsigned int Pos) {
 			Cls.type = Cls.type | CT_COMPONENT;
 		}
 
+		// is resource
+		if (it->first == "INTERFACE") {
+			Cls.type = Cls.type | CT_INTERFACE;
+		}
+
 		// is system
 		if (it->first == "SYSTEM") {
 			Cls.type = Cls.type | CT_SYSTEM;
@@ -1951,6 +1958,7 @@ void createMacros(const std::vector<MClass> &Cls, const std::vector<MEnum> &Enms
 		bool isScriptable = false;
 		bool isAbstract = false;
 		bool isSerializer = false;
+		bool isInterface = false;
 		for (auto it = ctags.begin(); it != ctags.end(); ++it) {
 			if (it->first == "POD") {
 				isPOD = true;
@@ -2005,13 +2013,18 @@ void createMacros(const std::vector<MClass> &Cls, const std::vector<MEnum> &Enms
 			if (it->first == "SERIALIZER") {
 				isSerializer = true;
 			}
+
+			// is interface
+			if (it->first == "INTERFACE") {
+				isInterface = true;
+			}
 		}
 
 		// class without any flag will ignored
 		if (!isPOD && !isEntity && !isResource &&
 			!isComponent && !isSystem && !isScriptable &&
 			!isContiner && !isIStream && !isOStream &&
-			!isSerializer) {
+			!isSerializer && !isInterface) {
 			printf("message: class without any supported flags. %s ignored. \n", Cls[i].name.c_str());
 			continue;
 		}
@@ -2048,11 +2061,13 @@ void createMacros(const std::vector<MClass> &Cls, const std::vector<MEnum> &Enms
 			}
 		}
 
+#ifdef KITE_EDITOR
 		// property setter/getter, getBase, lua cast (only components have properties)
 		if (isComponent && !isAbstract) {
 			Output.append(exstate + "bool setProperty(const std::string &Name, KAny &Value) override;\\\n" +
 						  exstate + "KAny getProperty(const std::string &Name) const override;\\\n");
 		}
+#endif
 
 		// serializable
 		if (isPOD || isComponent || isEntity) {
@@ -2093,6 +2108,8 @@ void createMacros(const std::vector<MClass> &Cls, const std::vector<MEnum> &Enms
 		} else if (isIStream && !isAbstract) {
 			enumType = ISTREAM_ENUM_NAME;
 			baseName = "KIStream";
+		}else if (isInterface) {
+			enumType = INT_ENUM_NAME;
 		}
 
 		// (base, lua cast, type)
@@ -2106,18 +2123,51 @@ void createMacros(const std::vector<MClass> &Cls, const std::vector<MEnum> &Enms
 					}
 				}
 
-				Output.append("void loadRes(KResourceManager *RManager) override;\\\n");
+				Output.append("void loadRes(KResourceManager *RManager) override;\\\n"
+							  "void copyFrom(KComponent *Com) override;\\\n");
 			}
 
 			Output.append(exstate + "static " + Cls[i].name + " *to" + shortName + "(" + baseName + " *Base) {\\\n" +
 						  "if (Base != nullptr){\\\n"
-						  "if (Base->getType() == getType()) {\\\n"
+						  "if (Base->getDrivedType() == " + enumType + "::" + shortName + ") {\\\n"
 						  "return (" + Cls[i].name + " *)Base; }};\\\n" +
 						  "return nullptr; }\\\n" +
-						  exstate + "inline " + baseName + " *getBase() const override { return (" + baseName + " *) this; }\\\n" +
-						  "public:\\\n" +
-						  exstate + "inline " + enumType + " getType() const override { return " + enumType + "::" + shortName + "; }\\\n" +
-						  exstate + "inline std::string getTypeName() const override { return \"" + shortName + "\"; }\\\n");
+						  exstate + "inline " + baseName + " *getBase() const override { return (" + baseName + " *) this; }\\\n");
+
+
+			Output.append("public:\\\n" +
+						  exstate + "constexpr static " + enumType + " getType() { return " + enumType + "::" + shortName + "; }\\\n" +
+						  exstate + "inline " + enumType + " getDrivedType() const override { return " + enumType + "::" + shortName + "; }\\\n" +
+						  exstate + "inline const std::string &getTypeName() const override {"
+						  "static const std::string tn(\"" + shortName + "\"); return tn; }\\\n");
+			
+			// interfcae and dependency list
+			if (isComponent) {
+				std::string dlist;
+				std::string ilist;
+				char splt1[] = { ' ', ' ', '\0' };
+				char splt2[] = { ' ', ' ', '\0' };
+				for (auto it = Cls[i].infos.begin(); it != Cls[i].infos.end(); ++it) {
+					if (it->key == "KI_DEP" && !it->info.empty()) {
+						dlist.append(splt1 + it->info + "::getType()");
+						splt1[0] = ',';
+
+					} else if (it->key == "KI_INT" && !it->info.empty()) {
+						ilist.append(splt2 + it->info + "::getType()");
+						splt2[0] = ',';
+					}
+				}
+				Output.append(exstate + "static const std::vector<" + COM_ENUM_NAME + "> &getDepList() {\\\n"
+							  "static const std::vector<" + COM_ENUM_NAME + "> dlist { " + dlist + " };\\\n"
+							  "return dlist; }\\\n" +
+							  exstate + "const std::vector<" + COM_ENUM_NAME + "> &getDrivedDepList() const override { return getDepList(); }\\\n");
+
+				Output.append(exstate + "static const std::vector<" + INT_ENUM_NAME + "> &getIntList() {\\\n"
+							  "static const std::vector<" + INT_ENUM_NAME + "> ilist { " + ilist + " };\\\n"
+							  "return ilist; }\\\n" +
+							  exstate + "const std::vector<" + INT_ENUM_NAME + "> &getDrivedIntList() const override { return getIntList(); }\\\n");
+
+			}
 			// clone
 			if (isIStream) {
 				Output.append(exstate + baseName + " *clone() const override { return (" +
@@ -2125,9 +2175,13 @@ void createMacros(const std::vector<MClass> &Cls, const std::vector<MEnum> &Enms
 			}
 		}
 
+		if (isInterface) {
+			Output.append(exstate + "static " + enumType + " getType() { return " + enumType + "::" + shortName + "; }\\\n");
+		}
+
 		Output.append("public:\\\n" +
 					  exstate + "static void registerMeta(KMetaManager *MMan = nullptr, lua_State *Lua = nullptr);\\\n"
-					  "virtual const std::string &getClassName() const { static std::string name(\"" + Cls[i].name + "\");\\\n"
+					  "virtual const std::string &getClassName() const { static const std::string name(\"" + Cls[i].name + "\");\\\n"
 					  "return name;}\n");
 
 		// defention
@@ -2148,6 +2202,7 @@ void createMacros(const std::vector<MClass> &Cls, const std::vector<MEnum> &Enms
 		// register properties and loadRes
 		if (isComponent && !isAbstract) {
 
+#ifdef KITE_EDITOR
 			// property setter/getter (only components have properties)
 			Output.append("bool " + Cls[i].name + "::setProperty(const std::string &Name, KAny &Value){\\\n");
 			for (auto it = Cls[i].props.begin(); it != Cls[i].props.end(); ++it) {
@@ -2171,14 +2226,27 @@ void createMacros(const std::vector<MClass> &Cls, const std::vector<MEnum> &Enms
 				}
 			}
 			Output.append("return KAny();}\\\n");
+#endif
 
-			Output.append("void " + Cls[i].name + "::loadRes(KResourceManager *RManager){\\\n");
 			// resource pointers
-			Output.append("if (!RManager) { KD_PRINT(\"ResourceManager is null.\"); return;}\\\n");
+			Output.append("void " + Cls[i].name + "::loadRes(KResourceManager *RManager){\\\n"
+						  "if (!RManager) { KD_PRINT(\"ResourceManager is null.\"); return;}\\\n");
 			for (auto it = Cls[i].vars.begin(); it != Cls[i].vars.end(); ++it) {
 				if (it->isRes) {
 					Output.append("if (" + it->name + "Name.empty()){ " + it->name + " = KSharedResource();}\\\n"
 								  "else{ " + it->name + " = RManager->load(" + it->name + "Name);}\\\n");
+				}
+			}
+			Output.append("}\\\n");
+
+			// copyFrom
+			Output.append("void " + Cls[i].name + "::copyFrom(KComponent *Com) {\\\n"
+						  "if (Com->getDrivedType() != getType()) return;\\\n"
+						  "auto castCom = static_cast<" + Cls[i].name + " *>(Com);\\\n");
+
+			for (auto it = Cls[i].vars.begin(); it != Cls[i].vars.end(); ++it) {
+				if (!it->isConst && !it->isStatic) {
+					Output.append(it->name + " = castCom->" + it->name + ";\\\n");
 				}
 			}
 			Output.append("}\\\n");
@@ -2264,7 +2332,7 @@ void createMacros(const std::vector<MClass> &Cls, const std::vector<MEnum> &Enms
 
 			// predefined functions (base, lua cast)
 			if ((isIStream || isOStream || isResource || isComponent) && !isAbstract) {
-				Output.append(".addProperty(\"type\", &" + Cls[i].name + "::getType)\\\n");
+				Output.append(".addStaticFunction(\"type\", &" + Cls[i].name + "::getType)\\\n");
 				Output.append(".addProperty(\"typeName\", &" + Cls[i].name + "::getTypeName)\\\n");
 				Output.append(".addProperty(\"base\", &" + Cls[i].name + "::getBase)\\\n");
 				Output.append(".addStaticFunction(\"to" + shortName + "\", &" + Cls[i].name + "::to" + shortName + ")\\\n");
@@ -2490,6 +2558,7 @@ void createEnumTypesHead(std::string &Output, const std::vector<MClass> &Cls) {
 	
 	std::vector<std::string> comlist; // components
 	std::vector<std::string> reslist; // resources
+	std::vector<std::string> interfacelist;
 	std::vector<std::string> istreamlist;
 	std::vector<std::string> ostreamlist;
 	for (size_t i = 0; i < Cls.size(); i++) {
@@ -2528,6 +2597,15 @@ void createEnumTypesHead(std::string &Output, const std::vector<MClass> &Cls) {
 			}
 			continue;
 		}
+
+		if (Cls[i].type & CT_INTERFACE) {
+			for (size_t count = 0; count < Cls[i].infos.size(); ++count) {
+				if (Cls[i].infos[count].key == "KI_NAME") {
+					interfacelist.push_back(Cls[i].infos[count].info);
+				}
+			}
+			continue;
+		}
 	}
 
 	if (!comlist.empty()) {
@@ -2535,6 +2613,9 @@ void createEnumTypesHead(std::string &Output, const std::vector<MClass> &Cls) {
 	}
 	if (!reslist.empty()) {
 		defEnum(Output, reslist, RES_ENUM_NAME);
+	}
+	if (!interfacelist.empty()) {
+		defEnum(Output, interfacelist, INT_ENUM_NAME);
 	}
 	if (!istreamlist.empty()) {
 		defEnum(Output, istreamlist, ISTREAM_ENUM_NAME);
@@ -2559,6 +2640,7 @@ void createEnumTypesSource(std::string &Output, const std::vector<MClass> &Cls) 
 	// create component list
 	std::vector<std::pair<std::string, std::string>> comlist;
 	std::vector<std::pair<std::string, std::string>> reslist;
+	std::vector<std::pair<std::string, std::string>> interfacelist;
 	std::vector<std::pair<std::string, std::string>> istreamlist;
 	std::vector<std::pair<std::string, std::string>> ostreamlist;
 	for (size_t i = 0; i < Cls.size(); i++) {
@@ -2575,6 +2657,15 @@ void createEnumTypesSource(std::string &Output, const std::vector<MClass> &Cls) 
 			for (size_t count = 0; count < Cls[i].infos.size(); ++count) {
 				if (Cls[i].infos[count].key == "KI_NAME") {
 					reslist.push_back({ Cls[i].name ,Cls[i].infos[count].info });
+				}
+			}
+			continue;
+		}
+
+		if (Cls[i].type & CT_INTERFACE) {
+			for (size_t count = 0; count < Cls[i].infos.size(); ++count) {
+				if (Cls[i].infos[count].key == "KI_NAME") {
+					interfacelist.push_back({ Cls[i].name ,Cls[i].infos[count].info });
 				}
 			}
 			continue;
@@ -2605,6 +2696,10 @@ void createEnumTypesSource(std::string &Output, const std::vector<MClass> &Cls) 
 
 	if (!reslist.empty()) {
 		implEnum(Output, reslist, RES_ENUM_NAME);
+	}
+
+	if (!interfacelist.empty()) {
+		implEnum(Output, interfacelist, INT_ENUM_NAME);
 	}
 
 	if (!istreamlist.empty()) {
@@ -2724,7 +2819,7 @@ void createSource(const std::vector<std::string> &Files, const std::vector<MClas
 	Output.append("void registerCTypes(KNode *Root){\n");
 
 	for (auto it = comList.begin(); it != comList.end(); ++it){
-		Output.append("Root->registerComponent<" + it->first + ">(" + COM_ENUM_NAME + "::" + it->second + ");\n");
+		Output.append("Root->registerComponent<" + it->first + ">();\n");
 	}
 
 	// end of ctypes

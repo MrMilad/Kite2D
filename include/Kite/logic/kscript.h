@@ -21,7 +21,7 @@ USA
 #define KSCRIPT_H
 
 #include "Kite/core/kcoredef.h"
-#include "Kite/core/kresource.h"
+#include "Kite/ecs/kresource.h"
 #include "Kite/meta/kmetadef.h"
 #include <string>
 #include "kscript.khgen.h"
@@ -34,8 +34,6 @@ namespace Kite {
 		KMETA_KSCRIPT_BODY();
 	public:
 		KScript(const std::string &Name);
-
-		bool inite() override;
 
 		inline void setCode(const std::string &Code) { _kcode = Code;}
 

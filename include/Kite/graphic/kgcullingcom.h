@@ -86,7 +86,7 @@ namespace Kite {
 			inline const KHandle &getInterfaceHandle() const { return _kihandle; }
 
 	private:
-		KM_VAR() KHandle _kihandle; // order of deserialization components is random so we must save this value
+		KM_VAR() KHandle _kihandle; 
 		// runtime variables
 		static void(*_kswitchCallb)(KNode *, KGCullingCom *); // static/dynamic switch callback
 		static void *_ksysptr; // opaque pointer

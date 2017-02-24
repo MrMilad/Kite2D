@@ -42,10 +42,10 @@ source_group("Source Files\\ECS" FILES ${ECS_SRC})
 LIST(APPEND ALL_FILES ${ECS_SRC} ${ECS_INC})
 
 # graphic
-add_subdirectory(Kite/graphic)
-source_group("Header Files\\Graphic" FILES ${GFX_INC})
-source_group("Source Files\\Graphic" FILES ${GFX_SRC})
-LIST(APPEND ALL_FILES ${GFX_SRC} ${GFX_INC})
+# add_subdirectory(Kite/graphic)
+# source_group("Header Files\\Graphic" FILES ${GFX_INC})
+# source_group("Source Files\\Graphic" FILES ${GFX_SRC})
+# LIST(APPEND ALL_FILES ${GFX_SRC} ${GFX_INC})
 
 # serialization
 add_subdirectory(Kite/serialization)
@@ -91,10 +91,10 @@ source_group("Source Files\\Memory" FILES ${MEM_SRC})
 LIST(APPEND ALL_FILES ${MEM_SRC} ${MEM_INC})
 
 # engine
-add_subdirectory(Kite/engine)
-source_group("Header Files\\Engine" FILES ${ENG_INC})
-source_group("Source Files\\Engine" FILES ${ENG_SRC})
-LIST(APPEND ALL_FILES ${ENG_SRC} ${ENG_INC})
+# add_subdirectory(Kite/engine)
+# source_group("Header Files\\Engine" FILES ${ENG_INC})
+# source_group("Source Files\\Engine" FILES ${ENG_SRC})
+# LIST(APPEND ALL_FILES ${ENG_SRC} ${ENG_INC})
 
 # add kite2D vc project
 if (BUILD_SHARED_LIBS)

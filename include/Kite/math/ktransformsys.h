@@ -21,7 +21,7 @@ USA
 #define KTRANSFORMSYS_H
 
 #include "Kite/core/kcoredef.h"
-#include "Kite/core/ksystem.h"
+#include "Kite/ecs/ksystem.h"
 #include "Kite/math/kmathdef.h"
 #include "Kite/math/kmathstructs.h"
 #include "ktransformsys.khgen.h"
@@ -33,9 +33,9 @@ namespace Kite {
 	class KITE_FUNC_EXPORT KTransformSys: public KSystem {
 		KMETA_KTRANSFORMSYS_BODY();
 	public:
-		bool update(F64 Delta, KEntityManager *EManager, KResourceManager *RManager) override;
+		bool update(F64 Delta, KNode *Scene) override;
 
-		bool inite(void *Data) override;
+		bool inite(KSysInite *IniteData) override;
 
 		void destroy() override;
 	};

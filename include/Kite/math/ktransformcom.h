@@ -36,11 +36,11 @@ namespace Kite{
 		KMETA_KTRANSFORMCOM_BODY();
     public:
 		/// construct a transform (unit matrix)
-		KTransformCom(const std::string &Name = "");
+		KTransformCom(KNode *OwnerNode, const std::string &Name);
 
-		void attached(KEntity *Entity) override;
+		void attached() override;
 
-		void deattached(KEntity *Entity) override;
+		void deattached() override;
 
 		RecieveTypes onMessage(KMessage *Message, MessageScope Scope) override;
 

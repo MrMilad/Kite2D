@@ -21,11 +21,10 @@ USA
 #define KLINEARSTORAGE_H
 
 #include "Kite/core/kcoredef.h"
-#include "kite/core/knoncopyable.h"
 #include "Kite/memory/kbasestorage.h"
 
 namespace Kite {
-	class KITE_FUNC_EXPORT KLinearStorage : public KBaseStorage, KNonCopyable {
+	class KITE_FUNC_EXPORT KLinearStorage : public KBaseStorage {
 	public:
 		KLinearStorage(SIZE Size, void *Start);
 		~KLinearStorage();

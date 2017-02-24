@@ -42,9 +42,7 @@ namespace Kite {
 
 	KEngine::KEngine() :
 		 _klstate(nullptr), _kwindow(nullptr),
-		_kmman(nullptr), _ksman(nullptr),
-		_krman(nullptr), _keman(nullptr),
-		_kinite (false) 
+		_kmman(nullptr), _krman(nullptr), _kinite (false) 
 	{
 #if defined(KITE_EDITOR) && defined (KITE_DEV_DEBUG)
 		exitFlag = false;
@@ -80,14 +78,12 @@ namespace Kite {
 		lprint["print"] = luaCustomPrint;
 #endif
 
-		// inite Kite2D ResourceManager, SceneManager, MetaManager
+		// inite Kite2D ResourceManager, MetaManager
 		if (IniteMeta) {
 			_kmman = new KMetaManager();
 		}
 
 		_krman = new KResourceManager();
-		_ksman = new KSceneManager(*_krman);
-		KComponent::_krman = _krman;
 		registerKiteMeta(_kmman, _klstate); // _kmman can be passed as nullptr
 
 		// create systems
@@ -125,7 +121,7 @@ namespace Kite {
 		KMouse::initeMouse();
 
 		// load dictionary
-		if (!_kconfig.dictionary.empty()) {
+		if (!_kconfig.ecs.dictionary.empty()) {
 			KFIStream stream;
 			if (!_krman->loadDictionary(stream, _kconfig.dictionary)) {
 				return false;
@@ -133,7 +129,7 @@ namespace Kite {
 		}
 
 		// load and set startUp scene
-		if (!_kconfig.startUpScene.empty()) {
+		if (!_kconfig.ecs.startupNode.empty()) {
 			if (!_ksman->loadScene(_kconfig.startUpScene)) {
 				KD_FPRINT("can't load startrUp scene. sname: %s", _kconfig.startUpScene.c_str());
 				return false;

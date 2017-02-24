@@ -46,7 +46,6 @@ namespace Kite{
 
 	KM_CLASS(SCRIPTABLE)
 	class KITE_FUNC_EXPORT KResourceManager : public KMessenger{
-		friend void registerRTypes(KResourceManager *);
 		KMETA_KRESOURCEMANAGER_BODY();
 	public:
 		KResourceManager();
@@ -95,10 +94,11 @@ namespace Kite{
 		KM_FUN()
 		void clear();
 
-	private:
-		void initeFactory();
 		void registerIStream(IStreamTypes SType, KIStream *(*Func)());
 		void registerResource(RTypes RType, KResource *(*Func)(const std::string &, const std::string &));
+
+	private:
+		void initeFactory();
 
 		struct Info {
 			std::string address;
@@ -159,7 +159,7 @@ namespace Kite{
 		};
 
 		dynamic *_kdata;
-		ED_STATIC memory::memory_pool<> _kpool; // data pool
+		ED_STATIC static memory::memory_pool<> _kpool; // data pool
 
 		/// lua side 
 		KM_PRO_GET(KP_NAME = "resource", KP_TYPE = KResource, KP_CM = "raw resource pointer")

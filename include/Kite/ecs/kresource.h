@@ -38,8 +38,10 @@ namespace Kite{
 	KM_CLASS(RESOURCE, ABSTRACT)
 	class KITE_FUNC_EXPORT KResource{
 		friend class KResourceManager;
-	KMETA_KRESOURCE_BODY();
+		KM_INFO(KI_NAME = "ResourceBase");
+		KRESOURCE_BODY();
 	public:
+		/// all drived resources can constructed inside an SharedResource in lua
 		KResource(const std::string &Name, const std::string &Address);
 
 		KResource() = delete;
@@ -52,8 +54,8 @@ namespace Kite{
 		virtual bool saveStream(KOStream &Stream, const std::string &Address) = 0;
 
 		/// will be implemented by KHParser
-		KM_PRO_GET(KP_NAME = "drivedType", KP_TYPE = RTypes)
-		virtual inline RTypes getDrivedType() const = 0;
+		KM_PRO_GET(KP_NAME = "drivedType", KP_TYPE = rtypes)
+		virtual inline Resource getDrivedType() const = 0;
 
 		/// will be implemented by KHParser
 		KM_PRO_GET(KP_NAME = "typeName", KP_TYPE = std::string)
@@ -61,10 +63,10 @@ namespace Kite{
 
 		/// will be implemented by KHParser
 		/// usage: access base in lua
-		virtual KResource *getBase() const = 0;
+		//virtual KResource *getBase() const = 0;
 
-		KM_PRO_GET(KP_NAME = "name", KP_TYPE = std::string)
-		inline const std::string &getName() const { return _kname; }
+		KM_PRO_GET(KP_NAME = "resourceName", KP_TYPE = std::string)
+		inline const std::string &getResourceName() const { return _kname; }
 
 		KM_PRO_GET(KP_NAME = "address", KP_TYPE = std::string)
 		inline const std::string &getAddress() const { return _kaddress; }

@@ -24,7 +24,7 @@
 
 #include "Kite/core/kcoredef.h"
 #include "Kite/math/kmathstructs.h"
-#include "Kite/core/kresource.h"
+#include "Kite/ecs/kresource.h"
 #include "Kite/meta/kmetadef.h"
 #include "Kite/graphic/kgraphicstructs.h"
 #include <string>
@@ -46,7 +46,7 @@ namespace Kite{
     class KITE_FUNC_EXPORT KImage : public KResource{
 		KM_INFO(KI_NAME = "Image");
 
-		KMETA_KIMAGE_BODY();
+		KIMAGE_BODY();
     public:
 		//! Constructs an empty image object.
 		KM_CON(std::string)

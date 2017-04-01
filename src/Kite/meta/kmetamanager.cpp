@@ -18,8 +18,13 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 USA
 */
 #include "Kite/meta/kmetamanager.h"
+#include "kmeta.khgen.h"
 
 namespace Kite {
+	KMetaManager::KMetaManager() {
+		REGISTER_META();
+	}
+
 	const KMetaBase *KMetaManager::getMeta(const std::string &Type) {
 		auto found = _kmetamap.find(Type);
 		if (found != _kmetamap.end()) {
@@ -29,15 +34,14 @@ namespace Kite {
 		return nullptr;
 	}
 
-	bool KMetaManager::setMeta(const KMetaBase *Meta) {
+	void KMetaManager::setMeta(const KMetaBase *Meta) {
 		auto found = _kmetamap.find(Meta->getName());
 		if (found != _kmetamap.end()) {
-			// registered!
-			return false;
+			KD_FPRINT("duplicate in meta manager detected. name: %s", Meta->getName().c_str());
+			return;
 		}
 
 		_kmetamap.insert({ Meta->getName(), Meta });
-		return true;
 	}
 
 	void KMetaManager::dump(std::vector<const KMetaBase *> &DumpList) {

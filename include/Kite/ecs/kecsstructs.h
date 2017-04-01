@@ -30,41 +30,24 @@
 
 KMETA
 namespace Kite{
-	class KGLWindow;
-	struct KSysInite {
-		lua_State *_klstate;
-		KGLWindow *_kwindow;
-		KMetaManager *_kmman;
-
-		KSysInite() :
-			_klstate(nullptr), _kwindow(nullptr), _kmman(nullptr) {}
-
-	};
-
-	KM_CLASS(POD)
-	struct KECSState {
-		KM_VAR() std::string startupNode;
-		KM_VAR() std::string dictionary;
-	};
-
-	KM_CLASS(POD)
+	/*KM_CLASS(POD)
 	struct KHandle {
-		KMETA_KHANDLE_BODY();
+		KHANDLE_BODY();
 
 	private:
-		KM_VAR() CTypes type;
+		KM_VAR() ctypes type;
 
 	public:
 		KM_VAR() U16 signature; // 0 reserved for invalid handles
 		KM_VAR() U32 index;		// 0 reserved for invalid handles
 
 		// use this constructure for components
-		KHandle(CTypes Type) :
+		KHandle(ctypes Type) :
 			signature(0), index(0), type(Type) {}
 
 		// use this constructure for entities
 		KHandle() :
-			signature(0), index(0), type(CTypes::maxSize){} 
+			signature(0), index(0), type(ctypes::maxSize){} 
 
 		inline bool operator==(const KHandle& right) const {
 			return (signature == right.signature) &&
@@ -76,39 +59,27 @@ namespace Kite{
 			return !((*this) == right);
 		}
 
-		KM_PRO_GET(KP_NAME = "componentType", KP_TYPE = CTypes, KP_CM = "type of the handled component")
-		inline CTypes getCType() const { return type; }
+		KM_PRO_GET(KP_NAME = "componentType", KP_TYPE = ctypes, KP_CM = "type of the handled component")
+		inline ctypes getCType() const { return type; }
 
 	private:
 		KM_OPE(KO_EQ)
 		bool luaEq(const KHandle& right) const {
 			return ((index == right.index) && (type == right.type));
 		}
-	};
-
-	KM_CLASS(POD)
-	struct KTarckItem {
-		KMETA_KTARCKITEM_BODY();
-
-		KM_VAR() std::string name;
-		KM_VAR() U32 loadCount;
-		KM_VAR() U32 unloadCount;
-		KM_VAR() U32 getCount;
-
-		KTarckItem():
-		loadCount(0), unloadCount(0), getCount(0){}
-	};
+	};*/
 
 	KM_CLASS(POD)
 	struct KResourceInfo {
-		KMETA_KRESOURCEINFO_BODY();
+		KM_INFO(KI_NAME = "ResourceInfo");
+		KRESOURCEINFO_BODY();
 
 		KM_VAR() std::string name;
 		KM_VAR() std::string address;
-		KM_VAR() RTypes rtype;
-		KM_VAR() IStreamTypes stype;
+		KM_VAR() Resource rtype;
+		KM_VAR() InStream stype;
 
-		KResourceInfo(const std::string &Name, const std::string &Address, RTypes RType, IStreamTypes SType) :
+		KResourceInfo(const std::string &Name, const std::string &Address, Resource RType, InStream SType) :
 			name(Name), address(Address), rtype(RType), stype(SType) {}
 	};
 }

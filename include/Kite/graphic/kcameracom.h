@@ -22,7 +22,7 @@
 
 #include "Kite/core/kcoredef.h"
 #include "Kite/meta/kmetadef.h"
-#include "Kite/core/kcomponent.h"
+#include "Kite/ecs/kcomponent.h"
 #include "Kite/math/kmathstructs.h"
 #include "Kite/math/ktransform.h"
 #include "Kite/graphic/kgraphicstructs.h"
@@ -41,17 +41,8 @@ namespace Kite{
 		friend class KRenderSys;
 		friend class KGCullingSys;
 		KM_INFO(KI_NAME = "Camera");
-		KMETA_KCAMERACOM_BODY();
+		KCAMERACOM_BODY();
     public:
-        KCameraCom(const std::string &Name = "");
-
-		void attached(KEntity *Entity) override;
-
-		void deattached(KEntity *Entity) override;
-
-		RecieveTypes onMessage(KMessage *Message, MessageScope Scope) override;
-
-		bool updateRes() override;
 
 		/// default: 0.0, 0.0
 		KM_PRO_SET(KP_NAME = "viewSize")
@@ -131,10 +122,10 @@ namespace Kite{
 		inline const KColor &getClearColor() const { return _kclearCol; }
 
 		KM_PRO_SET(KP_NAME = "renderTexture")
-		void setRenderTexture(const KStringID &Texture);
+		inline void setRenderTexture(const KSharedResource &Texture) { _krtexture = Texture; }
 
-		KM_PRO_GET(KP_NAME = "renderTexture", KP_TYPE = KStringID, KP_CM = "render to texture", KP_RES = RTypes::TextureGroup)
-		inline const KStringID &getRenderTexture() const { return _krtextureName; }
+		KM_PRO_GET(KP_NAME = "renderTexture", KP_CM = "render texture", KP_RES = Resource::TEXTUREGROUP)
+		inline KSharedResource getRenderTexture() const { return _krtexture; }
 
 		KM_PRO_SET(KP_NAME = "textureIndex")
 		inline void setRenderTextureIndex(U32 Index) { _krtextureIndex = Index; }
@@ -194,6 +185,12 @@ namespace Kite{
 		void computeMatrixes();
 
     private:
+		void inite() override;
+
+		void attached() override;
+
+		void deattached() override;
+
 		void computeMatrix(KMatrix3 &Mat, const KParallaxRatio &Rat);
 		KM_VAR() bool _kclearView;
 		KM_VAR() bool _kflipy;
@@ -210,12 +207,11 @@ namespace Kite{
 		KM_VAR() KVector2F32 _kmoveDelta;
 		KM_VAR() KVector2I32 _kposition;
 		KM_VAR() KColor _kclearCol;
-		KM_VAR() KStringID _krtextureName;
+		KM_VAR() KSharedResource _krtexture;
 		KM_VAR() KMatrix3 _kdefMat;
 		KM_VAR() std::vector<std::pair<KMatrix3, KParallaxRatio>> _kmatList;
 		KM_VAR() std::bitset<KENTITY_LAYER_SIZE> _klayers;
 
-		KAtlasTextureArray *_krtexture;
 		bool _kcompute;
     };
 }

@@ -42,10 +42,10 @@ source_group("Source Files\\ECS" FILES ${ECS_SRC})
 LIST(APPEND ALL_FILES ${ECS_SRC} ${ECS_INC})
 
 # graphic
-# add_subdirectory(Kite/graphic)
-# source_group("Header Files\\Graphic" FILES ${GFX_INC})
-# source_group("Source Files\\Graphic" FILES ${GFX_SRC})
-# LIST(APPEND ALL_FILES ${GFX_SRC} ${GFX_INC})
+add_subdirectory(Kite/graphic)
+source_group("Header Files\\Graphic" FILES ${GFX_INC})
+source_group("Source Files\\Graphic" FILES ${GFX_SRC})
+LIST(APPEND ALL_FILES ${GFX_SRC} ${GFX_INC})
 
 # serialization
 add_subdirectory(Kite/serialization)
@@ -67,16 +67,16 @@ source_group("Source Files\\Window" FILES ${WIN_SRC})
 LIST(APPEND ALL_FILES ${WIN_SRC} ${WIN_INC})
 
 # input
-# add_subdirectory(Kite/input)
-# source_group("Header Files\\Input" FILES ${INP_INC})
-# source_group("Source Files\\Input" FILES ${INP_SRC})
-# LIST(APPEND ALL_FILES ${INP_SRC} ${INP_INC})
+add_subdirectory(Kite/input)
+source_group("Header Files\\Input" FILES ${INP_INC})
+source_group("Source Files\\Input" FILES ${INP_SRC})
+LIST(APPEND ALL_FILES ${INP_SRC} ${INP_INC})
 
 # logic
-# add_subdirectory(Kite/logic)
-# source_group("Header Files\\Logic" FILES ${LOG_INC})
-# source_group("Source Files\\Logic" FILES ${LOG_SRC})
-# LIST(APPEND ALL_FILES ${LOG_SRC} ${LOG_INC})
+add_subdirectory(Kite/logic)
+source_group("Header Files\\Logic" FILES ${LOG_INC})
+source_group("Source Files\\Logic" FILES ${LOG_SRC})
+LIST(APPEND ALL_FILES ${LOG_SRC} ${LOG_INC})
 
 # audio
 #add_subdirectory(Kite/audio)
@@ -91,10 +91,10 @@ source_group("Source Files\\Memory" FILES ${MEM_SRC})
 LIST(APPEND ALL_FILES ${MEM_SRC} ${MEM_INC})
 
 # engine
-# add_subdirectory(Kite/engine)
-# source_group("Header Files\\Engine" FILES ${ENG_INC})
-# source_group("Source Files\\Engine" FILES ${ENG_SRC})
-# LIST(APPEND ALL_FILES ${ENG_SRC} ${ENG_INC})
+ add_subdirectory(Kite/engine)
+ source_group("Header Files\\Engine" FILES ${ENG_INC})
+ source_group("Source Files\\Engine" FILES ${ENG_SRC})
+ LIST(APPEND ALL_FILES ${ENG_SRC} ${ENG_INC})
 
 # add kite2D vc project
 if (BUILD_SHARED_LIBS)
@@ -105,7 +105,14 @@ endif()
 
 # add external lib
 if (WINDOWS)
-     target_link_libraries (Kite2D "lua.lib")
+     if (BUILD_CPP_POC_LUA)
+     	target_link_libraries (Kite2D  $<$<CONFIG:Release>:liblua.lib>)
+     	target_link_libraries (Kite2D  $<$<CONFIG:Debug>:debug/liblua>)
+     else()
+     	target_link_libraries (Kite2D  $<$<CONFIG:Release>:libluajit.lib>)
+     	target_link_libraries (Kite2D  $<$<CONFIG:Debug>:debug/libluajit>)
+     endif()
+
      target_link_libraries (Kite2D "sdl2.lib")
      target_link_libraries (Kite2D "opengl32.lib")
      target_link_libraries (Kite2D  $<$<CONFIG:Release>:foonathan_memory.lib>)
@@ -134,7 +141,21 @@ add_custom_target(KHParserRun
 add_dependencies(Kite2D KHParserRun)
 
 # copy dll to test directory
-if (WINDOWS AND BUILD_SHARED_LIBS)       
+if (WINDOWS AND BUILD_SHARED_LIBS)      
+
+	# create directory for test project
+	file(MAKE_DIRECTORY ${PROJECT_BINARY_DIR}/src/Debug) 
+# copy Lua.dll
+if(BUILD_CPP_POC_LUA)
+        ADD_CUSTOM_COMMAND (TARGET Kite2D POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy ${PROJECT_SOURCE_DIR}/extlibs/bin/win32/liblua.dll ${PROJECT_BINARY_DIR}/src/Debug
+    COMMENT "Copying lua.dll binaries" VERBATIM)
+else()
+    ADD_CUSTOM_COMMAND (TARGET Kite2D POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy ${PROJECT_SOURCE_DIR}/extlibs/bin/win32/libluajit.dll ${PROJECT_BINARY_DIR}/src/Debug
+    COMMENT "Copying luajit.dll binaries" VERBATIM)
+endif()
+
     ADD_CUSTOM_COMMAND (TARGET Kite2D POST_BUILD
 
     # copy debug version of kite2D dll
@@ -142,9 +163,6 @@ if (WINDOWS AND BUILD_SHARED_LIBS)
 
     # copy debug version PDB of kite2D dll
     COMMAND ${CMAKE_COMMAND} -E copy ${LIBRARY_OUTPUT_PATH}/debug/Kite2Dd.pdb ${PROJECT_BINARY_DIR}/src/Debug
-
-    # copy Lua.dll
-    COMMAND ${CMAKE_COMMAND} -E copy ${PROJECT_SOURCE_DIR}/extlibs/bin/win32/lua.dll ${PROJECT_BINARY_DIR}/src/Debug
 
     # copy sdl2.dll
     COMMAND ${CMAKE_COMMAND} -E copy ${PROJECT_SOURCE_DIR}/extlibs/bin/win32/sdl2.dll ${PROJECT_BINARY_DIR}/src/Debug
@@ -155,7 +173,6 @@ if (WINDOWS AND BUILD_SHARED_LIBS)
     # Output Message
     COMMENT "Copying Kite2D binaries" VERBATIM)            
 endif()
-
 # build test project
 add_executable(Test ${PROJECT_SOURCE_DIR}/src/Test/main.cpp)
 
@@ -163,9 +180,13 @@ add_executable(Test ${PROJECT_SOURCE_DIR}/src/Test/main.cpp)
 
 # add Kite2D lib
 if (WINDOWS)
-    #TARGET_LINK_LIBRARIES(Test "${PROJECT_BINARY_DIR}/lib/debug/Kite2Dd.lib")
-     target_link_libraries (Test "${PROJECT_BINARY_DIR}/lib/debug/Kite2Dd.lib")
-     target_link_libraries (Test "lua.lib")
-     target_link_libraries (Test "sdl2.lib")
+    #TARGET_LINK_LIBRARIES(Test  "${PROJECT_BINARY_DIR}/lib/debug/Kite2Dd.lib")
+     target_link_libraries (Test  "${PROJECT_BINARY_DIR}/lib/debug/Kite2Dd.lib")
+if(BUILD_CPP_POC_LUA)
+     target_link_libraries (Test  $<$<CONFIG:Debug>:debug/liblua>)
+else()
+     target_link_libraries (Test  $<$<CONFIG:Debug>:debug/libluajit>)
+endif()
+     target_link_libraries (Test  "sdl2.lib")
      target_link_libraries (Test  $<$<CONFIG:Debug>:debug/foonathan_memory>)
 endif()

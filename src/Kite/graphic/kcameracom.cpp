@@ -31,48 +31,25 @@
 #include <cmath>
 
 namespace Kite{
-	KCameraCom::KCameraCom(const std::string &Name) :
-		KComponent(Name),
-		_kdepth(0),
-		_kclearView(true),
-		_kparaReset(true),
-		_kflipx(false),
-		_kflipy(false),
-		_krtextureIndex(0),
-		_kcenter(0.0f, 0.0f),
-		_kmoveDelta(0.0f, 0.0f),
-		_kposition(0, 0),
-		_krotation(0.0f),
-		_krotateDelta(0),
-		_kzoomFactor(1.0f),
-		_kzoomDelta(0),
-		_klayers("01"),
-		_kcompute(true),
-		_krtexture(nullptr)
-    {}
-
-	void KCameraCom::attached(KEntity *Entity) {}
-
-	void KCameraCom::deattached(KEntity *Entity) {}
-
-	RecieveTypes KCameraCom::onMessage(KMessage *Message, MessageScope Scope) {
-		return RecieveTypes::IGNORED;
+	void KCameraCom::inite() {
+		_kdepth = 0;
+		_kclearView = true;
+		_kparaReset = true;
+		_kflipx = false;
+		_kflipy = false;
+		_krtextureIndex = 0;
+		_krotation = 0.0f;
+		_krotateDelta = 0;
+		_kzoomFactor = 1.0f;
+		_kzoomDelta = 0;
+		_klayers = std::bitset<32>("01");
+		_kcompute = true;
+		_krtexture.clear();
 	}
 
-	bool KCameraCom::updateRes() {
-		if (!getResNeedUpdate()) {
-			return true;
-		}
+	void KCameraCom::attached() {}
 
-		// load resources
-		if (getRMan()) {
-			_krtexture = (KAtlasTextureArray *)getRMan()->get(_krtextureName.str);
-			resUpdated();
-			return true;
-		}
-
-		return false;
-	}
+	void KCameraCom::deattached() {}
 
 	void KCameraCom::setSize(const KVector2U32 &Size) {
 		if (Size != _ksize) {
@@ -185,13 +162,6 @@ namespace Kite{
 	KBitset KCameraCom::getLayerMask() const {
 		KBitset mask(KENTITY_LAYER_SIZE, _klayers.to_string());
 		return mask;
-	}
-
-	void KCameraCom::setRenderTexture(const KStringID &Texture) {
-		if (_krtextureName.hash != Texture.hash) {
-			_krtextureName = Texture;
-			resNeedUpdate();
-		}
 	}
 
 	KRectF32 KCameraCom::getViewRect(I32 ParallaxIndex) const {
@@ -352,7 +322,7 @@ namespace Kite{
 
 	}
 
-	KMETA_KCAMERACOM_SOURCE();
+	KCAMERACOM_SOURCE();
 	/*void KCameraCom::setViewport(const KRectI32 &Viewport){
 		_kcenter.x = (Viewport.left + Viewport.right) / 2.0f;
 		_kcenter.y = (Viewport.top + Viewport.bottom) / 2.0f;

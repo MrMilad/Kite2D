@@ -103,7 +103,8 @@ namespace Kite{
 
 	KM_CLASS(POD)
 	struct KITE_FUNC_EXPORT KStringID  {
-		KMETA_KSTRINGID_BODY();
+		KM_INFO(KI_NAME = "StringID");
+		KSTRINGID_BODY();
 
 		KM_VAR() std::string str;
 		KM_VAR() U32 hash;
@@ -118,11 +119,12 @@ namespace Kite{
 	};
 
 	/// dynamic version of std::bitset with lua binding
-	/// this class can only read/write from/to an already exist std::bitset 
-	/// and can't create a new std::bitset
 	KM_CLASS(POD)
 	struct KITE_FUNC_EXPORT KBitset {
-		KMETA_KBITSET_BODY();
+		KM_INFO(KI_NAME = "Bitset");
+		KBITSET_BODY();
+
+		KBitset(U32 Size, bool Value);
 
 		KM_CON(U32, std::string)
 		KBitset(U32 Size, const std::string &Value);
@@ -130,19 +132,19 @@ namespace Kite{
 		KM_FUN()
 		bool test(U32 Pos) const;
 
-		KM_FUN()
+		KM_PRO_GET(KP_NAME = "all", KP_TYPE = bool)
 		inline bool all() const { return _kall; }
 
-		KM_FUN()
+		KM_PRO_GET(KP_NAME = "any", KP_TYPE = bool)
 		inline bool any() const { return _kany; }
 
-		KM_FUN()
+		KM_PRO_GET(KP_NAME = "none", KP_TYPE = bool)
 		inline bool none() const { return _knone; }
 
-		KM_FUN()
+		KM_PRO_GET(KP_NAME = "count", KP_TYPE = bool)
 		inline U32 count() const { return _kcount; }
 
-		KM_FUN()
+		KM_PRO_GET(KP_NAME = "size", KP_TYPE = bool)
 		inline U32 size() const { return _kvalue.size(); }
 
 		KM_FUN()

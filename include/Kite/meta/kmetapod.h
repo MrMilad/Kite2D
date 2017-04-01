@@ -37,10 +37,6 @@ namespace Kite {
 	private:
 		Primitive _ktype;
 	};
-
-	namespace Internal {
-		KITE_FUNC_EXPORT extern void registerMetaPOD(KMetaManager *MMan = nullptr);
-	}
 }
 
 #endif // KMETAPOD_H

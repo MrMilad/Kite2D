@@ -24,39 +24,4 @@ namespace Kite {
 	KMetaPOD::KMetaPOD(const std::string &Name, U32 Flag, U32 Size, Primitive PODType) :
 		KMetaBase(Name, Flag, Size, KMT_POD), _ktype(PODType)
 	{}
-
-	namespace Internal {
-		void registerMetaPOD(KMetaManager *MMan) {
-			const static KMetaPOD instances[] =
-			{
-				KMetaPOD("I8", 0, (U32)sizeof(I8), Primitive::I8),
-				KMetaPOD("I16", 0, (U32)sizeof(I16), Primitive::I16),
-				KMetaPOD("I32", 0, (U32)sizeof(I32), Primitive::I32),
-				KMetaPOD("I64", 0, (U32)sizeof(I64), Primitive::I64),
-				KMetaPOD("U8", 0, (U32)sizeof(U8), Primitive::U8),
-				KMetaPOD("U16", 0, (U32)sizeof(U16), Primitive::U16),
-				KMetaPOD("U32", 0, (U32)sizeof(U32), Primitive::U32),
-				KMetaPOD("U64", 0, (U32)sizeof(U64), Primitive::U64),
-				KMetaPOD("F32", 0, (U32)sizeof(F32), Primitive::F32),
-				KMetaPOD("F64", 0, (U32)sizeof(F64), Primitive::F64),
-				KMetaPOD("bool", 0, (U32)sizeof(bool), Primitive::BOOL),
-				KMetaPOD("std::string", 0, 0, Primitive::STR) // std::string
-			};
-
-			if (MMan != nullptr) {
-				MMan->setMeta(&instances[0]);
-				MMan->setMeta(&instances[1]);
-				MMan->setMeta(&instances[2]);
-				MMan->setMeta(&instances[3]);
-				MMan->setMeta(&instances[4]);
-				MMan->setMeta(&instances[5]);
-				MMan->setMeta(&instances[6]);
-				MMan->setMeta(&instances[7]);
-				MMan->setMeta(&instances[8]);
-				MMan->setMeta(&instances[9]);
-				MMan->setMeta(&instances[10]);
-				MMan->setMeta(&instances[11]);
-			}
-		}
-	}
 }

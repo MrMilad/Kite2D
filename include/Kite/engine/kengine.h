@@ -22,93 +22,72 @@ USA
 
 #include "Kite/core/kcore.h"
 #include "Kite/ecs/kecs.h"
-#include "Kite/graphic/kgraphic.h"
 #include "Kite/window/kwindow.h"
-#include "Kite/input/kinput.h"
-#include "Kite/logic/klogic.h"
-#include "Kite/math/kmath.h"
-#include "Kite/meta/kmetadef.h"
-#include "Kite/serialization/kserialization.h"
 #include <vector>
-#include <memory>
-#include <unordered_map>
-#include "kengine.khgen.h"
-
-#if defined(KITE_EDITOR) && defined (KITE_DEV_DEBUG) // editor hooks	
-	#include <condition_variable>
-	#include <mutex>
-	#include <atomic>
-	#include <thread>
-#endif
 
 KMETA
 namespace Kite {
-	KM_CLASS(POD)
-	struct KConfig {
-		KMETA_KCONFIG_BODY();
-
-		KM_VAR() KWindowState window;
-		KM_VAR() KRenderState render;
-		KM_VAR() KECSState ecs;
+	struct KStartState {
+		std::string startupNode;
+		std::string dictionary;
 	};
 
-	KM_CLASS(SCRIPTABLE)
+	struct KConfig {
+		KWindowState window;
+		KStartState start;
+	};
+
+	struct KSysInite {
+		lua_State *lstate;
+		KGLWindow *window;
+
+		KSysInite() :
+			lstate(nullptr),
+			window(nullptr)
+		{}
+	};
+
 	class KITE_FUNC_EXPORT KEngine {
-		KMETA_KENGINE_BODY();
 	public:
-		KEngine(const KNode &CopyNode) = delete;
+		// will show window but will not update it
+		KEngine(const KConfig &Config);
+		KEngine() = delete;
+		KEngine(const KEngine &Copy) = delete;
 		KEngine &operator=(const KEngine &Right) = delete;
 		~KEngine();
-
-		KM_FUN()
-		static KEngine *createEngine();
-
-		// will show window but will not update it
-		bool inite(const KConfig *Config, bool IniteMeta);
 
 		// update window and systems
 		void start();
 
-		void shutdown();
+		inline auto getWindow() const { return _kwindow; }
 
-		KM_FUN()
-		inline auto getWindow() { return _kwindow; }
+		inline auto getResourceManager() const { return _krman; }
 
-		KM_FUN()
-		inline auto getMetaManager() { return _kmman; }
-
-		KM_FUN()
-		inline auto getResourceManager() { return _krman; }
-
-		KM_FUN()
 		inline const auto getConfig() const { return &_kconfig; }
 
-		inline auto getLuaState() { return _klstate; }
+		inline auto getSystem(System Type) const { return _ksys[(U16)Type]; }
 
-#if defined(KITE_EDITOR) && defined (KITE_DEV_DEBUG) // editor hooks	
-		inline void setExitFlag(bool Value) { exitFlag.store(Value); }
-		inline void setPauseFlag(bool Value) { pauseFlag.store(Value); }
-#endif
+		inline auto getLuaState() const { return _klstate; }
+
+		inline bool isInite() const { return _kinite; }
+
+		bool setActiveHierarchy(const KSharedResource &Hierarchy);
 
 	private:
-		KEngine();
+		void swapHierarchy();
+		void loadLuaState();
 		lua_State *_klstate;
 		KGLWindow *_kwindow;
-		KMetaManager *_kmman;
 		KResourceManager *_krman;
-		std::vector<std::unique_ptr<KSystem>> _ksys;
-		bool _kinite;
+		KSharedResource _kcurHierarchy;
+		KSharedResource _knewHierarchy;
+		std::vector<KSystem *> _ksys;
+		System _ksysOrder[(U16)System::maxSize];
 		KConfig _kconfig;
-		static bool deleted;
-		static KEngine *instance;
-#if defined(KITE_EDITOR) && defined (KITE_DEV_DEBUG) // editor hooks
-		std::atomic<bool> exitFlag;
-		std::atomic<bool> pauseFlag;
-		static int luaCustomPrint(lua_State* L);
-	public:
-		std::mutex mx;
-		std::condition_variable cv;
-#endif
+		KSysInite _ksysInite;
+		bool _kinite;
+		bool _kneedSwap;
+		U32 _kmaxMilli;
 	};
 }
 

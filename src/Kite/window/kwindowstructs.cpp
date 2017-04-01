@@ -24,7 +24,7 @@ USA
 #include <luaintf\LuaIntf.h>
 
 namespace Kite {
-	KMETA_KWINDOWSTATE_SOURCE();
+	KWINDOWSTATE_SOURCE();
 
-	KMETA_KENUMDISPLAY_SOURCE();
+	KENUMDISPLAY_SOURCE();
 }

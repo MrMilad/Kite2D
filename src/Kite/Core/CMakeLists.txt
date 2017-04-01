@@ -25,7 +25,6 @@ set(COR_INC
     ${INCROOT}/kfistream.h
     ${INCROOT}/kdelegate.h
     ${INCROOT}/kany.h
-    ${INCROOT}/kvariant.h
     ${INCROOT}/kcoredef.h
     ${INCROOT}/kcorestructs.h
     ${INCROOT}/kcoretypes.h

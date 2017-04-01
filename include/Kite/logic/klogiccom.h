@@ -22,8 +22,9 @@ USA
 
 #include "Kite/core/kcoredef.h"
 #include "Kite/ecs/kcomponent.h"
+#include "Kite/ecs/knode.h"
 #include "Kite/meta/kmetadef.h"
-#include "Kite/logic/kscript.h"
+#include "Kite/ecs/kresourcemanager.h"
 #include <string>
 #include "klogiccom.khgen.h"
 
@@ -33,10 +34,20 @@ namespace Kite {
 	class KITE_FUNC_EXPORT KLogicCom : public KComponent {
 		friend class KLogicSys;
 		KM_INFO(KI_NAME = "Logic");
-		KMETA_KLOGICCOM_BODY();
+		KLOGICCOM_BODY();
 
 	public:
-		KLogicCom(const std::string &Name = "");
+		KM_PRO_SET(KP_NAME = "script")
+		void setScript(const KSharedResource &Script);
+		
+		KM_PRO_GET(KP_NAME = "script", KP_CM = "lua script", KP_RES = Resource::SCRIPT)
+		inline const KSharedResource &getScript() const { return _kscript; }
+
+		KM_PRO_GET(KP_NAME = "tableIndex", KP_TYPE = U32, KP_CM = "index of lua table", KP_SHOW = false)
+		inline U32 getTableIndex() const { return _klid; }
+
+	private:
+		void inite() override;
 
 		void attached() override;
 
@@ -44,24 +55,14 @@ namespace Kite {
 		void deattached() override;
 
 		KM_FUN()
-		RecieveTypes onMessage(KMessage *Message, MessageScope Scope) override;
+		int getTable(lua_State *L);
 
-		KM_PRO_SET(KP_NAME = "script")
-		void setScript(const KStringID &ResName);
-		
-		KM_PRO_GET(KP_NAME = "script", KP_TYPE = KStringID, KP_CM = "name of the lua script", KP_RES = RTypes::Script)
-		inline const KStringID &getScript() const { return _kscriptName; }
+		KM_VAR() KSharedResource _kscript;
 
-	private:
-		inline const std::string &getTName() { return _ktname; }
-		void removeLuaEnv();
-		void setLuaState(lua_State *L);
-
-		KM_VAR() KStringID _kscriptName;
-		KM_VAR() std::string _ktname;
-
-		KScript *_kscript;
-		lua_State *_klstate;
+		U32 _klid;
+		KLogicSys *_ksys;
+		typedef void(KLogicSys::*reloadScript)(KLogicCom *Self);
+		reloadScript _kreloadScriptCallb;
 	};
 }
 

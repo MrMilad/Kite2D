@@ -22,7 +22,7 @@
 #include "ctime"
 
 namespace Kite{
-void cpuid(U32 CPUInfo[4],I32 InfoType){
+/*void cpuid(U32 CPUInfo[4],I32 InfoType){
 #ifdef _MSC_VER
 	__cpuid((int *)CPUInfo, (int)InfoType);
 #else
@@ -36,7 +36,7 @@ void cpuid(U32 CPUInfo[4],I32 InfoType){
 		);
 #endif
     }
-
+	*/
     U32 getCurrentTimeSec(){
         time_t rawtime;
         struct tm * timeinfo;
@@ -63,7 +63,7 @@ void cpuid(U32 CPUInfo[4],I32 InfoType){
         timeinfo = localtime ( &rawtime );
         return timeinfo->tm_hour;
     }
-
+/*
     const KCPUInfo *getCPUInfo(){
 		static KCPUInfo cpuInfo;
 
@@ -99,7 +99,7 @@ void cpuid(U32 CPUInfo[4],I32 InfoType){
         }
         return &cpuInfo;
     }
-
+	*/
     U64 getUniqueNumber(){
 		static U64 id = 0;
         return ++id;

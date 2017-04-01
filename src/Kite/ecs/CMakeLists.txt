@@ -9,9 +9,6 @@ set(ECS_SRC
     ${SRCROOT}/kcomponent.cpp
     ${SRCROOT}/kresourcemanager.cpp
     ${SRCROOT}/kresource.cpp
-    ${SRCROOT}/kmessage.cpp
-    ${SRCROOT}/klistener.cpp
-    ${SRCROOT}/kmessenger.cpp
     ${SRCROOT}/knode.cpp
     PARENT_SCOPE
 )
@@ -21,12 +18,8 @@ set(ECS_INC
     ${INCROOT}/kecs.h
     ${INCROOT}/ksystem.h
     ${INCROOT}/kcomponent.h
-    ${INCROOT}/kmessage.h
-    ${INCROOT}/kmessenger.h
-    ${INCROOT}/klistener.h
     ${INCROOT}/kecsstructs.h
     ${INCROOT}/kecstypes.h
-    ${INCROOT}/kcfstorage.h
     ${INCROOT}/kresourcemanager.h
     ${INCROOT}/kresource.h
     ${INCROOT}/knode.h

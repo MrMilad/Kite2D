@@ -21,7 +21,7 @@ USA
 #define KATLASTEXTUREARRAY_H
 
 #include "Kite/core/kcoredef.h"
-#include "Kite/core/kresource.h"
+#include "Kite/ecs/kresource.h"
 #include "Kite/meta/kmetadef.h"
 #include "Kite/graphic/kgraphictypes.h"
 #include "Kite/graphic/katlastexture.h"
@@ -37,7 +37,7 @@ namespace Kite {
 	KM_CLASS(RESOURCE)
 	class KITE_FUNC_EXPORT KAtlasTextureArray : public KResource {
 		KM_INFO(KI_NAME = "TextureGroup");
-		KMETA_KATLASTEXTUREARRAY_BODY();
+		KATLASTEXTUREARRAY_BODY();
 	public:
 		KAtlasTextureArray(const std::string &Name);
 		~KAtlasTextureArray();

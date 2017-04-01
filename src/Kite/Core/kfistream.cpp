@@ -133,5 +133,5 @@ namespace Kite{
 			FInfo.name = Address;
 		}
 	}
-	KMETA_KFISTREAM_SOURCE();
+	KFISTREAM_SOURCE();
 }

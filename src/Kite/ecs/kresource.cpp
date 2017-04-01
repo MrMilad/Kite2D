@@ -34,5 +34,5 @@ namespace Kite {
 
 	KResource::~KResource() {};
 
-	KMETA_KRESOURCE_SOURCE();
+	KRESOURCE_SOURCE();
 }

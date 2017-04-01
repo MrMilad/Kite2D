@@ -22,7 +22,6 @@
 
 /*! \file imageio.h */
 
-#include "Kite/core/knoncopyable.h"
 #include "Kite/math/kmathstructs.h"
 #include "Kite/Core/kistream.h"
 #include "Kite/Core/kostream.h"

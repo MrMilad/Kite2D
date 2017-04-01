@@ -30,5 +30,5 @@ namespace Kite {
 
 	KBaseSerial::~KBaseSerial() {}
 
-	KMETA_KBASESERIAL_SOURCE();
+	KBASESERIAL_SOURCE();
 }

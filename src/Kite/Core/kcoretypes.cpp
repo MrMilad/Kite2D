@@ -23,6 +23,6 @@ USA
 #include <luaintf/LuaIntf.h>
 
 namespace Kite {
-	KMETA_IOMODE_SOURCE();
-	KMETA_PRIMITIVE_SOURCE();
+	IOMODE_SOURCE();
+	PRIMITIVE_SOURCE();
 }

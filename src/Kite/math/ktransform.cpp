@@ -76,5 +76,5 @@ namespace Kite {
 		Matrix *= mat;
 	}
 
-	KMETA_KTRANSFORM_SOURCE();
+	KTRANSFORM_SOURCE();
 }

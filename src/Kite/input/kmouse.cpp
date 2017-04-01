@@ -108,5 +108,5 @@ namespace Kite{
 		return 0;
 	}
 
-	KMETA_KMOUSE_SOURCE();
+	KMOUSE_SOURCE();
 }

@@ -21,7 +21,7 @@ USA
 #define KATLASTEXTURE_H
 
 #include "Kite/core/kcoredef.h"
-#include "Kite/core/kresource.h"
+#include "Kite/ecs/kresource.h"
 #include "Kite/meta/kmetadef.h"
 #include "Kite/math/kmathstructs.h"
 #include "Kite/graphic/ktexture.h"
@@ -38,34 +38,39 @@ namespace Kite {
 	KM_CLASS(RESOURCE)
 	class KITE_FUNC_EXPORT KAtlasTexture : public KResource {
 		KM_INFO(KI_NAME = "AtlasTexture");
-		KMETA_KATLASTEXTURE_BODY();
+		KATLASTEXTURE_BODY();
 	public:
-		KAtlasTexture(const std::string &Name);
+		KAtlasTexture(const std::string &Name, const std::string &Address);
 
-		bool inite() override;
+		KM_FUN()
+		bool saveStream(KOStream &Stream, const std::string &Address) override;
 
+		KM_FUN()
 		void addItem(const KAtlasItem &Item);
 
+		KM_FUN()
 		inline const KAtlasItem *getItem(U32 ID) const { return &_kitems.at(ID); }
 
+		KM_FUN()
 		inline void clearItems() { _kitems.clear(); }
 
+		KM_PRO_GET(KP_NAME = "size", KP_TYPE = U32, KP_CM = "number of items")
 		inline U32 getItemsSize() const { return _kitems.size(); }
 
 		inline void setTexture(KTexture *Texture) { _ktexture = Texture; }
 
-		inline auto getTexture() const { return _ktexture; }
+		KM_PRO_GET(KP_NAME = "texture", KP_CM = "texture", KP_RES = Resource::TEXTURE)
+		inline KSharedResource getTexture() const { return _ktexture; }
 
 #if defined(KITE_EDITOR)
 		inline auto getContiner() { return &_kitems; }
 #endif
 
 	private:
-		bool _saveStream(KOStream &Stream, const std::string &Address) override;
-		bool _loadStream(KIStream &Stream, const std::string &Address) override;
+		bool _loadStream(std::unique_ptr<KIStream> Stream, KResourceManager *RManager) override;
 
 		std::vector<KAtlasItem> _kitems;
-		KTexture *_ktexture;
+		KSharedResource _ktexture;
 	};
 }
 

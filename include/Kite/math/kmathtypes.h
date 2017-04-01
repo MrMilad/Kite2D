@@ -32,7 +32,7 @@ namespace Kite{
 		CLOCKWISE = -1,
 		CCLOCKWISE = 1
 	};
-	KMETA_ORIENTATION_BODY();
+	ORIENTATION_BODY();
 
 	KM_ENUM()
 	enum class Interpolation : U8{
@@ -47,7 +47,7 @@ namespace Kite{
 		EXPONENTIALOUT,
 		EXPONENTIALINOUT
 	};
-	KMETA_INTERPOLATION_BODY();
+	INTERPOLATION_BODY();
 }
 
 

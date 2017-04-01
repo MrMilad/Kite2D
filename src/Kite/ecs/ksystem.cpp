@@ -23,10 +23,8 @@ USA
 #include <luaintf\LuaIntf.h>
 
 namespace Kite {
-	KSystem::KSystem() :
-		_kisinite(false) {}
-
+	KSystem::KSystem() {}
 	KSystem::~KSystem() {}
 
-	KMETA_KSYSTEM_SOURCE();
+	KSYSTEM_SOURCE();
 }

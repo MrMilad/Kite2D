@@ -55,7 +55,7 @@ USA
 #define KP_SHOW // show in components editor (optional, true by default)
 
 // info tags
-#define KI_NAME		// component name
+#define KI_NAME		// lua class name
 #define KI_SHOW		// show component in editor (true by default if not defined)
 #define KI_DEP		// component dependency
 #define KI_INT		// component interface

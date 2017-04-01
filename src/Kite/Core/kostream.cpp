@@ -24,5 +24,5 @@ USA
 
 namespace Kite {
 	KOStream::~KOStream() {}
-	KMETA_KOSTREAM_SOURCE();
+	KOSTREAM_SOURCE();
 }

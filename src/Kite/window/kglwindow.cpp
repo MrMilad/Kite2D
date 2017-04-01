@@ -113,19 +113,19 @@ namespace Kite{
 		}
     }
 
-    void KGLWindow::setSize(U32 Width, U32 Height){
+    void KGLWindow::setSize(const KVector2I32 &Size){
 		if (_kwindow) {
-			DSDL_CALL(SDL_SetWindowSize(_kwindow, Width, Height));
-			_kwinstate.width = Width;
-			_kwinstate.height = Height;
+			DSDL_CALL(SDL_SetWindowSize(_kwindow, Size.x, Size.y));
+			_kwinstate.width = Size.x;
+			_kwinstate.height = Size.y;
 		}
     }
 
-    void KGLWindow::setPosition(U32 XPosition, U32 YPosition){
+    void KGLWindow::setPosition(const KVector2I32 &Pos){
 		if (_kwindow) {
-			DSDL_CALL(SDL_SetWindowPosition(_kwindow, XPosition, YPosition));
-			_kwinstate.xpos = XPosition;
-			_kwinstate.ypos = YPosition;
+			DSDL_CALL(SDL_SetWindowPosition(_kwindow, Pos.x, Pos.y));
+			_kwinstate.xpos = Pos.x;
+			_kwinstate.ypos = Pos.y;
 		}
     }
 
@@ -246,5 +246,5 @@ namespace Kite{
 		_kcallb = Callback;
     }
 
-	KMETA_KGLWINDOW_SOURCE();
+	KGLWINDOW_SOURCE();
 }

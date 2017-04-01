@@ -22,21 +22,20 @@
 #include "Kite/meta/kmetamanager.h"
 #include "Kite/meta/kmetaclass.h"
 #include "Kite/meta/kmetatypes.h"
+#include "Kite/ecs/kresourcemanager.h"
 #include "Kite/serialization/types/kstdvector.h"
 #include <luaintf/LuaIntf.h>
 #include <cmath>
 
 namespace Kite{
-	KTransformCom::KTransformCom(KNode *OwnerNode, const std::string &Name) :
-		KComponent(OwnerNode, "Transform"),
-		_kcompute(true),
-		_kposition(0.0f, 0.0f),
-		_krotation(0.0f),
-		_kratioIndex(-1),
-		_kscale(1.0f, 1.0f),
-		_kskew(0.0f, 0.0f),
-		_kcenter(0.0f, 0.0f)
-		{}
+	void KTransformCom::inite() {
+		_kcompute = true;
+		_krotation = 0.0f;
+		_kratioIndex = -1;
+		_kscale.x = 1.0f;
+		_kscale.y = 1.0f;
+		_ksysIndex = 0;
+	}
 
 	void KTransformCom::attached() {}
 
@@ -48,10 +47,6 @@ namespace Kite{
 			_kcompute = true;
 		}
     }
-
-	RecieveTypes KTransformCom::onMessage(KMessage *Message, MessageScope Scope) {
-		return RecieveTypes::IGNORED;
-	}
 
     void KTransformCom::setRotation(F32 Angle){
 		if (Angle > 360.000f || Angle < -360.000f)
@@ -96,5 +91,5 @@ namespace Kite{
 		}
 	}
 
-	KMETA_KTRANSFORMCOM_SOURCE();
+	KTRANSFORMCOM_SOURCE();
 }

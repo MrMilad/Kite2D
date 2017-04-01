@@ -114,5 +114,5 @@ namespace Kite {
 		return identity;
 	}
 
-	KMETA_KMATRIX3_SOURCE();
+	KMATRIX3_SOURCE();
 }

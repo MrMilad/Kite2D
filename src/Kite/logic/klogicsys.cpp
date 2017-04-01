@@ -17,208 +17,248 @@ License along with this library; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 USA
 */
-#include "Kite/logic/klogicdef.h"
 #include "Kite/logic/klogicsys.h"
-#include <vector>
+#include "Kite/engine/kengine.h"
 #include "Kite/meta/kmetamanager.h"
 #include "Kite/meta/kmetaclass.h"
 #include "Kite/meta/kmetatypes.h"
-#include "Kite/logic/kreglogiccom.h"
 #include "Kite/logic/klogiccom.h"
+#include "Kite/logic/kscript.h"
+#include "Kite/ecs/knode.h"
 #include "Kite/engine/kengine.h"
-#include <luaintf/LuaIntf.h>
+#include <vector>
 #ifdef KITE_DEV_DEBUG
 #include <exception>
 #endif
 
 namespace Kite {
-	bool KLogicSys::update(F64 Delta, KEntityManager *EManager, KResourceManager *RManager) {
-		// iterate over objects with at least 1 Logic component
-		auto continer = EManager->getComponentStorage<KRegLogicCom>(CTypes::RegisterLogic);
-		bool haveReg = false;
-		for (auto it = continer->begin(); it != continer->end(); ++it) {
-			haveReg = true;
-			auto ent = EManager->getEntity(it->getOwnerHandle());
-			// iterate over all new logic components and inite them
-			for (auto comp = it->_kiniteList.begin(); comp != it->_kiniteList.end(); ++comp) {
-				auto lcomp = (KLogicCom *)ent->getComponentByHandle((*comp));
+	KLogicSys::KLogicSys() :
+		_kupPerFrame(true),
+		_kcgarbage(true)
+	{}
 
-				// inite component and bind it to lua vm (only one time when current script changed with a new script)
-				if (lcomp->getResNeedUpdate()) {
-					if (!catchAndRegist(lcomp)) return false;
-				}
+	void KLogicSys::reset(KNode *Hierarchy, KSysInite *IniteData) {
+		_klvm = IniteData->lstate;
 
-				// inite component (calling inite, only 1 time befor start)
-				if (!initeComp(ent, lcomp)) return false;
-			}
+		// create refrence to kite events system
+		_kevents = LuaIntf::LuaRef(_klvm, "events");
+		if (!_kevents.isTable()) {
+			throw std::string("events table is corrupted.");
 		}
 
-		// clear storage after registration
-		if (haveReg) EManager->clearComponentStorage<KRegLogicCom>(CTypes::RegisterLogic);
+		_ktrigger = LuaIntf::LuaRef(_klvm, "events.trigger");
+		if (!_ktrigger.isFunction()) {
+			throw std::string("events:trigger function is corrupted.");
+		}
 
-		// update components (per frame)
-		// and call postWork in the end of the each frame
-		if (!updateAll(Delta)) return false;
+		_kremove = LuaIntf::LuaRef(_klvm, "events.removeListener");
+		if (!_kremove.isFunction()) {
+			throw std::string("events:removeListener function is corrupted.");
+		}
+
+		// create nodes table 
+		// listeners will added to this table
+		auto ntable = LuaIntf::LuaRef::createTable(_klvm, KLOGIC_NODE_ARRAY);
+		LuaIntf::LuaRef::globals(_klvm).set("nodes", ntable);
+		if (!ntable.isTable()) {
+			throw std::string("couldn't create nodes table.");
+		}
+
+		// create components table (array)
+		_kcoms = LuaIntf::LuaRef::createTable(_klvm, KLOGIC_COM_ARRAY);
+		LuaIntf::LuaRef::globals(_klvm).set("coms", _kcoms);
+		if (!_kcoms.isTable()) {
+			throw std::string("couldn't create components table.");
+		}
+
+		// create global variable table (weak table)
+		_kglobalVars = LuaIntf::LuaRef::createTable(_klvm);
+		auto weakMeta = LuaIntf::LuaRef::createTable(_klvm);
+		weakMeta.set("__mode", "v"); // weak table by variable
+		_kglobalVars.setMetaTable(weakMeta);
+		LuaIntf::LuaRef::globals(_klvm).set("global", _kglobalVars);
+
+		if (!_kglobalVars.isTable()) {
+			throw std::string("couldn't create global variables table.");
+		}
+
+		// scan new hierarchy (recursive)
+		// you can attach an script to the root node of the hierarchy for first-time configuration
+		scan(Hierarchy->getRoot());
+	}
+
+	bool KLogicSys::update(F64 Delta) {
+
+		// update logic components
+		if (_kupPerFrame) {
+#ifdef KITE_DEV_DEBUG
+			try {
+				_ktrigger(nullptr, "onUpdate", Delta);		// calling all update fuctions
+				_ktrigger(nullptr, "onPostWork", Delta);	// calling all post-work functions
+			}
+			catch (std::exception& e) {
+				KD_FPRINT("update\\postWork function failed: %s", e.what());
+				return false;
+			}
+#else
+			_ktrigger(nullptr, "onUpdate", Delta);
+			_ktrigger(nullptr, "onPostWork", Delta);
+#endif
+		}
 
 		// performs a full garbage-collection cycle. 
 		// lua garbage collection will eat memory so we shuld use lua_gc() in a period
-		//lua_gc(_klvm, LUA_GCCOLLECT, 0); //> luajit (not lua) seems better at this job so we dont use it 
+		if (_kcgarbage) {
+			lua_gc(_klvm, LUA_GCCOLLECT, 0); //> luajit (not lua) seems better at this job
+		}
+
 		return true;
 	}
 
-	bool KLogicSys::inite(void *Data) {
-		if (!Data) return false;
+	void KLogicSys::componentAdded(KComponent *Com) {
+		if (Com->getDrivedType() == Component::LOGIC) {
+			auto lcom = static_cast<KLogicCom *>(Com);
 
-		auto engien = static_cast<KEngine *>(Data);
-		if (!isInite()) {
-			_klvm = static_cast<lua_State *>(engien->getLuaState());
+			// set callbacks
+			lcom->_ksys = this;
+			lcom->_kreloadScriptCallb = &KLogicSys::reloadChunk;
 
-			auto table = LuaIntf::LuaRef::createTable(_klvm);
-			LuaIntf::LuaRef(_klvm, "_G").set("ENT", table);
-
-			// implement hook system
-			const std::string updateFunc(KLUA_HOOK);
-			if (luaL_dostring(_klvm, updateFunc.c_str()) != 0) {
-				const char *out = lua_tostring(_klvm, -1);
-				lua_pop(_klvm, 1);
-				KD_FPRINT("lua load string error: %s", out);
-				return false;
-			}
-
-			// create logic hooks
-			//table = LuaIntf::LuaRef::createTable(_klvm);
-			//LuaIntf::LuaRef(_klvm, "_G.hooks.funcs").set("onUpdate", table);
-
-			setInite(true);
-			return true;
+			// create/load chunk and set its environment
+			reloadChunk(lcom);
 		}
-
-		return isInite();
 	}
 
-	void KLogicSys::destroy() { setInite(false); }
+	void KLogicSys::componentRemoved(KComponent *Com) {
+		if (Com->getDrivedType() == Component::LOGIC) {
+			auto lcom = static_cast<KLogicCom *>(Com);
 
-	bool KLogicSys::catchAndRegist(KLogicCom *Component) {
-		// retrive script rsource from resource manager
-		Component->updateRes();
-		if (!Component->_kscript) {
-			KD_FPRINT("can't load script resource. cname: %s", Component->getName().c_str());
-			return false;
-		}
-
-		Component->setLuaState(_klvm);
-
-		// bind it to lua with its environment
-		if (!Component->_kscript->getCode().empty()) {
-
-			// first check entiti table 
-			std::string code("_G.ENT." + Component->getTName());
-			LuaIntf::LuaRef etable(_klvm, code.c_str());
-
-			// there isn't a table for entity
-			// we create it
-			if (!etable.isTable()) {
-				etable = LuaIntf::LuaRef::createTable(_klvm);
-				LuaIntf::LuaRef(_klvm, "_G.ENT").set(Component->getTName().c_str(), etable);
-			}
-
-			// create a table for its component
-			code.clear();
-			code = "_G.ENT." + Component->getTName();
-			auto ctable = LuaIntf::LuaRef::createTable(_klvm);
-			LuaIntf::LuaRef(_klvm, code.c_str()).set(Component->getName(), ctable);
-
-			// set envirunmet values
-			ctable["global"] = LuaIntf::LuaRef::globals(_klvm);
-			ctable["kite"] = LuaIntf::LuaRef(_klvm, "_G.kite");
-			ctable["owner"] = Component->getOwnerHandle();
-			ctable["self"] = Component->getHandle();
-			ctable["engine"] = Kite::KEngine::createEngine();
-			ctable["messenger"] = LuaIntf::LuaRef(_klvm, "_G.hooks");
-
-			// load chunk and set its environment
-			code.clear();
-			code.reserve(Component->_kscript->getCode().size());
-			code = Component->_kscript->getCode();
-
-			std::string address("ENT." + Component->getTName() + "." + Component->getName());
-
-			if (luaL_loadstring(_klvm, code.c_str()) != 0) {
-				const char *out = lua_tostring(_klvm, -1);
-				lua_pop(_klvm, 1);
-				KD_FPRINT("lua load string error. cname: %s. %s", Component->getTName().c_str(), out);
-				return false;
-			}
-
-			// set chunk envirounment
-			auto chunk = lua_gettop(_klvm);
-			LuaIntf::Lua::pushGlobal(_klvm, address.c_str());
-			if (lua_setfenv(_klvm, chunk) == 0) {
-				const char *out = lua_tostring(_klvm, -1);
-				lua_pop(_klvm, 1);
-				KD_FPRINT("lua set envirounment error. cname: %s. %s", Component->getTName().c_str(), out);
-				return false;
-			}
-
-			// execute and register chunk
-			if (lua_pcall(_klvm, 0, 0, 0)) {
-				const char *out = lua_tostring(_klvm, -1);
-				lua_pop(_klvm, 1);
-				KD_FPRINT("lua set envirounment error. cname: %s. %s", Component->getTName().c_str(), out);
-				return false;
-			}
-		}
-		return true;
-	}
-
-	bool KLogicSys::initeComp(KEntity *Self, KLogicCom *Comp) {
-		// call inite function of component
-		const std::string address("ENT." + Comp->getTName() + "." + Comp->getName() + ".onInite");
-
+			auto ctable = _kcoms.get(lcom->getTableIndex());
+			if (ctable.isTable()) {
 #ifdef KITE_DEV_DEBUG
-		const std::string tname(Comp->getTName());	// copy tname because we need it for showing message in the catch section
-												// and we can't use a string refrence in that section
-		const std::string ename(Self->getName());
-#endif
-
-		LuaIntf::LuaRef ctable(_klvm, address.c_str());
-		if (ctable.isFunction()) {
-#ifdef KITE_DEV_DEBUG
-		try{
-			ctable();
-		} catch (std::exception& e) {
-			KD_FPRINT("inite function failed. ename: %s. cname: %s. %s", ename.c_str(), tname.c_str(), e.what());
-			return false;
-		}
+				try {
+					if (ctable.has("onRemove")) {
+						ctable.get("onRemove")();
+					}
+				}
+				catch (std::exception& e) {
+					KD_FPRINT("update\\postWork function failed: %s", e.what());
+					return;
+				}
 #else
-			ctable(Self);
+				if (ctable.has("onRemove")) {
+					ctable.get("onRemove")();
+				}
 #endif
-		}
-		return true;
-	}
+				ctable = nullptr;
 
-	bool KLogicSys::updateAll(F64 Delta) {
-		LuaIntf::LuaRef ctable(_klvm, "_G.hooks.post");
-		if (ctable.isFunction()) {
-#ifdef KITE_DEV_DEBUG
-			try {
-				ctable("onUpdate", Delta);
-				ctable("onPostWork", Delta);
-			} catch (std::exception& e) {
-				KD_FPRINT("update\postWork function failed: %s", e.what());
-				return false;
+				// remove from array
+				_kcoms.remove(lcom->getTableIndex());
 			}
-#else
-			ctable("onUpdate", Delta);
-			ctable("onPostWork", Delta);
-#endif
-		} else {
-			KD_PRINT("engine hooks system is corrupted");
-			return false;
 		}
-
-		return true;
 	}
 
-	KMETA_KLOGICSYS_SOURCE();
+	void KLogicSys::nodeAdded(KNode *Node) {
+		// remove all logic componentsfrom lua
+		std::vector<KComponent *> clist;
+		Node->getLogicComponents(clist);
+		for (auto it = clist.begin(); it != clist.end(); ++it) {
+			componentAdded((*it));
+		}
+	}
+
+	void KLogicSys::nodeRemoved(KNode *Node) {
+		// remove all logic components 
+		std::vector<KComponent *> clist;
+		Node->getLogicComponents(clist);
+		for (auto it = clist.begin(); it != clist.end(); ++it) {
+			componentRemoved((*it));
+		}
+	}
+
+	void KLogicSys::scan(KNode *Hierarchy) {
+		nodeAdded(Hierarchy);
+		for (auto it = Hierarchy->childList()->begin(); it != Hierarchy->childList()->end(); ++it) {
+			scan((*it));
+		}
+	}
+
+	void KLogicSys::reloadChunk(KLogicCom *Com) {
+		// delete current env
+		componentRemoved(Com);
+
+		// reload
+		if (!Com->getScript().isNull()) {
+			auto script = (KScript *)Com->getScript().operator->();
+			if (!script->getCode().empty()) {
+				// create component table 
+				auto ctable = LuaIntf::LuaRef::createTable(_klvm);
+				auto index = _kcoms.rawlen() + 1;
+				_kcoms.set(index, ctable);
+				Com->_klid = index;
+
+				// set envirunmet values of component table
+				auto global = LuaIntf::LuaRef::globals(_klvm);
+				ctable.set("print", global.get("print"));
+				ctable.set("tostring", global.get("tostring"));
+				ctable.set("type", global.get("type"));
+				ctable.set("pairs", global.get("pairs"));
+				ctable.set("math", global.get("math"));
+				ctable.set("string", global.get("string"));
+				ctable.set("collectgarbage", global.get("collectgarbage"));// use gc by hand
+				ctable.set("setmetatable", global.get("setmetatable"));	// creating weak tables
+
+				ctable.set("global", _kglobalVars);
+				ctable.set("kite", global.get("kite"));
+				ctable.set("events", _kevents);
+				ctable.set("object", Com);
+
+				// load script code
+				if (luaL_loadstring(_klvm, script->getCode().c_str()) != 0) {
+					const char *out = lua_tostring(_klvm, -1);
+					lua_pop(_klvm, 1);
+					KD_FPRINT("lua load string error. cname: %s. %s", Com->getName().c_str(), out);
+					return;
+				}
+
+				// set chunk envirounment
+				int chunkIndex = lua_gettop(_klvm);
+				LuaIntf::Lua::push(_klvm, ctable);
+				if (lua_setfenv(_klvm, chunkIndex) == 0) {
+					const char *out = lua_tostring(_klvm, -1);
+					lua_pop(_klvm, 1);
+					KD_FPRINT("lua set envirounment error. cname: %s. %s", Com->getName().c_str(), out);
+					return;
+				}
+
+				// execute and register chunk
+#ifdef KITE_DEV_DEBUG
+				if (lua_pcall(_klvm, 0, 0, 0)) {
+					const char *out = lua_tostring(_klvm, -1);
+					lua_pop(_klvm, 1);
+					KD_FPRINT("lua set envirounment error. cname: %s. %s", Com->getName().c_str(), out);
+					return;
+				}
+#else
+				lua_call(_klvm, 0, 0);
+#endif
+#ifdef KITE_DEV_DEBUG
+				try {
+					if (ctable.has("onAdd")) {
+						ctable.get("onAdd")();
+					}
+				}
+				catch (std::exception& e) {
+					KD_FPRINT("update\\postWork function failed: %s", e.what());
+					return;
+				}
+#else
+				if (ctable.has("onAdd")) {
+					ctable.get("onAdd")();
+				}
+#endif
+			}
+		}
+	}
+
+	KLOGICSYS_SOURCE();
 }

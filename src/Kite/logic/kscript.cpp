@@ -20,29 +20,23 @@ USA
 #include "Kite/logic/kscript.h"
 #include "Kite/meta/kmetamanager.h"
 #include "Kite/meta/kmetaclass.h"
+#include "Kite/ecs/kresourcemanager.h"
 #include <luaintf/LuaIntf.h>
 
 namespace Kite {
-	KScript::KScript(const std::string &Name) :
-		KResource(Name, false, false) 
-	{
-		// dont need initialize
-		setInite(true);
-	}
+	KScript::KScript(const std::string &Name, const std::string &Address) :
+		KResource(Name, Address)
+	{}
 
-	bool KScript::inite() {
-		return true;
-	}
-
-	bool KScript::_loadStream(KIStream &Stream, const std::string &Address) {
+	bool KScript::_loadStream(std::unique_ptr<KIStream> Stream, KResourceManager *RManager) {
 		_kcode.clear();
 
-		if (!Stream.isOpen()) {
-			Stream.close();
+		if (!Stream->isOpen()) {
+			Stream->close();
 		}
 
-		if (!Stream.open(Address, IOMode::TEXT)) {
-			KD_FPRINT("can't open stream. address: %s", Address.c_str());
+		if (!Stream->open(getAddress(), IOMode::TEXT)) {
+			KD_FPRINT("can't open stream. address: %s", getAddress().c_str());
 			return false;
 		}
 
@@ -51,19 +45,19 @@ namespace Kite {
 		char *buffer = (char*)malloc(sizeof(char) * KTEXT_BUFF_SIZE);
 
 		// reading content
-		while (!Stream.eof()) {
-			rsize = Stream.read(buffer, sizeof(char) * KTEXT_BUFF_SIZE);
+		while (!Stream->eof()) {
+			rsize = Stream->read(buffer, sizeof(char) * (KTEXT_BUFF_SIZE - 1));
 			buffer[rsize] = 0;
 			_kcode.append(buffer);
 		}
 
 		// cleanup
 		free(buffer);
-		Stream.close();
+		Stream->close();
 		return true;
 	}
 
-	bool KScript::_saveStream(KOStream &Stream, const std::string &Address) {
+	bool KScript::saveStream(KOStream &Stream, const std::string &Address) {
 		if (!Stream.isOpen()) {
 			Stream.close();
 		}
@@ -83,5 +77,5 @@ namespace Kite {
 		return true;
 	}
 
-	KMETA_KSCRIPT_SOURCE();
+	KSCRIPT_SOURCE();
 }

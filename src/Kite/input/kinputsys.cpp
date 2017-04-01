@@ -24,60 +24,55 @@ USA
 #include "Kite/meta/kmetamanager.h"
 #include "Kite/meta/kmetaclass.h"
 #include "Kite/engine/kengine.h"
-#include <luaintf/LuaIntf.h>
 
 namespace Kite {
-	bool KInputSys::update(F64 Delta, KEntityManager *EManager, KResourceManager *RManager) {
-		//EDITOR_STATIC const bool isregist = EManager->isRegisteredComponent(CTypes::Input);
-		LuaIntf::LuaRef ctable(_klvm, "_G.hooks.post");
-		if (ctable.isFunction()) {
+
+	void KInputSys::reset(KNode *Hierarchy, KSysInite *IniteData) {
+		_klvm = IniteData->lstate;
+		_keventTrig = LuaIntf::LuaRef(_klvm, "events.trigger");
+		if (!_keventTrig.isFunction()) {
+			throw std::string("events:trigger function is corrupted.");
+		}
+	}
+
+	bool KInputSys::update(F64 Delta) {
 #ifdef KITE_DEV_DEBUG
+		if (_keventTrig.isFunction()) {
 			try {
 				if (KKeyboard::isAnyKeyDown()) {
-					KMessage msg("onKeyDown");
-					ctable("onKeyDown", msg);
+					_keventTrig(nullptr, "onKeyDown");
 				}
 				if (KMouse::isAnyKeyDown()) {
-					KMessage msg("onMouseDown");
-					ctable("onMouseDown", msg);
+					_keventTrig(nullptr, "onMouseDown");
 				}
-				
-			} catch (std::exception& e) {
+
+			}
+			catch (std::exception& e) {
 				KD_FPRINT("input function failed: %s", e.what());
 				return false;
 			}
-#else
-			if (KKeyboard::isAnyKeyDown()) {
-				KMessage msg("onKeyDown");
-				ctable("onKeyDown", msg);
-			}
-			if (KMouse::isAnyKeyDown()) {
-				KMessage msg("onMouseDown");
-				ctable("onMouseDown", msg);
-			}
-#endif
 		} else {
-			KD_PRINT("engine hooks system is corrupted");
+			KD_PRINT("kite events system is corrupted.");
 			return false;
 		}
-
+#else
+		if (KKeyboard::isAnyKeyDown()) {
+			_keventTrig(nullptr, "onKeyDown");
+		}
+		if (KMouse::isAnyKeyDown()) {
+			_keventTrig(nullptr, "onMouseDown");
+		}
+#endif
 		return true;
 	}
 
-	bool KInputSys::inite(void *Data) {
-		if (!Data) return false;
-		auto engien = static_cast<KEngine *>(Data);
+	void KInputSys::nodeAdded(KNode *Node) {}
 
-		if (!isInite()) {
-			_klvm = static_cast<lua_State *>(engien->getLuaState());
+	void KInputSys::componentAdded(KComponent *Com) {}
 
-			setInite(true);
-		}
-		
-		return isInite();
-	}
+	void KInputSys::componentRemoved(KComponent *Com) {}
 
-	void KInputSys::destroy() { setInite(false); }
+	void KInputSys::nodeRemoved(KNode *Node) {}
 
-	KMETA_KINPUTSYS_SOURCE();
+	KINPUTSYS_SOURCE();
 }

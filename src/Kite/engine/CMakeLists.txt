@@ -9,6 +9,7 @@ set(ENG_SRC
 
 # all header files
 set(ENG_INC
+    ${INCROOT}/kenginedef.h
     ${INCROOT}/kengine.h
     PARENT_SCOPE
 )

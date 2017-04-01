@@ -37,5 +37,5 @@ namespace Kite {
 
 	KComponent::~KComponent() {}
 
-	KMETA_KCOMPONENT_SOURCE();
+	KCOMPONENT_SOURCE();
 }

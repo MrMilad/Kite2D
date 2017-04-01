@@ -32,7 +32,8 @@ KMETA
 namespace Kite{
 	KM_CLASS(SCRIPTABLE)
     class KITE_FUNC_EXPORT KKeyboard{
-		KMETA_KKEYBOARD_BODY();
+		KM_INFO(KI_NAME = "keyboard")
+		KKEYBOARD_BODY();
     public:
 		/// initialize keyboard module
 		static void initeKeyboard();

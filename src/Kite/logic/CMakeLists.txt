@@ -6,18 +6,15 @@ set(LOG_SRC
     ${SRCROOT}/klogiccom.cpp
     ${SRCROOT}/klogicsys.cpp
     ${SRCROOT}/kscript.cpp
-    ${SRCROOT}/kreglogiccom.cpp
     PARENT_SCOPE
 )
 
 # all header files
 set(LOG_INC
     ${INCROOT}/klogic.h
-    ${INCROOT}/klogicdef.h
     ${INCROOT}/klogiccom.h
     ${INCROOT}/klogicsys.h
     ${INCROOT}/kscript.h
-    ${INCROOT}/kreglogiccom.h
     PARENT_SCOPE
 )
 

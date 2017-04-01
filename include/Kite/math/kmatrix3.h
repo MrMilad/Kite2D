@@ -29,7 +29,8 @@ KMETA
 namespace Kite{
 	KM_CLASS(POD)
     class KITE_FUNC_EXPORT KMatrix3{
-		KMETA_KMATRIX3_BODY();
+		KM_INFO(KI_NAME = "Matrix3");
+		KMATRIX3_BODY();
     public:
 		KM_CON(F32, F32, F32, F32, F32, F32, F32, F32, F32)
 		KMatrix3(F32 E00 = 1.0f, F32 E01 = 0.0f, F32 E02 = 0.0f,

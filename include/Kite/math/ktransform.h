@@ -31,7 +31,8 @@ KMETA
 namespace Kite{
 	KM_CLASS(SCRIPTABLE)
     class KITE_FUNC_EXPORT KTransform{
-		KMETA_KTRANSFORM_BODY();
+		KM_INFO(KI_NAME = "Transformations");
+		KTRANSFORM_BODY();
     public:
 		/// transform a 2D point
 		KM_FUN()

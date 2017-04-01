@@ -24,7 +24,6 @@ USA
 #include "Kite/core/kistream.h"
 #include "Kite/core/kcorestructs.h"
 #include "Kite/ecs/kresource.h"
-#include "Kite/ecs/kmessenger.h"
 #include "Kite/ecs/kecstypes.h"
 #include "Kite/ecs/kecsstructs.h"
 #include "Kite/meta/kmetadef.h"
@@ -35,6 +34,7 @@ USA
 #include <algorithm>
 #include <utility>
 #include <string>
+#include <luaintf/LuaIntf.h>
 #include "ktypes.khgen.h"
 #include "kresourcemanager.khgen.h"
 
@@ -42,13 +42,132 @@ USA
 
 KMETA
 namespace Kite{
-	class KSharedResource;
+	template <typename T>
+	KM_CLASS(POD)
+		class KShared {
+		KM_TEM_PARAM(T);
+		KM_TEM_DEF("SharedResource", KResource);
+		KSHARED_BODY();
+		public:
+			KM_CON()
+			KShared() :
+				_kdata(nullptr)
+			{}
+
+			explicit KShared(std::nullptr_t Ptr) :
+				_kdata(nullptr)
+			{}
+
+			explicit KShared(T *Ptr) :
+				_kdata(new(_kpool.allocate_node()) KShared<T>::dynamic(Ptr))
+			{}
+
+			KShared(const KShared<T>& Other) :
+				_kdata(Other._kdata)
+			{
+				if (_kdata) {
+					++_kdata->ref;
+				}
+			}
+
+
+			~KShared() {
+				clear();
+			}
+
+			KShared& operator=(const KShared<T> &other) {
+				if (this != &other) {
+					clear();
+
+					_kdata = other._kdata;
+					if (_kdata) { ++_kdata->ref; }
+				}
+				return *this;
+			}
+
+
+			inline bool operator==(const KShared<T> &right) const {
+				return (constGet() == right.constGet());
+			}
+
+			inline bool operator!=(const KShared<T> &right) const {
+				return !(constGet() == right.constGet());
+			}
+
+			T* operator->() {
+				if (!_kdata) return nullptr;
+				return _kdata->ptr;
+			}
+
+			const T* operator->() const {
+				if (!_kdata) return nullptr;
+				return _kdata->ptr;
+			}
+
+			KM_PRO_GET(KP_NAME = "useCounts", KP_TYPE = SIZE, KP_CM = "counts of shared users")
+			inline SIZE getUseCounts() const {
+				if (!_kdata) return 0;
+				return _kdata->ref; 
+			}
+
+			KM_PRO_GET(KP_NAME = "isNull", KP_TYPE = bool, KP_CM = "resource pointer is null")
+			inline bool isNull() const {
+				if (!_kdata) return true;
+				return (_kdata->ptr == nullptr); 
+			}
+
+			KM_FUN()
+			inline T *get() {
+				if (!_kdata) return nullptr;
+				return _kdata->ptr;
+			}
+
+			inline const T *constGet() const {
+				if (!_kdata) return nullptr;
+				return _kdata->ptr;
+			}
+
+			explicit operator bool() const { return !isNull(); }
+
+			T &operator*() const {
+				return *_kdata->ptr; 
+			}
+
+			void clear() {
+				if (_kdata) {
+					if (!--_kdata->ref) {
+						delete _kdata->ptr;
+						_kdata->ptr = nullptr;
+						_kpool.deallocate_node(_kdata);
+						_kdata = nullptr;
+					}
+				}
+			}
+
+		private:
+			struct dynamic {
+				T *ptr;
+				SIZE ref;
+
+				dynamic(T *Ptr) :
+					ptr(Ptr), ref(1)
+				{}
+			};
+
+			dynamic *_kdata;
+			static memory::memory_pool<> _kpool; // data pool
+
+	};
+
+	template<typename T>
+	memory::memory_pool<> KShared<T>::_kpool(sizeof(KShared<T>::dynamic), KSHAREDRES_MEM_CHUNK * sizeof(KShared<T>::dynamic));
+	typedef KShared<KResource> KSharedResource;
 
 	KM_CLASS(SCRIPTABLE)
-	class KITE_FUNC_EXPORT KResourceManager : public KMessenger{
-		KMETA_KRESOURCEMANAGER_BODY();
+	class KITE_FUNC_EXPORT KResourceManager {
+		KM_INFO(KI_NAME = "ResourceManager");
+		KRESOURCEMANAGER_BODY();
 	public:
-		KResourceManager();
 		~KResourceManager();
 
 		/// catched streams will deleted automatically on owner resource destructures
@@ -66,8 +185,7 @@ namespace Kite{
 		/// immediately remove resource and its pointers
 		/// will affect expire() and isExpired() will return true
 		/// will not affect counts()
-		KM_FUN()
-		void forceUnload(const std::string &Name);
+		//void forceUnload(const std::string &Name);
 
 		/// register a key-name resource information for loading phase into the dictinary.
 		/// for replacing a registered key with a new key you must unload its associated resource first
@@ -76,7 +194,7 @@ namespace Kite{
 		/// Name: key-name of the resource. (case-sensitive)
 		/// Address: physical address of the resource
 		KM_FUN()
-		bool registerName(const std::string &Name, const std::string &Address, RTypes RType, IStreamTypes SType);
+		bool registerName(const std::string &Name, const std::string &Address, Resource RType, InStream SType);
 
 		/// save only ditionary so will not save loaded resource
 		KM_FUN()
@@ -94,19 +212,14 @@ namespace Kite{
 		KM_FUN()
 		void clear();
 
-		void registerIStream(IStreamTypes SType, KIStream *(*Func)());
-		void registerResource(RTypes RType, KResource *(*Func)(const std::string &, const std::string &));
-
 	private:
-		void initeFactory();
-
 		struct Info {
 			std::string address;
-			RTypes rtype;
-			IStreamTypes stype;
+			Resource rtype;
+			InStream stype;
 			KSharedResource *res;
 
-			Info(const std::string &Address, RTypes RType, IStreamTypes SType) :
+			Info(const std::string &Address, Resource RType, InStream SType) :
 				address(Address), rtype(RType), stype(SType), res(nullptr) {}
 		};
 
@@ -114,63 +227,12 @@ namespace Kite{
 		typedef KResource *(*rFactory)(const std::string &, const std::string &); // resource factory
 
 		std::unordered_map<std::string, Info> _kmap;
-		rFactory _krfactory[(SIZE)RTypes::maxSize];
-		isFactory _ksfactory[(SIZE)IStreamTypes::maxSize];
-	};
-
-	KM_CLASS(POD)
-	class KSharedResource {
-		friend class KResourceManager;
-		KMETA_KSHAREDRESOURCE_BODY();
-	public:
-		KM_CON()
-		KSharedResource();
-
-		explicit KSharedResource(KResource *Resource);
-
-		KSharedResource(const KSharedResource& Other);
-
-		~KSharedResource();
-
-		KSharedResource& operator=(const KSharedResource& other);
-
-		KResource* operator->();
-
-		const KResource* operator->() const;
-
-		KM_PRO_GET(KP_NAME = "isExpired", KP_TYPE = bool, KP_CM = "is expired (force unloaded) by resource manager")
-		inline bool isExpired() const { return _kdata->expired; }
-
-		KM_PRO_GET(KP_NAME = "counts", KP_TYPE = SIZE, KP_CM = "counts of shared users")
-		inline SIZE getCounts() const { return _kdata->ref; }
-
-		KM_PRO_GET(KP_NAME = "isNull", KP_TYPE = bool, KP_CM = "resource pointer is null")
-		inline bool isNull() const { return (_kdata->ptr == nullptr); }
-
-	private:
-		struct dynamic {
-			bool expired;
-			KResource *ptr;
-			SIZE ref;
-
-			dynamic(KResource *Resource) :
-				expired(false), ptr(Resource), ref(1)
-			{}
-		};
-
-		dynamic *_kdata;
-		ED_STATIC static memory::memory_pool<> _kpool; // data pool
-
-		/// lua side 
-		KM_PRO_GET(KP_NAME = "resource", KP_TYPE = KResource, KP_CM = "raw resource pointer")
-		inline KResource *getResource() { return operator->(); }
-
-		void clear();
-
-		/// internal use by resource manager
-		/// will delete resource immediately
-		void expire();
+		const static rFactory _krfactory[(U16)Resource::maxSize];
+		const static isFactory _ksfactory[(U16)InStream::maxSize];
 	};
 }
-
+namespace LuaIntf
+{
+	LUA_USING_SHARED_PTR_TYPE(Kite::KShared);
+}
 #endif // KRESOURCEMANAGER_H

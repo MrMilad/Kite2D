@@ -25,19 +25,30 @@ USA
 #include "Kite/math/kmathdef.h"
 #include "Kite/math/kmathstructs.h"
 #include "ktransformsys.khgen.h"
+#include <vector>
 
 KMETA
 namespace Kite {
 	class KTransformCom;
 	KM_CLASS(SYSTEM)
 	class KITE_FUNC_EXPORT KTransformSys: public KSystem {
-		KMETA_KTRANSFORMSYS_BODY();
+		KM_INFO(KI_NAME = "TransformSystem");
+		KTRANSFORMSYS_BODY();
 	public:
-		bool update(F64 Delta, KNode *Scene) override;
+		void reset(KNode *Hierarchy, KSysInite *IniteData) override;
 
-		bool inite(KSysInite *IniteData) override;
+		bool update(F64 Delta) override;
 
-		void destroy() override;
+		void nodeAdded(KNode *Node) override;
+
+		void nodeRemoved(KNode *Node) override;
+
+		void componentAdded(KComponent *Com) override;
+
+		void componentRemoved(KComponent *Com) override;
+	private:
+		void scan(KNode *Hierarchy);
+		std::vector<KTransformCom *> _kcomList;
 	};
 }
 

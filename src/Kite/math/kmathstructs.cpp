@@ -21,5 +21,5 @@ USA
 #include "Kite/serialization/kserialization.h"
 
 namespace Kite {
-	KMETA_KPARALLAXRATIO_SOURCE();
+	KPARALLAXRATIO_SOURCE();
 }

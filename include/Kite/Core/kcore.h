@@ -21,7 +21,6 @@
 #define KCORE_H
 
 #include "Kite/core/kany.h"
-#include "Kite/core/kvariant.h"
 #include "Kite/core/kcoredef.h"
 #include "Kite/core/kcoretypes.h"
 #include "Kite/core/kcorestructs.h"

@@ -21,34 +21,52 @@ USA
 #define KSYSTEM_H
 
 #include "Kite/core/kcoredef.h"
+#include "Kite/core/kcorestructs.h"
+#include "Kite/ecs/kecsstructs.h"
 #include "Kite/meta/kmetadef.h"
-#include "Kite/ecs/knode.h"
 #include "ksystem.khgen.h"
+#include "ktypes.khgen.h"
+#include <initializer_list>
+#include <vector>
+#include <string>
 
 KMETA
 namespace Kite {
+	class KNode;
+	class KComponent;
+	struct KSysInite;
 	KM_CLASS(SYSTEM, ABSTRACT)
 	class KITE_FUNC_EXPORT KSystem{
-		KMETA_KSYSTEM_BODY();
+		KM_INFO(KI_NAME = "SystemBase");
+		KSYSTEM_BODY();
 	public:
+		/// interest components and interfaces
 		KSystem();
+		KSystem(const KSystem &Copy) = delete;
+		KSystem &operator=(const KSystem &Right) = delete;
 
 		virtual ~KSystem();
 
-		// delta is based seconds
-		virtual bool update(F64 Delta, KNode *Scene) = 0;
+		/// will be implemented by KHParser
+		KM_PRO_GET(KP_NAME = "drivedType", KP_TYPE = stypes, KP_CM = "type of the drived system")
+		virtual inline System getDrivedType() const = 0;
 
-		virtual bool inite(KSysInite *IniteData) = 0;
+		/// will be implemented by KHParser
+		KM_PRO_GET(KP_NAME = "typeName", KP_TYPE = std::string, KP_CM = "name of the system's type")
+		virtual inline const std::string &getTypeName() const = 0;
 
-		virtual void destroy() = 0;
+		virtual void reset(KNode *Hierarchy, KSysInite *Data) = 0;
 
-		inline bool isInite() const { return _kisinite; }
+		/// delta is based seconds
+		virtual bool update(F64 Delta) = 0;
 
-	protected:
-		inline void setInite(bool Inite) { _kisinite = Inite; }
+		virtual void nodeAdded(KNode *Node) = 0;
 
-	private:
-		bool _kisinite;
+		virtual void nodeRemoved(KNode *Node) = 0;
+
+		virtual void componentAdded(KComponent *Component) = 0;
+
+		virtual void componentRemoved(KComponent * Component) = 0;
 	};
 }
 

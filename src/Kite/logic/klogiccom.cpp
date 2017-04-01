@@ -18,10 +18,12 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 USA
 */
 #include "Kite/logic/klogiccom.h"
-#include "Kite/logic/kreglogiccom.h"
+#include "Kite/logic/klogicsys.h"
+#include "Kite/logic/kscript.h"
 #include "Kite/meta/kmetamanager.h"
 #include "Kite/meta/kmetaclass.h"
 #include "Kite/meta/kmetatypes.h"
+#include "Kite/ecs/knode.h"
 #include "Kite/ecs/kresourcemanager.h"
 #include "Kite/serialization/types/kstdstring.h"
 #include <luaintf/LuaIntf.h>
@@ -30,92 +32,35 @@ USA
 #endif
 
 namespace Kite {
-	KLogicCom::KLogicCom(const std::string &Name) :
-		KComponent(Name),
-		_klstate(nullptr)
-	{
-		addDependency(CTypes::RegisterLogic);
+	void KLogicCom::inite() {
+		_ksys = nullptr;
+		_klid = 0;
 	}
 
-	void KLogicCom::attached(KEntity *Entity) {
-		_ktname = Entity->getLuaTName();
+	void KLogicCom::attached() {}
 
-		// entity manager will not create 'register components' on deserial because they are removed by systems after registration phase
-		// so we will add it at runtime
-		if (!Entity->hasComponentType(CTypes::RegisterLogic)) {
-			Entity->addComponent(CTypes::RegisterLogic);
-		}
+	void KLogicCom::deattached() {}
 
-		// add to inite list for initialization
-		auto regCom = (KRegLogicCom *)Entity->getComponent(CTypes::RegisterLogic);
-		regCom->addToIniteList(getHandle());
-	}
-
-	void KLogicCom::deattached(KEntity *Entity) {
-		removeLuaEnv();
-	}
-
-	RecieveTypes KLogicCom::onMessage(KMessage *Message, MessageScope Scope) {
-		if (_klstate != nullptr) {
-			LuaIntf::LuaRef lref(_klstate, "_G.hooks.postDirect");
-			if (lref.isFunction()) {
-#ifdef KITE_DEV_DEBUG
-				try {
-					lref(Message->getType(), getHandle(), Message);
-				} catch (std::exception& e) {
-					KD_FPRINT("hooks.postDirect function failed. %s", e.what());
-					return RecieveTypes::IGNORED;
-				}
-#else
-				lref(Message->getType(), getHandle(), Message);
-#endif
-				return RecieveTypes::RECEIVED;
-			}
-		}
-		return RecieveTypes::IGNORED;
-	}
-
-	void KLogicCom::setScript(const KStringID &ResName) {
-		if (ResName.hash != _kscriptName.hash) {
-			removeLuaEnv();
-			_kscriptName = ResName;
-			resNeedUpdate();
-		}
-	}
-
-	void KLogicCom::removeLuaEnv() {
-		const std::string ctable = "_G.ENT." + _ktname;
-		if (_klstate != nullptr) {
-			// unhook
-			LuaIntf::LuaRef hooks(_klstate, "_G.hooks.unsubscribe");
-			hooks(getHandle());
-
-			// remove environment table from lua
-			LuaIntf::LuaRef lref(_klstate, ctable.c_str());
-			if (lref.isTable()) {
-				lref.remove(this->getName().c_str());
+	void KLogicCom::setScript(const KSharedResource &Script) {
+		if (_kscript != Script) {
+			_kscript = Script;
+			if (getOwnerNode()->isOnActiveHierarchy()) {
+				(_ksys->*_kreloadScriptCallb)(this);
 			}
 		}
 	}
 
-	bool KLogicCom::updateRes() {
-		if (!getResNeedUpdate()) {
-			return true;
+	int KLogicCom::getTable(lua_State *L){
+		if (getOwnerNode()->isOnActiveHierarchy()) {
+			auto table = LuaIntf::LuaRef::globals(L).get("coms").get(getTableIndex());
+			LuaIntf::Lua::push(L, table);
+			return 1;
 		}
-
-		// load resources
-		if (getRMan()) {
-			_kscript = (KScript *)getRMan()->get(_kscriptName.str);
-			resUpdated();
-			return true;
-		}
-
-		return false;
+		
+		KD_FPRINT("owner node of this component is not active: component name: %s", getName().c_str());
+		LuaIntf::Lua::push(L, nullptr);
+		return 1;
 	}
 
-	void KLogicCom::setLuaState(lua_State *L) {
-		_klstate = L;
-	}
-
-	KMETA_KLOGICCOM_SOURCE();
+	KLOGICCOM_SOURCE();
 }

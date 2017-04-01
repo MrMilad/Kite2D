@@ -23,7 +23,7 @@
 /*! \file ktexture.h */
 
 #include "Kite/core/kcoredef.h"
-#include "Kite/core/kresource.h"
+#include "Kite/ecs/kresource.h"
 #include "Kite/meta/kmetadef.h"
 #include "Kite/math/kmathstructs.h"
 #include "Kite/graphic/kgraphictypes.h"
@@ -46,15 +46,17 @@ namespace Kite{
 	KM_CLASS(RESOURCE)
     class KITE_FUNC_EXPORT KTexture : public KResource{
 		KM_INFO(KI_NAME = "Texture");
-		KMETA_KTEXTURE_BODY();
+		KTEXTURE_BODY();
     public:
 
 		//! Constructs an 1x1 texture object.
-		KM_CON(std::string)
-        KTexture(const std::string &Name);
+        KTexture(const std::string &Name, const std::string &Address);
 
 		//! Destructor
         ~KTexture();
+
+		KM_FUN()
+		bool saveStream(KOStream &Stream, const std::string &Address) override;
 
 		//! Create a blank texture with the specific size, filter and wrap
 		/*!
@@ -80,8 +82,6 @@ namespace Kite{
 
 		KM_FUN()
 		void getImage(KImage &ImageOutput) const;
-
-		bool inite() override;
 
 		//! Update whole or piece of texture with an image
 		/*!
@@ -162,8 +162,7 @@ namespace Kite{
 		static void unbindTexture();
 
     private:
-		bool _saveStream(KOStream &Stream, const std::string &Address) override;
-		bool _loadStream(KIStream &Stream, const std::string &Address) override;
+		bool _loadStream(std::unique_ptr<KIStream> Stream, KResourceManager *RManager) override;
 
 		//! create the texture (opengl)
         static void _create(const U8 *Data, const KVector2U32 &Size,

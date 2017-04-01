@@ -30,8 +30,8 @@ KMETA
 namespace Kite{
 	KM_CLASS(ISTREAM, SCRIPTABLE)
 	class KITE_FUNC_EXPORT KFIStream : public KIStream{
-		KM_INFO(KI_NAME = "FIStream");
-		KMETA_KFISTREAM_BODY();
+		KM_INFO(KI_NAME = "FileInStream");
+		KFISTREAM_BODY();
 	public:
 		KM_CON()
 		KFIStream();

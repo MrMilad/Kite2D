@@ -32,12 +32,14 @@ KMETA
 namespace Kite{
 	KM_CLASS(POD)
     struct KWindowState{
-		KMETA_KWINDOWSTATE_BODY();
+		KM_INFO(KI_NAME = "WindowState");
+		KWINDOWSTATE_BODY();
 
         KM_VAR() std::string title;
 		KM_VAR() U8 oglMajor;
 		KM_VAR() U8 oglMinor;
 		KM_VAR() U8 swapInterval;
+		KM_VAR() U16 maxFPS;
 		KM_VAR() I32 width;
 		KM_VAR() I32 height;
 		KM_VAR() I32 xpos;
@@ -45,28 +47,31 @@ namespace Kite{
 		KM_VAR() bool showCursor;
 		KM_VAR() bool fullscreen;
 		KM_VAR() bool resizable;
+		KM_VAR() bool fixFPS;
 
 		KM_CON()
-		KWindowState(const std::string &Title = "Kite2D Window!",
-					 I32 Width = 600, I32 Height = 400,
-					 I32 XPosition = 50, I32 YPosition = 50,
-					 bool ShowCursor = true, bool Fullscreen = false,
-					 bool Resizable = false,
-					 U8 SwapInterval = 0,								// Vsync is disabled by default
-					 U8 OGLMajorVer = 3, U8 OGLMinorVer = 3):			// minimum version is 3.3):
+			KWindowState(const std::string &Title = "Kite2D Window!",
+				I32 Width = 600, I32 Height = 400,
+				I32 XPosition = 50, I32 YPosition = 50,
+				bool ShowCursor = true, bool Fullscreen = false,
+				bool Resizable = false, bool FixFPS = false,		
+				U16 MaxFPS = 60,									// will be ignored if FixFPS disabled
+				U8 SwapInterval = 1,								// Vsync is enabled by default
+				U8 OGLMajorVer = 3, U8 OGLMinorVer = 3):			// minimum version is 3.3):
             title(Title),
             oglMajor(OGLMajorVer), oglMinor(OGLMinorVer),
-            swapInterval(SwapInterval),
+            swapInterval(SwapInterval), maxFPS(MaxFPS),
             width(Width), height(Height),
             xpos(XPosition), ypos(YPosition),
             showCursor(ShowCursor), fullscreen(Fullscreen),
-            resizable(Resizable)
+            resizable(Resizable), fixFPS(FixFPS)
         {}
-    };
+	};
 
 	KM_CLASS(POD)
     struct KEnumDisplay{
-		KMETA_KENUMDISPLAY_BODY();
+		KM_INFO(KI_NAME = "EnumDisplay");
+		KENUMDISPLAY_BODY();
 
 		KM_VAR() I32 width;
 		KM_VAR() I32 height;

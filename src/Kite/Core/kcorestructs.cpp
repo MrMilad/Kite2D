@@ -40,11 +40,21 @@ namespace Kite {
 		str.clear();
 		hash = 0;
 	}
-	KMETA_KSTRINGID_SOURCE();
+	KSTRINGID_SOURCE();
+
+	KBitset::KBitset(U32 Size, bool Value):
+		_kall(Value), _kany(Value), _knone(!Value),
+		_kcount(Size)
+	{
+		if (Value) {
+			_kvalue.insert(_kvalue.begin(), Size, '1');
+		} else {
+			_kvalue.insert(_kvalue.begin(), Size, '0');
+		}
+	}
 
 	KBitset::KBitset(U32 Size, const std::string &Value) :
-		_kall(false), _kany(false), _knone(true),
-		_kcount(0), _kvalue(Size, '0') 
+		_kall(false), _kany(false), _knone(true)
 	{
 		SIZE size = Size;
 		if (Value.size() < size) size = Value.size();
@@ -143,6 +153,7 @@ namespace Kite {
 			}
 
 			proc();
+			return;
 		}
 
 		KD_PRINT("bit position is out of range");
@@ -162,6 +173,7 @@ namespace Kite {
 			U8 v = *(_kvalue.rbegin() + Pos) - '0';
 			*(_kvalue.rbegin() + Pos) = (!v) + '0';
 			proc();
+			return;
 		}
 
 		KD_PRINT("bit position is out of range");
@@ -189,5 +201,5 @@ namespace Kite {
 			_knone = false;
 		}
 	}
-	KMETA_KBITSET_SOURCE();
+	KBITSET_SOURCE();
 }

@@ -20,33 +20,5 @@ USA
 #include "Kite/core/kcoredef.h"
 
 namespace Kite {
-#if defined(KITE_EDITOR) && defined(KITE_DEV_DEBUG)
-	printCallback pcallback = &defaultPrint;
-	char buffer[500];
 
-	void defaultPrint(const std::string &Text, msgType MType) {
-		switch (MType) {
-		case Kite::msgType::MSG_DEBUG:
-			printf("DEBUG: %s\n", Text.c_str());
-			break;
-		case Kite::msgType::MSG_ASSERT:
-			printf("ASSERT: %s\n", Text.c_str());
-			break;
-		case Kite::msgType::MSG_BREAK:
-			printf("BREAK: %s\n", Text.c_str());
-			break;
-		case Kite::msgType::MSG_LUA:
-			printf("LUA: %s\n", Text.c_str());
-			break;
-		default:
-			printf("%s\n", Text.c_str());
-			break;
-		}
-		
-	}
-
-	void setEditorPrintCallback(printCallback Callback) {
-		pcallback = Callback;
-	}
-#endif
 }

@@ -29,52 +29,13 @@ USA
 #include <memory>
 
 namespace Kite {
-	KResourceManager::KResourceManager(){
-		// initialize factory array
-		initeFactory();
-
-		// register resource types and stream types
-		registerRTypes(this);
-	}
+	KResourceManager::rFactory const KResourceManager::_krfactory[(U16)Resource::maxSize]{ RESOURCE_FACTORY };
+	KResourceManager::isFactory const KResourceManager::_ksfactory[(U16)InStream::maxSize]{ ISTREAM_FACTORY };
 
 	KResourceManager::~KResourceManager(){
 		if (!_kmap.empty()) {
 			KD_PRINT("call clear() before destroing resource manager.");
 		}
-	}
-
-	void KResourceManager::initeFactory() {
-		for (SIZE i = 0; i < (SIZE)RTypes::maxSize; ++i) {
-			_krfactory[i] = nullptr;
-		}
-
-		for (SIZE i = 0; i < (SIZE)IStreamTypes::maxSize; ++i) {
-			_ksfactory[i] = nullptr;
-		}
-	}
-
-	void KResourceManager::registerIStream(IStreamTypes Type, KIStream *(*Func)()) {
-		auto index = (SIZE)Type;
-
-		// check type
-		if (_ksfactory[index] != nullptr) {
-			KD_FPRINT("this input stream type has already been registered. type name: %s", getIStreamTypesName(Type).c_str());
-			return;
-		}
-
-		_ksfactory[index] = Func;
-	}
-
-	void KResourceManager::registerResource(RTypes Type, KResource *(*Func)(const std::string &, const std::string &)) {
-		auto index = (SIZE)Type;
-
-		// check type
-		if (_krfactory[index] != nullptr) {
-			KD_FPRINT("this type has already been registered. type name: %s", getRTypesName(Type).c_str());
-			return;
-		}
-
-		_krfactory[index] = Func;
 	}
 
 	KSharedResource KResourceManager::load(const std::string &Name) {
@@ -98,13 +59,13 @@ namespace Kite {
 
 		// else load it and return
 		// create new resource and associated input stream
-		auto stream = _ksfactory[(SIZE)found->second.stype]();
+		auto stream = _ksfactory[(U16)found->second.stype]();
 		if (stream == nullptr) {
-			KD_FPRINT("can't create stream. stream type: %s", getIStreamTypesName(found->second.stype).c_str());
+			KD_FPRINT("can't create stream. stream type: %s", getInStreamName(found->second.stype).c_str());
 			return KSharedResource(nullptr);
 		}
 
-		KResource *resource = _krfactory[(SIZE)found->second.rtype](Name, found->second.address);
+		KResource *resource = _krfactory[(U16)found->second.rtype](Name, found->second.address);
 
 		// loading resource
 		if (!resource->_loadStream(std::unique_ptr<KIStream>(stream), this)) {
@@ -116,16 +77,10 @@ namespace Kite {
 		// insert resource to map
 		found->second.res = new KSharedResource(resource);
 
-		// post a message about new resource
-		KMessage msg;
-		msg.setType("onResLoad");
-		msg.setData((void *)Name.c_str(), Name.size());
-		postMessage(&msg, MessageScope::ALL);
-
 		return *found->second.res;
 	}
 
-	bool KResourceManager::registerName(const std::string &Name, const std::string &Address, RTypes RType, IStreamTypes SType) {
+	bool KResourceManager::registerName(const std::string &Name, const std::string &Address, Resource RType, InStream SType) {
 		if (Name.empty() || Address.empty()) {
 			KD_PRINT("empty name or addrss.");
 			return false;
@@ -167,17 +122,11 @@ namespace Kite {
 			if (found->second.res != nullptr) {
 				delete found->second.res;
 				found->second.res = nullptr;
-
-				// send msg about it befor actually unload it
-				KMessage msg;
-				msg.setType("onResUnloaded");
-				msg.setData((void *)Name.c_str(), Name.size());
-				postMessage(&msg, MessageScope::ALL);
 			}
 		}
 	}
 
-	void KResourceManager::forceUnload(const std::string &Name) {
+	/*void KResourceManager::forceUnload(const std::string &Name) {
 		// checking file name
 		if (Name.empty()) {
 			KD_PRINT("empty resource name.");
@@ -191,15 +140,9 @@ namespace Kite {
 				found->second.res->expire();
 				delete found->second.res;
 				found->second.res = nullptr;
-
-				// send msg about it befor actually unload it
-				KMessage msg;
-				msg.setType("onResForceUnloaded");
-				msg.setData((void *)Name.c_str(), Name.size());
-				postMessage(&msg, MessageScope::ALL);
 			}
 		}
-	}
+	}*/
 
 	void KResourceManager::dump(std::vector<KResourceInfo> &Output)const {
 		Output.clear();
@@ -207,7 +150,7 @@ namespace Kite {
 
 		for (auto it = _kmap.cbegin(); it != _kmap.cend(); ++it) {	
 			if (it->second.res != nullptr) {
-				Output.push_back(KResourceInfo(it->second.res->operator->()->getName(),
+				Output.push_back(KResourceInfo(it->second.res->operator->()->getResourceName(),
 											   it->second.address, it->second.rtype, it->second.stype));
 			}
 		}
@@ -248,8 +191,8 @@ namespace Kite {
 
 		std::string name;
 		std::string address;
-		RTypes rtype;
-		IStreamTypes stype;
+		Resource rtype;
+		InStream stype;
 		for (SIZE i = 0; i < size; ++i) {
 			bserial >> name;
 			bserial >> address;
@@ -265,13 +208,7 @@ namespace Kite {
 
 	void KResourceManager::clear() {
 		for (auto it = _kmap.begin(); it != _kmap.end(); ++it) {
-			// post a message about unloaded resource
 			if (it->second.res != nullptr) {
-				KMessage msg;
-				msg.setType("onResUnload");
-				msg.setData((void *)it->second.res, sizeof(it->second.res));
-				postMessage(&msg, MessageScope::ALL);
-
 				delete it->second.res;
 			}
 		}
@@ -280,58 +217,5 @@ namespace Kite {
 		_kmap.clear();
 	}
 
-	KMETA_KRESOURCEMANAGER_SOURCE();
-
-	ED_STATIC memory::memory_pool<> KSharedResource::_kpool(sizeof(KSharedResource::dynamic), KSHAREDRES_MEM_CHUNK * sizeof(KSharedResource::dynamic));
-	KSharedResource::KSharedResource() :
-		_kdata(new(_kpool.allocate_node()) KSharedResource::dynamic(nullptr))
-	{}
-
-	KSharedResource::KSharedResource(KResource *p):
-		_kdata(new(_kpool.allocate_node()) KSharedResource::dynamic(p))
-	{}
-
-	KSharedResource::KSharedResource(const KSharedResource& other)
-		: _kdata(other._kdata) 
-	{
-		++_kdata->ref;
-	}
-
-	KSharedResource::~KSharedResource() {
-		clear();
-	}
-
-	KSharedResource &KSharedResource::operator=(const KSharedResource& other) {
-		if (this != &other) {
-			clear();
-
-			_kdata = other._kdata;
-			++_kdata->ref;
-		}
-		return *this;
-	}
-
-	KResource *KSharedResource::operator->() {
-		if (_kdata->expired) return nullptr;
-		return _kdata->ptr;
-	}
-
-	const KResource *KSharedResource::operator->() const {
-		if (_kdata->expired) return nullptr;
-		return _kdata->ptr;
-	}
-
-	void KSharedResource::clear() {
-		if (!--_kdata->ref) {
-			_kpool.deallocate_node(_kdata);
-		}
-	}
-
-	void KSharedResource::expire() {
-		delete _kdata->ptr;
-		_kdata->ptr = nullptr;
-		_kdata->expired = true;
-	}
-
-	KMETA_KSHAREDRESOURCE_SOURCE();
+	KRESOURCEMANAGER_SOURCE();
 }

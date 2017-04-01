@@ -3,7 +3,6 @@ set(SRCROOT ${PROJECT_SOURCE_DIR}/src/Kite/meta)
 
 # all source files
 set(MET_SRC
-    ${PROJECT_SOURCE_DIR}/include/kitemeta/kmeta.khgen.cpp
     ${PROJECT_SOURCE_DIR}/include/kitemeta/ktypes.khgen.cpp
     ${SRCROOT}/kmetaclass.cpp
     ${SRCROOT}/kmetaenum.cpp

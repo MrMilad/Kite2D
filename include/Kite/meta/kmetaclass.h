@@ -34,14 +34,14 @@ namespace Kite {
 		std::string typeName;		//!< Name of property type
 		std::string comment;		//!< A Short comment about the property
 		bool show;					//!< Show property in property editor (true by default)
-		RTypes resType;				//!< Type of inpu resource
+		Resource resType;			//!< Type of inpu resource
 		I32 min;					//!< Minimum value of the property
 		I32 max;					//!< Maximum value of the property
 		KMetaPropertyTypes type;	//!< Available properties
 
 		KMetaProperty(const std::string &Name, const std::string &TypeName,
 					  const std::string &Comment, bool Show, KMetaPropertyTypes Type,
-					  I32 Min, I32 Max, RTypes ResType) :
+					  I32 Min, I32 Max, Resource ResType) :
 			name(Name), typeName(TypeName), comment(Comment),
 			show(Show), type(Type), min(Min), max(Max),
 			resType(ResType){}

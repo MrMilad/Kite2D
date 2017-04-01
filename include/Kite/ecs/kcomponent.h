@@ -24,8 +24,6 @@ USA
 #include "Kite/core/kany.h"
 #include "Kite/ecs/kecstypes.h"
 #include "Kite/ecs/kecsstructs.h"
-#include "Kite/ecs/klistener.h"
-#include "Kite/ecs/kmessenger.h"
 #include "Kite/meta/kmetadef.h"
 #include "Kite/serialization/kserialization.h"
 #include <string>
@@ -39,7 +37,8 @@ namespace Kite {
 	class KNode;
 	class KResourceManager;
 	KM_CLASS(COMPONENT, ABSTRACT)
-	class KITE_FUNC_EXPORT KComponent : public KListener{
+	class KITE_FUNC_EXPORT KComponent{
+		KM_INFO(KI_NAME = "ComponentBase");
 		friend class KNode;
 	public:
 		/// KI_NAME = component name (unique string)
@@ -54,14 +53,14 @@ namespace Kite {
 		//KComponent &operator=(const KComponent &Right); // we cant override this function because cfstorage use it for removing components
 
 		/// will be implemented by KHParser
-		virtual const std::vector<CTypes> &getDrivedDepList() const = 0;
+		virtual const std::vector<Component> &getDrivedDepList() const = 0;
 
 		/// will be implemented by KHParser
-		virtual const std::vector<ITypes> &getDrivedIntList() const = 0;
+		virtual const std::vector<Interface> &getDrivedIntList() const = 0;
 
 		/// will be implemented by KHParser
-		KM_PRO_GET(KP_NAME = "drivedType", KP_TYPE = KCTypes, KP_CM = "type of the drived component")
-		virtual inline CTypes getDrivedType() const = 0;
+		KM_PRO_GET(KP_NAME = "drivedType", KP_TYPE = Component, KP_CM = "type of the drived component")
+		virtual inline Component getDrivedType() const = 0;
 
 		/// will be implemented by KHParser
 		KM_PRO_GET(KP_NAME = "typeName", KP_TYPE = std::string, KP_CM = "name of the cmponent's type")
@@ -70,14 +69,8 @@ namespace Kite {
 		KM_PRO_GET(KP_NAME = "name", KP_TYPE = std::string, KP_CM = "name of the component")
 		inline const std::string &getName() const { return _kname; }
 
-		KM_PRO_GET(KP_NAME = "handle", KP_TYPE = KHandle, KP_CM = "component handle")
-		inline const KHandle &getHandle() const { return _khandle; }
-
 		KM_PRO_GET(KP_NAME = "ownerNode", KP_TYPE = KNode, KP_CM = "owner node")
 		inline KNode *getOwnerNode() const { return _kownerNode; }
-
-		KM_PRO_GET(KP_NAME = "lsitener", KP_TYPE = KListener, KP_CM = "cmponent message listener")
-		inline KListener &getListener() { return *(KListener *)this; }
 
 		KM_PRO_GET(KP_NAME = "depCount", KP_TYPE = U16, KP_CM = "dependency ref-counter")
 		inline U16 getDepCounter() const { return _krefcounter; }
@@ -91,9 +84,12 @@ namespace Kite {
 		inline void setData(void *Ptr) { sceneData = Ptr; }
 		inline void *getData() const { return sceneData; }
 #endif
-		KMETA_KCOMPONENT_BODY();
+		KCOMPONENT_BODY();
 
 	protected:
+		/// will be called on construct
+		virtual void inite() = 0;
+
 		/// will be called when atached to a node
 		virtual void attached() = 0;
 
@@ -102,7 +98,7 @@ namespace Kite {
 		
 		/// will be implemented by KHParser
 		/// usage: access base members in lua
-		virtual KComponent *getBase() const = 0;
+		//virtual KComponent *getBase() const = 0;
 
 		/// will be implemented by KHParser
 		/// this function will be called only once (after deserialization)
@@ -115,10 +111,9 @@ namespace Kite {
 
 	private:
 		KM_VAR() std::string _kname;
-		KM_VAR() KHandle _khandle;
+		KM_VAR() I16 _krefcounter;		// dependency ref counter
 
 		// runtime variables
-		I16 _krefcounter;		// dependency ref counter
 		KNode *_kownerNode;
 
 #ifdef KITE_EDITOR

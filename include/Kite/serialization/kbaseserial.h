@@ -31,7 +31,8 @@ KMETA
 namespace Kite {
 	KM_CLASS(ABSTRACT, SERIALIZER)
 	class KITE_FUNC_EXPORT KBaseSerial {
-		KMETA_KBASESERIAL_BODY();
+		KM_INFO(KI_NAME = "BaseSerial")
+		KBASESERIAL_BODY();
 	public:
 		KBaseSerial();
 		virtual ~KBaseSerial();

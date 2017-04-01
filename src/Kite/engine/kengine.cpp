@@ -18,129 +18,212 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 USA
 */
 #include "Kite/engine/kengine.h"
-#include "kmeta.khgen.h"
-#include <algorithm>
-#include "src/Kite/window/sdlcall.h"
+#include "Kite/engine/kenginedef.h"
 #include "Kite/serialization/kserialization.h"
 #include "Kite/serialization/types/kstdstring.h"
+#include "Kite/input/kinput.h"
+#include "kmeta.khgen.h"
+#include "src/Kite/window/sdlcall.h"
 #include <luaintf\LuaIntf.h>
+#include <algorithm>
 #include <chrono>
+#include <thread>
 
 namespace Kite {
-	KMETA_KCONFIG_SOURCE();
-
-	bool KEngine::deleted = true;
-	KEngine *KEngine::instance = nullptr;
-
-	KEngine *KEngine::createEngine() {
-		if (deleted) {
-			instance = new KEngine;
-			deleted = false;
-		}
-		return instance;
-	}
-
-	KEngine::KEngine() :
+	KEngine::KEngine(const KConfig &Config) :
 		 _klstate(nullptr), _kwindow(nullptr),
-		_kmman(nullptr), _krman(nullptr), _kinite (false) 
+		_krman(nullptr), _kinite(false), _kneedSwap(false)
 	{
-#if defined(KITE_EDITOR) && defined (KITE_DEV_DEBUG)
-		exitFlag = false;
-		pauseFlag = false;
-#endif
-	}
+		_kconfig = Config;
+		_kinite = true;
 
-	KEngine::~KEngine() {
-		deleted = true;
-	}
-
-	bool KEngine::inite(const KConfig *Config, bool IniteMeta) {
-		if (!Config) return false;
-		_kconfig = *Config;
-		// inite lua vm
-		_klstate = luaL_newstate();
-		static const luaL_Reg lualibs[] =
-		{
-			{ "base", luaopen_base },
-			{ "string", luaopen_string },
-			{ NULL, NULL }
-		};
-
-		const luaL_Reg *lib = lualibs;
-		for (; lib->func != NULL; lib++) {
-			lib->func(_klstate);
-			lua_settop(_klstate, 0);
-		}
-
-		// redirect lua print output into editor
-#if defined(KITE_EDITOR) && defined (KITE_DEV_DEBUG)
-		LuaIntf::LuaRef lprint(_klstate, "_G");
-		lprint["print"] = luaCustomPrint;
-#endif
-
-		// inite Kite2D ResourceManager, MetaManager
-		if (IniteMeta) {
-			_kmman = new KMetaManager();
-		}
-
+		// resource manager
 		_krman = new KResourceManager();
-		registerKiteMeta(_kmman, _klstate); // _kmman can be passed as nullptr
 
-		// create systems
-		createSystems(_ksys);
-
-		// sort systems by priority
-		for (auto it = _ksys.begin(); it != _ksys.end(); ++it) {
-			// first
-			if ((*it)->getClassName() == "KInputSys") {
-				std::iter_swap(it, _ksys.begin());
-
-			// second
-			}else if ((*it)->getClassName() == "KLogicSys") {
-					std::iter_swap(it, _ksys.begin() + 1);
-
-			// last
-			} else if ((*it)->getClassName() == "KRenderSys") {
-				std::iter_swap(it, --_ksys.end());
-			}
-		}
-
-		// inite gl window
+		// window
 		Internal::initeSDL();
 		_kwindow = new KGLWindow(_kconfig.window);
 		_kwindow->open(); // we have to open the window for initialize glew
 
-		// inite systems (glew must initialize in render system)
-		for (auto it = _ksys.begin(); it != _ksys.end(); ++it) {
-			(*it)->inite((void *)this);
-		}
-
-		// inite input (Mouse, Keyboard)
-		// joystick will initilized automatically
+		// input (Mouse, Keyboard)
+		// joysticks will initilized automatically
 		KKeyboard::initeKeyboard();
 		KMouse::initeMouse();
 
+		// create systems
+		_ksysInite.lstate = nullptr;
+		_ksysInite.window = _kwindow;
+		if (_kconfig.window.fixFPS) { _kmaxMilli = 1000 / _kconfig.window.maxFPS; }
+
+		CREATE_SYSTEMS(_ksys);
+
+		// sort systems by priority
+		for (U16 i = 0; i < (U16)System::maxSize; ++i) {
+			_ksysOrder[i] = (System)i;
+			// first
+			if ((System)i == System::INPUTSYSTEM) {
+				auto temp = _ksysOrder[0];
+				_ksysOrder[0] = System::INPUTSYSTEM;
+				if (i != 0){ _ksysOrder[i] = temp; }
+
+			// second
+			} else if ((System)i == System::LOGICSYSTEM) {
+				auto temp = _ksysOrder[1];
+				_ksysOrder[1] = System::LOGICSYSTEM;
+				if (i != 1) { _ksysOrder[i] = temp; }
+				
+			// last
+			}/* else if ((stypes)i == stypes::Render) {
+				auto temp = _ksysOrder[(U16)stypes::maxSize];
+				_ksysOrder[(U16)stypes::maxSize - 1] = stypes::Render;
+				if (i != (U16)stypes::maxSize - 1) { _ksysOrder[i] = temp; }
+			}*/
+		}
+
 		// load dictionary
-		if (!_kconfig.ecs.dictionary.empty()) {
+		if (!_kconfig.start.dictionary.empty()) {
 			KFIStream stream;
-			if (!_krman->loadDictionary(stream, _kconfig.dictionary)) {
-				return false;
+			if (!_krman->loadDictionary(stream, _kconfig.start.dictionary)) {
+				_kinite = false;
+				throw std::string("can't load dictinary. name: " + _kconfig.start.dictionary);
 			}
 		}
 
 		// load and set startUp scene
-		if (!_kconfig.ecs.startupNode.empty()) {
-			if (!_ksman->loadScene(_kconfig.startUpScene)) {
-				KD_FPRINT("can't load startrUp scene. sname: %s", _kconfig.startUpScene.c_str());
-				return false;
+		if (!_kconfig.start.startupNode.empty()) {
+			setActiveHierarchy(_krman->load(_kconfig.start.startupNode));
+		}
+	}
+
+	KEngine::~KEngine() {
+		// free active hierarchy
+		if (_kcurHierarchy) {
+			auto node = static_cast<KNode *>(_kcurHierarchy.get());
+			node->onActivate(nullptr);
+			_kcurHierarchy = KSharedResource();
+		}
+		
+
+		// destroy systems
+		// graphic system should destroy before closing window
+		for (auto it = _ksys.begin(); it != _ksys.end(); ++it) {
+			if ((*it)) {
+				delete (*it);
 			}
+		}
 
-			_ksman->setActiveScene(_ksman->getScene(_kconfig.startUpScene));
-		}// else {use default K2D scene}
+		// resource manager
+		if (_krman) {
+			_krman->clear();
+			delete _krman;
+		}
 
-		_keman = _ksman->getActiveScene()->getEManager();
-		_kinite = true;
+		// window
+		if (_kwindow) {
+			if (_kwindow->isOpen()) {
+				_kwindow->close();
+			}
+			delete _kwindow;
+		}
+
+		// close lua state
+		// lua state should close after destroing systems
+		if (_klstate) {
+			lua_close(_klstate);
+		}
+
+		Internal::destroySDL();
+	}
+
+	bool KEngine::setActiveHierarchy(const KSharedResource &Hierarchy) {
+		if (!_kinite) {
+			KD_PRINT("engine not initialized.");
+			return false;
+		}
+
+		if (!Hierarchy || Hierarchy == _kcurHierarchy) {
+			KD_PRINT("empty or equal hierarchy entered.");
+			return false;
+		}
+
+		if (Hierarchy->getDrivedType() != Resource::NODE) {
+			KD_PRINT("incorrect resource type.");
+			return false;
+		}
+
+		_kneedSwap = true;
+		_knewHierarchy = Hierarchy;
 		return true;
+	}
+
+
+	void KEngine::swapHierarchy() {
+
+		// deactive current hierarchy
+		if (_kcurHierarchy) {
+			auto node = static_cast<KNode *>(&(*_kcurHierarchy));
+			node->onActivate(nullptr);
+		}
+
+		// we cant close lua current state here before reseting systems
+		// so we save current state for close it later and create a new one
+		lua_State *temp = nullptr;
+		if (_klstate) {
+			temp = _klstate;
+		}
+
+		// create a new state
+		loadLuaState();
+
+		// active new hierarchy
+		_kcurHierarchy = _knewHierarchy;
+		auto node = static_cast<KNode *>(&(*_kcurHierarchy));
+		node->onActivate(&_ksys);
+
+		// release new hierarchy
+		_knewHierarchy = KSharedResource();
+		_kneedSwap = false;
+
+		// reset systems
+		for (U16 i = 0; i < (U16)System::maxSize; ++i) {
+			_ksys[(U16)_ksysOrder[i]]->reset(node, &_ksysInite);
+		}
+
+		// close old lua state
+		if (temp) {
+			lua_close(temp);
+		}
+	}
+
+	void KEngine::loadLuaState() {
+		_klstate = luaL_newstate();
+		luaopen_base(_klstate);
+		luaopen_math(_klstate);
+		luaopen_string(_klstate);
+
+		// bind kite
+		LUA_BIND(_klstate);
+
+		// bind engine
+		LuaIntf::LuaBinding(_klstate).beginModule("kite").beginClass<KEngine>("kengine")
+			.addPropertyReadOnly("Window", &KEngine::getWindow)
+			.addPropertyReadOnly("Manager", &KEngine::getResourceManager)
+			.addFunction("switchActiveHierarchy", &KEngine::setActiveHierarchy)
+			.addFunction("getSystem", &KEngine::getSystem)
+			.endClass().endModule();
+
+		// implement events system and kite table
+		const std::string code(KLUA_EVENTS);
+		if (luaL_dostring(_klstate, code.c_str()) != 0) {
+			_kinite = false;
+			const char *out = lua_tostring(_klstate, -1);
+			lua_pop(_klstate, 1);
+			throw std::string("lua event system failed:" + std::string(out));
+		}
+
+		// add engine instance to lua
+		LuaIntf::LuaRef::globals(_klstate).get("kite").set("Engine", this);
+		_ksysInite.lstate = _klstate;
 	}
 
 	void KEngine::start() {
@@ -156,16 +239,21 @@ namespace Kite {
 		auto begin_ticks = std::chrono::high_resolution_clock::now();
 
 		while (_kwindow->update()) {
-#if defined(KITE_EDITOR) && defined(KITE_DEV_DEBUG)
-			std::unique_lock<std::mutex> lk(mx);
-			if (pauseFlag.load()) { cv.wait(lk); }
-			if (exitFlag.load()) { break; }
-			std::this_thread::sleep_for(std::chrono::milliseconds(5)); // just for sync with editor
+
+#ifdef KITE_EDITOR
+			// controllin loop with stdin commands from editor
 #endif
-			// inja baiad beine har tavize scene 1 bar nullptr be tamame systema beferestim
-			for (auto it = _ksys.begin(); it != _ksys.end(); ++it) {
-				if (!((*it)->update(delta, _ksman->getActiveScene()->getEManager(), _krman))) {
-					KD_FPRINT("updating systems failed. sname: %s", (*it)->getClassName().c_str());
+			// swap hierarchy if crrent hierarchy changed
+			if (_kneedSwap) { swapHierarchy(); }
+			if (!_kcurHierarchy) {
+				KD_PRINT("there is no active hierarchy");
+				return;
+			}
+
+			// update systems
+			for (U16 i = 0; i < (U16)System::maxSize; ++i) {
+				if (!_ksys[(U16)_ksysOrder[i]]->update(delta)) {
+					KD_FPRINT("updating systems failed. sname: %s", getSystemName(_ksysOrder[i]).c_str());
 					return;
 				}
 			}
@@ -173,71 +261,31 @@ namespace Kite {
 			// display render output
 			_kwindow->display();
 
-			// clear trash list and post works will executed in logic system
-
 			// end ticks
 			auto end_ticks = std::chrono::high_resolution_clock::now();
 
+			// fix maximum fps
+			if (_kconfig.window.fixFPS) {
+				auto checkFrame = std::chrono::duration_cast<std::chrono::milliseconds>(end_ticks - begin_ticks).count();
+
+				if (checkFrame < _kmaxMilli) {
+					std::this_thread::sleep_for(std::chrono::milliseconds(_kmaxMilli - checkFrame));
+					end_ticks = std::chrono::high_resolution_clock::now();
+				}
+			}
+
 			// convert to seconds
 			delta = (F64)std::chrono::duration_cast<std::chrono::milliseconds>(end_ticks - begin_ticks).count() / 1000.0;
+
+			/*static double time = 0;
+			static int fps = 0;
+			time += delta;
+			++fps;
+			if (time >= 1) { printf("fps: %i\n", fps); fps = 0; time = 0; }*/
 
 			// Use end_ticks as the new begin_ticks for next frame
 			begin_ticks = end_ticks;
 		}
 	}
 
-	void KEngine::shutdown() {
-		lua_close(_klstate);
-		_klstate = nullptr;
-
-		// destroy systems
-		// graphic sustem must destroy before closing window
-		for (auto it = _ksys.begin(); it != _ksys.end(); ++it) {
-			it->get()->destroy();
-		}
-		_ksys.clear();
-
-		delete _ksman;
-		_ksman = nullptr;
-
-		delete _kmman;
-		_kmman = nullptr;
-
-		_krman->clear();
-		delete _krman;
-		_krman = nullptr;
-
-		if (_kwindow->isOpen()) {
-			_kwindow->close();
-		}
-
-		delete _kwindow;
-		_kwindow = nullptr;
-
-		Internal::destroySDL();
-	}
-
-#if defined(KITE_EDITOR) && defined(KITE_DEV_DEBUG)
-	int KEngine::luaCustomPrint(lua_State* L) {
-		int nargs = lua_gettop(L);
-
-		std::string str;
-
-		for (int i = 1; i <= nargs; i++) {
-			const char *luaStr = lua_tostring(L, i);
-			if (luaStr != nullptr) {
-				str.append(luaStr);
-				str.append(" ");
-			} else {
-				str.append("<nil> ");
-			}
-		}
-
-		(pcallback)(str, msgType::MSG_LUA);
-
-		return 0;
-	}
-#endif
-
-	KMETA_KENGINE_SOURCE();
 }

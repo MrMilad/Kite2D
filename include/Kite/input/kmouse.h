@@ -31,7 +31,8 @@ KMETA
 namespace Kite{
 	KM_CLASS(SCRIPTABLE)
     class KITE_FUNC_EXPORT KMouse{
-		KMETA_KMOUSE_BODY();
+		KM_INFO(KI_NAME = "mouse");
+		KMOUSE_BODY();
     public:
 		static void initeMouse();
 

@@ -24,7 +24,7 @@
 
 namespace Kite{
 
-enum KAspectRatioTypes{
+enum AspectRatio{
     KAR_4X3,
     KAR_16X9,
     KAR_16X10,
@@ -32,7 +32,7 @@ enum KAspectRatioTypes{
 };
 
 /* Callbacks */
-enum KWindowEventType{
+enum WindowEvent{
 	KWE_SHOWN = 0, // window has been shown
 	KWE_HIDDEN,
 	KWE_EXPOSED,
@@ -50,7 +50,7 @@ enum KWindowEventType{
 	KWE_UNKNOWN
 };
 
-typedef void (*KCallWindowEvent)(KWindowEventType EventType);
+typedef void (*KCallWindowEvent)(WindowEvent EventType);
 
 }
 

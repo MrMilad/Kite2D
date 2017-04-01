@@ -23,29 +23,66 @@ USA
 #include "Kite/meta/kmetaclass.h"
 #include "Kite/meta/kmetatypes.h"
 #include "Kite/math/ktransformcom.h"
+#include "Kite/ecs/knode.h"
 #include <luaintf/LuaIntf.h>
 
 namespace Kite {
 
-	bool KTransformSys::update(F64 Delta, KNode *Scene) {
-		//EDITOR_STATIC const bool isregist = EManager->isRegisteredComponent(CTypes::Transform);
-		/*auto continer = EManager->getComponentStorage<KTransformCom>(CTypes::Transform);
-		for (auto it = continer->begin(); it != continer->end(); ++it) {
-			auto ehandle = it->getOwnerHandle();
-			auto entity = EManager->getEntity(ehandle);
-			if (entity->isActive()) {
-				it->computeMatrix();
+	void KTransformSys::reset(KNode *Hierarchy, KSysInite *IniteData) {
+		// cleanup
+		_kcomList.resize(0);
+
+		// scan new hierarchy
+		scan(Hierarchy->getRoot());
+	}
+
+	bool KTransformSys::update(F64 Delta) {
+		for (auto it = _kcomList.begin(); it != _kcomList.end(); ++it) {
+			if ((*it)->getOwnerNode()->isActive()) {
+				(*it)->computeMatrix();
 			}
-		}*/
+		}
+
 		return true;
 	}
 
-	bool KTransformSys::inite(KSysInite *IniteData) {
-		setInite(true);
-		return true;
+	void KTransformSys::componentAdded(KComponent *Com) {
+		if (Com->getDrivedType() == Component::TRANSFORM) {
+			auto trcom = static_cast<KTransformCom *>(Com);
+			trcom->_ksysIndex = _kcomList.size();
+			_kcomList.push_back(trcom);
+		}
 	}
 
-	void KTransformSys::destroy() { setInite(false); }
+	void KTransformSys::componentRemoved(KComponent *Com) {
+		if (Com->getDrivedType() == Component::TRANSFORM) {
+			auto trcom = static_cast<KTransformCom *>(Com);
 
-	KMETA_KTRANSFORMSYS_SOURCE();
+			// remove (swap methode)
+			_kcomList.back()->_ksysIndex = trcom->_ksysIndex;
+			_kcomList[trcom->_ksysIndex] = _kcomList.back();
+			_kcomList.pop_back();
+		}
+	}
+
+	void KTransformSys::nodeAdded(KNode *Node) {
+		if (Node->hasComponent(Component::TRANSFORM)) {
+			componentAdded(Node->getComponent(Component::TRANSFORM));
+		}
+	}
+
+	void KTransformSys::nodeRemoved(KNode *Node) {
+		if (Node->hasComponent(Component::TRANSFORM)) {
+			componentRemoved(Node->getComponent(Component::TRANSFORM));
+		}
+	}
+
+	void KTransformSys::scan(KNode *Hierarchy) {
+		nodeAdded(Hierarchy);
+		for (auto it = Hierarchy->childList()->begin(); it != Hierarchy->childList()->end(); ++it) {
+			scan((*it));
+		}
+	}
+
+	KTRANSFORMSYS_SOURCE();
 }

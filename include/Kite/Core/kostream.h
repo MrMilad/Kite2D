@@ -31,17 +31,18 @@ KMETA
 namespace Kite {
 	KM_CLASS(ABSTRACT, OSTREAM)
 	class KITE_FUNC_EXPORT KOStream {
-		KMETA_KOSTREAM_BODY();
+		KM_INFO(KI_NAME = "OutStreamBase");
+		KOSTREAM_BODY();
 	public:
 		virtual ~KOStream();
 
 		/// will be implemented by KHParser
-		KM_PRO_GET(KP_NAME = "drivedType", KP_TYPE = OStreamTypes, KP_CM = "type of the drived stream")
-		virtual inline OStreamTypes getDrivedType() const = 0;
+		KM_PRO_GET(KP_NAME = "drivedType", KP_TYPE = OutStream, KP_CM = "type of the drived stream")
+		virtual inline OutStream getDrivedType() const = 0;
 
 		/// will be implemented by KHParser
 		/// usage: access base class in lua
-		virtual KOStream *getBase() const = 0;
+		//virtual KOStream *getBase() const = 0;
 
 		/// will be implemented by KHParser
 		KM_PRO_GET(KP_NAME = "typeName", KP_TYPE = std::string, KP_CM = "type name")
@@ -63,7 +64,6 @@ namespace Kite {
 
 		KM_FUN()
 		virtual void getFileInfoStr(const std::string &Address, KFileInfo &FileInfo) = 0;
-
 
 		KM_FUN()
 		virtual IOMode getIOMode() const = 0;

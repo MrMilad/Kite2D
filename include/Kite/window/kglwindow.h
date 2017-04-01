@@ -33,7 +33,8 @@ KMETA
 namespace Kite{
 	KM_CLASS(SCRIPTABLE)
     class KITE_FUNC_EXPORT KGLWindow{
-		KMETA_KGLWINDOW_BODY();
+		KM_INFO(KI_NAME = "Window");
+		KGLWINDOW_BODY();
     public:
         /// window will be created after open() call
         KGLWindow(KWindowState &WindowState);
@@ -43,23 +44,37 @@ namespace Kite{
         void display(); // swap buffer
 
         void open();
+
+		KM_FUN()
         void close();
 
         bool isOpen() const;
 
         /// manipulate window settings
-		KM_FUN()
+		KM_PRO_SET(KP_NAME = "title")
         void setTitle(const std::string &Title);
 
-		KM_FUN()
-        void setSize(U32 Width, U32 Height);
+		KM_PRO_GET(KP_NAME = "title", KP_TYPE = std::string, KP_CM = "window title")
+		inline const std::string &getTitle() const { return _kwinstate.title; }
 
-		KM_FUN()
-        void setPosition(U32 XPosition, U32 YPosition);
+		KM_PRO_SET(KP_NAME = "size")
+        void setSize(const KVector2I32 &Size);
 
-		KM_FUN()
+		KM_PRO_GET(KP_NAME = "size", KP_TYPE = KVector2I32, KP_CM = "window size")
+		inline KVector2I32 getSize() const { return KVector2I32(_kwinstate.width, _kwinstate.height); }
+
+		KM_PRO_SET(KP_NAME = "position")
+        void setPosition(const KVector2I32 &Pos);
+
+		KM_PRO_GET(KP_NAME = "position", KP_TYPE = KVector2I32, KP_CM = "window position")
+		inline KVector2I32 getPosition() const { return KVector2I32(_kwinstate.xpos, _kwinstate.ypos); }
+
+		KM_PRO_SET(KP_NAME = "isShowCursor")
         void setShowCursor(bool Enable);
 
+		KM_PRO_GET(KP_NAME = "isShowCursor", KP_TYPE = bool, KP_CM = "show cursor")
+		inline bool isShowCursor() const { return _kwinstate.showCursor; }
+		
         inline const KWindowState &getWindowState() const {return _kwinstate;}
 
 		inline KWindowHandle getHandle() const { return _kwindow; }

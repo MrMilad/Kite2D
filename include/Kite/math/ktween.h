@@ -38,10 +38,10 @@ namespace Kite{
 	KM_CLASS(POD)
 	class KITE_FUNC_EXPORT KTween{
 		KM_TEM_PARAM(TIME, PARAM);
-		KM_TEM_DEF("KTweenF32", F64, F32);
-		KM_TEM_DEF("KTweenI32", F64, I32);
+		KM_TEM_DEF("Tweenf", F64, F32);
+		KM_TEM_DEF("Tweeni", F64, I32);
 
-		KMETA_KTWEEN_BODY();
+		KTWEEN_BODY();
 	public:
 		// Time = current time
 		// Start = start point

@@ -101,5 +101,5 @@ namespace Kite {
 		}
 	}
 
-	KMETA_KFOSTREAM_SOURCE();
+	KFOSTREAM_SOURCE();
 }

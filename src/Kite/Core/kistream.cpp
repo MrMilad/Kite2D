@@ -25,5 +25,5 @@ USA
 namespace Kite {
 	KIStream::~KIStream() {}
 
-	KMETA_KISTREAM_SOURCE();
+	KISTREAM_SOURCE();
 }

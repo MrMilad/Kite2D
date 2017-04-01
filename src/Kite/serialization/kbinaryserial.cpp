@@ -208,5 +208,5 @@ namespace Kite {
 		}
 	}
 
-	KMETA_KBINARYSERIAL_SOURCE();
+	KBINARYSERIAL_SOURCE();
 }

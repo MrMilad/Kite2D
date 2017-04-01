@@ -31,6 +31,7 @@ KMETA
 namespace Kite {
 	KM_CLASS(SERIALIZER)
 	class KITE_FUNC_EXPORT KBinarySerial : public KBaseSerial{
+		KM_INFO(KI_NAME = "BinarySerial")
 		friend KBaseSerial &operator<<(KBinarySerial &Out, const KBinarySerial &Value) {
 			// write data size
 			SIZE dsize = Value._kdata.size();
@@ -66,7 +67,7 @@ namespace Kite {
 
 			return In;
 		}
-		KMETA_KBINARYSERIAL_BODY();
+		KBINARYSERIAL_BODY();
 	public:
 		KM_CON()
 		KBinarySerial();

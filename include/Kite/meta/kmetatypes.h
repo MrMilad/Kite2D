@@ -40,7 +40,7 @@ namespace Kite {
 		KPT_OTHER			//!< Other types (we dont care about other types because we dont need them)
 	};
 
-	enum KMetaBaseInheriTypes : U8 {
+	enum KMetaBaseInheritypes : U8 {
 		KMB_PUBLIC = 0,
 		KMB_PRIVATE,
 		KMB_PROTECTED

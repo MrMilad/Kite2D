@@ -20,6 +20,8 @@
 #ifndef KRENDERSYS_H
 #define KRENDERSYS_H
 
+KM_IGNORED
+
 #include "Kite/core/kcoredef.h"
 #include "Kite/meta/kmetadef.h"
 #include "Kite/graphic/kgraphicstructs.h"
@@ -46,7 +48,8 @@ namespace Kite{
 
 	KM_CLASS(SYSTEM)
 	class KITE_FUNC_EXPORT KRenderSys : public KSystem{
-		KMETA_KRENDERSYS_BODY();
+		KM_INFO(KI_NAME = "Render");
+		KRENDERSYS_BODY();
 	public:
 		bool update(F64 Delta, KEntityManager *EManager, KResourceManager *RManager) override;
 

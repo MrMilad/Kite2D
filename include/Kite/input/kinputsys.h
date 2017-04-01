@@ -21,24 +21,33 @@ USA
 #define KINPUTSYS_H
 
 #include "Kite/core/kcoredef.h"
-#include "Kite/core/ksystem.h"
+#include "Kite/ecs/ksystem.h"
 #include "Kite/meta/kmetadef.h"
 #include "kinputsys.khgen.h"
+#include <luaintf/LuaIntf.h>
 
 KMETA
 namespace Kite {
 	KM_CLASS(SYSTEM)
 	class KITE_FUNC_EXPORT KInputSys : public KSystem {
-		KMETA_KINPUTSYS_BODY();
+		KM_INFO(KI_NAME = "InputSystem");
+		KINPUTSYS_BODY();
 	public:
-		bool update(F64 Delta, KEntityManager *EManager, KResourceManager *RManager) override;
+		void reset(KNode *Hierarchy, KSysInite *IniteData) override;
 
-		bool inite(void *Data) override;
+		bool update(F64 Delta) override;
 
-		void destroy() override;
+		void nodeAdded(KNode *Node) override;
+
+		void nodeRemoved(KNode *Node) override;
+
+		void componentAdded(KComponent *Com) override;
+
+		void componentRemoved(KComponent *Com) override;
 
 	private:
 		lua_State *_klvm;
+		LuaIntf::LuaRef _keventTrig;
 	};
 }
 

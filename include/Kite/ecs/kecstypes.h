@@ -17,8 +17,8 @@
     Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
     USA
 */
-#ifndef KECSTYPES_H
-#define KECSTYPES_H
+#ifndef KECstypes_H
+#define KECstypes_H
 
 #include "Kite/core/kcoredef.h"
 #include "Kite/meta/kmetadef.h"
@@ -27,12 +27,12 @@
 KMETA
 namespace Kite{
 
-	KM_ENUM()
-	enum class RecieveTypes : U8 {
+	/*KM_ENUM()
+	enum class recieveTypes : U8 {
 		RECEIVED = 0,
 		IGNORED
 	};
-	KMETA_RECIEVETYPES_BODY();
+	RECIEVETYPES_BODY();*/
 
 	/*enum class KComTypes : U8 {
 		KCT_GRAPHIC = 0,
@@ -49,15 +49,15 @@ namespace Kite{
 		CHILDREN,
 		ALL
 	};
-	KMETA_MESSAGESCOPE_BODY();
+	MESSAGESCOPE_BODY();
 
 	KM_ENUM()
-	enum class CClearMode : U8 {
+	enum class ClearMode : U8 {
 		LOGIC = 0,
 		FIXED,
 		ALL
 	};
-	KMETA_CCLEARMODE_BODY();
+	CLEARMODE_BODY();
 
 	/*typedef U64(*KCallInputStreamRead)(void *Data, U64 DataSize);
 	typedef I32(*KCallInputStreamSeek)(I64 Offset, I32 Origin);

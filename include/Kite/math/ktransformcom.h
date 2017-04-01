@@ -22,6 +22,7 @@
 
 #include "Kite/core/kcoredef.h"
 #include "Kite/ecs/kcomponent.h"
+#include "Kite/ecs/knode.h"
 #include "Kite/math/kmathstructs.h"
 #include "Kite/math/kmatrix3.h"
 #include "Kite/meta/kmetadef.h"
@@ -33,16 +34,8 @@ namespace Kite{
     class KITE_FUNC_EXPORT KTransformCom: public KComponent{
 		friend class KTransformSys;
 		KM_INFO(KI_NAME = "Transform");
-		KMETA_KTRANSFORMCOM_BODY();
+		KTRANSFORMCOM_BODY();
     public:
-		/// construct a transform (unit matrix)
-		KTransformCom(KNode *OwnerNode, const std::string &Name);
-
-		void attached() override;
-
-		void deattached() override;
-
-		RecieveTypes onMessage(KMessage *Message, MessageScope Scope) override;
 
         /// set position
         /// completely restore the previous position
@@ -57,10 +50,10 @@ namespace Kite{
 		/// completely restore the previous scale
 		/// default (1, 1)
 		KM_PRO_SET(KP_NAME = "scale")
-			void setScale(const KVector2F32 &Scale);
+		void setScale(const KVector2F32 &Scale);
 
 		KM_PRO_GET(KP_NAME = "scale", KP_TYPE = KVector2F32, KP_CM = "Scale value")
-			inline const KVector2F32 &getScale() const { return _kscale; }
+		inline const KVector2F32 &getScale() const { return _kscale; }
 
 		/// completely restore the previous Rotation
 		/// range [0, 360]
@@ -75,10 +68,10 @@ namespace Kite{
 		/// relative to the top-left
 		/// default (0, 0)
 		KM_PRO_SET(KP_NAME = "center")
-			void setCenter(const KVector2F32 &Center);
+		void setCenter(const KVector2F32 &Center);
 
 		KM_PRO_GET(KP_NAME = "center", KP_TYPE = KVector2F32, KP_CM = "Center value")
-			inline const KVector2F32 &getCenter() const { return _kcenter; }
+		inline const KVector2F32 &getCenter() const { return _kcenter; }
 
 		KM_PRO_SET(KP_NAME = "parallaxIndex")
 		inline void setRatioIndex(I32 Index) { _kratioIndex = Index; }
@@ -98,6 +91,13 @@ namespace Kite{
 		void computeMatrix();
 
     private:
+
+		void inite() override;
+
+		void attached() override;
+
+		void deattached() override;
+
         KM_VAR() KVector2F32 _kposition;
 		KM_VAR() F32 _krotation;
 		KM_VAR() I32 _kratioIndex;
@@ -107,6 +107,7 @@ namespace Kite{
 		KM_VAR() KMatrix3 _kmatrix;
 
 		bool _kcompute;
+		SIZE _ksysIndex; 
     };
 }
 

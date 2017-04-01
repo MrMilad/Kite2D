@@ -165,11 +165,11 @@ namespace Kite {
 		glTexImage3D(GL_TEXTURE_2D_ARRAY, 0, GL_RGBA8, Size.x, Size.y,
 					 Instance->_karray.size(), 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL); // 3.3 version
 
-		//Upload pixel data.
-		//The first 0 refers to the mipmap level (level 0, since there's only 1)
-		//The following 2 zeroes refers to the x and y offsets in case you only want to specify a subrectangle.
-		//The final 0 refers to the layer index offset (we start from index 0 and have 2 levels).
-		//Altogether you can specify a 3D box subset of the overall texture, but only one mip level at a time.
+		// Upload pixel data.
+		// The first 0 refers to the mipmap level (level 0, since there's only 1)
+		// The following 2 zeroes refers to the x and y offsets in case you only want to specify a subrectangle.
+		// The final 0 refers to the layer index offset (we start from index 0).
+		// Altogether you can specify a 3D box subset of the overall texture, but only one mip level at a time.
 		DGL_CALL(glTexSubImage3D(GL_TEXTURE_2D_ARRAY, 0, 0, 0, 0, Size.x, Size.y, Instance->_karray.size(),
 								 GL_RGBA, GL_UNSIGNED_BYTE, Data));
 

@@ -37,10 +37,10 @@ namespace Kite{
 	KM_CLASS(POD)
 	class KVector2{
 		KM_TEM_PARAM(T);
-		KM_TEM_DEF("KVector2F32", F32);
-		KM_TEM_DEF("KVector2I32", I32);
-		KM_TEM_DEF("KVector2U32", U32);
-		KMETA_KVECTOR2_BODY();
+		KM_TEM_DEF("Vector2f", F32);
+		KM_TEM_DEF("Vector2i", I32);
+		KM_TEM_DEF("Vector2u", U32);
+		KVECTOR2_BODY();
 
 	public:
 
@@ -211,10 +211,10 @@ namespace Kite{
 	KM_CLASS(POD)
 	struct KRect{
 		KM_TEM_PARAM(T);
-		KM_TEM_DEF("KRectF32", F32);
-		KM_TEM_DEF("KRectI32", I32);
-		KM_TEM_DEF("KRectU32", U32);
-		KMETA_KRECT_BODY();
+		KM_TEM_DEF("Rectf", F32);
+		KM_TEM_DEF("Recti", I32);
+		KM_TEM_DEF("Rectu", U32);
+		KRECT_BODY();
 
 		KM_VAR() T left;
 		KM_VAR() T right;
@@ -323,10 +323,10 @@ namespace Kite{
 	KM_CLASS(POD)
 	struct KRect2{
 		KM_TEM_PARAM(T);
-		KM_TEM_DEF("KRect2F32", F32);
-		KM_TEM_DEF("KRect2I32", I32);
-		KM_TEM_DEF("KRect2U32", U32);
-		KMETA_KRECT2_BODY();
+		KM_TEM_DEF("Rect2f", F32);
+		KM_TEM_DEF("Rect2i", I32);
+		KM_TEM_DEF("Rect2u", U32);
+		KRECT2_BODY();
 
 		KM_VAR() KVector2<T> leftBottom;
 		KM_VAR() KVector2<T> leftTop;
@@ -361,7 +361,8 @@ namespace Kite{
 
 	KM_CLASS(POD)
 	struct KParallaxRatio {
-		KMETA_KPARALLAXRATIO_BODY();
+		KM_INFO(KI_NAME = "ParallaxRatio");
+		KPARALLAXRATIO_BODY();
 
 		KM_VAR() KVector2F32 center;
 		KM_VAR() F32 zoom;

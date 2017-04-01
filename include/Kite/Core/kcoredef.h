@@ -143,52 +143,24 @@
     #define K_ALIGNED(t,x) t __attribute__ ((aligned(x)))
 #endif
 
-/// default (without any debug flag): framework will compiled in release state.
-#if !defined(KITE_DEV_DEBUG) 
-    #define KITE_RELEASE
-#endif
-
 /// debug macros
 #if defined(KITE_DEV_DEBUG)
-	#if defined (KITE_EDITOR)
-#define ED_STATIC thread_local
-namespace Kite {
-	enum class msgType : short{
-		MSG_DEBUG = 0,
-		MSG_BREAK,
-		MSG_ASSERT,
-		MSG_LUA
-	};
-	typedef void(*printCallback)(const std::string &, msgType);
-	extern printCallback pcallback;
-	extern char buffer[500];
-	extern KITE_FUNC_EXPORT void defaultPrint(const std::string &Text, msgType MType);
-	extern KITE_FUNC_EXPORT void setEditorPrintCallback(printCallback Callback);
-}
 
-#define KD_BREAK() sprintf(buffer, "%s()", __func__);\
-(Kite::pcallback)(std::string(Kite::buffer), Kite::msgType::MSG_BREAK)
-
-#define KD_FPRINT(fmt, ...) sprintf(buffer, "%s(): " fmt, __func__, __VA_ARGS__);\
-(Kite::pcallback)(std::string(Kite::buffer), Kite::msgType::MSG_DEBUG)
-
-#define KD_PRINT(exp) sprintf(buffer, "%s(): %s", __func__, exp);\
-(Kite::pcallback)(std::string(Kite::buffer), Kite::msgType::MSG_DEBUG)
-
-#define KD_ASSERT(expr) if (!(expr)) {sprintf(buffer, "%s:%d:%s()", __FILE__, __LINE__, __func__);\
-(Kite::pcallback)(std::string(Kite::buffer), Kite::msgType::MSG_ASSERT);}
-
-	#else
-		#define EDITOR_STATIC
+#if defined(KITE_USER_PRINT)
 		#include <assert.h>
-		#define KD_BREAK() fprintf(stderr, "BREAK: %s:%d:%s()\n", __FILE__, __LINE__, __func__); assert(0)
-		#define KD_FPRINT(fmt, ...) fprintf(stderr, "DEBUG: %s:%d:%s(): " fmt "\n", __FILE__, __LINE__, __func__, __VA_ARGS__)
-		#define KD_PRINT(exp) fprintf(stderr, "DEBUG: %s:%d:%s(): %s\n", __FILE__, __LINE__, __func__, exp)
+		#define KD_BREAK() printf("BREAK: %s()\n", __func__); assert(0)
+		#define KD_FPRINT(fmt, ...) printf("DEBUG: %s(): " fmt "\n", __func__, __VA_ARGS__)
+		#define KD_PRINT(exp) printf("DEBUG: %s(): %s\n", __func__, exp)
 		#define KD_ASSERT(expr) assert(expr)
-	#endif
+#else
+		#include <assert.h>
+		#define KD_BREAK() printf("BREAK: %s:%d:%s()\n", __FILE__, __LINE__, __func__); assert(0)
+		#define KD_FPRINT(fmt, ...) printf("DEBUG: %s:%d:%s(): " fmt "\n", __FILE__, __LINE__, __func__, __VA_ARGS__)
+		#define KD_PRINT(exp) printf("DEBUG: %s:%d:%s(): %s\n", __FILE__, __LINE__, __func__, exp)
+		#define KD_ASSERT(expr) assert(expr)
+#endif
 
 #else /// release state. (without debug output and break)
-	#define ED_STATIC
     #define KD_BREAK()
     #define KD_FPRINT(fmt, ...)
     #define KD_PRINT(exp)

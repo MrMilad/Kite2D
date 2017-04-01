@@ -47,7 +47,7 @@ namespace Kite{
 		BIN = 0,
 		TEXT
 	};
-	KMETA_IOMODE_BODY();
+	IOMODE_BODY();
 
 	KM_ENUM()
 	enum class Primitive : U8 {
@@ -66,7 +66,7 @@ namespace Kite{
 		VPTR,
 		UNKNOWN
 	};
-	KMETA_PRIMITIVE_BODY();
+	PRIMITIVE_BODY();
 
 
 	enum class VectorComponent : U8{
@@ -91,7 +91,7 @@ namespace Kite{
 		WINDOW
 	};
 
-	/*enum class KResTypes : U8 {
+	/*enum class KRestypes : U8 {
 		TEXTURE = 0,
 		IMAGE,
 		AUDIOBUFFER,

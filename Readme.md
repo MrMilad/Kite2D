@@ -1,14 +1,14 @@
 ![enter image description here](https://www.assembla.com//spaces/kite2d/documents/bi0eMQFQOr5OP8acwqEsg8/download/bi0eMQFQOr5OP8acwqEsg8)
-Kite2D Game Engine!
+![enter image description here](http://bayanbox.ir/download/2842665579319043840/icon64.png)Kite2D Game Engine!
 ======================
 Kite2D is a free open-source multi-platform 2-dimensional Game Framework written in C++ by Milad Rasaneh and published under the LGPL license.
 
 Kite2D provides a simple and highly-optimized interface to the various components of your PC, to ease the development of games.
 
-Features:
+![enter image description here](http://bayanbox.ir/download/279955560302129275/ico64.png)Features:
 ---------
 
- - multi-platform (Windows - Linux - Mac OSX)
+ - Multi-platform (Windows - Linux - Mac OSX)
  - Based on modern OpenGL v3.3
  - Easy to use VAO, VBO, PBO, Shader and Texture classes
  - Powerful and flexible header parser tool that can automatically
@@ -32,9 +32,10 @@ Features:
  - Powerful particle system
  - Powerful tile-based map engine
  - custom binary-compatible file format
+ - Streaming infinite 2D map using **Kite Spatial Hash**
  - ...
 
-Developers Topics
+![enter image description here](http://bayanbox.ir/download/4879358068713191364/ico64g.png)Developers Topics
 -----------------
 [Developer blog (Persian)](http://kite2d.blog.ir)
 

@@ -6,10 +6,6 @@ set(COR_SRC
     ${SRCROOT}/kcoredef.cpp
     ${SRCROOT}/kcorestructs.cpp
     ${SRCROOT}/kcoretypes.cpp
-    ${SRCROOT}/kostream.cpp
-    ${SRCROOT}/kfostream.cpp
-    ${SRCROOT}/kistream.cpp
-    ${SRCROOT}/kfistream.cpp
     #${SRCROOT}/kcoreinstance.cpp
     ${SRCROOT}/kcoreutil.cpp
     ${SRCROOT}/tp/mmhash3.cpp
@@ -19,10 +15,6 @@ set(COR_SRC
 # all header files
 set(COR_INC
     ${INCROOT}/kcore.h
-    ${INCROOT}/kostream.h
-    ${INCROOT}/kfostream.h
-    ${INCROOT}/kistream.h
-    ${INCROOT}/kfistream.h
     ${INCROOT}/kdelegate.h
     ${INCROOT}/kany.h
     ${INCROOT}/kcoredef.h

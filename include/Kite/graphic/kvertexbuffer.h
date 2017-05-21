@@ -96,7 +96,7 @@ namespace Kite{
 			but avoid calling that gl function several times if our VBO is currently bound.
 			(automatic handle by internal render system)
 		*/
-        void bind() const;
+        bool bind() const;
 
 		//! Unbind the vertex buffer if it is currently bound.
 		/*!

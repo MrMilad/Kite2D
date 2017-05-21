@@ -28,6 +28,7 @@
 #include <string>
 #include "kcorestructs.khgen.h"
 #include <memory>
+#include <bitset>
 
 KMETA
 namespace Kite{
@@ -119,79 +120,84 @@ namespace Kite{
 	};
 
 	/// dynamic version of std::bitset with lua binding
+	template <U8 S>
 	KM_CLASS(POD)
 	struct KITE_FUNC_EXPORT KBitset {
-		KM_INFO(KI_NAME = "Bitset");
+		KM_TEM_PARAM(S);
+		KM_TEM_DEF("Bitset8", 8);
+		KM_TEM_DEF("Bitset16", 16);
+		KM_TEM_DEF("Bitset32", 32);
 		KBITSET_BODY();
 
-		KBitset(U32 Size, bool Value);
+		KBitset() {}
 
-		KM_CON(U32, std::string)
-		KBitset(U32 Size, const std::string &Value);
+		KM_CON(U32)
+		KBitset(U32 Value) :
+			_kbitset(Value) {}
 
 		KM_FUN()
-		bool test(U32 Pos) const;
+		bool test(U32 Pos) const {
+			return _kbitset.test(Pos);
+		}
 
 		KM_PRO_GET(KP_NAME = "all", KP_TYPE = bool)
-		inline bool all() const { return _kall; }
+		inline bool all() const { return _kbitset.all(); }
 
 		KM_PRO_GET(KP_NAME = "any", KP_TYPE = bool)
-		inline bool any() const { return _kany; }
+		inline bool any() const { return _kbitset.any(); }
 
 		KM_PRO_GET(KP_NAME = "none", KP_TYPE = bool)
-		inline bool none() const { return _knone; }
+		inline bool none() const { return _kbitset.none(); }
 
 		KM_PRO_GET(KP_NAME = "count", KP_TYPE = bool)
-		inline U32 count() const { return _kcount; }
+		inline U32 count() const { return _kbitset.count(); }
 
 		KM_PRO_GET(KP_NAME = "size", KP_TYPE = bool)
-		inline U32 size() const { return _kvalue.size(); }
+		inline U32 size() const { return _kbitset.size(); }
 
 		KM_FUN()
-		void andWith(const KBitset &Other);
+		inline auto andWith(const KBitset<S> &Other) { return _kbitset.operator&=( Other._kbitset); }
 
 		KM_FUN()
-		void orWith(const KBitset &Other);
+		inline auto orWith(const KBitset<S> &Other) { return _kbitset.operator|=(Other._kbitset); }
 
 		KM_FUN()
-		void xorWith(const KBitset &Other);
+		inline auto xorWith(const KBitset<S> &Other) { return _kbitset.operator^=(Other._kbitset); }
 
 		KM_FUN()
-		void notWith(const KBitset &Other);
+		inline auto not() const { return _kbitset.operator~(); }
 
 		KM_FUN()
-		void setAll(bool Value);
+		void setAllTrue() { _kbitset.set(); }
 
 		KM_FUN()
-		void set(U32 Pos, bool Value);
+		inline void set(SIZE Pos, bool Value) { _kbitset.set(Pos, Value); }
 
 		KM_FUN()
-		void flipAll();
+		inline void flipAll() { _kbitset.flip(); }
 
 		KM_FUN()
-		void flip(U32 Pos);
+		inline void flip(SIZE Pos) { _kbitset.flip(Pos); }
 
 		KM_FUN()
 		inline const std::string &toString() const { return _kvalue; }
 
 		inline bool operator==(const KBitset &right) const {
-			return (_kvalue == right._kvalue);
+			return (_kbitset == right._kbitset);
 		}
 
 	private:
-		void proc();
-
 		KM_OPE(KO_EQ)
 		bool luaEqOper(const KBitset &right) const {
 			return operator==(right);
 		}
-
-		KM_VAR(UNBIND) bool _kall;
-		KM_VAR(UNBIND) bool _kany;
-		KM_VAR(UNBIND) bool _knone;
-		KM_VAR(UNBIND) U32 _kcount;
-		KM_VAR(UNBIND) std::string _kvalue;
+		
+		std::bitset<S> _kbitset;
 	};
+
+	typedef KBitset<8> KBitset8;
+	typedef KBitset<16> KBitset16;
+	typedef KBitset<32> KBitset32;
 
 	class KStringIDHasher {
 	public:

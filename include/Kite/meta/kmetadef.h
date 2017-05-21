@@ -28,15 +28,12 @@ USA
 #define POD			1
 #define COMPONENT	2
 #define RESOURCE	4
-#define ENTITY		8
-#define SYSTEM		16
-#define ABSTRACT	32
-#define CONTINER	64
-#define ISTREAM		128
-#define OSTREAM		256
-#define SCRIPTABLE	512
-#define INTERFACE	1024
-#define SERIALIZER	2048
+#define SYSTEM		8
+#define ABSTRACT	16
+#define IOSTREAM	32
+#define SCRIPTABLE	64
+#define INTERFACE	128
+#define SERIALIZER	256
 
 // supported operators
 #define KO_ADD

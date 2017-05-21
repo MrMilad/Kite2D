@@ -35,7 +35,7 @@ namespace Kite {
 		KM_INFO(KI_NAME = "TransformSystem");
 		KTRANSFORMSYS_BODY();
 	public:
-		void reset(KNode *Hierarchy, KSysInite *IniteData) override;
+		void reset(KEngine *Engine) override;
 
 		bool update(F64 Delta) override;
 
@@ -47,7 +47,6 @@ namespace Kite {
 
 		void componentRemoved(KComponent *Com) override;
 	private:
-		void scan(KNode *Hierarchy);
 		std::vector<KTransformCom *> _kcomList;
 	};
 }

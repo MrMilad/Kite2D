@@ -40,7 +40,7 @@ namespace Kite{
 	//KITE_FUNC_EXPORT extern KPowerState getPowerState();
 
 	/// CPU
-	KITE_FUNC_EXPORT extern const KCPUInfo *getCPUInfo();
+	//KITE_FUNC_EXPORT extern const KCPUInfo *getCPUInfo();
 
 	/// unique identifier generator (1 to 18,446,744,073,709,551,615)
 	/// not thread-safe
@@ -49,6 +49,8 @@ namespace Kite{
 	KITE_FUNC_EXPORT extern F64 convertStrToDouble(const char *Value);
 
 	KITE_FUNC_EXPORT extern bool isBigEndian();
+
+	KITE_FUNC_EXPORT extern U64 hashPair(I32 First, I32 Second);
 
 	KITE_FUNC_EXPORT extern U32 getHash32(const void *Data, U32 Lenght, U32 Seed);
 

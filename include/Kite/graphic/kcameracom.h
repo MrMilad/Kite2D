@@ -21,13 +21,13 @@
 #define KCAMERA_H
 
 #include "Kite/core/kcoredef.h"
+#include "Kite/core/kcorestructs.h"
 #include "Kite/meta/kmetadef.h"
 #include "Kite/ecs/kcomponent.h"
 #include "Kite/math/kmathstructs.h"
 #include "Kite/math/ktransform.h"
 #include "Kite/graphic/kgraphicstructs.h"
 #include <vector>
-#include <bitset>
 #include "kcameracom.khgen.h"
 
 KMETA
@@ -127,10 +127,10 @@ namespace Kite{
 		KM_PRO_GET(KP_NAME = "renderTexture", KP_CM = "render texture", KP_RES = Resource::TEXTUREGROUP)
 		inline KSharedResource getRenderTexture() const { return _krtexture; }
 
-		KM_PRO_SET(KP_NAME = "textureIndex")
+		KM_PRO_SET(KP_NAME = "renderTextureIndex")
 		inline void setRenderTextureIndex(U32 Index) { _krtextureIndex = Index; }
 
-		KM_PRO_GET(KP_NAME = "textureIndex", KP_TYPE = U32, KP_CM = "index of the render texture in group")
+		KM_PRO_GET(KP_NAME = "renderTextureIndex", KP_TYPE = U32, KP_CM = "index of the render texture in group")
 		U32 getRenderTextureIndex() const { return _krtextureIndex; }
 
 		/// flip screen coordinate
@@ -148,10 +148,10 @@ namespace Kite{
 		inline bool getFlipX() const { return _kflipx; }
 
 		KM_PRO_SET(KP_NAME = "layerMask")
-		void setLayerMask(const KBitset &Mask);
+		inline void setLayerMask(const KBitset32 &Mask) { _klayers = Mask; }
 
 		KM_PRO_GET(KP_NAME = "layerMask", KP_TYPE = KBitset, KP_CM = "camera layer mask")
-		KBitset getLayerMask() const;
+		inline KBitset32 getLayerMask() const { return _klayers; }
 
 		/// for culling purpose
 		KM_FUN()
@@ -165,21 +165,21 @@ namespace Kite{
 		/// return index
 		/// duplicate will not be added and return index of same ratio in the list
 		KM_FUN()
-		I32 addParallaxRatio(const KParallaxRatio &Ratio);
+		I32 addParallax(const KParallaxRatio &Ratio);
 
 		/// return true on successful
 		/// duplicate is not allowd and false will returned
 		/// index must be always positive
 		KM_FUN()
-		bool setParallaxRatio(I32 Index, const KParallaxRatio &Ratio);
+		bool setParallax(I32 Index, const KParallaxRatio &Ratio);
 
 		/// return default ratio if index was out of range or negative
 		KM_FUN()
-		KParallaxRatio getParallaxRatio(I32 Index) const;
+		KParallaxRatio getParallax(I32 Index) const;
 
 		/// delete all items
 		KM_FUN()
-		void clearRatio();
+		void clearParallax();
 
 		KM_FUN()
 		void computeMatrixes();
@@ -192,6 +192,7 @@ namespace Kite{
 		void deattached() override;
 
 		void computeMatrix(KMatrix3 &Mat, const KParallaxRatio &Rat);
+
 		KM_VAR() bool _kclearView;
 		KM_VAR() bool _kflipy;
 		KM_VAR() bool _kflipx;
@@ -210,9 +211,10 @@ namespace Kite{
 		KM_VAR() KSharedResource _krtexture;
 		KM_VAR() KMatrix3 _kdefMat;
 		KM_VAR() std::vector<std::pair<KMatrix3, KParallaxRatio>> _kmatList;
-		KM_VAR() std::bitset<KENTITY_LAYER_SIZE> _klayers;
+		KM_VAR() KBitset32 _klayers;
 
 		bool _kcompute;
+		U16 _krindex;
     };
 }
 #endif // KCAMERA_H

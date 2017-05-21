@@ -45,7 +45,7 @@ namespace Kite{
         REPLACE,
         COMBINE
     };
-	KMETA_TEXTUREENV_BODY();
+	TEXTUREENV_BODY();
 
 	/*! \enum KVertexBufferTypes
 		\brief Performance hint for VBO to provide how the buffer object is going to be used.
@@ -56,7 +56,7 @@ namespace Kite{
         DYNAMIC,	//!< The data in VBO will be changed frequently (specified and used repeatedly)
         STREAM		//!< The data in VBO will be changed every frame (specified once and used once)
     };
-	KMETA_VBUFFERTYPE_BODY();
+	VBUFFERTYPE_BODY();
 
 	/*! \enum KBufferTargetTypes
 		\brief Buffer types.
@@ -66,7 +66,7 @@ namespace Kite{
 		INDEX = 0,	//!< Index buffer
 		VERTEX		//!< Vertex buffer
 	};
-	KMETA_BUFFERTARGET_BODY();
+	BUFFERTARGET_BODY();
 
 	/*! \enum KMapAccessTypes */
 	KM_ENUM()
@@ -75,7 +75,7 @@ namespace Kite{
         WRITE,		//!< Writing access
         RW			//!< Reading/writing access
     };
-	KMETA_MAPACCESS_BODY();
+	MAPACCESS_BODY();
 
 	/*! \enum KGeoPrimitiveTypes
 		\brief Primitive types
@@ -94,7 +94,7 @@ namespace Kite{
         TRIANGLE_STRIP_ADJACENCY,
         TRIANGLES_ADJACENCY
     };
-	KMETA_GLPRIMITIVE_BODY();
+	GLPRIMITIVE_BODY();
 
 	KM_ENUM()
 	enum class TileAttribute {
@@ -103,7 +103,7 @@ namespace Kite{
 		TEXTUE_INDEX = 4,
 		ALL = 8
 	};
-	KMETA_TILEATTRIBUTE_BODY();
+	TILEATTRIBUTE_BODY();
 
 //    enum KFilteringDrawTypes{
 //        KFD_ALIASED,
@@ -154,7 +154,7 @@ namespace Kite{
         BROWN = 0xA52A2A,           FIREBRICK = 0xB22222,
         GRAY = 0x808080
     };
-	KMETA_COLORS_BODY();
+	COLORS_BODY();
 
 	/*! \enum KTextureFilterTypes
 		\brief Magnification texture filtering options
@@ -164,7 +164,7 @@ namespace Kite{
 		NEAREST = 0,	//!< Select the texel nearest the texture coordinate
         LINEAR		//!< Perform a weighted linear blend between the nearest adjacent samples
     };
-	KMETA_TEXTUREFILTER_BODY();
+	TEXTUREFILTER_BODY();
 
 	/*! \enum KTextureWrapTypes
 		\brief The possible heuristic when a texture coordinate is not within the [0, 1] range
@@ -176,7 +176,7 @@ namespace Kite{
         CLAMP_TO_EDGE		//!< The texture coordinate is clamped to the [0, 1] range
      // KTW_CLAMP_TO_BORDER		// border not supported (see KTexture::create())
     };
-	KMETA_TEXTUREWRAP_BODY();
+	TEXTUREWRAP_BODY();
 
 	/*! \enum KShaderTypes
 		\brief OpenGL shader types
@@ -185,10 +185,9 @@ namespace Kite{
     enum class ShaderType{
         VERTEX = 0,	//!< Vertex shader
         FRAGMENT,	//!< Fragment shader
-		GEOMETRY,	//!< Geometry shader
-		UNKNOWN
+		GEOMETRY	//!< Geometry shader
     };
-	KMETA_SHADERTYPE_BODY();
+	SHADERTYPE_BODY();
 
 //    enum KShaderTextureTypes{
 //        KST_CURRENT = 0
@@ -204,7 +203,7 @@ namespace Kite{
         COMPONENT_3 = 3,
         COMPONENT_4 = 4
     };
-	KMETA_ATTRIBUTECOUNT_BODY();
+	ATTRIBUTECOUNT_BODY();
 
 	/*! \enum KAttributeTypeTypes
 		\brief Specifies the data type of each component in the array. (Internally use)
@@ -218,7 +217,7 @@ namespace Kite{
         FIXED,
         FLOAT
     };
-	KMETA_ATTRIBUTETYPE_BODY();
+	ATTRIBUTETYPE_BODY();
 
 	KM_ENUM()
 	enum class BuiltinShaderType {
@@ -231,7 +230,7 @@ namespace Kite{
 		FRAG_POINT_TEXTURE,
 		FRAG_POINT_TEXTURE_COLOR,
 	};
-	KMETA_BUILTINSHADERTYPE_BODY();
+	BUILTINSHADERTYPE_BODY();
 
 	/*! \typedef KAtlasFileTypes
 	\brief Types of the atlas files
@@ -241,15 +240,7 @@ namespace Kite{
 		ATLAS,	//!< Default KAtlas format (compact format, better speed and size)
 		JSON	//!< Adobe Flash created JSON 
 	};
-	KMETA_ATLASFILE_BODY();
-
-	KM_ENUM()
-	enum class GCullingObjectsFilter : U8{
-		STATIC = 1,
-		DYNAMIC = 2,
-		TILE = 4
-	};
-	KMETA_GCULLINGOBJECTSFILTER_BODY();
+	ATLASFILE_BODY();
 
 	/*! \typedef KCallVBUpdate
 		\brief Function handle for mapping and updating VBO buffers

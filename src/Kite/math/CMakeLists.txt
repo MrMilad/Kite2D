@@ -5,7 +5,7 @@ set(SRCROOT ${PROJECT_SOURCE_DIR}/src/Kite/math)
 set(MAT_SRC
     ${SRCROOT}/kmathtypes.cpp
     ${SRCROOT}/kmathstructs.cpp
-    #${SRCROOT}/kgeometric.cpp
+    ${SRCROOT}/kgeometric.cpp
     #${SRCROOT}/kinterpolate.cpp
     ${SRCROOT}/kmatrix3.cpp
     ${SRCROOT}/ktransform.cpp
@@ -18,7 +18,7 @@ set(MAT_SRC
 # all header files
 set(MAT_INC
     ${INCROOT}/kmath.h
-    #${INCROOT}/kgeometric.h
+    ${INCROOT}/kgeometric.h
     #${INCROOT}/kinterpolate.h
     ${INCROOT}/ktween.h
     ${INCROOT}/kmathdef.h

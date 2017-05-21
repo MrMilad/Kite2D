@@ -31,7 +31,6 @@ namespace Kite{
 	void KTransformCom::inite() {
 		_kcompute = true;
 		_krotation = 0.0f;
-		_kratioIndex = -1;
 		_kscale.x = 1.0f;
 		_kscale.y = 1.0f;
 		_ksysIndex = 0;

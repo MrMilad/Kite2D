@@ -35,11 +35,23 @@ source_group("Header Files\\Core" FILES ${COR_INC})
 source_group("Source Files\\Core" FILES ${COR_SRC})
 LIST(APPEND ALL_FILES ${COR_SRC} ${COR_INC})
 
+# stream
+add_subdirectory(Kite/stream)
+source_group("Header Files\\Stream" FILES ${STR_INC})
+source_group("Source Files\\Stream" FILES ${STR_SRC})
+LIST(APPEND ALL_FILES ${STR_SRC} ${STR_INC})
+
 # ecs
 add_subdirectory(Kite/ecs)
 source_group("Header Files\\ECS" FILES ${ECS_INC})
 source_group("Source Files\\ECS" FILES ${ECS_SRC})
 LIST(APPEND ALL_FILES ${ECS_SRC} ${ECS_INC})
+
+# bsp
+add_subdirectory(Kite/bsp)
+source_group("Header Files\\BSP" FILES ${BSP_INC})
+source_group("Source Files\\BSP" FILES ${BSP_SRC})
+LIST(APPEND ALL_FILES ${BSP_SRC} ${BSP_INC})
 
 # graphic
 add_subdirectory(Kite/graphic)

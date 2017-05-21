@@ -23,8 +23,8 @@
 /*! \file kshader.h */
 
 #include "Kite/core/kcoredef.h"
-#include "Kite/core/kresource.h"
 #include "Kite/meta/kmetadef.h"
+#include "Kite/ecs/kresourcemanager.h"
 #include "Kite/graphic/kgraphictypes.h"
 #include <string>
 #include "kshader.khgen.h"
@@ -42,15 +42,9 @@ namespace Kite{
 	KM_CLASS(RESOURCE)
     class KITE_FUNC_EXPORT KShader : public KResource{
 		KM_INFO(KI_NAME = "Shader");
-		KMETA_KSHADER_BODY();
+		KSHADER_BODY();
     public:
-
-		//! Default constructors
-		/*!
-			This constructor creates an invalid shader.
-			shader type will detected from file extension after loading. (*.vert or *.frag or *.geom)
-		*/
-        KShader(const std::string &Name);
+        KShader(const std::string &Code, ShaderType Type);
 
 		//! Destructor
 		/// If a shader object is deleted while it is attached to a program object,
@@ -58,14 +52,21 @@ namespace Kite{
 		/// detach it from all KShaderProgram objects to which it is attached.
         ~KShader();
 
-		bool loadString(const std::string &Code, ShaderType Type);
+		KShader() = delete;
+		KShader(const KShader &Copy) = delete;
+		KShader &operator=(const KShader &Right) = delete;
 
+		bool saveStream(KIOStream &Stream, const std::string &Address) override;
+
+#ifdef KITE_EDITOR
+		inline void setCode(const std::string &Code) { _kcode = Code; }
+#endif
+
+		KM_PRO_GET(KP_NAME = "type", KP_TYPE = ShaderType, KP_CM = "type of the shader")
 		inline ShaderType getShaderType() const { return _kshtype; }
 
+		KM_PRO_GET(KP_NAME = "code", KP_TYPE = std::string)
 		inline const std::string &getCode() const { return _kcode; }
-
-		/// note: this function need an active opengl context.
-		bool inite() override;
 
 		//! Method to compile a shader and display any problems if compilation fails
 		/*!
@@ -74,29 +75,32 @@ namespace Kite{
 
 			\return True if compile was successful
 		*/
+		KM_FUN()
 		bool compile();
 
 		//! Get OpenGL ID of the shader
 		/*!
 			\return OpenGL ID of the shader
 		*/
+		KM_PRO_GET(KP_NAME = "glID", KP_TYPE = U32)
 		inline U32 getGLID() const { return _kglid; }
 
 		//! Get version of the shading language
 		/*!
 			\return A version or release number for the shading language
 		*/
-        static const std::string getShaderVersion();
+		KM_FUN(KP_NAME = "version")
+        static std::string getShaderVersion();
 
     private:
+		KShader(const std::string &Name, const std::string &Address);
 
-		bool _saveStream(KOStream &Stream, const std::string &Address) override;
+		KM_FUN(KP_NAME = "__call")
+		static KSharedResource luaConstruct(const std::string &Code, ShaderType Type);
 
-		/// reloading new shader will not delete last shader (in opengl)
-		/// so carefull about reloading a new shader with an in-use object.
-		/// shader type will change according to file type
-		bool _loadStream(KIStream &Stream, const std::string &Address) override;
+		bool _loadStream(std::unique_ptr<KIOStream> Stream, KResourceManager *RManager) override;
 
+		bool _kisCreated;
 		ShaderType _kshtype;
 		U32 _kglid;
 		std::string _kcode;

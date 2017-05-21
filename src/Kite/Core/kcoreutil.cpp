@@ -138,6 +138,14 @@ namespace Kite{
 		return ((*(char*)&i) == 0);
 	}
 
+	U64 hashPair(I32 First, I32 Second) {
+		uint64_t A = (First >= 0 ? 2 * First : -2 * First - 1);
+		uint64_t B = (Second >= 0 ? 2 * Second : -2 * Second - 1);
+		int64_t C = ((A >= B ? A * A + A + B : A + B * B) / 2);
+
+		return ((First < 0 && Second < 0) || (First >= 0 && Second >= 0)) ? C : -C - 1;
+	}
+
 	U32 getHash32(const void *Data, U32 Lenght, U32 Seed) {
 		U32 out = 0;
 		MurmurHash3_x86_32(Data, Lenght, Seed, (void *)&out);

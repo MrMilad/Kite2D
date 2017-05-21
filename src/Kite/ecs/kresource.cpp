@@ -27,6 +27,7 @@ USA
 #include <luaintf\LuaIntf.h>
 
 namespace Kite {
+	KResource::KResource(const std::string &Name, const std::string &Address) {}
 	KResource::KResource(const std::string &Name, const std::string &Address) :
 		_kname(Name),
 		_kaddress(Address)

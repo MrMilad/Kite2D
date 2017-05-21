@@ -23,14 +23,12 @@
 /*! \file kframebuffer.h */
 
 #include "Kite/core/kcoredef.h"
+#include "Kite/ecs/kresourcemanager.h"
 
 /*! \namespace Kite
 	\brief Public namespace.
 */
 namespace Kite{
-
-	class KTexture;
-	class KAtlasTextureArray;
 
 	//! The KFrameBuffer class encapsulate OpenGL framebuffer object (FBO).
 	/*!
@@ -51,10 +49,10 @@ namespace Kite{
 
 			\param Texture Pointer to a initialized texture.
 		*/
-        void attachTexture(const KTexture *Texture);
+        void attachAtlasTexture(const KSharedResource &AtlasTexture);
 
 
-		void attachTextureArray(const KAtlasTextureArray *, U32 Index);
+		void attachAtlasTextureArray(const KSharedResource &AtlasTextureArray, U32 Index);
 
 		//! Bind the framebuffer object.
 		/*!
@@ -62,7 +60,7 @@ namespace Kite{
 			but avoid calling that gl function several times if our FBO is currently bound.
 			(automatic handle by internal render system)
 		*/
-        void bind();
+        bool bind();
 
 		//! Unbind the framebuffer if it is currently bound.
 		/*!

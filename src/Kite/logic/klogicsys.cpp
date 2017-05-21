@@ -37,8 +37,8 @@ namespace Kite {
 		_kcgarbage(true)
 	{}
 
-	void KLogicSys::reset(KNode *Hierarchy, KSysInite *IniteData) {
-		_klvm = IniteData->lstate;
+	void KLogicSys::reset(KEngine *Engine) {
+		_klvm = Engine->getLuaState();
 
 		// create refrence to kite events system
 		_kevents = LuaIntf::LuaRef(_klvm, "events");
@@ -81,10 +81,6 @@ namespace Kite {
 		if (!_kglobalVars.isTable()) {
 			throw std::string("couldn't create global variables table.");
 		}
-
-		// scan new hierarchy (recursive)
-		// you can attach an script to the root node of the hierarchy for first-time configuration
-		scan(Hierarchy->getRoot());
 	}
 
 	bool KLogicSys::update(F64 Delta) {
@@ -175,13 +171,6 @@ namespace Kite {
 		}
 	}
 
-	void KLogicSys::scan(KNode *Hierarchy) {
-		nodeAdded(Hierarchy);
-		for (auto it = Hierarchy->childList()->begin(); it != Hierarchy->childList()->end(); ++it) {
-			scan((*it));
-		}
-	}
-
 	void KLogicSys::reloadChunk(KLogicCom *Com) {
 		// delete current env
 		componentRemoved(Com);
@@ -208,7 +197,7 @@ namespace Kite {
 				ctable.set("setmetatable", global.get("setmetatable"));	// creating weak tables
 
 				ctable.set("global", _kglobalVars);
-				ctable.set("kite", global.get("kite"));
+				ctable.set("k", global.get("k"));
 				ctable.set("events", _kevents);
 				ctable.set("object", Com);
 

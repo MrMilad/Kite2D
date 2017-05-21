@@ -25,42 +25,35 @@
 #include <luaintf/LuaIntf.h>
 
 namespace Kite{
-    KImage::KImage(const std::string &Name):
-		KResource(Name, false, false),
-        _ksize(0,0)
-    {}
+	KImage::KImage(const std::string &Name, const std::string &Address) :
+		KResource(Name, Address) {}
 
-    KImage::~KImage(){}
+	KImage::KImage(U32 Width, U32 Height, const KColor &Color):
+		KResource() 
+	{
+		if (Width && Height) {
+			// assign the new size
+			_ksize.x = Width;
+			_ksize.y = Height;
 
-	bool KImage::inite() { return true; }
+			// resize the pixel buffer
+			_kpixels.reserve(Width * Height * 4);
 
-    void KImage::createFromColor(U32 Width, U32 Height, const KColor &Color){
-        if (Width && Height){
-            // assign the new size
-            _ksize.x = Width;
-            _ksize.y = Height;
-
-            // resize the pixel buffer
-            _kpixels.resize(Width * Height * 4);
-
-            // fill it with the specified color
-            U8* ptr = &_kpixels[0];
-            U8* end = ptr + _kpixels.size();
-            while (ptr < end){
-                *ptr++ = Color.getR();
+			// fill it with the specified color
+			U8* ptr = &_kpixels[0];
+			U8* end = ptr + _kpixels.size();
+			while (ptr < end) {
+				*ptr++ = Color.getR();
 				*ptr++ = Color.getG();
 				*ptr++ = Color.getB();
 				*ptr++ = Color.getA();
-            }
-        }else{
-            // create an empty image
-            _ksize.x = 0;
-            _ksize.y = 0;
-            _kpixels.clear();
-        }
-    }
+			}
+		}
+	}
 
-    void KImage::createFromPixels(U32 Width, U32 Height, const U8 *Pixels){
+    KImage::KImage(U32 Width, U32 Height, const U8 *Pixels):
+		KResource("", "")
+	{
         if (Pixels && Width && Height){
             // assign the new size
             _ksize.x = Width;
@@ -70,19 +63,61 @@ namespace Kite{
             std::size_t size = Width * Height * 4;
             _kpixels.resize(size);
             std::memcpy(&_kpixels[0], Pixels, size); // faster than vector::assign
-        }else{
-            // create an empty image
-            _ksize.x = 0;
-            _ksize.y = 0;
-            _kpixels.clear();
         }
     }
 
-	bool KImage::_loadStream(KIStream &Stream, const std::string& Address) {
-		return Internal::ImageIO::readFromStream(Stream, Address, _kpixels, _ksize);
+	KImage::KImage(KIOStream &Stream, const std::string &Address):
+		KResource("", Address)
+	{
+		Internal::ImageIO::readFromStream(Stream, Address, _kpixels, _ksize);
 	}
 
-    bool KImage::_saveStream(KOStream &Stream, const std::string& Address){
+	KImage::KImage(const KImage &Copy):
+		KResource("", "")
+	{
+		_kpixels = Copy._kpixels;
+		_ksize = Copy._ksize;
+	}
+
+	int KImage::luaConstruct(lua_State *L) {
+		// get number of arguments
+		int n = lua_gettop(L);
+
+		
+		// Image(self, Stream, Address)
+		if (n == 3) {
+			KIOStream *stream;
+			const char *address;
+
+			stream = &LuaIntf::Lua::get<KIOStream &>(L, 2);
+			address = LuaIntf::Lua::get<const char *>(L, 3);
+
+			LuaIntf::Lua::push(L, KSharedResource(new KImage(*stream, address)));
+			return 1;
+
+		// Image(self, Width, Height, Color)
+		} else if (n = 4) {
+			U32 width;
+			U32 height;
+			KColor col;
+
+			width = LuaIntf::Lua::get<U32>(L, 2);
+			height = LuaIntf::Lua::get<U32>(L, 3);
+			col = LuaIntf::Lua::get<KColor>(L, 4);
+
+			LuaIntf::Lua::push(L, KSharedResource(new KImage(width, height, col)));
+			return 1;
+		}
+
+		KD_PRINT("incorrect argument.");
+		return 0;
+	}
+
+	bool KImage::_loadStream(std::unique_ptr<KIOStream> Stream, KResourceManager *RManager) {
+		return Internal::ImageIO::readFromStream(*Stream, getAddress(), _kpixels, _ksize);
+	}
+
+	bool KImage::saveStream(KIOStream &Stream, const std::string &Address){
 		return Internal::ImageIO::writeToStream(Stream, Address, _kpixels, _ksize);
     }
 
@@ -154,5 +189,5 @@ namespace Kite{
 		_ksize.y = 0;
 	}
 
-	KMETA_KIMAGE_SOURCE();
+	KIMAGE_SOURCE();
 }

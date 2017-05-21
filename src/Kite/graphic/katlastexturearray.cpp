@@ -21,20 +21,34 @@ USA
 #include "src/Kite/graphic/glcall.h"
 #include "Kite/meta/kmetamanager.h"
 #include "Kite/meta/kmetaclass.h"
-#include "Kite/core/kfostream.h"
 #include "Kite/serialization/kbinaryserial.h"
 #include "Kite/serialization/types/kstdstring.h"
 #include <luaintf/LuaIntf.h>
 
 namespace Kite {
 	U32 Kite::KAtlasTextureArray::_klastTexId = 0;
-	KAtlasTextureArray::KAtlasTextureArray(const std::string &Name) :
-		KResource(Name, false, true) ,
+	KAtlasTextureArray::KAtlasTextureArray(const std::string &Name, const std::string &Address) :
+		KResource(Name, Address) ,
 		_ktexId(0),
 		_kfilter(TextureFilter::LINEAR),
 		_kwrap(TextureWrap::CLAMP_TO_EDGE),
-		_ksize(KVector2U32(0, 0))
+		_ksize(KVector2U32(0, 0)),
+		_kisCreated(false),
+		_kclearImage(false)
 	{}
+
+	KAtlasTextureArray::KAtlasTextureArray(const KSharedResource &AtlasImage):
+		KResource(),
+		_ktexId(0),
+		_kfilter(TextureFilter::LINEAR),
+		_kwrap(TextureWrap::CLAMP_TO_EDGE),
+		_kisCreated(false)
+	{
+		auto aimage = static_cast<const KAtlasImage *>(AtlasImage.constGet());
+		auto image = static_cast<const KImage *>(aimage->getImage().constGet());
+		_kimageArray.push_back(AtlasImage);
+		_ksize = image->getSize();
+	}
 
 	KAtlasTextureArray::~KAtlasTextureArray() {
 		if (_ktexId != 0) {
@@ -45,163 +59,156 @@ namespace Kite {
 		}
 	}
 
+	KSharedResource KAtlasTextureArray::luaConstruct(const KSharedResource &AtlasImage) {
+		return KSharedResource(new KAtlasTextureArray(AtlasImage));
+	}
 
-	bool KAtlasTextureArray::_saveStream(KOStream &Stream, const std::string &Address) {
+	bool KAtlasTextureArray::saveStream(KIOStream &Stream, const std::string &Address) {
+		// check composite resources
+		for (auto it = _kimageArray.begin(); it != _kimageArray.end(); ++it) {
+			if (it->get()->getResourceName().empty()) {
+				KD_PRINT("unregistered composite");
+				return false;
+			}
+		}
+
 		// texture information
 		KBinarySerial bserial;
-
-		bserial << std::string("KATexArr");
+		bserial << std::string("kata");
 		bserial << _ksize;
 		bserial << _kfilter;
 		bserial << _kwrap;
+		bserial << _kimageArray.size();
 
-		if (!bserial.saveStream(Stream, Address, 0)) {
-			KD_PRINT("can't save stream.");
-			Stream.close();
-			return false;
+		for (auto it = _kimageArray.begin(); it != _kimageArray.end(); ++it) {
+			bserial << it->get()->getResourceName();
 		}
-		Stream.close();
 
-		// save composite list (texture)
-		std::vector<KResource *> composite;
-		for (auto it = _karray.begin(); it != _karray.end(); ++it) {
-			composite.push_back((KResource *)(*it));
-		}
-		setCompositeList(composite);
-
-		return true;
+		return bserial.saveStream(Stream, Address, 0);
 	}
 
-	bool KAtlasTextureArray::_loadStream(KIStream &Stream, const std::string &Address) {
-		// load texture info 
-		if (!Stream.isOpen()) {
-			Stream.close();
-		}
-
-		if (!Stream.open(Address, IOMode::BIN)) {
-			KD_FPRINT("can't open stream. address: %s", Address.c_str());
-			return false;
-		}
-
+	bool KAtlasTextureArray::_loadStream(std::unique_ptr<KIOStream> Stream, KResourceManager *RManager) {
 		KBinarySerial bserial;
-		if (!bserial.loadStream(Stream, Address)) {
+		if (!bserial.loadStream(*Stream, getAddress())) {
 			KD_PRINT("can't load stream");
-			Stream.close();
 			return false;
 		}
+
+		// check format
 		std::string format;
-
 		bserial >> format;
-
-		if (format != "KATexArr") {
+		if (format != "kata") {
 			KD_PRINT("incorrect file format");
-			Stream.close();
+			Stream->close();
 			return false;
 		}
 
+		// load info
 		bserial >> _ksize;
 		bserial >> _kfilter;
 		bserial >> _kwrap;
 
-		Stream.close();
+		// load image array
+		SIZE itemSize = 0;
+		std::string itemName;
+		bserial >> itemSize;
+		for (SIZE i = 0; i < itemSize; ++i) {
+			bserial >> itemName;
+			auto item = RManager->load(itemName);
+			if (item.isNull()) {
+				KD_PRINT("cant load composite resource: resource name: %s", itemName.c_str());
+				return false;
+			}
 
-		// load composite resources (texture)
-		_karray.clear();
-		auto slist = getCompositeList();
-		for (auto it = slist.begin(); it != slist.end(); ++it) {
-			_karray.push_back((KAtlasTexture *)(*it));
+			_kimageArray.push_back(item);
 		}
 
 		return true;
 	}
 
-	bool KAtlasTextureArray::inite() {
-		if (isInite()) {
-			return true;
-		}
-		bool ret = true;
-
-		// generate texture
-		DGL_CALL(glGenTextures(1, &_ktexId));
-
+	bool KAtlasTextureArray::_create() {
 		// create pixel buffer
-		U8 *pbuf = new U8[(_ksize.x * _ksize.y * 4) * _karray.size()];
+		U8 *pbuf = new U8[(_ksize.x * _ksize.y * 4) * _kimageArray.size()];
 
+		// fill buffer
 		U32 offset = 0;
-		KImage image;
-		for (auto it = _karray.begin(); it != _karray.end(); ++it) {
-			if ((*it)->getTexture()->getSize() != _ksize) {
-				ret = false;
-				KD_PRINT("texture size is not match with array size");
-				break;
+		for (auto it = _kimageArray.begin(); it != _kimageArray.end(); ++it) {
+			auto atlas = static_cast<KAtlasImage *>(it->get());
+			auto image = static_cast<KImage *>(atlas->getImage().get());
+
+			// check images size before filling buffer
+			if (image->getSize() != _ksize) {
+				KD_PRINT("incorrect image size: removed from atlas array");
+				continue;
 			}
 
-			(*it)->getTexture()->getImage(image);
-			memcpy(pbuf + offset, image.getPixelsData(), image.getPixelsDataSize());
-			offset += image.getPixelsDataSize();
+			// fill buffer
+			memcpy(pbuf + offset, image->getPixelsData(), image->getPixelsDataSize());
+			offset += image->getPixelsDataSize();
 		}
 
-		// transfer pixels data from ram to vram (opengl texture array)
-		if (ret) {
-			_create(pbuf, _ksize, _kfilter, _kwrap, this);
+		// clean up image array
+		if (_kclearImage) {
+			_kimageArray.clear();
 		}
 
-		// cleanup buffer
-		delete[] pbuf;
-
-		setInite(ret);
-		return ret;
-	}
-
-	void KAtlasTextureArray::_create(const U8 *Data, const KVector2U32 &Size,
-						   TextureFilter Filter, TextureWrap Wrap, KAtlasTextureArray *Instance) {
+		// generate texture
+		if (_ktexId == 0) {
+			DGL_CALL(glGenTextures(1, &_ktexId));
+		}
 
 		// save currently binded texture then bind our texture temporary
-		Internal::GLBindGuard guard(Internal::KBG_TEXTURE_ARRAY, _klastTexId, Instance->_ktexId);
-		DGL_CALL(glBindTexture(GL_TEXTURE_2D_ARRAY, Instance->_ktexId));
+		Internal::GLBindGuard guard(Internal::KBG_TEXTURE_ARRAY, _klastTexId, _ktexId);
+		DGL_CALL(glBindTexture(GL_TEXTURE_2D_ARRAY, _ktexId));
 
 		// allocate the storage.
 		//DGL_CALL(glTexStorage3D(GL_TEXTURE_2D_ARRAY, 1, GL_RGBA8, Size.x, Size.y, Instance->_karray.size())); // opengl 4.2 (dont work in 3.3)
-		glTexImage3D(GL_TEXTURE_2D_ARRAY, 0, GL_RGBA8, Size.x, Size.y,
-					 Instance->_karray.size(), 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL); // 3.3 version
+		glTexImage3D(GL_TEXTURE_2D_ARRAY, 0, GL_RGBA8, _ksize.x, _ksize.y,
+					 _kimageArray.size(), 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL); // 3.3 version
 
 		// Upload pixel data.
 		// The first 0 refers to the mipmap level (level 0, since there's only 1)
 		// The following 2 zeroes refers to the x and y offsets in case you only want to specify a subrectangle.
 		// The final 0 refers to the layer index offset (we start from index 0).
 		// Altogether you can specify a 3D box subset of the overall texture, but only one mip level at a time.
-		DGL_CALL(glTexSubImage3D(GL_TEXTURE_2D_ARRAY, 0, 0, 0, 0, Size.x, Size.y, Instance->_karray.size(),
-								 GL_RGBA, GL_UNSIGNED_BYTE, Data));
+		DGL_CALL(glTexSubImage3D(GL_TEXTURE_2D_ARRAY, 0, 0, 0, 0, _ksize.x, _ksize.y, _kimageArray.size(),
+								 GL_RGBA, GL_UNSIGNED_BYTE, pbuf));
 
 		// setup texture parameters
 		int wrapType[] = { GL_REPEAT, GL_MIRRORED_REPEAT, GL_CLAMP_TO_EDGE };
-		DGL_CALL(glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_S, wrapType[(U8)Wrap]));
-		DGL_CALL(glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_T, wrapType[(U8)Wrap]));
+		DGL_CALL(glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_S, wrapType[(U8)_kwrap]));
+		DGL_CALL(glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_T, wrapType[(U8)_kwrap]));
 
 		int filterType[] = { GL_NEAREST, GL_LINEAR };
-		DGL_CALL(glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAG_FILTER, filterType[(U8)Filter]));
-		DGL_CALL(glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MIN_FILTER, filterType[(U8)Filter]));
+		DGL_CALL(glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAG_FILTER, filterType[(U8)_kfilter]));
+		DGL_CALL(glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MIN_FILTER, filterType[(U8)_kfilter]));
+
+		// cleanup buffer
+		delete[] pbuf;
+		_kisCreated = true;
+		return true;
 	}
 
-	void KAtlasTextureArray::setTextureSize(const KVector2U32 &Size) {
-		if (Size != _ksize) {
-			_ksize = Size;
-			_karray.clear();
-		}
+	U32 KAtlasTextureArray::addItem(const KSharedResource &AtlasImage) {
+		auto id = _kimageArray.size();
+		_kimageArray.push_back(AtlasImage);
+		return id;
 	}
 
-	bool KAtlasTextureArray::addItem(KAtlasTexture *Atlas) {
-		if (Atlas->getTexture()) {
-			if (Atlas->getTexture()->getSize() == _ksize) {
-				_karray.push_back(Atlas);
-				return true;
-			}
+	KSharedResource KAtlasTextureArray::getItem(U32 ID) const {
+		if (ID < _kimageArray.size()) {
+			return _kimageArray[ID];
 		}
-		return false;
+		KD_PRINT("id is out of range");
+		return KSharedResource();
+	}
+
+	void KAtlasTextureArray::clearItems() {
+		_kimageArray.clear();
 	}
 
 	void KAtlasTextureArray::setFilter(TextureFilter Filter) {
-		if (_ktexId > 0) {
+		if (_kisCreated) {
 			if (Filter != _kfilter) {
 				// save currently bound texture then bind our texture temporary
 				Internal::GLBindGuard guard(Internal::KBG_TEXTURE_ARRAY, _klastTexId, _ktexId);
@@ -217,7 +224,7 @@ namespace Kite {
 	}
 
 	void KAtlasTextureArray::setWrap(TextureWrap Wrap) {
-		if (_ktexId > 0) {
+		if (_kisCreated) {
 			if (Wrap != _kwrap) {
 				// save currently bound texture then bind our texture temporary
 				Internal::GLBindGuard guard(Internal::KBG_TEXTURE_ARRAY, _klastTexId, _ktexId);
@@ -232,12 +239,31 @@ namespace Kite {
 		_kwrap = Wrap;
 	}
 
-	void KAtlasTextureArray::bind() const {
+	void KAtlasTextureArray::setCleanupImage(bool CleanUp) {
+		if (CleanUp && _kisCreated) {
+			_kimageArray.clear();
+		}
+
+		_kclearImage = CleanUp;
+	}
+
+	bool KAtlasTextureArray::bind() {
+		// create texture only first time
+		if (!_kisCreated) {
+			if (!_create()) {
+				KD_PRINT("can't initialize atlas texture array");
+				return false;
+			}
+		}
+
 		// bind texture
 		if (_klastTexId != _ktexId) {
+			// bind texture
 			DGL_CALL(glBindTexture(GL_TEXTURE_2D_ARRAY, _ktexId));
 			_klastTexId = _ktexId;
 		}
+
+		return true;
 	}
 
 	void KAtlasTextureArray::unbind() {
@@ -254,5 +280,5 @@ namespace Kite {
 		}
 	}
 
-	KMETA_KATLASTEXTUREARRAY_SOURCE();
+	KATLASTEXTUREARRAY_SOURCE();
 }

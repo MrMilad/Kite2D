@@ -88,18 +88,13 @@ namespace Internal{
 		return false;
     }
 
-	bool ImageIO::readFromStream(KIStream &Stream, const std::string &Address,
+	bool ImageIO::readFromStream(KIOStream &Stream, const std::string &Address,
 								 std::vector<U8> &Pixels, KVector2U32 &Size){
 		// we need an empty array
 		Pixels.clear();
 
-		// check stream
-		if (!Stream.isOpen()) {
-			Stream.close();
-		}
-
 		// open stream in binary mode
-		if (!Stream.open(Address, IOMode::BIN)) {
+		if (!Stream.openRead(Address, IOMode::BIN)) {
 			KD_FPRINT("can't open stream. address: %s", Address.c_str());
 			return false;
 		}
@@ -167,7 +162,7 @@ namespace Internal{
 		return false;
     }
 
-	bool ImageIO::writeToStream(KOStream &Stream, const std::string &Address, const std::vector<U8> &Pixels, const KVector2U32 &Size) {
+	bool ImageIO::writeToStream(KIOStream &Stream, const std::string &Address, const std::vector<U8> &Pixels, const KVector2U32 &Size) {
 
 		// check stream
 		if (!Stream.isOpen()) {
@@ -175,13 +170,12 @@ namespace Internal{
 		}
 
 		// open stream in binary mode
-		if (!Stream.open(Address, IOMode::BIN)) {
+		if (!Stream.openWrite(Address, IOMode::BIN, WriteMode::NEW)) {
 			KD_FPRINT("can't open stream. address: %s", Address.c_str());
 			return false;
 		}
 
-		KFileInfo finfo;
-		Stream.getFileInfoStr(Address, finfo);
+		auto finfo = Stream.getFileInfo();
 
 		// make sure the image is not empty
 		if (!Pixels.empty() && (Size.x > 0) && (Size.y > 0)) {
@@ -230,21 +224,21 @@ namespace Internal{
     }
 
 	void ImageIO::_write(void *user, void *data, int size) {
-		KOStream *stream = (KOStream *)user;
+		KIOStream *stream = (KIOStream *)user;
 		stream->write(data, size);
 	}
 
 	int ImageIO::_read(void *user, char *data, int size){
-		KIStream *stream = (KIStream *)user;
+		KIOStream *stream = (KIOStream *)user;
 		return (int)stream->read(data, size);
 	}
 	void ImageIO::_skip(void *user, int n){
-		KIStream *stream = (KIStream *)user;
+		KIOStream *stream = (KIOStream *)user;
 		stream->seek(n, SEEK_CUR);
 	}
 
 	int ImageIO::_eof(void *user){
-		KIStream *stream = (KIStream *)user;
+		KIOStream *stream = (KIOStream *)user;
 		return stream->eof();
 	}
 }

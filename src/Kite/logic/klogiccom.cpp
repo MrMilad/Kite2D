@@ -44,17 +44,21 @@ namespace Kite {
 	void KLogicCom::setScript(const KSharedResource &Script) {
 		if (_kscript != Script) {
 			_kscript = Script;
-			if (getOwnerNode()->isOnActiveHierarchy()) {
-				(_ksys->*_kreloadScriptCallb)(this);
+			if (getOwnerNode()){
+				if (getOwnerNode()->isOnActiveHierarchy()) {
+					(_ksys->*_kreloadScriptCallb)(this);
+				}
 			}
 		}
 	}
 
 	int KLogicCom::getTable(lua_State *L){
-		if (getOwnerNode()->isOnActiveHierarchy()) {
-			auto table = LuaIntf::LuaRef::globals(L).get("coms").get(getTableIndex());
-			LuaIntf::Lua::push(L, table);
-			return 1;
+		if (getOwnerNode()) {
+			if (getOwnerNode()->isOnActiveHierarchy()) {
+				auto table = LuaIntf::LuaRef::globals(L).get("coms").get(getTableIndex());
+				LuaIntf::Lua::push(L, table);
+				return 1;
+			}
 		}
 		
 		KD_FPRINT("owner node of this component is not active: component name: %s", getName().c_str());

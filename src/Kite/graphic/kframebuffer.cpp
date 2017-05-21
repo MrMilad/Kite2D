@@ -19,7 +19,7 @@
 */
 #include "Kite/graphic/kframebuffer.h"
 #include "src/Kite/graphic/glcall.h"
-#include "Kite/graphic/ktexture.h"
+#include "Kite/graphic/katlastexture.h"
 #include "Kite/graphic/katlastexturearray.h"
 
 namespace Kite{
@@ -40,33 +40,37 @@ namespace Kite{
         }
     }
 
-    void KFrameBuffer::attachTexture(const KTexture *Texture){
+    void KFrameBuffer::attachAtlasTexture(const KSharedResource &AtlasTexture){
+		auto at = static_cast<const KAtlasTexture *>(AtlasTexture.constGet());
 		bind();
 
         // attach the texture to FBO color attachment point
-        DGL_CALL(glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
-                                        GL_TEXTURE_2D, Texture->getGLID(), 0));
+		DGL_CALL(glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
+			GL_TEXTURE_2D, at->getGLID(), 0));
 
         // check status
         KD_ASSERT(GL_FRAMEBUFFER_COMPLETE == glCheckFramebufferStatus(GL_FRAMEBUFFER));
     }
 
-	void KFrameBuffer::attachTextureArray(const KAtlasTextureArray *TextureArray, U32 Index) {
+	void KFrameBuffer::attachAtlasTextureArray(const KSharedResource &AtlasTextureArray, U32 Index) {
+		auto atArray = static_cast<const KAtlasTextureArray *>(AtlasTextureArray.constGet());
 		bind();
 
 		// attach the texture to FBO color attachment point
 		DGL_CALL(glFramebufferTextureLayer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
-										   TextureArray->getGLID(), 0, Index));
+			atArray->getGLID(), 0, Index));
 
 		// check status
 		KD_ASSERT(GL_FRAMEBUFFER_COMPLETE == glCheckFramebufferStatus(GL_FRAMEBUFFER));
 	}
 
-    void KFrameBuffer::bind(){
+    bool KFrameBuffer::bind(){
         if (_klastBufId != _kbufId){
             DGL_CALL(glBindFramebuffer(GL_FRAMEBUFFER, _kbufId));
             _klastBufId = _kbufId;
         }
+
+		return true;
     }
 
     void KFrameBuffer::unbind(){

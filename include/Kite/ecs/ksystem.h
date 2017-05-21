@@ -26,7 +26,6 @@ USA
 #include "Kite/meta/kmetadef.h"
 #include "ksystem.khgen.h"
 #include "ktypes.khgen.h"
-#include <initializer_list>
 #include <vector>
 #include <string>
 
@@ -34,7 +33,7 @@ KMETA
 namespace Kite {
 	class KNode;
 	class KComponent;
-	struct KSysInite;
+	class KEngine;
 	KM_CLASS(SYSTEM, ABSTRACT)
 	class KITE_FUNC_EXPORT KSystem{
 		KM_INFO(KI_NAME = "SystemBase");
@@ -55,7 +54,7 @@ namespace Kite {
 		KM_PRO_GET(KP_NAME = "typeName", KP_TYPE = std::string, KP_CM = "name of the system's type")
 		virtual inline const std::string &getTypeName() const = 0;
 
-		virtual void reset(KNode *Hierarchy, KSysInite *Data) = 0;
+		virtual void reset(KEngine *Engine) = 0;
 
 		/// delta is based seconds
 		virtual bool update(F64 Delta) = 0;

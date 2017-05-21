@@ -20,8 +20,6 @@
 #include "Kite/ecs/kresourcemanager.h"
 #include "Kite/ecs/knode.h"
 #include "Kite/graphic/kquadcom.h"
-#include "Kite/graphic/krendercom.h"
-#include "Kite/graphic/kgcullingcom.h"
 #include "Kite/meta/kmetamanager.h"
 #include "Kite/meta/kmetaclass.h"
 #include "Kite/meta/kmetatypes.h"
@@ -29,16 +27,14 @@
 #include <luaintf/LuaIntf.h>
 
 namespace Kite{
-	KQuadCom::KQuadCom(KNode *OwnerNode, const std::string &Name) :
-		KComponent(OwnerNode, Name),
-		_ktindex(0),
-		_kisVisible(true),
-		_kculling(false),
-		_kwidth(100),
-		_kheight(100),
-		_kvertex(4),
-		_kindexsize(6)
-	{
+	void KQuadCom::inite() {
+		_ktindex = 0;
+		_kwidth = 100;
+		_kheight = 100;
+		_kvertex.resize(4);
+		_kindexsize = 6;
+		_kvisible = true;
+
 		_setDim();
 		setAtlasItem(KAtlasItem());
 		setBlendColor(KColor());
@@ -47,10 +43,6 @@ namespace Kite{
 	void KQuadCom::attached() {}
 
 	void KQuadCom::deattached() {}
-
-	RecieveTypes KQuadCom::onMessage(KMessage *Message, MessageScope Scope) {
-		return RecieveTypes::IGNORED;
-	}
 
 	void KQuadCom::setWidth(F32 Width) {
 		_kwidth = Width;
@@ -77,7 +69,7 @@ namespace Kite{
 		_kvertex[2].uv = KVector2F32(AtlasItem.tru, AtlasItem.trv);
 	}
 
-	void KQuadCom::getBoundingRect(KRectF32 &Output) const {
+	void KQuadCom::getBoundingBox(KRectF32 &Output) const {
 		Output.bottom = 0;
 		Output.left = 0;
 		Output.top = _kheight;
@@ -100,17 +92,15 @@ namespace Kite{
 		_kcolor = Color;
 	}
 
-	void KQuadCom::setShader(KShaderProgram *ShaderProgram) {
+	void KQuadCom::setShader(const KSharedResource &ShaderProgram) {
 		if (_kshprog != ShaderProgram) {
 			_kshprog = ShaderProgram;
-			matNeedUpdate();
 		}
 	}
 
-	void KQuadCom::setAtlasTextureArraye(KAtlasTextureArray *TextureArray) {
+	void KQuadCom::setAtlasTextureArraye(const KSharedResource &TextureArray) {
 		if (_katarray != TextureArray) {
 			_katarray = TextureArray;
-			matNeedUpdate();
 		}
 	}
 
@@ -119,5 +109,5 @@ namespace Kite{
 		_ktindex = Index;
 	}
 
-	KMETA_KQUADCOM_SOURCE();
+	KQUADCOM_SOURCE();
 }

@@ -43,13 +43,6 @@ namespace Kite{
 	};*/
 
 	KM_ENUM()
-	enum class IOMode : U8{
-		BIN = 0,
-		TEXT
-	};
-	IOMODE_BODY();
-
-	KM_ENUM()
 	enum class Primitive : U8 {
 		I8 = 0,
 		U8,

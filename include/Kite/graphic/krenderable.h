@@ -34,7 +34,7 @@ namespace Kite{
 	KM_CLASS(INTERFACE)
 	class KITE_FUNC_EXPORT KRenderable{
 		KM_INFO(KI_NAME = "Renderable");
-		KMETA_KRENDERABLE_BODY();
+		KRENDERABLE_BODY();
 		friend class KRenderSys;
 	public:
 		virtual ~KRenderable() {};
@@ -53,7 +53,7 @@ namespace Kite{
 		virtual bool isPoint() const = 0;
     };
 
-	KMETA_KRENDERABLE_SOURCE();
+	KRENDERABLE_SOURCE();
 }
 
 #endif // KRENDERABLE_H

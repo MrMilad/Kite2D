@@ -23,7 +23,7 @@
 #include "Kite/meta/kmetamanager.h"
 #include "Kite/meta/kmetaclass.h"
 #include "Kite/meta/kmetatypes.h"
-#include "Kite/graphic/ktexture.h"
+#include "Kite/graphic/katlastexturearray.h"
 #include "Kite/serialization/types/kstdstring.h"
 #include "Kite/serialization/types/kstdpair.h"
 #include "Kite/serialization/types/kstdbitset.h"
@@ -44,7 +44,8 @@ namespace Kite{
 		_kzoomDelta = 0;
 		_klayers = std::bitset<32>("01");
 		_kcompute = true;
-		_krtexture.clear();
+		_krtexture = KSharedResource();
+		_krindex = 0;
 	}
 
 	void KCameraCom::attached() {}
@@ -155,15 +156,6 @@ namespace Kite{
 		}
 	}
 
-	void KCameraCom::setLayerMask(const KBitset &Mask) {
-		_klayers = std::bitset<KENTITY_LAYER_SIZE>(Mask.toString());
-	}
-
-	KBitset KCameraCom::getLayerMask() const {
-		KBitset mask(KENTITY_LAYER_SIZE, _klayers.to_string());
-		return mask;
-	}
-
 	KRectF32 KCameraCom::getViewRect(I32 ParallaxIndex) const {
 		auto halfWidth = _ksize.x / 2;
 		auto halfHeight = _ksize.y / 2;
@@ -196,7 +188,7 @@ namespace Kite{
 		return _kdefMat;
 	}
 
-	I32 KCameraCom::addParallaxRatio(const KParallaxRatio &Ratio) {
+	I32 KCameraCom::addParallax(const KParallaxRatio &Ratio) {
 		// compare with default ratio
 		if (KParallaxRatio() == Ratio) {
 			KD_PRINT("try to add duplicate ratio (default)");
@@ -221,7 +213,7 @@ namespace Kite{
 		return _kmatList.size() - 1;
 	}
 
-	bool KCameraCom::setParallaxRatio(I32 Index, const KParallaxRatio &Ratio) {
+	bool KCameraCom::setParallax(I32 Index, const KParallaxRatio &Ratio) {
 		// check range
 		if (Index >= (I32)_kmatList.size() || Index < 0) {
 			KD_PRINT("index of transform ratio is out of range.");
@@ -251,7 +243,7 @@ namespace Kite{
 		return true;
 	}
 
-	KParallaxRatio KCameraCom::getParallaxRatio(I32 Index) const {
+	KParallaxRatio KCameraCom::getParallax(I32 Index) const {
 		if (Index < 0) {
 			return KParallaxRatio();
 		}
@@ -265,7 +257,7 @@ namespace Kite{
 		return KParallaxRatio();
 	}
 
-	void KCameraCom::clearRatio() {
+	void KCameraCom::clearParallax() {
 		_kmatList.clear();
 	}
 

@@ -100,7 +100,7 @@ namespace Kite{
 			but avoid calling that gl function several times if our FBO is currently bound.
 			(automatic handle by internal render system)
 		*/
-        void bind() const;
+        bool bind() const;
 
 		//! Unbind the vertex array if it is currently bound.
         void unbind();

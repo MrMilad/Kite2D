@@ -22,8 +22,7 @@ USA
 
 #include "Kite/core/kcoredef.h"
 #include "Kite/core/kcoretypes.h"
-#include "Kite/core/kistream.h"
-#include "Kite/core/kostream.h"
+#include "Kite/stream/kiostream.h"
 #include "Kite/meta/kmetadef.h"
 #include "kbaseserial.khgen.h"
 
@@ -38,10 +37,10 @@ namespace Kite {
 		virtual ~KBaseSerial();
 
 		KM_FUN()
-		virtual bool loadStream(KIStream &Stream, const std::string &Address) = 0;
+		virtual bool loadStream(KIOStream &Stream, const std::string &Address) = 0;
 
 		KM_FUN()
-		virtual bool saveStream(KOStream &Stream, const std::string &Address, U32 Version) = 0;
+		virtual bool saveStream(KIOStream &Stream, const std::string &Address, U32 Version) = 0;
 
 		virtual void writePOD(const void *Value, SIZE Size, bool Str) = 0;
 		virtual void readPOD(void *Value, SIZE Size, bool Str) = 0;

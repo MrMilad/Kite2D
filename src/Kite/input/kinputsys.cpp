@@ -27,8 +27,8 @@ USA
 
 namespace Kite {
 
-	void KInputSys::reset(KNode *Hierarchy, KSysInite *IniteData) {
-		_klvm = IniteData->lstate;
+	void KInputSys::reset(KEngine *Engine) {
+		_klvm = Engine->getLuaState();
 		_keventTrig = LuaIntf::LuaRef(_klvm, "events.trigger");
 		if (!_keventTrig.isFunction()) {
 			throw std::string("events:trigger function is corrupted.");

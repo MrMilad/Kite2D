@@ -37,16 +37,6 @@ namespace Kite {
 		KStartState start;
 	};
 
-	struct KSysInite {
-		lua_State *lstate;
-		KGLWindow *window;
-
-		KSysInite() :
-			lstate(nullptr),
-			window(nullptr)
-		{}
-	};
-
 	class KITE_FUNC_EXPORT KEngine {
 	public:
 		// will show window but will not update it
@@ -74,6 +64,7 @@ namespace Kite {
 		bool setActiveHierarchy(const KSharedResource &Hierarchy);
 
 	private:
+		void recursiveHierarchyScan(KNode *Hierarchy);
 		void swapHierarchy();
 		void loadLuaState();
 		lua_State *_klstate;
@@ -84,7 +75,6 @@ namespace Kite {
 		std::vector<KSystem *> _ksys;
 		System _ksysOrder[(U16)System::maxSize];
 		KConfig _kconfig;
-		KSysInite _ksysInite;
 		bool _kinite;
 		bool _kneedSwap;
 		U32 _kmaxMilli;

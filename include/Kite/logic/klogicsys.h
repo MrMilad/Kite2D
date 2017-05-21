@@ -39,7 +39,7 @@ namespace Kite {
 	public:
 		KLogicSys();
 
-		void reset(KNode *Hierarchy, KSysInite *Data) override;
+		void reset(KEngine *Engine) override;
 
 		bool update(F64 Delta) override;
 
@@ -64,7 +64,6 @@ namespace Kite {
 		inline bool getCollectGarbagePerFrame() const { return _kcgarbage; }
 
 	private:
-		void scan(KNode *Root);
 		void reloadChunk(KLogicCom *Com);
 		bool _kcgarbage;
 		bool _kupPerFrame;

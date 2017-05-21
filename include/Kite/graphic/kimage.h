@@ -48,37 +48,45 @@ namespace Kite{
 
 		KIMAGE_BODY();
     public:
-		//! Constructs an empty image object.
-		KM_CON(std::string)
-        KImage(const std::string &Name);
-
-		//! Destructor
-        ~KImage();
-
-		bool inite() override;
 
 		//! Create the image with the specific size and color
 		/*!
-			\param Width Width of the image (in pixels)
-			\param Height Height of the image (in pixels)
-			\param Color Color of the pixels
+		supported by lua
+
+		\param Width Width of the image (in pixels)
+		\param Height Height of the image (in pixels)
+		\param Color Color of the pixels
 		*/
-		KM_FUN()
-        void createFromColor(U32 Width, U32 Height, const KColor &Color);
+		KImage(U32 Width, U32 Height, const KColor &Color);
 
 		//! Create the image with the specific size and color
 		/*!
-			The pixelx array is assumed to contain 32-bits RGBA pixels,
-			and have the given width and height (width * height * 4 = size of array).
-			If not, this is an undefined behaviour.
-			If pixels is null, an empty image is created.
+		The pixelx array is assumed to contain 32-bits RGBA pixels,
+		and have the given width and height (width * height * 4 = size of array).
+		If not, this is an undefined behaviour.
+		If pixels is null, an empty image is created.
+		not supported by lua
 
-			\param Width Width of the image (in pixels)
-			\param Height Height of the image (in pixels)
-			\param Pixels Array of pixels to copy to the image
+		\param Width Width of the image (in pixels)
+		\param Height Height of the image (in pixels)
+		\param Pixels Array of pixels to copy to the image
 		*/
-		KM_FUN()
-        void createFromPixels(U32 Width, U32 Height, const U8 *Pixels);
+		KImage(U32 Width, U32 Height, const U8 *Pixels);
+
+		//! Load an existing image from stream
+		/*!
+		Supported formats : PNG, BMP, TGA.
+		supported by lua
+
+		\param Stream Input stream
+		\param Address Address of the image in the input stream
+		*/
+		KImage(KIOStream &Stream, const std::string &Address);
+
+		/// copy constructure
+		KImage(const KImage &Copy);
+
+		bool saveStream(KIOStream &Stream, const std::string &Address) override;
 
 		//! Create a transparency mask from a specified color - key
 		/*!
@@ -152,9 +160,14 @@ namespace Kite{
 		void clear();
 
     private:
+		//! Constructs an empty image object.
+		KImage(const std::string &Name, const std::string &Address);
+
+		KM_FUN(KP_NAME = "__call")
+		static int luaConstruct(lua_State *L);
+
 		// Supported formats : PNG, BMP, TGA.
-		bool _saveStream(KOStream &Stream, const std::string &Address) override;
-		bool _loadStream(KIStream &Stream, const std::string &Address) override;
+		bool _loadStream(std::unique_ptr<KIOStream> Stream, KResourceManager *RManager) override;
 
         std::vector<U8> _kpixels;	//!< Array of pixels
         KVector2U32 _ksize;			//!< Size of the image

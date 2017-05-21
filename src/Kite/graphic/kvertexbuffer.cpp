@@ -122,12 +122,14 @@ namespace Kite{
         }
     }
 
-    void KVertexBuffer::bind() const{
+    bool KVertexBuffer::bind() const{
         // bind buffer
         if (_klastBufId != _kbufId){
 			DGL_CALL(glBindBuffer(_ktargets[(U8)_kbufTarget], _kbufId));
             _klastBufId = _kbufId;
         }
+
+		return true;
     }
 
     void KVertexBuffer::unbind(){

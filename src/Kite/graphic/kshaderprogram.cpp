@@ -31,20 +31,28 @@
 
 namespace Kite{
 	U32 KShaderProgram::_klastProgId = 0;
-
-	KShaderProgram::KShaderProgram(const std::string &Name) :
-		KResource(Name, false, true),
-		_klinked(false),
+	KShaderProgram::KShaderProgram(const KSharedResource &Vertex, const KSharedResource &Fragment, const KSharedResource &Geometry) :
+		KResource(),
+		_kisCreated(false),
 		_kprogId(0),
-		_kvert(nullptr),
-		_kfrag(nullptr),
-		_kgeom(nullptr)
+		_kvert(Vertex),
+		_kfrag(Fragment),
+		_kgeom(Geometry)
+	{
+		KD_ASSERT(!Vertex.isNull());
+		KD_ASSERT(!Fragment.isNull());
+	}
+
+	KShaderProgram::KShaderProgram(const std::string &Name, const std::string &Address) :
+		KResource(Name, Address),
+		_kisCreated(false),
+		_kprogId(0)
 	{}
 
 	KShaderProgram::~KShaderProgram(){
 		// Delete the shader program from the graphics card memory to
 		// free all the resources it's been using
-		if (_kprogId > 0) {
+		if (_kisCreated) {
 			DGL_CALL(glDeleteProgram(_kprogId));
 		}
 
@@ -54,12 +62,11 @@ namespace Kite{
 		}
 	}
 
-	bool KShaderProgram::inite() {
-		if (isInite()) {
-			return true;
-		}
+	bool KShaderProgram::_create() {
 		// Generate a unique Id / handle for the shader program
-		_kprogId = DGL_CALL(glCreateProgram());
+		if (_kprogId == 0) {
+			_kprogId = DGL_CALL(glCreateProgram());
+		}
 
 		if (!_kprogId) {
 			KD_PRINT("cant create gl program id.");
@@ -69,9 +76,9 @@ namespace Kite{
 		// Attach the shaders to the program
 		// vertex
 		if (_kvert) {
-			_kvert->inite();
-			if (_kvert->compile()) {
-				DGL_CALL(glAttachShader(_kprogId, _kvert->getGLID()));
+			auto vert = static_cast<KShader *>(_kvert.get());
+			if (vert->compile()) {
+				DGL_CALL(glAttachShader(_kprogId, vert->getGLID()));
 			} else {
 				KD_PRINT("vertex shader compilation failed.");
 				return false;
@@ -83,9 +90,9 @@ namespace Kite{
 
 		// fragment
 		if (_kfrag) {
-			_kfrag->inite();
-			if (_kfrag->compile()) {
-				DGL_CALL(glAttachShader(_kprogId, _kfrag->getGLID()));
+			auto frag = static_cast<KShader *>(_kfrag.get());
+			if (frag->compile()) {
+				DGL_CALL(glAttachShader(_kprogId, frag->getGLID()));
 			} else {
 				KD_PRINT("fragment shader compilation failed.");
 				return false;
@@ -97,9 +104,9 @@ namespace Kite{
 
 		// geometry (optional)
 		if (_kgeom) {
-			_kgeom->inite();
-			if (_kgeom->compile()) {
-				DGL_CALL(glAttachShader(_kprogId, _kgeom->getGLID()));
+			auto geom = static_cast<KShader *>(_kgeom.get());
+			if (geom->compile()) {
+				DGL_CALL(glAttachShader(_kprogId, geom->getGLID()));
 			} else {
 				KD_PRINT("geometry shader compilation failed.");
 				return false;
@@ -112,93 +119,93 @@ namespace Kite{
 			DGL_CALL(glBindAttribLocation(_kprogId, (GLuint)it->first, it->second.c_str()));
 		}
 
-		setInite(true);
+		// link the program
+		DGL_CALL(glLinkProgram(_kprogId));
+
+		// check the link log
+		GLint isLinked;
+		DGL_CALL(glGetProgramiv(_kprogId, GL_LINK_STATUS, (int *)&isLinked));
+		//DGL_CALL(glGetObjectParameterivARB(_kprogram, GL_OBJECT_LINK_STATUS_ARB, &success)); // old version
+		if (isLinked == GL_FALSE) {
+			KD_PRINT("failed to link shader program.");
+			return false;
+		}
+
+		_kisCreated = true;
 		return true;
 	}
 
-	bool KShaderProgram::_loadStream(KIStream &Stream, const std::string &Address) {
-		setInite(false);
-
-		if (!Stream.isOpen()) {
-			Stream.close();
-		}
-
-		if (!Stream.open(Address, IOMode::BIN)) {
-			KD_FPRINT("can't open stream. address: %s", Address.c_str());
-			return false;
-		}
-
+	bool KShaderProgram::_loadStream(std::unique_ptr<KIOStream> Stream, KResourceManager *RManager) {
 		KBinarySerial bserial;
-		if (!bserial.loadStream(Stream, Address)) {
+		if (!bserial.loadStream(*Stream, getAddress())) {
 			KD_PRINT("can't load stream");
-			Stream.close();
 			return false;
 		}
+
+		// checking format
 		std::string format;
-
 		bserial >> format;
-
-		if (format != "KSHProg") {
+		if (format != "ksp") {
 			KD_PRINT("incorrect file format.");
-			Stream.close();
 			return false;
 		}
 
+		// reading data
 		bserial >> _kattribList;
 
-		// load composite resources (shaders)
-		auto slist = getCompositeList();
-		for (auto it = slist.begin(); it != slist.end(); ++it) {
-			auto shd = (KShader *)(*it);
-			if (shd->getShaderType() == ShaderType::VERTEX) {
-				_kvert = shd;
-			} else if (shd->getShaderType() == ShaderType::FRAGMENT) {
-				_kfrag = shd;
-			} else if (shd->getShaderType() == ShaderType::GEOMETRY) {
-				_kgeom = shd;
-			}
-		}
-
-		Stream.close();
-		return true;
-	}
-
-	bool KShaderProgram::_saveStream(KOStream &Stream, const std::string &Address) {
-		KBinarySerial bserial;
-		bserial << std::string("KSHProg");
-		bserial << _kattribList;
-
-		if (!bserial.saveStream(Stream, Address, 0)) {
-			KD_PRINT("can't save stream.");
-			Stream.close();
+		// vertex shader
+		std::string vert;
+		bserial >> vert;
+		_kvert = RManager->load(vert);
+		if (_kvert.isNull()) {
+			KD_FPRINT("cant load composite resource: resource name: %s", vert.c_str());
 			return false;
 		}
 
-		Stream.close();
+		// fragment shader
+		std::string frag;
+		bserial >> frag;
+		_kfrag = RManager->load(frag);
+		if (_kfrag.isNull()) {
+			KD_FPRINT("cant load composite resource: resource name: %s", frag.c_str());
+			return false;
+		}
 
-		// save composite list (shaders)
-		std::vector<KResource *> composite;
-		composite.reserve(3);
-		composite.push_back((KResource *)_kvert);
-		composite.push_back((KResource *)_kfrag);
-		composite.push_back((KResource *)_kgeom);
-		setCompositeList(composite);
+		bool hasGeom;
+		bserial >> hasGeom;
+		if (hasGeom) {
+			std::string geom;
+			bserial >> geom;
 
-		return true;
-	}
-
-	bool KShaderProgram::setShader(KShader *Shader, ShaderType Type){
-		if (Shader != nullptr) {
-			if (Shader->getShaderType() != Type) {
-				KD_PRINT("shader type missmatch.");
+			_kgeom = RManager->load(geom);
+			if (_kgeom.isNull()) {
+				KD_FPRINT("cant load composite resource: resource name: %s", geom.c_str());
 				return false;
 			}
 		}
-		if (Type == ShaderType::VERTEX) {
+
+		return true;
+	}
+
+	bool KShaderProgram::saveStream(KIOStream &Stream, const std::string &Address) {
+		KBinarySerial bserial;
+		bserial << std::string("ksp");
+		bserial << _kattribList;
+		bserial << _kvert->getResourceName();
+		bserial << _kfrag->getResourceName();
+		bserial << !_kgeom.isNull();
+		if (_kgeom) bserial << _kgeom->getResourceName();
+
+		return bserial.saveStream(Stream, Address, 0);
+	}
+
+	bool KShaderProgram::setShader(const KSharedResource &Shader){
+		auto shader = static_cast<const KShader *>(Shader.constGet());
+		if (shader->getShaderType() == ShaderType::VERTEX) {
 			_kvert = Shader;
-		} else if (Type == ShaderType::FRAGMENT) {
+		} else if (shader->getShaderType() == ShaderType::FRAGMENT) {
 			_kfrag = Shader;
-		} else if (Type == ShaderType::GEOMETRY) {
+		} else if (shader->getShaderType() == ShaderType::GEOMETRY) {
 			_kgeom = Shader;
 		} else {
 			KD_PRINT("incorrect shader type.");
@@ -208,7 +215,7 @@ namespace Kite{
 		return true;
 	}
 
-	const KShader *KShaderProgram::getShader(ShaderType Type) {
+	const KSharedResource &KShaderProgram::getShader(ShaderType Type) {
 		if (Type == ShaderType::VERTEX) {
 			return _kvert;
 		} else if (Type == ShaderType::FRAGMENT) {
@@ -216,41 +223,16 @@ namespace Kite{
 		} else if (Type == ShaderType::GEOMETRY) {
 			return _kgeom;
 		}
-		return nullptr;
+		KD_PRINT("incorrect shader type");
+		return KSharedResource();
 	}
 
 	void KShaderProgram::bindAttribute(U16 Index, const std::string &Name){
-		if (isInite()) {
-			KD_FPRINT("rebinding attribute is not allowed. rname: %s", getName().c_str());
+		if (_kisCreated) {
+			KD_PRINT("this function is ineffective after binding the shader program");
 			return;
 		}
 		_kattribList.push_back({ Index, Name });
-	}
-
-	bool KShaderProgram::link(){
-		if (!isInite()) {
-			KD_FPRINT("shader program not initialized. rname: %s", getName().c_str());
-			return false;
-		}
-
-		if (_klinked) {
-			return true;
-		}
-
-		// link the program
-		DGL_CALL(glLinkProgram(_kprogId));
-
-		// check the link log
-		GLint isLinked;
-		DGL_CALL(glGetProgramiv(_kprogId, GL_LINK_STATUS, (int *)&isLinked));
-		//DGL_CALL(glGetObjectParameterivARB(_kprogram, GL_OBJECT_LINK_STATUS_ARB, &success)); // old version
-		if (isLinked == GL_FALSE){
-			KD_PRINT("failed to link shader program.");
-			return false;
-		}
-
-		_klinked = true;
-		return true;
 	}
 
 	I16 KShaderProgram::getUniformLocation(const std::string &ParamName) const{
@@ -298,12 +280,22 @@ namespace Kite{
 		setParam4(Location, Color.getGLR(), Color.getGLG(), Color.getGLB(), Color.getGLA());
 	}
 
-	void KShaderProgram::bind() const{
+	bool KShaderProgram::bind(){
+		// create texture only first time
+		if (!_kisCreated) {
+			if (!_create()) {
+				KD_PRINT("can't initialize shader program");
+				return false;
+			}
+		}
+
 		if (_klastProgId != _kprogId){
 			// enable the program
 			DGL_CALL(glUseProgram(_kprogId));
 			_klastProgId = _kprogId;
 		}
+
+		return true;
 	}
 
 	void KShaderProgram::unbind(){
@@ -320,5 +312,5 @@ namespace Kite{
 		_klastProgId = 0;
 	}
 
-	KMETA_KSHADERPROGRAM_SOURCE();
+	KSHADERPROGRAM_SOURCE();
 }

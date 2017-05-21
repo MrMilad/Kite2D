@@ -498,6 +498,27 @@ namespace Kite {
 		return 1;
 	}
 
+	int KNode::luaConstruct(lua_State *L) {
+		// get number of arguments
+		int n = lua_gettop(L);
+
+		// node(self)
+		if (n == 1) {
+			LuaIntf::Lua::push(L, KSharedResource(new KNode("")));
+			return 1;
+
+		// // node(self, string Name)
+		} else if(n = 2){
+			const char *name;
+			name = LuaIntf::Lua::get(L, 2).toValue<const char *>();
+			LuaIntf::Lua::push(L, KSharedResource(new KNode(std::string(name))));
+			return 1;
+		}
+
+		KD_PRINT("incorrect argument.");
+		return 0;
+	}
+
 	void KNode::serial(KBaseSerial &Serializer) {
 		// node information
 		Serializer << _kname;
@@ -584,25 +605,22 @@ namespace Kite {
 		}
 	}
 
-	bool KNode::saveStream(KOStream &Stream, const std::string &Address) {
+	bool KNode::saveStream(KIOStream &Stream, const std::string &Address) {
 		KBinarySerial bserial;
 		bserial << std::string("KNode");
 
 		// recursive
 		serial(bserial);
 
-		// save to stream
-		if (!bserial.saveStream(Stream, Address, 0)) {
-			KD_PRINT("can't save stream.");
-			Stream.close();
-			return false;
-		}
-		return true;
+		return bserial.saveStream(Stream, Address, 0);
 	}
 
-	bool KNode::_loadStream(std::unique_ptr<KIStream> Stream, KResourceManager *RManager){
+	bool KNode::_loadStream(std::unique_ptr<KIOStream> Stream, KResourceManager *RManager){
 		KBinarySerial bserial;
-		bserial.loadStream(*Stream, getAddress());
+		if (!bserial.loadStream(*Stream, getAddress())) {
+			KD_PRINT("can't load stream");
+			return false;
+		}
 
 		std::string format;
 		bserial >> format;

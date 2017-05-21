@@ -30,12 +30,42 @@ USA
 
 namespace Kite {
 	KResourceManager::rFactory const KResourceManager::_krfactory[(U16)Resource::maxSize]{ RESOURCE_FACTORY };
-	KResourceManager::isFactory const KResourceManager::_ksfactory[(U16)InStream::maxSize]{ ISTREAM_FACTORY };
+	KResourceManager::isFactory const KResourceManager::_ksfactory[(U16)Stream::maxSize]{ STREAM_FACTORY };
 
 	KResourceManager::~KResourceManager(){
 		if (!_kmap.empty()) {
 			KD_PRINT("call clear() before destroing resource manager.");
 		}
+	}
+
+	KResource *KResourceManager::unmanagedLoad(const std::string &Address, Resource RType, Stream SType) {
+		// checking file name
+		if (Address.empty()) {
+			KD_PRINT("empty addres.");
+			return nullptr;
+		}
+
+		// create new resource and associated input stream
+		auto stream = _ksfactory[(U16)SType]();
+		if (stream == nullptr) {
+			KD_FPRINT("can't create stream. stream type: %s", getStreamName(SType).c_str());
+			return nullptr;
+		}
+
+		KResource *resource = _krfactory[(U16)RType]("", Address);
+
+		// loading resource
+		if (!resource->_loadStream(std::unique_ptr<KIOStream>(stream), this)) {
+			KD_FPRINT("can't load resource. address: %s", Address.c_str());
+			delete resource;
+			return nullptr;
+		}
+
+		return resource;
+	}
+
+	KSharedResource KResourceManager::luaUnmanagedLoad(const std::string &Address, Resource RType, Stream SType) {
+		return KSharedResource(unmanagedLoad(Address, RType, SType));
 	}
 
 	KSharedResource KResourceManager::load(const std::string &Name) {
@@ -61,14 +91,14 @@ namespace Kite {
 		// create new resource and associated input stream
 		auto stream = _ksfactory[(U16)found->second.stype]();
 		if (stream == nullptr) {
-			KD_FPRINT("can't create stream. stream type: %s", getInStreamName(found->second.stype).c_str());
+			KD_FPRINT("can't create stream. stream type: %s", getStreamName(found->second.stype).c_str());
 			return KSharedResource(nullptr);
 		}
 
 		KResource *resource = _krfactory[(U16)found->second.rtype](Name, found->second.address);
 
 		// loading resource
-		if (!resource->_loadStream(std::unique_ptr<KIStream>(stream), this)) {
+		if (!resource->_loadStream(std::unique_ptr<KIOStream>(stream), this)) {
 			KD_FPRINT("can't load resource. rname: %s", Name.c_str());
 			delete resource;
 			return KSharedResource(nullptr);
@@ -80,7 +110,7 @@ namespace Kite {
 		return *found->second.res;
 	}
 
-	bool KResourceManager::registerName(const std::string &Name, const std::string &Address, Resource RType, InStream SType) {
+	bool KResourceManager::registerName(const std::string &Name, const std::string &Address, Resource RType, Stream SType) {
 		if (Name.empty() || Address.empty()) {
 			KD_PRINT("empty name or addrss.");
 			return false;
@@ -156,7 +186,7 @@ namespace Kite {
 		}
 	}
 
-	bool KResourceManager::saveDictionary(KOStream &Stream, const std::string &Address) {
+	bool KResourceManager::saveDictionary(KIOStream &IOStream, const std::string &Address) {
 		KBinarySerial bserial;
 		
 		bserial << _kmap.size();
@@ -167,7 +197,7 @@ namespace Kite {
 			bserial << it->second.stype;
 		}
 
-		if (!bserial.saveStream(Stream, Address, 0)) {
+		if (!bserial.saveStream(IOStream, Address, 0)) {
 			KD_FPRINT("cant save resource dictionary. address: %s", Address.c_str());
 			return false;
 		}
@@ -175,9 +205,9 @@ namespace Kite {
 		return true;
 	}
 
-	bool KResourceManager::loadDictionary(KIStream &Stream, const std::string &Address) {
+	bool KResourceManager::loadDictionary(KIOStream &IOStream, const std::string &Address) {
 		KBinarySerial bserial;
-		if (!bserial.loadStream(Stream, Address)) {
+		if (!bserial.loadStream(IOStream, Address)) {
 			KD_FPRINT("cant load resource dictionary. address: %s", Address.c_str());
 			return false;
 		}
@@ -192,7 +222,7 @@ namespace Kite {
 		std::string name;
 		std::string address;
 		Resource rtype;
-		InStream stype;
+		Stream stype;
 		for (SIZE i = 0; i < size; ++i) {
 			bserial >> name;
 			bserial >> address;

@@ -21,7 +21,7 @@ USA
 #define KRESOURCEMANAGER_H
 
 #include "Kite/core/kcoredef.h"
-#include "Kite/core/kistream.h"
+#include "Kite/stream/kiostream.h"
 #include "Kite/core/kcorestructs.h"
 #include "Kite/ecs/kresource.h"
 #include "Kite/ecs/kecstypes.h"
@@ -38,7 +38,7 @@ USA
 #include "ktypes.khgen.h"
 #include "kresourcemanager.khgen.h"
 
-#define KSHAREDRES_MEM_CHUNK 500
+#define KSHAREDRES_MEM_CHUNK 1024
 
 KMETA
 namespace Kite{
@@ -133,17 +133,6 @@ namespace Kite{
 				return *_kdata->ptr; 
 			}
 
-			void clear() {
-				if (_kdata) {
-					if (!--_kdata->ref) {
-						delete _kdata->ptr;
-						_kdata->ptr = nullptr;
-						_kpool.deallocate_node(_kdata);
-						_kdata = nullptr;
-					}
-				}
-			}
-
 		private:
 			struct dynamic {
 				T *ptr;
@@ -157,6 +146,17 @@ namespace Kite{
 			dynamic *_kdata;
 			static memory::memory_pool<> _kpool; // data pool
 
+
+			void clear() {
+				if (_kdata) {
+					if (!--_kdata->ref) {
+						delete _kdata->ptr;
+						_kdata->ptr = nullptr;
+						_kpool.deallocate_node(_kdata);
+						_kdata = nullptr;
+					}
+				}
+			}
 	};
 
 	template<typename T>
@@ -169,6 +169,11 @@ namespace Kite{
 		KRESOURCEMANAGER_BODY();
 	public:
 		~KResourceManager();
+
+		/// load the resource without affecting manager
+		/// ownership of the loaded resource will be passed to the caller
+		/// lua version of this function will return KSharedResource
+		KResource *unmanagedLoad(const std::string &Address, Resource RType, Stream SType);
 
 		/// catched streams will deleted automatically on owner resource destructures
 		/// will keep an instance of shared-pointer of loaded resource in the manager
@@ -194,15 +199,15 @@ namespace Kite{
 		/// Name: key-name of the resource. (case-sensitive)
 		/// Address: physical address of the resource
 		KM_FUN()
-		bool registerName(const std::string &Name, const std::string &Address, Resource RType, InStream SType);
+		bool registerName(const std::string &Name, const std::string &Address, Resource RType, Stream SType);
 
 		/// save only ditionary so will not save loaded resource
 		KM_FUN()
-		bool saveDictionary(KOStream &Stream, const std::string &Address);
+		bool saveDictionary(KIOStream &IOStream, const std::string &Address);
 
 		/// loading a new Dictionary will clear current state of the manager
 		KM_FUN()
-		bool loadDictionary(KIStream &Stream, const std::string &Address);
+		bool loadDictionary(KIOStream &IOStream, const std::string &Address);
 
 		inline const auto getDictionary() const { return &_kmap; }
 
@@ -216,19 +221,22 @@ namespace Kite{
 		struct Info {
 			std::string address;
 			Resource rtype;
-			InStream stype;
+			Stream stype;
 			KSharedResource *res;
 
-			Info(const std::string &Address, Resource RType, InStream SType) :
+			Info(const std::string &Address, Resource RType, Stream SType) :
 				address(Address), rtype(RType), stype(SType), res(nullptr) {}
 		};
 
-		typedef KIStream *(*isFactory)(); // istream factory
+		KM_FUN(KP_NAME = "unmanagedLoad")
+		KSharedResource luaUnmanagedLoad(const std::string &Address, Resource RType, Stream SType);
+
+		typedef KIOStream *(*isFactory)(); // istream factory
 		typedef KResource *(*rFactory)(const std::string &, const std::string &); // resource factory
 
 		std::unordered_map<std::string, Info> _kmap;
 		const static rFactory _krfactory[(U16)Resource::maxSize];
-		const static isFactory _ksfactory[(U16)InStream::maxSize];
+		const static isFactory _ksfactory[(U16)Stream::maxSize];
 	};
 }
 namespace LuaIntf

@@ -24,12 +24,12 @@
 #include "Kite/graphic/kshaderprogram.h"
 #include "Kite/graphic/kgraphicdef.h"
 #include "Kite/graphic/krenderable.h"
-#include "Kite/graphic/krendercom.h"
 #include "Kite/graphic/kquadcom.h"
 #include "Kite/graphic/kgcullingsys.h"
 #include "Kite/graphic/korthomapcom.h"
 #include "Kite/graphic/kvertexarray.h"
 #include "Kite/graphic/kvertexbuffer.h"
+#include "Kite/graphic/kframebuffer.h"
 #include "Kite/meta/kmetamanager.h"
 #include "Kite/meta/kmetaclass.h"
 #include "Kite/meta/kmetatypes.h"
@@ -38,64 +38,137 @@
 #include <luaintf/LuaIntf.h>
 
 namespace Kite{
-	bool KRenderSys::update(F64 Delta, KEntityManager *EManager, KResourceManager *RManager) {
-		//ED_STATIC const bool isregist = (EManager->isRegisteredComponent(CTypes::Camera)
-												 //&& EManager->isRegisteredComponent(CTypes::RenderInstance));
-		// update culling system
-		if (_kconfig.culling) {
-			_kcullSys->update(0, EManager, RManager);
-		}
+	KRenderSys::KRenderSys():
+		_kcullSys(nullptr)
+	{
+		KD_ASSERT(Internal::initeGLEW());
 
-		// get camera continer
-		auto camContiner = EManager->getComponentStorage<KCameraCom>(CTypes::Camera);
-		U32 camIndex = 0;
-		U32 camSize = camContiner->size();
-		ED_STATIC std::vector<std::pair<U32, U32>> sortedIndex(KRENDER_CAMERA_SIZE); // reserve 10 pre-defined camera
+		// frame buffer object will be initialized in initFrameBuffer()
+		// we inite it only when a reneder to texture operation need 
+		_kfbo = new KFrameBuffer();
 
-		// sort camera(s) (based depth)
-		if (_kconfig.camDepth) {
-			// collect depth of all camera(s)
-			sortedIndex.resize(0);
-			for (SIZE i = 0; i < camContiner->size(); ++i) {
-				sortedIndex.push_back({ i, camContiner->at(i).getDepth() });
-			}
+		// we dont need depth test (objects are always in a sorted order)
+		DGL_CALL(glDisable(GL_DEPTH_TEST));
 
-			// sort depth list
-			std::sort(sortedIndex.begin(), sortedIndex.end(),
-						[](const std::pair<U32, U32> &left, const std::pair<U32, U32> &right) {
-				return left.second < right.second;
-			});
-		}
+		// we need scissor for clear only part of the screen (camera viewport)
+		DGL_CALL(glEnable(GL_SCISSOR_TEST));
 
+		// enable blend
+		DGL_CALL(glEnable(GL_BLEND));
+		DGL_CALL(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
+
+		// update lists
+		_kupdata.objects.reserve(_kconfig.objectSize);
+		_kupdata.matrix.reserve(_kconfig.objectSize);
+
+		// set color to black (gl default)
+		_klastState.lastColor = KColor::fromName(Colors::BLACK);
+
+		// inite vao
+		_kvao = new KVertexArray();
+
+		// inite fbo in first time
+		_kfbo = new KFrameBuffer();
+
+		// inite index buffer
+		_kvboInd = new KVertexBuffer(BufferTarget::INDEX);
+		std::vector<U16> ind(_kconfig.indexSize, 0);
+		_initeQuadIndex(&ind);
+
+		// inite vertex buffer
+		_kvboVer = new KVertexBuffer(BufferTarget::VERTEX);
+		std::vector<KGLVertex> vert(_kconfig.vertexSize, KGLVertex());
+
+		// inite point
+		_kvboPnt = nullptr;
+		/*std::vector<KPointSprite> po;
+		if (_kpsprite) {
+		po.resize(_kvsize, KPointSprite());
+		_updatePar(&po[0], 0, 0, this);
+		}*/
+
+		// bind vao then inite buffers
+		_kvao->bind();
+
+		// fill index buffer
+		_kvboInd->bind();
+		_kvboInd->fill(&ind[0], sizeof(U16) * _kconfig.indexSize, VBufferType::STATIC);
+		//_kvboInd->setUpdateHandle(_updateInd);
+
+		// fill vertex buffer
+		_kvboVer->bind();
+		_kvboVer->fill(&vert[0], sizeof(KGLVertex) * _kconfig.vertexSize, VBufferType::STREAM);
+
+		// set pos attr
+		_kvao->enableAttribute(0);
+		_kvao->setAttribute(0, AttributeCount::COMPONENT_2, AttributeType::FLOAT, true, sizeof(KGLVertex), KBUFFER_OFFSET(0));
+
+		// set uv attr
+		_kvao->enableAttribute(1);
+		_kvao->setAttribute(1, AttributeCount::COMPONENT_2, AttributeType::FLOAT,
+			true, sizeof(KGLVertex), KBUFFER_OFFSET(sizeof(F32) * 2));
+
+		// set color attr
+		_kvao->enableAttribute(2);
+		_kvao->setAttribute(2, AttributeCount::COMPONENT_4, AttributeType::UNSIGNED_BYTE,
+			false, sizeof(KGLVertex), KBUFFER_OFFSET(sizeof(F32) * 4));
+
+		// set texture array index attr
+		_kvao->enableAttribute(3);
+		_kvao->setAttribute(3, AttributeCount::COMPONENT_1, AttributeType::UNSIGNED_SHORT,
+			false, sizeof(KGLVertex), KBUFFER_OFFSET((sizeof(F32) * 4) + (sizeof(U8) * 4)));
+
+		_kvboVer->setUpdateHandle(_updateVer);
+
+		// point sprite buffer
+		/*if (_kpsprite) {
+		_kvboPnt.bind();
+		_kvboPnt.fill(&po[0], sizeof(KPointSprite)* _kvsize, (KVertexBufferTypes)_kconfig.point);
+		// point sprite
+		_kvao.enableAttribute(3);
+		_kvao.setAttribute(3, KAC_3COMPONENT, KAT_FLOAT, false, sizeof(KPointSprite), KBUFFER_OFFSET(0));
+		_kvboPnt.setUpdateHandle(_updatePar);
+		}*/
+
+		// finish. unbind vao.
+		_kvao->unbindVertexArray();
+	}
+
+	KRenderSys::~KRenderSys() {
+		// delete buffers
+		delete _kvboVer;
+		delete _kvboInd;
+		delete _kvboPnt;
+		delete _kvao;
+		delete _kfbo;
+		delete _kcullSys;
+	}
+
+	void KRenderSys::reset(KEngine *Engine) {
+		_kcullSys = static_cast<KGCullingSys *>(Engine->getSystem(System::GCULLING));
+	}
+
+	bool KRenderSys::update(F64 Delta) {
 		// update all active camera(s) (sorted)
-		for (SIZE camCounter = 0; camCounter < camSize; ++camCounter) {
-			// camera index based depth or in order
-			if (_kconfig.camDepth) { camIndex = sortedIndex.at(camCounter).first; }
-			else { camIndex = camCounter; }
-			auto cam = &camContiner->at(camIndex);
+		for (auto camit = _kcamList.begin(); camit != _kcamList.end(); ++camit) {
+			auto cam = (*camit);
+
+			// skip inactive camera
+			if (!cam->getOwnerNode()->isActive()) continue;
 
 			_kupdata.clear();
-			auto ehandle = cam->getOwnerHandle();
-			auto entity = EManager->getEntity(ehandle);
 
 			// check active
 			if (entity->isActive()) {
-				if (!cam->updateRes()) {
-					KD_FPRINT("camera initialization failed. oname: %s", entity->getName().c_str());
-					return false;
-				}
-
 				// check render target (texture or screen)
-				if (!cam->getRenderTexture().str.empty()) {
+				if (cam->getRenderTexture()) {
 					_kfbo->bind();
-					_initeFrameBuffer(cam->_krtexture, cam->_krtextureIndex);
+					auto tarray = static_cast<KAtlasTextureArray *>(cam->getRenderTexture().get());
+					_initeFrameBuffer(tarray, cam->getRenderTextureIndex());
 				} else {
 					_kfbo->unbind();
 					DGL_CALL(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
 				}
-
-				// update camera
-				cam->computeMatrixes();
 
 				// update viewport and scissor
 				if (_klastState.lastViewSize != cam->_ksize || _klastState.lastViewPos != cam->_kposition) {
@@ -228,116 +301,41 @@ namespace Kite{
 		return true;
 	}
 
-	bool KRenderSys::inite(void *Data) {
-		const auto engine = static_cast<KEngine *>(Data);
-		_kconfig = engine->getConfig()->render;
-
-		if (!Internal::initeGLEW()) {
-			return false;
+	void KRenderSys::nodeAdded(KNode *Node) {
+		// we store only camera components because we render objects using culling system
+		if (Node->hasComponent(Component::CAMERA)) {
+			componentAdded(Node->getComponent(Component::CAMERA));
 		}
-
-		// frame buffer object will be initialized in initFrameBuffer()
-		// we inite it only when a reneder to texture operation need 
-		_kfbo = new KFrameBuffer();
-
-		// graphic culling sub-system
-		_kcullSys = nullptr;
-		if (_kconfig.culling) {
-			_kcullSys = new KGCullingSys();
-			_kcullSys->inite(nullptr);
-		}
-
-		// we dont need depth test (objects are always in a sorted order)
-		DGL_CALL(glDisable(GL_DEPTH_TEST));
-
-		// we need scissor for clear only part of the screen (camera viewport)
-		DGL_CALL(glEnable(GL_SCISSOR_TEST));
-
-		// enable blend
-		DGL_CALL(glEnable(GL_BLEND));
-		DGL_CALL(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
-
-		// update lists
-		_kupdata.objects.reserve(_kconfig.objectSize);
-		_kupdata.matrix.reserve(_kconfig.objectSize);
-
-		// set color to black (gl default)
-		_klastState.lastColor = KColor::fromName(Colors::BLACK);
-
-		// inite vao
-		_kvao = new KVertexArray();
-
-		// inite fbo in first time
-		_kfbo = new KFrameBuffer();
-
-		// inite index buffer
-		_kvboInd = new KVertexBuffer(BufferTarget::INDEX);
-		std::vector<U16> ind(_kconfig.indexSize, 0);
-		_initeQuadIndex(&ind);
-
-		// inite vertex buffer
-		_kvboVer = new KVertexBuffer(BufferTarget::VERTEX);
-		std::vector<KGLVertex> vert(_kconfig.vertexSize, KGLVertex());
-
-		// inite point
-		_kvboPnt = nullptr;
-		/*std::vector<KPointSprite> po;
-		if (_kpsprite) {
-			po.resize(_kvsize, KPointSprite());
-			_updatePar(&po[0], 0, 0, this);
-		}*/
-
-		// bind vao then inite buffers
-		_kvao->bind();
-
-		// fill index buffer
-		_kvboInd->bind();
-		_kvboInd->fill(&ind[0], sizeof(U16) * _kconfig.indexSize, VBufferType::STATIC);
-		//_kvboInd->setUpdateHandle(_updateInd);
-
-		// fill vertex buffer
-		_kvboVer->bind();
-		_kvboVer->fill(&vert[0], sizeof(KGLVertex) * _kconfig.vertexSize, VBufferType::STREAM);
-
-		// set pos attr
-		_kvao->enableAttribute(0);
-		_kvao->setAttribute(0, AttributeCount::COMPONENT_2, AttributeType::FLOAT, true, sizeof(KGLVertex), KBUFFER_OFFSET(0));
-
-		// set uv attr
-		_kvao->enableAttribute(1);
-		_kvao->setAttribute(1, AttributeCount::COMPONENT_2, AttributeType::FLOAT,
-							true, sizeof(KGLVertex), KBUFFER_OFFSET(sizeof(F32) * 2));
-
-		// set color attr
-		_kvao->enableAttribute(2);
-		_kvao->setAttribute(2, AttributeCount::COMPONENT_4, AttributeType::UNSIGNED_BYTE,
-							false, sizeof(KGLVertex), KBUFFER_OFFSET(sizeof(F32) * 4));
-
-		// set texture array index attr
-		_kvao->enableAttribute(3);
-		_kvao->setAttribute(3, AttributeCount::COMPONENT_1, AttributeType::UNSIGNED_SHORT,
-							false, sizeof(KGLVertex), KBUFFER_OFFSET((sizeof(F32) * 4) + (sizeof(U8) * 4)));
-
-		_kvboVer->setUpdateHandle(_updateVer);
-
-		// point sprite buffer
-		/*if (_kpsprite) {
-			_kvboPnt.bind();
-			_kvboPnt.fill(&po[0], sizeof(KPointSprite)* _kvsize, (KVertexBufferTypes)_kconfig.point);
-			// point sprite
-			_kvao.enableAttribute(3);
-			_kvao.setAttribute(3, KAC_3COMPONENT, KAT_FLOAT, false, sizeof(KPointSprite), KBUFFER_OFFSET(0));
-			_kvboPnt.setUpdateHandle(_updatePar);
-		}*/
-
-		// finish. unbind vao.
-		_kvao->unbindVertexArray();
-		
-		setInite(true);
-		return true;
 	}
 
-	void KRenderSys::destroy() {
+	void KRenderSys::nodeRemoved(KNode *Node) {
+		if (Node->hasComponent(Component::CAMERA)) {
+			componentRemoved(Node->getComponent(Component::CAMERA));
+		}
+	}
+
+	void KRenderSys::componentAdded(KComponent *Com) {
+		auto cam = static_cast<KCameraCom *>(Com);
+		cam->_krindex = _kcamList.size();
+		_kcamList.push_back(cam);
+
+		// sort list by camera depth
+		std::sort(_kcamList.begin(), _kcamList.end(),
+			[](const KCameraCom *left, const KCameraCom *right) {
+			return left->getDepth() < right->getDepth();
+		});
+	}
+
+	void KRenderSys::componentRemoved(KComponent *Com) {
+		auto cam = static_cast<KCameraCom *>(Com);
+
+		// swap and remove
+		_kcamList.back()->_krindex = cam->_krindex;
+		_kcamList[cam->_krindex] = _kcamList.back();
+		_kcamList.pop_back();
+	}
+
+	KRenderSys::~KRenderSys() {
 		// delete buffers
 		delete _kvboVer;
 		delete _kvboInd;
@@ -345,7 +343,6 @@ namespace Kite{
 		delete _kvao;
 		delete _kfbo;
 		delete _kcullSys;
-		setInite(false);
 	}
 
 	bool KRenderSys::_checkState(KRenderable *Rendeable){
@@ -493,7 +490,7 @@ namespace Kite{
 		}
 	}
 
-	KMETA_KRENDERSYS_SOURCE();
+	KRENDERSYS_SOURCE();
 
 	/*void KRenderSys::_updatePar(void *Data, U32 Offset, U32 DataSize, void *Sender) {
 		KRenderSys *clObject = (KRenderSys *)Sender;

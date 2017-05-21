@@ -28,14 +28,9 @@ namespace Kite {
 		KResource(Name, Address)
 	{}
 
-	bool KScript::_loadStream(std::unique_ptr<KIStream> Stream, KResourceManager *RManager) {
+	bool KScript::_loadStream(std::unique_ptr<KIOStream> Stream, KResourceManager *RManager) {
 		_kcode.clear();
-
-		if (!Stream->isOpen()) {
-			Stream->close();
-		}
-
-		if (!Stream->open(getAddress(), IOMode::TEXT)) {
+		if (!Stream->openRead(getAddress(), IOMode::TEXT)) {
 			KD_FPRINT("can't open stream. address: %s", getAddress().c_str());
 			return false;
 		}
@@ -57,12 +52,8 @@ namespace Kite {
 		return true;
 	}
 
-	bool KScript::saveStream(KOStream &Stream, const std::string &Address) {
-		if (!Stream.isOpen()) {
-			Stream.close();
-		}
-
-		if (!Stream.open(Address, IOMode::TEXT)) {
+	bool KScript::saveStream(KIOStream &Stream, const std::string &Address) {
+		if (!Stream.openWrite(Address, IOMode::TEXT, WriteMode::NEW)) {
 			KD_FPRINT("can't open stream. address: %s", Address.c_str());
 			return false;
 		}

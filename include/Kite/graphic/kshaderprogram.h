@@ -43,23 +43,28 @@ namespace Kite{
 	KM_CLASS(RESOURCE)
 	class KITE_FUNC_EXPORT KShaderProgram : public KResource{
 		KM_INFO(KI_NAME = "ShaderProgram");
-		KMETA_KSHADERPROGRAM_BODY();
+		KSHADERPROGRAM_BODY();
 	public:
 		//! Default constructors
 		/*!
-		This constructor creates an invalid shader program.
+		Geometry is optional and can be nullptr
 		*/
-		KM_CON(std::string)
-		KShaderProgram(const std::string &Name);
+		KShaderProgram(const KSharedResource &Vertex, const KSharedResource &Fragment, const KSharedResource &Geometry);
+
+		KShaderProgram() = delete;
+		KShaderProgram(const KShaderProgram &Copy) = delete;
+		KShaderProgram &operator=(const KShaderProgram &Right) = delete;
 
 		~KShaderProgram();
 
+		bool saveStream(KIOStream &Stream, const std::string &Address) override;
+
+#ifdef KITE_EDITOR
 		/// pass nullptr for removing current shader
-		KM_FUN()
-		bool setShader(KShader *Shader, ShaderType Type);
+		bool setShader(const KSharedResource &Shader);
 
-
-		const KShader *getShader(ShaderType Type);
+		const KSharedResource &getShader(ShaderType Type);
+#endif 
 
 		//! Associate a generic vertex attribute index with a named attribute variable
 		/*!
@@ -70,23 +75,6 @@ namespace Kite{
 		*/
 		KM_FUN()
 		void bindAttribute(U16 Index, const std::string &Name);
-
-		// note: We MUST have a valid rendering context before calling inite
-		// the program or it causes a segfault!
-		bool inite() override;
-
-		//! Link the shader program
-		/*!
-		// note: We MUST have a valid rendering context before link
-		// the program or it causes a segfault!
-		// note: call inite befor calling this function
-
-		\return True if linking was successful
-		*/
-		bool link();
-
-		KM_FUN()
-		inline bool isLinked() const { return _klinked; }
 
 		//! Get location of the uniform in the shader
 		/*!
@@ -137,6 +125,7 @@ namespace Kite{
 		\param Value3 Third component of the value to assign
 		\param Value4 Fourth component of the value to assign
 		*/
+		KM_FUN()
 		void setParam4(I16 Location, F32 Value1, F32 Value2, F32 Value3, F32 Value4) const;
 
 		//! Set a color parameter of the shader
@@ -146,6 +135,7 @@ namespace Kite{
 		\param Location Location of parameter in the shader
 		\param Color Color to assign
 		*/
+		KM_FUN()
 		void setParamColor(I16 Location, const KColor& Color) const;
 
 		/// pass current texture
@@ -156,7 +146,7 @@ namespace Kite{
 		Do not forget to link the program before bind it.
 		(automatic handle by internal render system)
 		*/
-		void bind() const;
+		bool bind();
 
 		//! Unbind the shader program if it is currently bound.
 		void unbind();
@@ -168,19 +158,25 @@ namespace Kite{
 		/*!
 		\return OpenGL ID of shader program
 		*/
+		KM_PRO_GET(KP_NAME = "glID", KP_TYPE = U32, KP_CM = "opengl id of the shader program")
 		inline U32 getGLID() const { return _kprogId; }
 
 	private:
-		bool _saveStream(KOStream &Stream, const std::string &Address) override;
-		bool _loadStream(KIStream &Stream, const std::string &Address) override;
+		KShaderProgram(const std::string &Name, const std::string &Address);
+		bool _loadStream(std::unique_ptr<KIOStream> Stream, KResourceManager *RManager) override;
 
-		bool _klinked;
+		bool _create();
+
+		KM_FUN(KP_NAME = "__call")
+		static KSharedResource luaConstruct(const KSharedResource &Vertex, const KSharedResource &Fragment);
+
+		bool _kisCreated;
 		U32 _kprogId;				//!< ID of shader program
 		static U32 _klastProgId;	//!< Last id of shader program 
 		std::vector<std::pair<U16, std::string>> _kattribList;		//!< shader attribute list
-		KShader *_kvert;		//!< Vertex shader
-		KShader *_kfrag;		//!< Fragment shader
-		KShader *_kgeom;		//!< Geometry shader
+		KSharedResource _kvert;		//!< Vertex shader
+		KSharedResource _kfrag;		//!< Fragment shader
+		KSharedResource _kgeom;		//!< Geometry shader
 	};
 }
 

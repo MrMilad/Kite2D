@@ -23,6 +23,5 @@ USA
 #include <luaintf/LuaIntf.h>
 
 namespace Kite {
-	IOMODE_SOURCE();
 	PRIMITIVE_SOURCE();
 }

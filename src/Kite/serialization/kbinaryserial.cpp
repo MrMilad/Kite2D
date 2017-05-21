@@ -30,17 +30,16 @@ USA
 namespace Kite {
 	KBinarySerial::KBinarySerial() :
 		_kpos(0),
-		_kendfile(true) {
+		_kendfile(true) 
+	{
 		_kdata.reserve(KBSERIAL_CHUNK_SIZE);
 	}
 
-	bool KBinarySerial::loadStream(KIStream &Stream, const std::string &Address) {
+	bool KBinarySerial::loadStream(KIOStream &Stream, const std::string &Address) {
 		_kpos = 0;
 		_kdata.clear();
-		Stream.close();
-
 		// open stream
-		if (!Stream.open(Address, IOMode::BIN)) {
+		if (!Stream.openRead(Address, IOMode::BIN)) {
 			KD_FPRINT("can't open stream. saddress: %s", Address.c_str());
 			return false;
 		}
@@ -77,11 +76,9 @@ namespace Kite {
 		return true;
 	}
 
-	bool KBinarySerial::saveStream(KOStream &Stream, const std::string &Address, U32 Version) {
-		Stream.close();
-
+	bool KBinarySerial::saveStream(KIOStream &Stream, const std::string &Address, U32 Version) {
 		// open stream
-		if (!Stream.open(Address, IOMode::BIN)) {
+		if (!Stream.openWrite(Address, IOMode::BIN, WriteMode::NEW)) {
 			KD_FPRINT("can't open stream. saddress: %s", Address.c_str());
 			return false;
 		}

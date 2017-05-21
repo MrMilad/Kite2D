@@ -78,6 +78,8 @@ namespace Kite{
             DGL_CALL(glBindVertexArray(0));
             _klastArrayId = 0;
         }
+
+		return true;
     }
 
     void KVertexArray::unbindVertexArray(){

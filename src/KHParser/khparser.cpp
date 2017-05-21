@@ -40,8 +40,7 @@ std::unordered_map<std::string, std::string> strmap;
 #define SYS_ENUM_NAME std::string("System")
 #define RES_ENUM_NAME std::string("Resource")
 #define INT_ENUM_NAME std::string("Interface")
-#define OSTREAM_ENUM_NAME std::string("OutStream")
-#define ISTREAM_ENUM_NAME std::string("InStream")
+#define STREAM_ENUM_NAME std::string("Stream")
 
 enum ParsState {
 	PS_WORD = 0,	// all names (ex: class, void, myName, ...)
@@ -70,11 +69,10 @@ enum MClassType {
 	CT_SYSTEM = 16,
 	CT_ABSTRACT = 32,
 	CT_CONTINER = 64,
-	CT_ISTREAM = 128,
-	CT_OSTREAM = 256,
-	CT_SCRIPTABLE = 512,
-	CT_INTERFACE = 1024,
-	CT_OTHER = 2048
+	CT_STREAM = 128,
+	CT_SCRIPTABLE = 256,
+	CT_INTERFACE = 512,
+	CT_OTHER = 1024
 };
 
 enum MExportState{
@@ -1384,14 +1382,9 @@ bool procClass(const std::string &Content, MClass &Cls, unsigned int Pos) {
 			Cls.type = Cls.type | CT_RESOURCE;
 		}
 
-		// is istream
-		if (it->first == "ISTREAM") {
-			Cls.type = Cls.type | CT_ISTREAM;
-		}
-
-		// is ostream
-		if (it->first == "OSTREAM") {
-			Cls.type = Cls.type | CT_OSTREAM;
+		// is stream
+		if (it->first == "IOSTREAM") {
+			Cls.type = Cls.type | CT_STREAM;
 		}
 	}
 
@@ -1780,7 +1773,7 @@ void createTemplMacro(const MClass &Cls, std::string &Output) {
 	replaceTok(cParam, ',', '|');
 	Output.append("static void bindToLua(const std::string &Name, lua_State *Lua){\\\n"
 				  "if (Lua != nullptr) { \\\n"
-				  "LuaIntf::LuaBinding(Lua).beginModule(\"kite\").beginClass<"
+				  "LuaIntf::LuaBinding(Lua).beginModule(\"k\").beginClass<"
 				  + Cls.name + "<" + Cls.templType + ">>(Name.c_str())\\\n");
 
 	// constructure
@@ -1937,7 +1930,7 @@ void createMacros(const std::vector<MClass> &Cls, const std::vector<MEnum> &Enms
 		// lua binding
 		Output.append("void Internal::Register" + Enms[i].name + "::bindToLua(lua_State *Lua){\\\n"
 					  "if (Lua != nullptr){\\\n"
-					  "LuaIntf::LuaBinding(Lua).beginModule(\"kite\")\\\n"
+					  "LuaIntf::LuaBinding(Lua).beginModule(\"k\")\\\n"
 					  ".beginModule(\"" + Enms[i].name + "\")\\\n");
 		for (size_t count = 0; count < Enms[i].members.size(); ++count) {
 			Output.append(".addConstant(\"" + Enms[i].members[count].name + "\", " + Enms[i].name + "::" 
@@ -1972,8 +1965,7 @@ void createMacros(const std::vector<MClass> &Cls, const std::vector<MEnum> &Enms
 		bool isEntity = false;
 		bool isSystem = false;
 		bool isContiner = false;
-		bool isIStream = false;
-		bool isOStream = false;
+		bool isStream = false;
 		bool isScriptable = false;
 		bool isAbstract = false;
 		bool isSerializer = false;
@@ -2013,14 +2005,9 @@ void createMacros(const std::vector<MClass> &Cls, const std::vector<MEnum> &Enms
 				isContiner = true;
 			}
 
-			// is istream
-			if (it->first == "ISTREAM") {
-				isIStream = true;
-			}
-
-			// is ostream
-			if (it->first == "OSTREAM") {
-				isOStream = true;
+			// is stream
+			if (it->first == "IOSTREAM") {
+				isStream = true;
 			}
 
 			// is scriptable
@@ -2042,7 +2029,7 @@ void createMacros(const std::vector<MClass> &Cls, const std::vector<MEnum> &Enms
 		// class without any flag will ignored
 		if (!isPOD && !isEntity && !isResource &&
 			!isComponent && !isSystem && !isScriptable &&
-			!isContiner && !isIStream && !isOStream &&
+			!isContiner && !isStream && 
 			!isSerializer && !isInterface) {
 			printf("message: class without any supported flags. %s ignored. \n", Cls[i].name.c_str());
 			continue;
@@ -2077,12 +2064,9 @@ void createMacros(const std::vector<MClass> &Cls, const std::vector<MEnum> &Enms
 		} else if (isComponent && !isAbstract) {
 			enumType = COM_ENUM_NAME;
 			baseName = "KComponent";
-		} else if (isOStream && !isAbstract) {
-			enumType = OSTREAM_ENUM_NAME;
-			baseName = "KOStream";
-		} else if (isIStream && !isAbstract) {
-			enumType = ISTREAM_ENUM_NAME;
-			baseName = "KIStream";
+		} else if (isStream && !isAbstract) {
+			enumType = STREAM_ENUM_NAME;
+			baseName = "KIOStream";
 		} else if (isInterface) {
 			enumType = INT_ENUM_NAME;
 		} else if (isSystem) {
@@ -2121,11 +2105,10 @@ void createMacros(const std::vector<MClass> &Cls, const std::vector<MEnum> &Enms
 
 
 		// predefined functions and props
-		if ((isOStream || isIStream || isResource || isComponent) && !isAbstract) {
-			Output.append(upname + "Ins.addFunction(KMetaFunction(\"to" + fisrtCharUpper + "\", true));\\\n");
-			Output.append(upname + "Ins.addProperty(KMetaProperty(\"type\", \""
+		if ((isStream || isResource || isComponent) && !isAbstract) {
+			Output.append(upname + "Ins.addProperty(KMetaProperty(\"objectType\", \""
 						  + enumType + "\", \"type of the object\", false, KMP_GETTER, 0, 0, " + RES_ENUM_NAME + "::maxSize ));\\\n");
-			Output.append(upname + "Ins.addProperty(KMetaProperty(\"typeName\", \"std::string\", \"name of the object type\", false, KMP_GETTER, 0, 0, "
+			Output.append(upname + "Ins.addProperty(KMetaProperty(\"objectTypeName\", \"std::string\", \"name of the object type\", false, KMP_GETTER, 0, 0, "
 						  + RES_ENUM_NAME + "::maxSize ));\\\n");
 
 		}
@@ -2159,8 +2142,8 @@ void createMacros(const std::vector<MClass> &Cls, const std::vector<MEnum> &Enms
 			Output.append("static void bindToLua(lua_State *Lua);\\\n");
 			if (isResource) {
 				Output.append(exstate + "static KResource *factory(const std::string &Name, const std::string &Address);\\\n");
-			} else if (isIStream) {
-				Output.append(exstate + "static KIStream *factory();\\\n");
+			} else if (isStream) {
+				Output.append(exstate + "static KIOStream *factory();\\\n");
 			}
 		}
 
@@ -2197,7 +2180,7 @@ void createMacros(const std::vector<MClass> &Cls, const std::vector<MEnum> &Enms
 		}
 
 		// (base, lua cast, type)
-		if ((isIStream || isOStream || isComponent || isResource || isSystem) && !isAbstract) {
+		if ((isStream || isComponent || isResource || isSystem) && !isAbstract) {
 			Output.append("private:\\\n");
 			if (isComponent) {
 				// resource pointers
@@ -2211,66 +2194,69 @@ void createMacros(const std::vector<MClass> &Cls, const std::vector<MEnum> &Enms
 							  "void copyFrom(KComponent *Com) override;\\\n");
 			}
 
-			if (isResource){
-				Output.append("static KSharedResource makeShared(const std::string &Name) {\\\n"
-					"return KSharedResource(new " + Cls[i].name + "(Name, \"\"));}\\\n");
-			}
-
-			Output.append(exstate + "static " + Cls[i].name + " *to" + fisrtCharUpper + "(" + baseName + " *Base) {\\\n" +
-				"if (Base != nullptr){\\\n"
-				"if (Base->getDrivedType() == " + enumType + "::" + upperName + ") {\\\n"
-				"return (" + Cls[i].name + " *)Base; }};\\\n" +
-				"return nullptr; }\\\n"); 
-						  //exstate + "inline " + baseName + " *getBase() const override { return (" + baseName + " *) this; }\\\n");
-
 			Output.append("public:\\\n" +
-						  exstate + "constexpr static " + enumType + " getType() { return " + enumType + "::" + upperName + "; }\\\n" +
+						  exstate + "constexpr static " + enumType + " getObjectType() { return " + enumType + "::" + upperName + "; }\\\n" +
 						  exstate + "inline " + enumType + " getDrivedType() const override { return " + enumType + "::" + upperName + "; }\\\n" +
 						  exstate + "inline const std::string &getTypeName() const override {"
 						  "static const std::string tn(\"" + upperName + "\"); return tn; }\\\n");
 			
 			// interfcae and dependency list
 			if (isComponent) {
-				Output.append(exstate + Cls[i].name + "(const std::string &Name):\\\n"
-					"KComponent(nullptr, Name){ inite(); }\\\n");
-
-				Output.append(exstate + Cls[i].name + "(KNode *OwnerNode, const std::string &Name):\\\n"
-					"KComponent(OwnerNode, Name){ inite(); }\\\n");
-
-				std::string dlist;
-				std::string ilist;
+				std::vector<std::string> dlist;
+				std::vector<std::string> ilist;
+				std::string deps;
+				std::string ints;
 				char splt1[] = { ' ', ' ', '\0' };
 				char splt2[] = { ' ', ' ', '\0' };
 				for (auto it = Cls[i].infos.begin(); it != Cls[i].infos.end(); ++it) {
 					if (it->key == "KI_DEP" && !it->info.empty()) {
-						dlist.append(splt1 + it->info + "::getType()");
+						dlist.push_back(it->info);
+						deps.append(splt1 + it->info + "::getObjectType()");
 						splt1[0] = ',';
 
 					} else if (it->key == "KI_INT" && !it->info.empty()) {
-						ilist.append(splt2 + it->info + "::getType()");
+						ilist.push_back(it->info);
+						ints.append(splt2 + it->info + "::getObjectType()");
 						splt2[0] = ',';
 					}
 				}
+				Output.append(exstate + Cls[i].name + "(const std::string &Name):\\\n"
+					"KComponent(nullptr, Name)\\\n");
+				for (auto it = ilist.begin(); it != ilist.end(); ++it) {
+					Output.append(", " + *it + "(nullptr)\\\n");
+				}
+				Output.append("{ inite(); }\\\n");
+
+				Output.append(exstate + Cls[i].name + "(KNode *OwnerNode, const std::string &Name):\\\n"
+					"KComponent(OwnerNode, Name)\\\n");
+				for (auto it = ilist.begin(); it != ilist.end(); ++it) {
+					Output.append(", " + *it + "(OwnerNode)\\\n");
+				}
+				Output.append("{ inite(); }\\\n");
+
 				Output.append(exstate + "static const std::vector<" + COM_ENUM_NAME + "> &getDepList() {\\\n"
-							  "static const std::vector<" + COM_ENUM_NAME + "> dlist { " + dlist + " };\\\n"
+							  "static const std::vector<" + COM_ENUM_NAME + "> dlist { " + deps + " };\\\n"
 							  "return dlist; }\\\n" +
 							  exstate + "const std::vector<" + COM_ENUM_NAME + "> &getDrivedDepList() const override { return getDepList(); }\\\n");
 
 				Output.append(exstate + "static const std::vector<" + INT_ENUM_NAME + "> &getIntList() {\\\n"
-							  "static const std::vector<" + INT_ENUM_NAME + "> ilist { " + ilist + " };\\\n"
+							  "static const std::vector<" + INT_ENUM_NAME + "> ilist { " + ints + " };\\\n"
 							  "return ilist; }\\\n" +
 							  exstate + "const std::vector<" + INT_ENUM_NAME + "> &getDrivedIntList() const override { return getIntList(); }\\\n");
 
 			}
 			// clone
-			if (isIStream) {
+			if (isStream) {
 				Output.append(exstate + baseName + " *clone() const override { return (" +
 							  baseName + " *)new " + Cls[i].name + "(); }\\\n");
 			}
 		}
 
 		if (isInterface) {
-			Output.append(exstate + "static " + enumType + " getType() { return " + enumType + "::" + upperName + "; }\\\n");
+			Output.append(exstate + "private: KNode *_kowner;\\\n");
+			Output.append("public: " + exstate + Cls[i].name + "(KNode *Parent): _kowner(Parent){}\\\n");
+			Output.append(exstate + "static " + enumType + " getObjectType() { return " + enumType + "::" + upperName + "; }\\\n");
+			Output.append(exstate + "KNode *getOwnerNode() const { return _kowner; }\\\n");
 		}
 
 		Output.append("public:\\\n" 
@@ -2279,15 +2265,15 @@ void createMacros(const std::vector<MClass> &Cls, const std::vector<MEnum> &Enms
 
 		// defention
 		Output.append("\n// ----[auto generated: " + Cls[i].name + " source macro]----\n");
-		Output.append("#define " + upname + "_SOURCE()\\\n");
+		Output.append("#define " + upname + "_SOURCE() \\\n");
 
 		// factory defention
 		if (!isAbstract) {
 			if (isResource) {
 				Output.append("KResource *" + Cls[i].name + "::factory(const std::string &Name, const std::string &Address){\\\n"
 							  "return new " + Cls[i].name + "(Name, Address);}\\\n");
-			} else if (isIStream) {
-				Output.append("KIStream *" + Cls[i].name + "::factory(){\\\n"
+			} else if (isStream) {
+				Output.append("KIOStream *" + Cls[i].name + "::factory(){\\\n"
 							  "return new " + Cls[i].name + "();}\\\n");
 			}
 		}
@@ -2334,7 +2320,7 @@ void createMacros(const std::vector<MClass> &Cls, const std::vector<MEnum> &Enms
 
 			// copyFrom
 			Output.append("void " + Cls[i].name + "::copyFrom(KComponent *Com) {\\\n"
-						  "if (Com->getDrivedType() != getType()) return;\\\n"
+						  "if (Com->getDrivedType() != getObjectType()) return;\\\n"
 						  "auto castCom = static_cast<" + Cls[i].name + " *>(Com);\\\n");
 
 			for (auto it = Cls[i].vars.begin(); it != Cls[i].vars.end(); ++it) {
@@ -2404,19 +2390,19 @@ void createMacros(const std::vector<MClass> &Cls, const std::vector<MEnum> &Enms
 		// lua binding 
 		if (isAbstract) {
 			Output.append("\n#define LUA_BIND_" + Cls[i].name + "\\\n");
-			Output.append(" LuaIntf::LuaBinding(Lua).beginModule(\"kite\").beginClass<"
+			Output.append(" LuaIntf::LuaBinding(Lua).beginModule(\"k\").beginClass<"
 				+ Cls[i].name + ">(\"" + shortName + "\")\\\n");
 		} else {
 			Output.append("void " + Cls[i].name + "::bindToLua(lua_State *Lua){\\\n"
 				"if (Lua != nullptr) { \\\n");
 
 			// extended
-			if (isComponent || isResource || isSystem || isIStream || isOStream) {
+			if (isComponent || isResource || isSystem || isStream) {
 				Output.append("LUA_BIND_" + baseName + "\\\n");
 				Output.append(".beginExtendClass<" + Cls[i].name + ", " + baseName + ">(\"" + shortName + "\")\\\n");
 
 			} else {
-				Output.append("LuaIntf::LuaBinding(Lua).beginModule(\"kite\").beginClass<"
+				Output.append("LuaIntf::LuaBinding(Lua).beginModule(\"k\").beginClass<"
 					+ Cls[i].name + ">(\"" + shortName + "\")\\\n");
 			}
 		}
@@ -2426,9 +2412,6 @@ void createMacros(const std::vector<MClass> &Cls, const std::vector<MEnum> &Enms
 		if (!isAbstract) {
 			if (isComponent) {
 				Output.append(".addConstructor(LUA_ARGS(LuaIntf::_opt<std::string>))\\\n");
-
-			} else if (isResource) {
-				Output.append(".addFactory(&" + Cls[i].name + "::makeShared)\\\n");
 
 			} else if (!Cls[i].constructure.name.empty()) {
 				std::vector<std::pair<std::string, std::string>> cplist;
@@ -2446,9 +2429,8 @@ void createMacros(const std::vector<MClass> &Cls, const std::vector<MEnum> &Enms
 		}
 
 		// predefined functions (base, lua cast)
-		if ((isIStream || isOStream || isResource || isComponent) && !isAbstract) {
-			Output.append(".addStaticFunction(\"type\", &" + Cls[i].name + "::getType)\\\n");
-			Output.append(".addStaticFunction(\"to" + fisrtCharUpper + "\", &" + Cls[i].name + "::to" + fisrtCharUpper + ")\\\n");
+		if ((isStream || isResource || isComponent) && !isAbstract) {
+			Output.append(".addStaticFunction(\"objectType\", &" + Cls[i].name + "::getObjectType)\\\n");
 
 			if (isComponent) {
 				Output.append(".addProperty(\"name\", &" + Cls[i].name + "::getName)\\\n");
@@ -2580,7 +2562,7 @@ void implEnum(std::string &Output, std::vector<std::pair<std::string, std::strin
 	// lua binding
 	Output.append("void Internal::Register" + EnumName + "::bindToLua(lua_State *Lua){\n"
 				  "if (Lua != nullptr) {\n"
-				  "LuaIntf::LuaBinding(Lua).beginModule(\"kite\")\n"
+				  "LuaIntf::LuaBinding(Lua).beginModule(\"k\")\n"
 				  ".beginModule(\"" + EnumName + "\")\n");
 	for (size_t i = 0; i < Types.size(); ++i) {
 		transform(Types[i].second.begin(), Types[i].second.end(), Types[i].second.begin(), ::toupper);
@@ -2626,8 +2608,7 @@ void createEnumTypesHead(std::string &Output, const std::vector<MClass> &Cls) {
 	std::vector<std::string> reslist; // resources
 	std::vector<std::string> syslist; // systems
 	std::vector<std::string> interfacelist;
-	std::vector<std::string> istreamlist;
-	std::vector<std::string> ostreamlist;
+	std::vector<std::string> streamlist;
 	for (size_t i = 0; i < Cls.size(); i++) {
 		if (Cls[i].type & CT_COMPONENT && !(Cls[i].type & CT_ABSTRACT)) {
 			for (size_t count = 0; count < Cls[i].infos.size(); ++count) {
@@ -2656,19 +2637,10 @@ void createEnumTypesHead(std::string &Output, const std::vector<MClass> &Cls) {
 			continue;
 		}
 
-		if (Cls[i].type & CT_ISTREAM && !(Cls[i].type & CT_ABSTRACT)) {
+		if (Cls[i].type & CT_STREAM && !(Cls[i].type & CT_ABSTRACT)) {
 			for (size_t count = 0; count < Cls[i].infos.size(); ++count) {
 				if (Cls[i].infos[count].key == "KI_NAME") {
-					istreamlist.push_back(Cls[i].infos[count].info );
-				}
-			}
-			continue;
-		}
-
-		if (Cls[i].type & CT_OSTREAM && !(Cls[i].type & CT_ABSTRACT)) {
-			for (size_t count = 0; count < Cls[i].infos.size(); ++count) {
-				if (Cls[i].infos[count].key == "KI_NAME") {
-					ostreamlist.push_back(Cls[i].infos[count].info );
+					streamlist.push_back(Cls[i].infos[count].info );
 				}
 			}
 			continue;
@@ -2696,11 +2668,8 @@ void createEnumTypesHead(std::string &Output, const std::vector<MClass> &Cls) {
 	if (!interfacelist.empty()) {
 		defEnum(Output, interfacelist, INT_ENUM_NAME);
 	}
-	if (!istreamlist.empty()) {
-		defEnum(Output, istreamlist, ISTREAM_ENUM_NAME);
-	}
-	if (!ostreamlist.empty()) {
-		defEnum(Output, ostreamlist, OSTREAM_ENUM_NAME);
+	if (!streamlist.empty()) {
+		defEnum(Output, streamlist, STREAM_ENUM_NAME);
 	}
 
 	Output.append("}\n#endif // KMETATYPES_H");
@@ -2721,8 +2690,7 @@ void createEnumTypesSource(std::string &Output, const std::vector<MClass> &Cls) 
 	std::vector<std::pair<std::string, std::string>> syslist;
 	std::vector<std::pair<std::string, std::string>> reslist;
 	std::vector<std::pair<std::string, std::string>> interfacelist;
-	std::vector<std::pair<std::string, std::string>> istreamlist;
-	std::vector<std::pair<std::string, std::string>> ostreamlist;
+	std::vector<std::pair<std::string, std::string>> streamlist;
 	for (size_t i = 0; i < Cls.size(); i++) {
 		if (Cls[i].type & CT_COMPONENT && !(Cls[i].type & CT_ABSTRACT)) {
 			for (size_t count = 0; count < Cls[i].infos.size(); ++count) {
@@ -2760,23 +2728,15 @@ void createEnumTypesSource(std::string &Output, const std::vector<MClass> &Cls) 
 			continue;
 		}
 
-		if (Cls[i].type & CT_ISTREAM && !(Cls[i].type & CT_ABSTRACT)) {
+		if (Cls[i].type & CT_STREAM && !(Cls[i].type & CT_ABSTRACT)) {
 			for (size_t count = 0; count < Cls[i].infos.size(); ++count) {
 				if (Cls[i].infos[count].key == "KI_NAME") {
-					istreamlist.push_back({ Cls[i].name ,Cls[i].infos[count].info });
+					streamlist.push_back({ Cls[i].name ,Cls[i].infos[count].info });
 				}
 			}
 			continue;
 		}
 
-		if (Cls[i].type & CT_OSTREAM && !(Cls[i].type & CT_ABSTRACT)) {
-			for (size_t count = 0; count < Cls[i].infos.size(); ++count) {
-				if (Cls[i].infos[count].key == "KI_NAME") {
-					ostreamlist.push_back({ Cls[i].name ,Cls[i].infos[count].info });
-				}
-			}
-			continue;
-		}
 	}
 
 	if (!comlist.empty()) {
@@ -2795,12 +2755,8 @@ void createEnumTypesSource(std::string &Output, const std::vector<MClass> &Cls) 
 		implEnum(Output, interfacelist, INT_ENUM_NAME);
 	}
 
-	if (!istreamlist.empty()) {
-		implEnum(Output, istreamlist, ISTREAM_ENUM_NAME);
-	}
-
-	if (!ostreamlist.empty()) {
-		implEnum(Output, ostreamlist, OSTREAM_ENUM_NAME);
+	if (!streamlist.empty()) {
+		implEnum(Output, streamlist, STREAM_ENUM_NAME);
 	}
 
 	Output.append("}\n");
@@ -2868,12 +2824,11 @@ void createHeader(const std::vector<std::string> &Files, const std::vector<MClas
 	}
 	Output.append(COM_ENUM_NAME + "_META()\\\n");
 	Output.append(RES_ENUM_NAME + "_META()\\\n");
-	Output.append(ISTREAM_ENUM_NAME + "_META()\\\n");
-	Output.append(OSTREAM_ENUM_NAME + "_META()\n\n");
+	Output.append(STREAM_ENUM_NAME + "_META()\\\n");
 	// end of meta
 
 	// lua binding
-	Output.append("#define LUA_BIND(LSTATE) \\\n");
+	Output.append("\n#define LUA_BIND(LSTATE) \\\n");
 	for (size_t i = 0; i < Cls.size(); i++) {
 		if (!Cls[i].templ.empty() && !Cls[i].templType.empty()) {
 			for (size_t count = 0; count < Cls[i].templ.size(); ++count) {
@@ -2899,7 +2854,7 @@ void createHeader(const std::vector<std::string> &Files, const std::vector<MClas
 	// res/components list
 	std::vector<std::pair<std::string, std::string>> comList; // <name, cname>
 	std::vector<std::pair<std::string, std::string>> resList; // <name, cname>
-	std::vector<std::pair<std::string, std::string>> istreamList; // <name, cname>
+	std::vector<std::pair<std::string, std::string>> streamList; // <name, cname>
 	for (size_t i = 0; i < Cls.size(); i++) {
 
 		if (Cls[i].type & CT_COMPONENT && !(Cls[i].type & CT_ABSTRACT)) {
@@ -2922,11 +2877,11 @@ void createHeader(const std::vector<std::string> &Files, const std::vector<MClas
 			}
 		}
 
-		if (Cls[i].type & CT_ISTREAM && !(Cls[i].type & CT_ABSTRACT)) {
+		if (Cls[i].type & CT_STREAM && !(Cls[i].type & CT_ABSTRACT)) {
 			for (size_t count = 0; count < Cls[i].infos.size(); ++count) {
 				if (Cls[i].infos[count].key == "KI_NAME") {
-					istreamList.push_back({ Cls[i].name , Cls[i].infos[count].info });
-					transform(istreamList.back().second.begin(), istreamList.back().second.end(), istreamList.back().second.begin(), ::toupper);
+					streamList.push_back({ Cls[i].name , Cls[i].infos[count].info });
+					transform(streamList.back().second.begin(), streamList.back().second.end(), streamList.back().second.begin(), ::toupper);
 					break;
 				}
 			}
@@ -2970,9 +2925,9 @@ void createHeader(const std::vector<std::string> &Files, const std::vector<MClas
 	Output.append("\n");
 
 	// stream factory
-	Output.append("#define ISTREAM_FACTORY\\\n");
+	Output.append("#define STREAM_FACTORY\\\n");
 	sep.clear();
-	for (auto it = istreamList.begin(); it != istreamList.end(); ++it) {
+	for (auto it = streamList.begin(); it != streamList.end(); ++it) {
 		Output.append(sep + " {" + it->first + "::factory}\\\n");
 		sep = ",";
 	}

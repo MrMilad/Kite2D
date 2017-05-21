@@ -146,37 +146,37 @@ namespace Kite{
 
 		/// distance only coded for 2D
 		KM_FUN()
-		static inline T distance(const KVector2<T> &v1, const KVector2<T> &v2) {
-			return (T)sqrt((v2.x - v1.x)*(v2.x - v1.x) + (v2.y - v1.y)*(v2.y - v1.y));
+		inline T distance(const KVector2<T> &v2) const {
+			return (T)sqrt((v2.x - x)*(v2.x - x) + (v2.y - y)*(v2.y - y));
 		}
 
 		/// Vector3 length is distance from the origin
-		KM_FUN()
-		static inline T length(const KVector2<T> &v) {
-			return (T)sqrt(v.x*v.x + v.y*v.y);
+		KM_PRO_GET(KP_NAME = "length", KP_TYPE = T)
+		inline T length() const {
+			return (T)sqrt(x*x + y*y);
 		}
 
 		/// dot/scalar product: difference between two directions
 		KM_FUN()
-		static inline T dotProduct(const KVector2<T> &v1, const KVector2<T> &v2) {
-			return (v1.x*v2.x + v1.y*v2.y);
+		inline T dotProduct(const KVector2<T> &v2) const {
+			return (x*v2.x + y*v2.y);
 		}
 
 		KM_FUN()
-		static inline T perpDot(const KVector2<T> &v1, const KVector2<T> &v2) {
-			return (v1.y * v2.x) - (v1.x * v2.y);
+		inline T perpDot(const KVector2<T> &v2) const {
+			return (y * v2.x) - (x * v2.y);
 		}
 
 		/// calculate normal angle of the Vector
-		KM_FUN()
-		static inline KVector2<T> normal(const KVector2<T> &v) {
-			KD_ASSERT((length(v) == 0));
-			T len = 1 / length(v);
-			return KVector2<T>((v.x * len), (v.y * len));
+		KM_PRO_GET(KP_NAME = "length", KP_TYPE = T)
+		inline KVector2<T> normal() const{
+			KD_ASSERT((length() == 0));
+			T len = 1 / length();
+			return KVector2<T>((x * len), (y * len));
 		}
 
 		KM_FUN()
-		static inline void move(KVector2<T>& v, T mx, T my) { v.x += mx; v.y += my; }
+		inline void move(T mx, T my) { x += mx; y += my; }
 
 		private:
 			KM_OPE(KO_ADD)
@@ -255,11 +255,39 @@ namespace Kite{
 		KM_FUN()
 		bool overlapRect(const KRect<T> &Rect) const {
 			if (valueInRange(left, Rect.left, Rect.right) || valueInRange(Rect.left, left, right)) {
-				if (valueInRange(bottom, Rect.bottom, Rect.top) || valueInRange(Rect.bottom, bottom, Rect.top)) {
+				if (valueInRange(bottom, Rect.bottom, Rect.top) || valueInRange(Rect.bottom, bottom, top)) {
 					return true;
 				}
 			}
 			return false;;
+		}
+
+		KM_FUN()
+		bool intersectLine(const KVector2F32 &LineStart, const KVector2F32 &LineEnd) const {
+			if (lineIntersect(LineStart, LineEnd, KVector2F32((F32)left, (F32)bottom), KVector2F32((F32)right, (F32)bottom))) return true;
+			if (lineIntersect(LineStart, LineEnd, KVector2F32((F32)left, (F32)top), KVector2F32((F32)right, (F32)top))) return true;
+			if (lineIntersect(LineStart, LineEnd, KVector2F32((F32)left, (F32)bottom), KVector2F32((F32)left, (F32)top))) return true;
+			if (lineIntersect(LineStart, LineEnd, KVector2F32((F32)right, (F32)bottom), KVector2F32((F32)right, (F32)top))) return true;
+			return false;
+		}
+
+		KM_FUN()
+		bool intersectCircle(const KVector2F32 &Center, float Radius) const {
+			float testX = Center.x;
+			float testY = Center.y;
+			const float width = (F32)right - (F32)left;
+			const float height = (F32)top - (F32)bottom;
+
+			if (testX < left)
+				testX = left;
+			if (testX >(left + width))
+				testX = (left + width);
+			if (testY < bottom)
+				testY = bottom;
+			if (testY >(bottom + height))
+				testY = (bottom + height);
+
+			return ((Center.x - testX) * (Center.x - testX) + (Center.y - testY) * (Center.y - testY)) < Radius * Radius;
 		}
 
 		inline void operator+=(const KVector2<T>& Right) {
@@ -297,6 +325,29 @@ namespace Kite{
 		}
 
 	private:
+		bool lineIntersect(const KVector2F32 &Line1Start, const KVector2F32 &Line1End,
+									   const KVector2F32 &Line2Start, const KVector2F32 &Line2End,
+									   KVector2F32 *OutPoint = nullptr) {
+			float s1_x, s1_y, s2_x, s2_y;
+			s1_x = Line1End.x - Line1Start.x;     s1_y = Line1End.y - Line1Start.y;
+			s2_x = Line2End.x - Line2Start.x;     s2_y = Line2End.y - Line2Start.y;
+
+			float s, t;
+			s = (-s1_y * (Line1Start.x - Line2Start.x) + s1_x * (Line1Start.y - Line2Start.y)) / (-s2_x * s1_y + s1_x * s2_y);
+			t = (s2_x * (Line1Start.y - Line2Start.y) - s2_y * (Line1Start.x - Line2Start.x)) / (-s2_x * s1_y + s1_x * s2_y);
+
+			if (s >= 0 && s <= 1 && t >= 0 && t <= 1) {
+				// Collision detected
+				if (OutPoint != nullptr) {
+					OutPoint->x = Line1Start.x + (t * s1_x);
+					OutPoint->y = Line1Start.y + (t * s1_y);
+				}
+				return true;
+			}
+
+			return false; // No collision
+		}
+
 		inline bool valueInRange(T Value, T Min, T Max) const {
 			return (Value >= Min) && (Value <= Max);
 		}
@@ -348,6 +399,24 @@ namespace Kite{
 							 rightBottom - right, rightTop - right);
 		}
 
+		KM_FUN()
+		bool continePoint(const KVector2F32 &Point) {
+			U32 i, j;
+			KVector2F32 Points[4];
+			bool c = false;
+			Points[0] = Box.leftBottom;
+			Points[1] = Box.leftTop;
+			Points[2] = Box.rightTop;
+			Points[3] = Box.rightBottom;
+
+			for (i = 0, j = 4 - 1; i < 4; j = i++) {
+				if (((Points[i].y > HitPoint.y) != (Points[j].y > HitPoint.y)) &&
+					(HitPoint.x < (Points[j].x - Points[i].x) * (HitPoint.y - Points[i].y) / (Points[j].y - Points[i].y) + Points[i].x))
+					c = !c;
+			}
+			return c;
+		}
+
 	};
 
 	typedef KRect2<U8>  KRect2U8;
@@ -381,6 +450,19 @@ namespace Kite{
 			if (rotation != Right.rotation) return false;
 			return true;
 		}
+	};
+
+	KM_CLASS(POD)
+	struct KParallaxIndex {
+		KM_INFO(KI_NAME = "ParallaxIndex");
+		KPARALLAXINDEX_BODY();
+
+		KM_VAR() bool enable;
+		KM_VAR() U8 index;
+
+		KM_CON(bool, U8)
+		KParallaxIndex(bool Enable = false, U8 Index = 0) :
+			enable(Enable), index(Index) {}
 	};
 }
 

@@ -38,7 +38,7 @@ KMETA
 namespace Kite{
 	KM_CLASS(POD)
 	struct KRenderState {
-		KMETA_KRENDERSTATE_BODY();
+		KRENDERSTATE_BODY();
 
 		KM_VAR() bool camDepth;
 		KM_VAR() U32 vertexSize;
@@ -60,7 +60,7 @@ namespace Kite{
 	KM_CLASS(POD)
 	struct KColor{
 		friend class KRenderSys;
-		KMETA_KCOLOR_BODY();
+		KCOLOR_BODY();
 	//! Construct the color from its 4 RGBA components.
 	/*!
 	Range [0 to 255]
@@ -235,7 +235,7 @@ namespace Kite{
 	*/
 	KM_CLASS(POD)
 	struct KAtlasItem{
-		KMETA_KATLASITEM_BODY();
+		KATLASITEM_BODY();
 
 		KM_VAR() U32 id;	//!< Unique ID
 		KM_VAR() F32 blu;	//!< Bottom-left U texture position with range [0, 1]
@@ -301,7 +301,7 @@ namespace Kite{
 
 	KM_CLASS(POD)
 	struct KGlyphMarker {
-		KMETA_KGLYPHMARKER_BODY();
+		KGLYPHMARKER_BODY();
 
 		KM_VAR() char character;
 		KM_VAR() U32 atlasID;
@@ -544,7 +544,7 @@ namespace Kite{
 
 	KM_CLASS(POD)
 	struct KOrthoLayer {
-		KMETA_KORTHOLAYER_BODY();
+		KORTHOLAYER_BODY();
 		KM_VAR() KColor blend;
 		KM_VAR() KAtlasItem atlas;
 		KM_VAR() U16 textureID;
@@ -564,7 +564,7 @@ namespace Kite{
 
 	KM_CLASS(POD)
 	struct KOrthoNode {
-		KMETA_KORTHONODE_BODY();
+		KORTHONODE_BODY();
 		KM_VAR(UNBIND) bool fliph;
 		KM_VAR(UNBIND) bool flipv;
 		KM_VAR(UNBIND) U16 layerIndex;
@@ -588,7 +588,7 @@ namespace Kite{
 
 	KM_CLASS(POD)
 	struct KRootTileMap {
-		KMETA_KROOTTILEMAP_BODY();
+		KROOTTILEMAP_BODY();
 
 		KM_VAR() SIZE firstNode;
 		KM_VAR() U16 layerSize;
@@ -599,7 +599,7 @@ namespace Kite{
 
 	KM_CLASS(POD)
 	struct KTileStamp {
-		KMETA_KTILESTAMP_BODY();
+		KTILESTAMP_BODY();
 
 		KM_VAR() KAtlasItem atlas;
 		KM_VAR() I16 row;	// releative row to anchor row (-+)

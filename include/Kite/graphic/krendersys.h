@@ -20,11 +20,10 @@
 #ifndef KRENDERSYS_H
 #define KRENDERSYS_H
 
-KM_IGNORED
-
 #include "Kite/core/kcoredef.h"
 #include "Kite/meta/kmetadef.h"
 #include "Kite/graphic/kgraphicstructs.h"
+#include "Kite/ecs/ksystem.h"
 #include <vector>
 #include "krendersys.khgen.h"
 
@@ -37,7 +36,6 @@ KMETA
 namespace Kite{
 	class KCameraCom;
 	class KRenderable;
-	class KRenderCom;
 	class KShaderProgram;
 	class KGCullingSys;
 	class KVertexArray;
@@ -51,11 +49,26 @@ namespace Kite{
 		KM_INFO(KI_NAME = "Render");
 		KRENDERSYS_BODY();
 	public:
-		bool update(F64 Delta, KEntityManager *EManager, KResourceManager *RManager) override;
+		KRenderSys();
+		~KRenderSys();
 
-		bool inite(void *Data) override;
+		void reset(KEngine *Engine) override;
 
-		void destroy() override;
+		bool update(F64 Delta) override;
+
+		void nodeAdded(KNode *Node) override;
+
+		void nodeRemoved(KNode *Node) override;
+
+		void componentAdded(KComponent *Com) override;
+
+		void componentRemoved(KComponent *Com) override;
+
+		KM_PRO_GET(KP_NAME = "activeCulling", KP_TYPE = bool, KP_CM = "enable\disable object culling")
+		inline bool isActiveCulling() const { return _kuseCull; }
+
+		KM_PRO_SET(KP_NAME = "activeCulling")
+		inline void setActiveCulling(bool Culling) { _kuseCull = Culling; }
 
 	private:
 		void _initeFrameBuffer(KAtlasTextureArray *Texture, U32 Index); // render to texture
@@ -68,16 +81,16 @@ namespace Kite{
 		static void _updateVer(void *Data, U32 Offset, U32 DataSize, void *Sender);
 		//static void _updatePar(void *Data, U32 Offset, U32 DataSize, void *Sender);
 		
+		bool _kuseCull;
 		KVertexArray *_kvao;
 		KVertexBuffer *_kvboInd;		/// index
 		KVertexBuffer *_kvboVer;		/// xy (position)
 		KVertexBuffer *_kvboPnt;		/// point sprite: point size and texture size (usage: Particle)
 		KFrameBuffer *_kfbo;			/// render to texture
 		KRenderState _kconfig;
-
 		Internal::KGLState _klastState;
-
 		KGCullingSys *_kcullSys;
+		std::vector<KCameraCom *> _kcamList;
 
 		struct updateData {
 			std::vector<KRenderable *> objects;

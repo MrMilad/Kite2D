@@ -33,7 +33,7 @@ namespace Kite {
 		KM_INFO(KI_NAME = "InputSystem");
 		KINPUTSYS_BODY();
 	public:
-		void reset(KNode *Hierarchy, KSysInite *IniteData) override;
+		void reset(KEngine *Engine) override;
 
 		bool update(F64 Delta) override;
 

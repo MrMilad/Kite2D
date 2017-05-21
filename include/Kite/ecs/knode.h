@@ -22,8 +22,7 @@ USA
 
 #include "Kite/core/kcoredef.h"
 #include "Kite/core/kcorestructs.h"
-#include "Kite/core/kistream.h"
-#include "Kite/core/kostream.h"
+#include "Kite/stream/kiostream.h"
 #include "Kite/meta/kmetadef.h"
 #include "Kite/ecs/kecstypes.h"
 #include "Kite/ecs/kecsstructs.h"
@@ -93,6 +92,7 @@ namespace Kite {
 		KNODE_BODY();
 	public:
 		/// this constructure will create a root node
+		/// supported by lua
 		KNode(const std::string &Name);
 
 		KNode(const KNode &CopyNode) = delete;
@@ -101,7 +101,7 @@ namespace Kite {
 		/// will be called recursive if there are attached childs 
 		~KNode();
 
-		bool saveStream(KOStream &Stream, const std::string &Address) override;
+		bool saveStream(KIOStream &Stream, const std::string &Address) override;
 
 		KM_PRO_GET(KP_NAME = "parent", KP_TYPE = KHandle, KP_CM = "parent of the node")
 		inline KNode *getParent() const { return _kparent; }
@@ -238,6 +238,9 @@ namespace Kite {
 		KM_FUN(KP_NAME = "getChilds")
 		int luaGetChild(lua_State *L);
 
+		KM_FUN(KP_NAME = "__call")
+		static int luaConstruct(lua_State *L);
+
 		void serial(KBaseSerial &Serializer);
 		void deserial(KBaseSerial &Serializer, KResourceManager *RMan);
 		void initeSlots();
@@ -252,7 +255,7 @@ namespace Kite {
 		void _remComponent(KComponent *Com);
 
 		// initialize on deserialization stage (recursive)
-		bool _loadStream(std::unique_ptr<KIStream> Stream, KResourceManager *RManager) override;
+		bool _loadStream(std::unique_ptr<KIOStream> Stream, KResourceManager *RManager) override;
 
 		// deserializable variable
 		bool _kactive;

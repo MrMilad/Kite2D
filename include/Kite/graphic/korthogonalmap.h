@@ -21,7 +21,7 @@ USA
 #define KORTHOGONALMAP_H
 
 #include "Kite/core/kcoredef.h"
-#include "Kite/core/kresource.h"
+#include "Kite/ecs/kresource.h"
 #include "Kite/math/kmathstructs.h"
 #include "Kite/graphic/kgraphicstructs.h"
 #include "Kite/graphic/korthotilestamp.h"
@@ -41,11 +41,9 @@ namespace Kite {
 	KM_CLASS(RESOURCE)
 	class KITE_FUNC_EXPORT KOrthogonalMap : public KResource {
 		KM_INFO(KI_NAME = "OrthogonalMap");
-		KMETA_KORTHOGONALMAP_BODY();
+		KORTHOGONALMAP_BODY();
 	public:
 		KOrthogonalMap(const std::string &Name);
-
-		bool inite() override;
 
 		KM_FUN()
 		void create(U32 Width, U32 Height, U32 TileWidth, U32 TileHeight);

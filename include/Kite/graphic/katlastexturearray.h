@@ -24,7 +24,7 @@ USA
 #include "Kite/ecs/kresource.h"
 #include "Kite/meta/kmetadef.h"
 #include "Kite/graphic/kgraphictypes.h"
-#include "Kite/graphic/katlastexture.h"
+#include "Kite/graphic/katlasimage.h"
 #include "katlastexturearray.khgen.h"
 #include <map>
 
@@ -36,42 +36,67 @@ namespace Kite {
 
 	KM_CLASS(RESOURCE)
 	class KITE_FUNC_EXPORT KAtlasTextureArray : public KResource {
-		KM_INFO(KI_NAME = "TextureGroup");
+		KM_INFO(KI_NAME = "AtlasTextureArray");
 		KATLASTEXTUREARRAY_BODY();
 	public:
-		KAtlasTextureArray(const std::string &Name);
+		KAtlasTextureArray(const KSharedResource &AtlasImage);
 		~KAtlasTextureArray();
 
-		bool inite() override;
+		KAtlasTextureArray() = delete;
+		KAtlasTextureArray(const KAtlasTextureArray &Copy) = delete;
+		KAtlasTextureArray &operator=(const KAtlasTextureArray &Right) = delete;
 
-		// diffrent size = clearing continer
-		void setTextureSize(const KVector2U32 &Size);
+		bool saveStream(KIOStream &Stream, const std::string &Address) override;
 
-		inline U32 getTextureWidth() const { return _ksize.x; }
+		KM_PRO_GET(KP_NAME = "width", KP_TYPE = U32)
+		inline U32 getWidth() const { return _ksize.x; }
 
-		inline U32 getTextureHeight() const { return _ksize.y; }
+		KM_PRO_GET(KP_NAME = "height", KP_TYPE = U32)
+		inline U32 getHeight() const { return _ksize.y; }
 
-		inline const KVector2U32 &getTextureSize() const { return _ksize; }
+		KM_PRO_GET(KP_NAME = "size", KP_TYPE = KVector2U32)
+		inline const KVector2U32 &getSize() const { return _ksize; }
 
-		bool addItem(KAtlasTexture *Atlas);
+		/// return item id
+		/// return 0 if there is no image attached to atlas
+		/// return 0 if atlas image size is not correct size
+		KM_FUN()
+		U32 addItem(const KSharedResource &AtlasImage);
 
-		inline const KAtlasTexture *getItem(U32 ID) const { if (ID < _karray.size()) return _karray.at(ID); return nullptr; }
+		/// 0 reserved for default item
+		KM_FUN()
+		KSharedResource getItem(U32 ID) const;
 
-		inline void clearItems() { _karray.clear(); }
+		/// clear all items but default
+		KM_FUN()
+		void clearItems();
 
-		inline U32 getSize() const { return _karray.size(); }
+		KM_PRO_GET(KP_NAME = "itemSize", KP_TYPE = U32)
+		inline U32 getItemSize() const { return _kimageArray.size(); }
 
+		KM_PRO_GET(KP_NAME = "textureFilter", KP_TYPE = TextureFilter)
 		inline TextureFilter getFilter() const { return _kfilter; }
 
+		KM_PRO_GET(KP_NAME = "textureWrap", KP_TYPE = TextureWrap)
 		inline TextureWrap getWrap() const { return _kwrap; }
 
+		KM_PRO_GET(KP_NAME = "glID", KP_TYPE = U32)
 		inline U32 getGLID() const { return _ktexId; }
 
+		KM_PRO_SET(KP_NAME = "textureFilter")
 		void setFilter(TextureFilter Filter);
 
+		KM_PRO_SET(KP_NAME = "textureWrap")
 		void setWrap(TextureWrap Wrap);
 
-		void bind() const;
+		KM_PRO_SET(KP_NAME = "cleanUpImage")
+		void setCleanupImage(bool CleanUp);
+
+		KM_PRO_GET(KP_NAME = "cleanUpImage", KP_TYPE = bool, KP_CM = "clean up atlas image after creating ogl texture")
+		inline bool getCleanUpImage() const { return _kclearImage; }
+
+		/// opengl texture will created in the first time bind
+		bool bind();
 
 		void unbind();
 
@@ -79,22 +104,27 @@ namespace Kite {
 		static void unbindTextureArray();
 
 #if defined(KITE_EDITOR)
-		inline auto getContiner() { return &_karray; }
+		inline auto getContiner() { return &_kimageArray; }
 #endif
 
 	private:
-		bool _saveStream(KOStream &Stream, const std::string &Address) override;
-		bool _loadStream(KIStream &Stream, const std::string &Address) override;
+		KAtlasTextureArray(const std::string &Name, const std::string &Address);
+
+		KM_FUN(KP_NAME = "__call")
+		static KSharedResource luaConstruct(const KSharedResource &AtlasImage);
+
+		bool _loadStream(std::unique_ptr<KIOStream> Stream, KResourceManager *RManager) override;
 
 		//! create the texture (opengl)
-		static void _create(const U8 *Data, const KVector2U32 &Size,
-							TextureFilter Filter, TextureWrap Wrap, KAtlasTextureArray *Instance);
+		bool _create();
 
+		bool _kclearImage;
+		bool _kisCreated;
 		U32 _ktexId;			//!< ogl array texture name
 		KVector2U32 _ksize;
 		TextureFilter _kfilter;	//!< Texture interpolation
 		TextureWrap _kwrap;		//!< Texture wrapping
-		std::vector<KAtlasTexture *> _karray;
+		std::vector<KSharedResource> _kimageArray;
 		static U32 _klastTexId;	//!< Static last texture ID
 	};
 }

@@ -20,6 +20,7 @@ USA
 #include "Kite/engine/kengine.h"
 #include "Kite/engine/kenginedef.h"
 #include "Kite/serialization/kserialization.h"
+#include "Kite/stream/kfilestream.h"
 #include "Kite/serialization/types/kstdstring.h"
 #include "Kite/input/kinput.h"
 #include "kmeta.khgen.h"
@@ -50,11 +51,10 @@ namespace Kite {
 		KKeyboard::initeKeyboard();
 		KMouse::initeMouse();
 
-		// create systems
-		_ksysInite.lstate = nullptr;
-		_ksysInite.window = _kwindow;
+		// calcualte frame time
 		if (_kconfig.window.fixFPS) { _kmaxMilli = 1000 / _kconfig.window.maxFPS; }
 
+		// create systems
 		CREATE_SYSTEMS(_ksys);
 
 		// sort systems by priority
@@ -82,7 +82,7 @@ namespace Kite {
 
 		// load dictionary
 		if (!_kconfig.start.dictionary.empty()) {
-			KFIStream stream;
+			KFileStream stream;
 			if (!_krman->loadDictionary(stream, _kconfig.start.dictionary)) {
 				_kinite = false;
 				throw std::string("can't load dictinary. name: " + _kconfig.start.dictionary);
@@ -156,6 +156,17 @@ namespace Kite {
 		return true;
 	}
 
+	void KEngine::recursiveHierarchyScan(KNode *Hierarchy) {
+		// notify parrent
+		for (U16 i = 0; i < (U16)System::maxSize; ++i) {
+			_ksys[(U16)_ksysOrder[i]]->nodeAdded(Hierarchy);
+		}
+
+		// check childs
+		for (auto it = Hierarchy->childList()->begin(); it != Hierarchy->childList()->end(); ++it) {
+			recursiveHierarchyScan((*it));
+		}
+	}
 
 	void KEngine::swapHierarchy() {
 
@@ -186,8 +197,11 @@ namespace Kite {
 
 		// reset systems
 		for (U16 i = 0; i < (U16)System::maxSize; ++i) {
-			_ksys[(U16)_ksysOrder[i]]->reset(node, &_ksysInite);
+			_ksys[(U16)_ksysOrder[i]]->reset(this);
 		}
+
+		// scan new hierarchy
+		recursiveHierarchyScan(node->getRoot());
 
 		// close old lua state
 		if (temp) {
@@ -205,7 +219,7 @@ namespace Kite {
 		LUA_BIND(_klstate);
 
 		// bind engine
-		LuaIntf::LuaBinding(_klstate).beginModule("kite").beginClass<KEngine>("kengine")
+		LuaIntf::LuaBinding(_klstate).beginModule("k").beginClass<KEngine>("kengine")
 			.addPropertyReadOnly("Window", &KEngine::getWindow)
 			.addPropertyReadOnly("Manager", &KEngine::getResourceManager)
 			.addFunction("switchActiveHierarchy", &KEngine::setActiveHierarchy)
@@ -222,8 +236,7 @@ namespace Kite {
 		}
 
 		// add engine instance to lua
-		LuaIntf::LuaRef::globals(_klstate).get("kite").set("Engine", this);
-		_ksysInite.lstate = _klstate;
+		LuaIntf::LuaRef::globals(_klstate).get("k").set("Engine", this);
 	}
 
 	void KEngine::start() {

@@ -33,10 +33,9 @@ namespace Kite {
 		KM_INFO(KI_NAME = "Script");
 		KSCRIPT_BODY();
 	public:
-		KScript(const std::string &Name, const std::string &Address);
 
 		KM_FUN()
-		bool saveStream(KOStream &Stream, const std::string &Address) override;
+		bool saveStream(KIOStream &Stream, const std::string &Address) override;
 
 		KM_PRO_SET(KP_NAME = "code")
 		inline void setCode(const std::string &Code) { _kcode = Code;}
@@ -45,8 +44,8 @@ namespace Kite {
 		inline const std::string &getCode() const { return _kcode; }
 
 	private:
-
-		bool _loadStream(std::unique_ptr<KIStream> Stream, KResourceManager *RManager) override;
+		KScript(const std::string &Name, const std::string &Address);
+		bool _loadStream(std::unique_ptr<KIOStream> Stream, KResourceManager *RManager) override;
 		std::string _kcode;
 	};
 }

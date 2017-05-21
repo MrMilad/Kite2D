@@ -23,8 +23,7 @@
 #include "Kite/core/kcoredef.h"
 #include "Kite/core/kcoretypes.h"
 #include "Kite/core/kcorestructs.h"
-#include "Kite/core/kistream.h"
-#include "Kite/core/kostream.h"
+#include "Kite/stream/kiostream.h"
 #include "Kite/meta/kmetadef.h"
 #include <cstring>
 #include <vector>
@@ -41,8 +40,9 @@ namespace Kite{
 		KM_INFO(KI_NAME = "ResourceBase");
 		KRESOURCE_BODY();
 	public:
-		/// all drived resources can constructed inside an SharedResource in lua
-		KResource(const std::string &Name, const std::string &Address);
+		/// all drived resources will be constructed inside an SharedResource in lua
+		KResource(); // constructed resource by user
+		KResource(const std::string &Name, const std::string &Address); // constructed resource by manager
 
 		KResource() = delete;
 		KResource(const KResource &Copy) = delete;
@@ -51,19 +51,15 @@ namespace Kite{
 		virtual ~KResource();
 
 		KM_FUN()
-		virtual bool saveStream(KOStream &Stream, const std::string &Address) = 0;
+		virtual bool saveStream(KIOStream &Stream, const std::string &Address) = 0;
 
 		/// will be implemented by KHParser
-		KM_PRO_GET(KP_NAME = "drivedType", KP_TYPE = rtypes)
+		KM_PRO_GET(KP_NAME = "drivedObjectType", KP_TYPE = rtypes)
 		virtual inline Resource getDrivedType() const = 0;
 
 		/// will be implemented by KHParser
-		KM_PRO_GET(KP_NAME = "typeName", KP_TYPE = std::string)
+		KM_PRO_GET(KP_NAME = "objectTypeName", KP_TYPE = std::string)
 		virtual inline const std::string &getTypeName() const = 0;
-
-		/// will be implemented by KHParser
-		/// usage: access base in lua
-		//virtual KResource *getBase() const = 0;
 
 		KM_PRO_GET(KP_NAME = "resourceName", KP_TYPE = std::string)
 		inline const std::string &getResourceName() const { return _kname; }
@@ -77,7 +73,7 @@ namespace Kite{
 		// you can catch Stream (ex: stream lined resource) or free it
 		// use address variable for input address
 		// this fuction should be used only once and re-loading a resource object is not allowed (undefined behavior)
-		virtual bool _loadStream(std::unique_ptr<KIStream> Stream, KResourceManager *RManager) = 0;
+		virtual bool _loadStream(std::unique_ptr<KIOStream> Stream, KResourceManager *RManager) = 0;
 
 	private:
 		const std::string _kname;

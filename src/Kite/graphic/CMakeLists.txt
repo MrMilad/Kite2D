@@ -11,7 +11,6 @@ set(GFX_SRC
     ${SRCROOT}/kimage.cpp
     ${SRCROOT}/kshader.cpp
     ${SRCROOT}/kshaderprogram.cpp
-    ${SRCROOT}/ktexture.cpp
     ${SRCROOT}/kvertexarray.cpp
     ${SRCROOT}/kvertexbuffer.cpp
     ${SRCROOT}/kgraphictypes.cpp
@@ -19,8 +18,8 @@ set(GFX_SRC
     ${SRCROOT}/kcameracom.cpp
     ${SRCROOT}/kquadcom.cpp
     ${SRCROOT}/korthogonalmap.cpp
-    ${SRCROOT}/kgcullingsys.cpp
     #${SRCROOT}/korthomapcom.cpp
+    ${SRCROOT}/katlasimage.cpp
     ${SRCROOT}/katlastexture.cpp
     ${SRCROOT}/katlastexturearray.cpp
     ${SRCROOT}/korthotilestamp.cpp
@@ -40,7 +39,6 @@ set(GFX_INC
     ${INCROOT}/kimage.h
     ${INCROOT}/kshader.h
     ${INCROOT}/kshaderprogram.h
-    ${INCROOT}/ktexture.h
     ${INCROOT}/kvertexarray.h
     ${INCROOT}/kvertexbuffer.h
     ${INCROOT}/krendersys.h
@@ -48,13 +46,12 @@ set(GFX_INC
     ${INCROOT}/kcameracom.h
     ${INCROOT}/kquadcom.h
     ${INCROOT}/korthogonalmap.h
-    ${INCROOT}/kgcullingsys.h
     #${INCROOT}/korthomapcom.h
+    ${INCROOT}/katlasimage.h
     ${INCROOT}/katlastexture.h
     ${INCROOT}/katlastexturearray.h
     ${INCROOT}/korthotilestamp.h
     #${INCROOT}/kbitmaptextcom.h
-    ${INCROOT}/kcullable.h
     PARENT_SCOPE
 )
 

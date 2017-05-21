@@ -28,12 +28,9 @@ USA
 
 namespace Kite {
 
-	void KTransformSys::reset(KNode *Hierarchy, KSysInite *IniteData) {
+	void KTransformSys::reset(KEngine *Engine) {
 		// cleanup
 		_kcomList.resize(0);
-
-		// scan new hierarchy
-		scan(Hierarchy->getRoot());
 	}
 
 	bool KTransformSys::update(F64 Delta) {
@@ -74,13 +71,6 @@ namespace Kite {
 	void KTransformSys::nodeRemoved(KNode *Node) {
 		if (Node->hasComponent(Component::TRANSFORM)) {
 			componentRemoved(Node->getComponent(Component::TRANSFORM));
-		}
-	}
-
-	void KTransformSys::scan(KNode *Hierarchy) {
-		nodeAdded(Hierarchy);
-		for (auto it = Hierarchy->childList()->begin(); it != Hierarchy->childList()->end(); ++it) {
-			scan((*it));
 		}
 	}
 

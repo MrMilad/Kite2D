@@ -1,4 +1,4 @@
-![enter image description here](https://www.assembla.com//spaces/kite2d/documents/bi0eMQFQOr5OP8acwqEsg8/download/bi0eMQFQOr5OP8acwqEsg8)
+![enter image description here](http://bayanbox.ir/view/293520055367269915/kite2D-sc.png)
 ![enter image description here](http://bayanbox.ir/download/2842665579319043840/icon64.png)Kite2D Game Engine!
 ======================
 Kite2D is a free open-source multi-platform 2-dimensional Game Framework written in C++ by Milad Rasaneh and published under the LGPL license.
